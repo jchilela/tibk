@@ -1,0 +1,302 @@
+<style>
+
+.styled-table {
+    border-collapse: collapse;
+    font-size: 12px;
+    font-family: sans-serif;
+    Color : white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+
+.a6 {
+    font-family: sans-serif;
+    Color : white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+
+#grad1 {
+  height: 200px;
+  background-color: red; /* For browsers that do not support gradients */
+  background-image: linear-gradient(red, yellow);
+}
+
+a.1{text-decoration:none}
+a.2{text-decoration:underline}
+
+.formbutton{
+cursor:pointer;
+border:outset 1px #ccc;
+background:#ebebeb;
+color:#666;
+font-weight:bold;
+margin: 0;
+}
+
+.button {
+  display: inline-block;
+  padding: 2px 3px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #548c2f;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 2px #999;
+}
+
+.button:hover {background-color: #FF0000}
+
+.button:active {
+  background-color: #FF0000;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+span.a3{ display: inline-block;
+  width: 500px;
+  height: 300px;
+  padding: 33px;
+}
+
+
+.cabecalho {
+width:85%;
+margin-left: 40px;
+/*background-color:#f4f1e5;*/
+font: bold 12px verdana,arial,sans-serif;
+
+color: #9d8f8f;
+}
+
+.titulo{
+font-family: verdana,arial,sans-serif;
+font-size: 70%;
+color:#21341C;
+background-color:#D6E8BB;
+}
+
+.aaa:link {
+    color: RED;
+    text-decoration:none;
+}
+
+/* visited link */
+.aaa:visited{
+    font-family:Verdana;
+    font-size:22px;
+    color: RED;
+}
+
+/* mouse over link */
+.aaa:hover {
+    color: #FFFFFF;
+    text-decoration:none;
+    font: bold ;
+}
+
+/* selected link */
+.aaa:active {
+    color: RED;
+    text-decoration:none;
+}
+
+
+.aa:link {
+    color: #afa3a3;
+    text-decoration:none;
+}
+
+/* visited link */
+.aa:visited{
+    font-family:Verdana;
+    font-size:22px;
+    color: #afa3a3;
+}
+
+/* mouse over link */
+.aa:hover {
+    color: #FF0000;
+    text-decoration:none;
+    font: bold ;
+}
+
+/* selected link */
+.aa:active {
+    color: #FF9C10;
+    text-decoration:none;
+}
+
+.fortexto{
+font-family: arial,helvetica,verdana ;
+font-size: 90%;
+}
+
+/* unvisited link */
+a:link {
+    color: WHITE;
+    text-decoration:none;
+}
+
+/* visited link */
+a:visited {
+    color: WHITE;
+    text-decoration:none;
+}
+
+/* mouse over link */
+a:hover {
+    color: #FF0000;
+    text-decoration:none;
+    font: bold ;
+}
+
+/* selected link */
+a:active {
+    color: WHITE;
+    text-decoration:none;
+}
+</style>
+<style type="text/css">
+.abc
+{
+border: 1px;
+border-color: red;
+}
+
+.a4{
+  border-bottom: 1px solid #ddd;
+}
+
+
+h1.a1 {
+  color: #FF0000;
+  text-shadow: 1px 1px 1px blue, 0 0 30px black, 0 0 5px #FF9C10;
+}
+
+
+</style>
+{% load static %}
+
+<html>
+<head><title></title>
+<body style = "">
+
+{% load i18n %}
+
+{% language 'pt' %}
+{% load verificagrupo %}
+
+
+<table  border="0"  cellspacing="0" cellpadding="0" width="80%" align="Center" bgcolor="#FFFFFF" >
+<tr>
+<td valign="TOP">
+<div style="border:0px; background-color:#548c2f;padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
+<h1 class="a1"> CBA </h1>
+<h1 class="a1"> Terceira Igreja Baptista de Luanda </h1><br>
+</div>
+
+<div style="border:3px; padding-top:8px;background-color:#548c2f;padding-left:15px;font: 16px verdana,arial,sans-serif;">
+{% if user.is_authenticated %}
+<a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
+<a href="/tibl/gestao/actividades/1" target = "blank">Actividades<a> &nbsp;
+<a href="/tibl/gestao/escalas/1" target = "blank">Escalas<a> &nbsp;
+<a href="/tibl/gestao/departamentos/1" target = "blank">Departamentos<a> &nbsp;
+<a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
+<a href="/tibl/gestao/contasbancarias/1" target = "blank">Contas Bancárias</a> &nbsp;&nbsp;
+<a href="/tibl/gestao/bancos/1" target = "blank">Bancos</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/entradabancos/1" target = "blank">Entrada via banco</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/saidabancos/1" target = "blank">Saida via banco</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/entradascaixa/1" target = "blank">Entrada via caixa</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/saidascaixa/1" target = "blank">Saida via caixa</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/dizimosofertas/1" target = "blank">Dízimos e ofertas</a>&nbsp;&nbsp;
+{% if request.user|has_group:'administrador' %}
+<a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
+<a href="/tibl/gestao/mandatos/1" target = "blank">Mandatos</a>&nbsp;&nbsp;
+{% endif %}
+{% endif %}
+
+{% if user.is_authenticated %}
+
+<p><font face="verdana,arial,helvetica" size="3" color = "RED">Usuário on-line : <i>{{ user }}</i> | <a href="{% url 'logout' %}" class ="aaa" > Sair</a></font></p>
+{% else %}
+<p><font face="verdana,arial,helvetica" size="3" color = "RED">  <a href="{% url 'login' %}" class ="aaa" >Entrar</a></p>
+
+{% endif %}
+
+</div>
+</td>
+<td></td>
+
+</tr>
+<tr>
+<td colspan=2>
+<p><br></p>
+<p><br></p>
+
+
+{% block Titulo %} {% endblock %} 
+
+{% block content %} {% endblock %}
+
+{% if user.is_authenticated %}
+
+{% block Irmaos %} {% endblock %}
+{% block irmaosdetalhe %} {% endblock %}
+{% block Escalas %} {% endblock %}
+{% block Mandatos %} {% endblock %}
+{% block Ajudas %} {% endblock %}
+{% block ajudasdetalhe %} {% endblock %}
+{% block Cestas %} {% endblock %}
+{% block Bancos %}{% endblock %}
+{% block Contasbancarias %}{% endblock %}
+{% block Actividades %} {% endblock %}
+{% block Departamentos %} {% endblock %}
+{% block Dizimosofertas %} {% endblock %}
+{% block Saidabancos %} {% endblock %}
+{% block Entradasbanco %} {% endblock %}
+{% block Saidascaixa %} {% endblock %}
+{% block Entradascaixa %} {% endblock %}
+{% block Irmaodetalhado %} {% endblock %}
+{% block Ajudasdetalhado %} {% endblock %}
+{% block Bancosdetalhado %} {% endblock %}
+{% block Contasbancariasdetalhado %} {% endblock %}
+{% block Actividadesdetalhado %} {% endblock %}
+{% block Cestasdetalhado %} {% endblock %}
+{% block Departamentosdetalhado %} {% endblock %}
+{% block Dizimosofertasfiltradas %} {% endblock %}
+{% block Dizimosofertasdetalhado %} {% endblock %}
+{% block Saidascaixadetalhado %} {% endblock %}
+{% block Saidascaixafiltradas %} {% endblock %}
+{% block Entradascaixafiltradas %} {% endblock %}
+{% block Saidabancosfiltradas %} {% endblock %}
+{% block Saidabancosdetalhado %} {% endblock %}
+{% block Entradascaixadetalhado %} {% endblock %}
+{% block Entradasbancofiltradas %} {% endblock %}
+{% block Entradabancosdetalhado %} {% endblock %}
+
+
+{% block Irmaosfiltrados %} {% endblock %}
+{% block Contasbancariasfiltradas %} {% endblock %}
+{% block Actividadesfiltradas %} {% endblock %}
+
+{% block Formularioactualizacao %} {% endblock %}
+{% block Formulariocriacao %} {% endblock %}
+
+{% endif%}
+</td>
+</tr>
+</table>
+{%  endlanguage %}
+</body>
+</html>
+                                               

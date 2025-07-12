@@ -1,0 +1,37 @@
+{% extends 'index.html' %}
+{% block Cestasdetalhado %}
+
+{% load ajudatotal %}
+
+{% if registoachado %}
+<div align="center"><span class="a3">
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
+{% for x in registoachado %}
+<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" target ="bank"> <i>Eliminar</i></a>  |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" target ="bank"> <i>editar</i></a></td></td></tr>
+<tr class="fortexto"><td class="a4">Código:</td><td class="a4">{{ x.codigo }}</td></tr>
+<tr class="fortexto"><td class="a4">Valor disponiblizado:</td><td class="a4">{{ x.valordisponibilizado }}</td></tr>
+<tr class="fortexto"><td class="a4">Valor disponiblizado aos:</td><td class="a4">{{ x.Datadisponvalor }} </td></tr>
+<tr class="fortexto"><td class="a4">Observacao:</td><td class="a4">{{ x.observacao }} </td></tr>
+{% endfor %}
+</table>
+{% endif %}
+
+<br><br>
+{% if detalhecestas %}
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
+	<tr class="fortexto"><td colspan = 4 class="a4"><b>Composição</b></td></tr>
+{% for y in detalhecestas.all %}
+<tr class="fortexto"><td class="a4">{{ y.produto }}:</td><td class="a4">{{ y.quantidade }}</td><td class="a4">{{ y.precounitario }}</td><td class="a4">{{ y.subsoma }}</td></tr>
+{% endfor %}
+<tr class="fortexto"><td colspan = 4 align="right"><b>Total: Kzs {{ total }}</b></td></tr>
+<tr class="fortexto"><td colspan = 4 align="left"><b>Valor dispoibilizado : Kzs {{ montantedisponibilizado }}</b></td></tr>
+<tr class="fortexto"><td colspan = 4 align="left"><b>Numero de cestas ja disponibilizadas : {{ totalcestasajuda }} </b></td></tr>
+<tr class="fortexto"><td colspan = 4 align="left"><b>Temos capacidade para : {{ cestasremanescentes }} cesta(s) básica(s) </b></td></tr>
+</table></span>
+{% endif %}
+</div>
+<br>
+
+
+{% endblock %}
+

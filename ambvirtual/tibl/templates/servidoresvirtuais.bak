@@ -1,0 +1,65 @@
+{% extends 'index.html' %}
+{% block Servidorvirtual %}
+{{ inicio }}
+<table cellpadding="0" cellspacing="0" align="center" width="50%" border="0">
+<form action="/infra/buscaservirtual"  method="GET">
+<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
+<td>Hostname</td><td>IP</td><td>Site</td><td>Sistema operativo</td>
+</tr>
+<tr align="center">
+<td><input type="text" name="identificacaov" style="width: 100px; border: 1px solid gray"></td>
+</td>
+<td><input type="text" name="ipv" style="width: 100px; border: 1px solid gray"></td>
+<td><SELECT NAME="sitev" style="border: 1px solid gray">
+<OPTION SELECTED VALUE=0> ------------
+{% for j in listasites%}
+<OPTION VALUE={{ j.id }} > {{ j.designacao }}
+{% endfor %}
+</td>
+<td><SELECT NAME="sov" style="border: 1px solid gray">
+<OPTION SELECTED VALUE=0> ------------
+{% for jj in listasistemasoperativos %}
+<OPTION VALUE={{ jj.id }} > {{ jj.versao }}
+{% endfor %}
+<input type="hidden" name="impressao" value="0">
+<input type="hidden" name="pagina" value= 1>
+<td><input type="submit" name="" value="Busca" class="button"></td>
+</tr>
+</form>
+</table>
+
+<br>
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>SERVIDORES VIRTUAIS </b> |
+<a href = "http://10.129.122.127:8080/infra/entradaservidorvirtual/" class = "aa">Novo servidor virtual</a> 
+]</font>
+</p>
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="90%">
+<tr bgcolor="#362E6C">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Hostname</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>IP</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Site</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Máquina física</b></font></a></td>
+</td>
+</tr>
+{% if bb %}
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="#FBF7E7">
+{% else %}
+<tr bgcolor="#F5F7FA">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/infra/gestao/servidorvirtual/0/1/{{ x.id }}" class = 'aa'>{{ x.identificacao }} </a></font></td>
+<td align="left"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">&nbsp;&nbsp;{{ x.ip }}</font></td>
+<td align="left"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">&nbsp;&nbsp;{{ x.site}}</font></td>
+<td align="left"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">&nbsp;&nbsp;{{ x.maquinafisica }}</font></td>
+</tr>
+{% endfor %}
+{% endif %}
+</table>
+<br>
+<br>
+
+{% include 'paginacao' %}
+
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'index.html' %}
+{% block Departamentos %}
+
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Registos encontrados:</b></font>
+</p>
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Departamento</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Cargo</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Irmão</b></font></a></td>
+</td>
+</tr>
+{% if bb %}
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/departamentos/detalhe/{{ x.departamento_id }}" class = 'aa'>{{ x.departamento__designacao }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.cargo__designacao }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.irmao__nome }} {{ x.irmao__apelido}}</font></td>
+</tr>
+{% endfor %}
+{% endif %}
+</table>
+<br>
+<br>
+
+{% include 'paginacao' %}
+
+{% endblock %}
+

@@ -1,0 +1,27 @@
+{% extends 'index.html' %}
+{% block Actividadesdetalhado %}
+
+{% if registoachado %}
+<div align="center"><span class="a3">
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
+{% for x in registoachado %}
+<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" target ="bank"> <i>Eliminar</i></a> |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" target ="bank"> <i>editar</i></a></td></td></tr>
+<tr class="fortexto"><td class="a4">Designacao:</td><td class="a4">{{ x.designacao }}</td></tr>
+<tr class="fortexto"><td class="a4">Início:</td><td class="a4">{{ x.inicio }}</td></tr>
+<tr class="fortexto"><td class="a4">Fim:</td><td class="a4">{{ x.fim }} </td></tr>
+<tr class="fortexto"><td class="a4">Data:</td><td class="a4">{{ x.data }} </td></tr>
+<tr class="fortexto"><td class="a4">Local:</td><td class="a4">{{ x.local }} </td></tr>
+<tr class="fortexto"><td class="a4">Tema:</td><td class="a4">{{ x.tema }} </td></tr>
+<tr class="fortexto"><td class="a4">Versos bíblicos:</td><td class="a4">{{ x.versosbiblicos }} </td></tr>
+<tr class="fortexto"><td class="a4">Hinos:</td><td class="a4">{{ x.hinos }} </td></tr>
+<tr class="fortexto"><td class="a4">Total de participantes:</td><td class="a4">{{ x.totalpresentes }} </td></tr>
+<tr class="fortexto"><td class="a4">Observacao:</td><td class="a4">{{ x.observacao }} </td></tr>
+{% endfor %}
+</table></span>
+{% endif %}
+</div>
+<br>
+
+
+{% endblock %}
+

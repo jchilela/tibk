@@ -1,0 +1,305 @@
+<style>
+
+.styled-table {
+    border-collapse: collapse;
+    font-size: 12px;
+    font-family: sans-serif;
+    Color : white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+
+.a6 {
+    font-family: sans-serif;
+    Color : white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+
+#grad1 {
+  height: 200px;
+  background-color: red; /* For browsers that do not support gradients */
+  background-image: linear-gradient(red, yellow);
+}
+
+a.1{text-decoration:none}
+a.2{text-decoration:underline}
+
+.formbutton{
+cursor:pointer;
+border:outset 1px #ccc;
+background:#ebebeb;
+color:#666;
+font-weight:bold;
+margin: 0;
+}
+
+.button {
+  display: inline-block;
+  padding: 2px 3px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #362E6C;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 2px #999;
+}
+
+.button:hover {background-color: #FF0000}
+
+.button:active {
+  background-color: #FF0000;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+span.a3{ display: inline-block;
+  width: 500px;
+  height: 300px;
+  padding: 33px;
+}
+
+
+.cabecalho {
+width:85%;
+margin-left: 40px;
+/*background-color:#f4f1e5;*/
+font: bold 12px verdana,arial,sans-serif;
+
+color: #9d8f8f;
+}
+
+.titulo{
+font-family: verdana,arial,sans-serif;
+font-size: 70%;
+color:#21341C;
+background-color:#D6E8BB;
+}
+
+.aaa:link {
+    color: RED;
+    text-decoration:none;
+}
+
+/* visited link */
+.aaa:visited{
+    font-family:Verdana;
+    font-size:22px;
+    color: RED;
+}
+
+/* mouse over link */
+.aaa:hover {
+    color: #FFFFFF;
+    text-decoration:none;
+    font: bold ;
+}
+
+/* selected link */
+.aaa:active {
+    color: RED;
+    text-decoration:none;
+}
+
+
+.aa:link {
+    color: #afa3a3;
+    text-decoration:none;
+}
+
+/* visited link */
+.aa:visited{
+    font-family:Verdana;
+    font-size:22px;
+    color: #afa3a3;
+}
+
+/* mouse over link */
+.aa:hover {
+    color: #FF0000;
+    text-decoration:none;
+    font: bold ;
+}
+
+/* selected link */
+.aa:active {
+    color: #FF9C10;
+    text-decoration:none;
+}
+
+.fortexto{
+font-family: arial,helvetica,verdana ;
+font-size: 90%;
+}
+
+/* unvisited link */
+a:link {
+    color: WHITE;
+    text-decoration:none;
+}
+
+/* visited link */
+a:visited {
+    color: WHITE;
+    text-decoration:none;
+}
+
+/* mouse over link */
+a:hover {
+    color: #FF0000;
+    text-decoration:none;
+    font: bold ;
+}
+
+/* selected link */
+a:active {
+    color: WHITE;
+    text-decoration:none;
+}
+</style>
+<style type="text/css">
+.abc
+{
+border: 1px;
+border-color: red;
+}
+
+.a4{
+  border-bottom: 1px solid #ddd;
+}
+
+
+h1.a1 {
+  color: #FF0000;
+  text-shadow: 1px 1px 1px blue, 0 0 30px black, 0 0 5px #FF9C10;
+}
+
+
+</style>
+{% load static %}
+
+<html>
+<head><title></title>
+<body style = "">
+
+{% load i18n %}
+
+{% language 'pt' %}
+
+
+<table  border="0"  cellspacing="0" cellpadding="0" width="80%" align="Center" bgcolor="#FFFFFF" >
+<tr>
+<td valign="TOP">
+<div style="border:0px; background-color:#362E6C;padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
+<h1 class="a1"> SETIC-FP  - Direcção de Infraestruturas </h1><br>
+<br><br></div>
+<div></div>
+
+<div style="border:3px; padding-top:8px;background-color:#362E6C;padding-left:15px;font: 16px verdana,arial,sans-serif;">
+<a href="/infra/gestao/equipamentos/0/1"> Equipamentos</a> &nbsp;&nbsp;
+
+<a href="/infra/gestao/circuitos/0/1">Circuitos</a> &nbsp;&nbsp;
+<a href="/infra/gestao/sites/0/1">Sites</a> &nbsp;&nbsp;
+<a href="/infra/gestao/provedores/0/1" target = "blank">Provedores</a>&nbsp;&nbsp;
+<a href="/infra/gestao/aplicativoseportais/0/1" target = "blank">Portais e Aplicativos</a> &nbsp;&nbsp;
+<a href="/infra/gestao/regioestributarias/0/1" target = "blank">Regiões Tributárias<a> &nbsp;
+<a href="/infra/gestao/contactos/0/1" target = "blank">Contactos<a> &nbsp;
+<a href="/infra/gestao/funcionarios/0/1" target = "blank">Funcionarios<a> &nbsp;
+<a href="/infra/gestao/equipas/0/1" target = "blank">Equipas<a> &nbsp;
+<a href="/infra/gestao/ocorrencias/0/1" target = "blank">Ocorrências<a> &nbsp;
+<a href="/infra/gestao/solicitacoes/0/1" target = "blank">Solicitações<a> &nbsp;
+{% if user.is_authenticated %}
+<p><font face="verdana,arial,helvetica" size="3" color = "RED">Usuário on-line : <i>{{ user }}</i> | <a href="{% url 'logout' %}" class ="aaa" > Sair</a></font></p>
+{% else %}
+<p><font face="verdana,arial,helvetica" size="3" color = "RED">  <a href="{% url 'login' %}" class ="aaa" >Entrar</a></p>
+
+{% endif %}
+</div>
+
+
+</td>
+</tr>
+<tr>
+<td>
+<p><br></p>
+<p><br></p>
+
+
+{% block Titulo %} {% endblock %} 
+
+{% block content %} {% endblock %}
+
+
+{% if user.is_authenticated %}
+{% block Circuitos %} {% endblock %}
+{% block Circuitosdetalhe %} {% endblock %}
+{% block CircuitoDetalhado %} {% endblock %}
+{% block Equipamentos %} {% endblock %}
+{% block Equipamentosdetalhe %} {% endblock %}
+{% block EquipamentoDetalhado %} {% endblock %}
+{% block Sitesdetalhe %} {% endblock %}
+{% block SiteDetalhado %} {% endblock %}
+{% block Aplicativoseportais %} {% endblock %}
+{% block Provedores %} {% endblock %}
+{% block ProvedorDetalhado %} {% endblock %}
+{% block ContactoDetalhado %} {% endblock %}
+{% block Contactos %} {% endblock %}
+{% block Equipas %} {% endblock %}
+{% block MembrosEquipa %} {% endblock %}
+{% block Ocorrencias %} {% endblock %}
+{% block Ocorrenciasdetalhe %} {% endblock %}
+{% block OcorrenciaDetalhado %} {% endblock %}
+{% block Aplicativoseportaisdetalhe %} {% endblock %}
+{% block AplicativoseportaisDetalhado %} {% endblock %}
+{% block Regioestributarias %} {% endblock %}
+{% block Funcionarios %} {% endblock %}
+{% block FuncionarioDetalhado %} {% endblock %}
+{% block Funcionariosdetalhe %} {% endblock %}
+{% block ProvedoresDespesa %} {% endblock %}
+{% block Solicitacoes %} {% endblock %}
+{% block Solicitacoesdetalhe %} {% endblock %}
+{% block MateriaisSolicitados %} {% endblock %}
+{% block Hospedagem %} {% endblock %}
+{% block Sites %} {% endblock %}
+{% if request.user|qualgrupo:"vistante" %} 
+    <p>User belongs to my group 
+{% else %}
+
+{% block FormularioEquipamento %}  {% endblock %}
+{% block FormularioComputador %}  {% endblock %}
+{% block FormularioCircuito %}  {% endblock %}
+{% block FormularioStorage %}  {% endblock %}
+{% block FormularioServidorvirtual %}  {% endblock %}
+{% block FormularioServidorfisico %}  {% endblock %}
+{% block FormularioEquipamentorede %}  {% endblock %}
+{% block FormularioSite %}  {% endblock %}
+{% block FormularioProvedor %}  {% endblock %}
+{% block FormularioAplicativo %}  {% endblock %}
+{% block FormularioContacto %}  {% endblock %}
+{% block FormularioImpressora %}  {% endblock %}
+{% block FormularioFuncionario %}  {% endblock %}
+{% block FormularioOcorrencia %}  {% endblock %}
+{% block FormularioEquipa %}  {% endblock %}
+{% block FormularioMembro %}  {% endblock %}
+{% block FormularioPagamento %}  {% endblock %}
+{% block FormularioSolicitacaocliente %}  {% endblock %}
+{% block FormularioElementosolicitado %}  {% endblock %}
+
+{% endif %}
+
+</td>
+</tr>
+</table>
+{%  endlanguage %}
+</body>
+</html>
+                                               

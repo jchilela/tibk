@@ -1,0 +1,45 @@
+{% extends 'index.html' %}
+{% block Mandatos %}
+
+
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Mandatos | <a href="/tibl/mandatos/criar/" class = 'aa'>Novo </b></a>]</font></p>
+
+{% if bb %}
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="80%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Irmão</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Departamento</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Cargo</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Início</b></font></a></td></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Fim</b></font></a></td>
+</tr>
+
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/mandatos/actualizar/{{ x.id }}" class = 'aa'>{{ x.irmao.nome }} {{ x.irmao.apelido }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.departamento }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.cargo }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.inicio }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.fim }}</font></td>
+</tr>
+{% endfor %}
+
+</table>
+<br>
+{% include 'paginacao' %}
+{% else %}
+
+<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
+
+{% endif %}
+<br>
+<br>
+
+
+{% endblock %}
+

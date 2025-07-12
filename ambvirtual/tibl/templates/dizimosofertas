@@ -1,0 +1,81 @@
+{% extends 'index.html' %}
+{% block Dizimosofertas%}
+
+<table cellpadding="0" cellspacing="0" align="center" width="30%" border="0">
+<form action="/tibl/buscadizimosofertas"  method="GET">
+<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
+<td>Nome</td><td>Apelido</td><td>Mês</td><td>Ano</td>
+</tr>
+<tr align="center">
+<td><input type="text" name="nomev" style="width: 100px; border: 1px solid gray"></td>
+<td><input type="text" name="apelidov" style="width: 100px; border: 1px solid gray"></td>
+</SELECT></td>
+<td><SELECT NAME="mesv" style="border: 1px solid gray">
+<OPTION SELECTED VALUE=0> ------------
+{% if listameses %}
+{% for x, y in listameses.items %}
+<OPTION VALUE={{ x }} > {{ y }}
+{% endfor %}
+{% endif %}
+</SELECT></td>
+<td>
+<SELECT NAME="anov" style="width: 80px; border: 1px solid gray">
+<OPTION SELECTED VALUE=0> ------------
+<OPTION VALUE=2010> 2010
+<OPTION VALUE=2011> 2011
+<OPTION VALUE=2012> 2012
+<OPTION VALUE=2013> 2013
+<OPTION VALUE=2014> 2014
+<OPTION VALUE=2015> 2015
+<OPTION VALUE=2016> 2016
+<OPTION VALUE=2017> 2017
+<OPTION VALUE=2018> 2018
+<OPTION VALUE=2019> 2019
+<OPTION VALUE=2020> 2020
+<OPTION VALUE=2021> 2021
+<OPTION VALUE=2022> 2022
+<OPTION VALUE=2023> 2023
+<OPTION VALUE=2024> 2024
+<OPTION VALUE=2025> 2025
+<OPTION VALUE=2026> 2026
+</SELECT></td>
+<input type="hidden" name="pagina" value= 1>
+<td><input type="submit" name="" value="Busca" class="button"></td>
+</tr>
+</form>
+</table>
+
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Dízimos e ofertas</b> | <a href="/tibl/dizimosofertas/criar/" class = 'aa'><b>Nova entrada </b></a>
+]</font>
+</p>
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Irmao</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Mes</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Ano</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Valor</b></font></a></td>
+</td>
+</tr>
+{% if bb %}
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/dizimosofertas/detalhe/{{ x.id }}" class = 'aa'>{{ x.irmao }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.datacorrespondente }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.datacorrespondente }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.valor }}{{ x.get_moeda_display }}</font></td>
+</tr>
+{% endfor %}
+{% endif %}
+</table>
+<br>
+<br>
+
+{% include 'paginacao' %}
+
+{% endblock %}
+

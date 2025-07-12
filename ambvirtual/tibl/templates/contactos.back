@@ -1,0 +1,47 @@
+{% extends 'index.html' %}
+{% block Equipamentos %}
+
+</table>
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>LISTA DE CONTACTOS </b> | <a href="http://monitor.minfin.gov.ao:8080/infra/entradaequipamento/" class = "aa">Novo equipamento genérico</a> ]</font></p>
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="80%">
+<tr bgcolor="#362E6C">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Utente</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Rua</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Nº.</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Bairro</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Município</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Província</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>País</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Telefone 1</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Telefone 2</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Email</b></font></a></td>
+</td>
+</tr>
+{% if bb %}
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="#B1B4C9">
+{% else %}
+<tr bgcolor="#D78176">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="{{ x.id }}">{% if x.utente is null %} {% else %}{{ x.utente }}{% endif %}{% if x.utente is null %} {% else %}{{ x.provedor.abreviatura}}{% endif %} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.rua }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.numero}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.bairro}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.municipio}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.get_provincia_display}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.pais.designacao}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.telefone1}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.telefone2}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.email }}</font></td>
+</tr>
+{% endfor %}
+{% endif %}
+</table>
+<br>
+<br>
+
+{% include 'paginacao' %}
+
+{% endblock %}

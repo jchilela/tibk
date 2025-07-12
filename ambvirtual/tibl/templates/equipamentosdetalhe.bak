@@ -1,0 +1,44 @@
+{% extends 'index.html' %}
+{% block Equipamentosdetalhe %}
+</table>
+<br>
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>EQUIPAMENTOS </b> | 
+<a href = "http://10.129.122.127:8080/infra/entradaequipamentorede/" class = "aa">Equipamento activo de rede</a> | 
+<a href = "http://10.129.122.127:8080/infra/entradaservidorfisico/" class = "aa">Servidor fisico</a> | 
+<a href = "http://10.129.122.127:8080/infra/entradaservidorvirtual/" class = "aa">Servidor virtual</a> | 
+<a href = "http://10.129.122.127:8080/infra/entradacomputador/" class = "aa">Computador</a> | 
+<a href = "http://10.129.122.127:8080/infra/entradastorage/" class = "aa">Storage</a> ]</font>
+</p>
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="80%">
+<tr bgcolor="#362E6C">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Nº. Série</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Designação</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Fabricante</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Modelo</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Ano de aquisicao</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Estado</b></font></a></td>
+</td>
+</tr>
+{% if bb %}
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="#FBF7E7">
+{% else %}
+<tr bgcolor="#F5F7FA">
+{% endif %}
+<td><font face="verdana,arial,helvetica" size="3"><a href="{{ x.id }}">{{ x.numeroserie }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.designacao }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.fabricante}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.modelo}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.datafabricacao}}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.get_estado_display}}</font></td>
+</tr>
+{% endfor %}
+{% endif %}
+</table>
+<br>
+<br>
+
+{% include 'paginacao' %}
+
+{% endblock %}

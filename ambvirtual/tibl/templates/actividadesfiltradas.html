@@ -1,0 +1,49 @@
+{% extends 'index.html' %}
+{% block Actividadesfiltradas%}
+
+
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Resgistros encontrados</b></font>
+</p>
+{% if bb %}
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Actividade</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Data</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Função</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Irmão</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Local</b></font></a></td>
+</td>
+</tr>
+
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/actividades/detalhe/{{ x.actividade_id }}" class = 'aa'>{{ x.actividade__designacao__designacao }}</a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.actividade__data }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.funcao__designacao }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.irmao__nome }} {{ x.irmao__apelido }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.actividade__local__designacao }}</font></td>
+</tr>
+{% endfor %}
+
+</table>
+<br>
+{% include 'paginacao' %}
+
+{% else %}
+
+
+<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
+
+
+{% endif %}
+<br>
+<br>
+
+
+{% endblock %}
+

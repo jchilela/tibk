@@ -1,0 +1,35 @@
+{% extends 'index.html' %}
+{% block Provedores %}
+
+</table>
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>PROVEDORES DE SERVIÇOS DE TELECOMUNIÇÕES ÀS FINANÇAS PÚBLICAS </b> | <a href="http://10.129.122.127:8080/infra/entradaprovedor/" class = "aa">Novo Provedor</a> ]</font></p>
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="80%">
+<tr bgcolor="#362E6C">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Designação</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Gestor comercial</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Nº. total de circuitos</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Custo mensal</b></font></a></td>
+</td>
+</tr>
+{% if bb %}
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="#B1B4C9">
+{% else %}
+<tr bgcolor="#D78176">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="{{ x.id }}">{{ x.designacao }} {{ x.abreviatura }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{% if nossogestorcomercial__titulo %} {{ x.nossogestorcomercial__titulo}}{% endif %} {{ x.nossogestorcomercial__nome }} {{ x.nossogestorcomercial__apelido }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.totalcircuitos }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "">{{ x.totalCustos }}</font></td>
+</tr>
+{% endfor %}
+{% endif %}
+</table>
+<br>
+<br>
+
+{% include 'paginacao' %}
+
+{% endblock %}

@@ -1,0 +1,18 @@
+<div class="pagination" align="center">
+    <span class="step-links">
+        {% if bb.has_previous %}
+            <a href="../1" class = 'aa'>&laquo; primeira</a>
+            <a href="../{{ bb.previous_page_number }}" class = 'aa'> | anterior</a>
+        {% endif %}
+
+        <span class="actual">
+          <font face="arial,helvetica,verdana" color="#afa3a3"  size="3">  Página {{ bb.number }} de {{ bb.paginator.num_pages }}</font>
+        </span>
+
+        {% if bb.has_next %}
+            <a href="../{{ bb.next_page_number }}" class = 'aa'>próxima | </a>
+            <a href="../{{ bb.paginator.num_pages }}" class = 'aa'>última &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+<br>

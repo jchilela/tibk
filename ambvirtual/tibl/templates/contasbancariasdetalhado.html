@@ -1,0 +1,24 @@
+{% extends 'index.html' %}
+{% block Contasbancariasdetalhado %}
+
+{% if registoachado %}
+<div align="center"><span class="a3">
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
+{% for x in registoachado %}
+<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" target ="bank"> <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" target ="bank"> <i>editar</i></a></td></td></tr>
+<tr class="fortexto"><td class="a4">Banco:</td><td class="a4">{{ x.banco }}</td></tr>
+<tr class="fortexto"><td class="a4">Nº. da conta:</td><td class="a4">{{ x.numeroconta }}</td></tr>
+<tr class="fortexto"><td class="a4">Iban:</td><td class="a4">{{ x.iban }} {{ x.serie }} </td></tr>
+<tr class="fortexto"><td class="a4">Moeda:</td><td class="a4">{{ x.moeda }} </td></tr>
+<tr class="fortexto"><td class="a4">Saldo:</td><td class="a4">{{ x.saldo }} </td></tr>
+<tr class="fortexto"><td class="a4">Proprietário:</td><td class="a4">{{ x.proprietario }} </td></tr>
+<tr class="fortexto"><td class="a4">Instituição:</td><td class="a4">{{ x.instituicao }} </td></tr>
+{% endfor %}
+</table></span>
+{% endif %}
+</div>
+<br>
+
+
+{% endblock %}
+

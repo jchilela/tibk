@@ -1,0 +1,26 @@
+{% extends 'index.html' %}
+{% block Entradabancosdetalhado %}
+
+{% if registoachado %}
+<div align="center"><span class="a3">
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
+{% for x in registoachado %}
+<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" target ="bank"> <i>Eliminar</i></a>  |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" target ="bank"> <i>editar</i></a></td></td></tr>
+<tr class="fortexto"><td class="a4">Conta a acreditar:</td><td class="a4">{{ x.contaaacreditar }}</td></tr>
+<tr class="fortexto"><td class="a4">Valor:</td><td class="a4">{{ x.valor }} {{ x.moeda }}</td></tr>
+<tr class="fortexto"><td class="a4">Data:</td><td class="a4">{{ x.data }}</td></tr>
+<tr class="fortexto"><td class="a4">Hora:</td><td class="a4">{{ x.hora }} </td></tr>
+<tr class="fortexto"><td class="a4">Via:</td><td class="a4">{{ x.via }} </td></tr>
+<tr class="fortexto"><td class="a4">O responsável:</td><td class="a4">{{ x.responsavel }} </td></tr>
+<tr class="fortexto"><td class="a4">Rúbrica:</td><td class="a4">{{ x.rubrica.designacao }} </td></tr>
+<tr class="fortexto"><td class="a4">Conta origem:</td><td class="a4">{{ x.contaorigem }}</td></tr>
+<tr class="fortexto"><td class="a4">Observação:</td><td class="a4">{{ x.observacao }} </td></tr>
+{% endfor %}
+</table></span>
+{% endif %}
+</div>
+<br>
+
+
+{% endblock %}
+

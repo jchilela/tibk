@@ -1,0 +1,30 @@
+{% extends 'index.html' %}
+{% block Formularioactualizacao %}
+
+<form  method="post" novalidate>
+    {% csrf_token %}
+<table align="center"  class="styled-table" >
+{{ formulario.non_field_errors }}
+
+  {% for hidden_field in formulario.hidden_fields %}
+    {{ hidden_field.errors }}
+    {{ hidden_field }}
+  {% endfor %}
+
+
+    {% for field in formulario.visible_fields %}
+      <tr>
+        <th align ="Right" bgcolor="#548c2f" >{{ field.label_tag }}</th>
+        <td bgcolor="">
+          {{ field.errors }}
+          {{ field }}
+          {{ field.help_text }}
+        </td>
+      </tr>
+    {% endfor %}
+ </table>
+<p align="center">    <input type="submit" value="Save" class = "button"></p>
+</form>
+
+{% endblock %}
+

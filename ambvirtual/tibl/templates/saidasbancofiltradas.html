@@ -1,0 +1,43 @@
+{% extends 'index.html' %}
+{% block Saidabancosfiltradas %}
+
+{{rubricav}}
+<br>{{ consulta }}
+<br>{{ consulta1 }}
+<br>{{ consulta2 }}
+<br>
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Saidas via banco --- registos encontrados</b> </font>
+</p>
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Conta bancaria</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Banco</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Valor</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Data</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Rubrica</b></font></a></td>
+</td>
+</tr>
+{% if bb %}
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/saidabancos/detalhe/{{ x.id }}" class = 'aa'>{{ x.conta }}</a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.conta.banco.abreviacao }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.valor }} {{ x.moeda }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.data }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.aquisicao__rubrica__designacao }}</font></td>
+</tr>
+{% endfor %}
+{% endif %}
+</table>
+<br>
+<br>
+
+{% include 'paginacao' %}
+
+{% endblock %}
+

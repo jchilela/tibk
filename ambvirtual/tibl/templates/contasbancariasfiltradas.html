@@ -1,0 +1,47 @@
+{% extends 'index.html' %}
+{% block Contasbancariasfiltradas %}
+
+
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Resgistos encontrados</b></font>
+</p>
+{% if bb %}
+
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
+<tr bgcolor="#362E6C">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>N. Conta</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>IBAN</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Banco</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Proprietario</b></font></a></td>
+</td>
+</tr>
+
+
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="#FBF7E7">
+{% else %}
+<tr bgcolor="#F5F7FA">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/contasbancarias/detalhe/{{ x.id }}" class = 'aa'>{{ x.numeroconta }} </a></font></td>
+<td><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.iban }}</font></td>
+<td><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.banco.abreviacao }}</font></td>
+<td><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.proprietario.nome }} {{ x.proprietario.apelido }}</font></td>
+</tr>
+{% endfor %}
+</table>
+<br>
+{% include 'paginacao' %}
+
+{% else %}
+
+<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
+
+
+{% endif %}
+<br>
+<br>
+
+
+{% endblock %}
+

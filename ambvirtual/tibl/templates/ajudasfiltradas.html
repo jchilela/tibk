@@ -1,0 +1,41 @@
+{% extends 'index.html' %}
+{% block Ajudas %}
+
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"><b>Registos encontrados</b></font>
+</p>
+{% if bb %}
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Beneficiário</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Tipo de Ajuda</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Data</b></font></a></td>
+</td>
+</tr>
+
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/ajudas/detalhe/{{ x.id }}" class = 'aa'>{{ x.beneficiario.nome }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.get_tipo_display }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.data }}</font></td>
+</tr>
+{% endfor %}
+
+</table>
+<br>
+{% include 'paginacao' %}
+{% else %}
+
+<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
+
+{% endif %}
+<br>
+<br>
+
+
+{% endblock %}
+

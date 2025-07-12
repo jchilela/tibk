@@ -1,0 +1,18 @@
+{% extends 'index.html' %}
+
+{% block ProvedorDetalhado %}
+{% if elementoencontrado %}
+<div align="center"><span class="a3">
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
+{% for x in elementoencontrado %}
+<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'>{{ x.abreviatura }} {{ x.designacao }} |<a href ="http://10.129.122.127:8080/admin/gestaoinfra/provedor/{{ x.id }}/change/" target ="bank"> <i>editar</i></a></td></td></tr>
+<tr class="fortexto"><td class="a4">PCA:</td><td class="a4">{{ x.pca.nome }} {{ x.pca.apelido }}</td></tr>
+<tr class="fortexto"><td class="a4">Gestor comercial:</td><td class="a4">{{ x.gestorcomercial.nome}}{{ x.gestorcomercial.apelido}} </td></tr>
+<tr class="fortexto"><td class="a4">Gestor técnico:</td><td class="a4">{{ x.gestortecnico.nome }} {{ x.gestortecnico.apelido }} </td></tr>
+{% endfor %}
+</table></span>
+{% endif %}
+
+</div>
+{% endblock %}
+
