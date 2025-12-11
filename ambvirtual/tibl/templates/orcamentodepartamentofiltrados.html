@@ -1,0 +1,39 @@
+{% extends 'index.html' %}
+{% block OrcamentoDepartamentoFiltrados %}
+
+
+
+</p>
+{% if bb %}
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Departamento</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Orçamento</b></font></a></td>
+</td>
+</tr>
+{% for x in bb %}
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Registos encontrados</font>
+{% if forloop.counter|divisibleby:2 %}
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/orcamentodepartamento/detalhe/{{ x.id }}" class = 'aa'>{{ x.departamento }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.orcamento }}</font></td>
+</tr>
+{% endfor %}
+</table>
+<br>
+{% include 'paginacao' %}
+
+{% else %}
+
+<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
+
+{% endif %}
+<br>
+<br>
+
+
+{% endblock %}
+

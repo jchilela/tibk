@@ -1,0 +1,46 @@
+{% extends 'index.html' %}
+{% block PedidoSaidaDetalhado %}
+{% load static %}
+
+{% if registoachado %}
+<div align="center"><span class="a3">
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
+{% for x in registoachado %}
+<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" target ="bank"> <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" target ="bank"> <i>editar</i></a></td></td></tr>
+<tr class="fortexto"><td class="a4">Departamento:</td><td class="a4">{{ x.departamento.designacao}}</td></tr>
+<tr class="fortexto"><td class="a4">Projecto:</td><td class="a4">{{ x.projecto }}</td></tr>
+<tr class="fortexto"><td class="a4">Montante:</td><td class="a4">{{ x.montante }} </td></tr>
+<tr class="fortexto"><td class="a4">Moeda:</td><td class="a4">{{ x.moeda.designacao }} </td></tr>
+<tr class="fortexto"><td class="a4">Centro de Custo:</td><td class="a4">{{ x.centro_custo.designacao }} </td></tr>
+<tr class="fortexto"><td class="a4">Requerente:</td><td class="a4">{{ x.requerente }} </td></tr>
+<tr class="fortexto"><td class="a4">Tipificação de Custo:</td><td class="a4">{{ x.tipificacao_custo.designacao}} </td></tr>
+<tr class="fortexto"><td class="a4">Iban:</td><td class="a4"> {{ x.iban}} </td></tr>
+<tr class="fortexto"><td class="a4">Justificativa de Custo:</td><td class="a4">{{ x.justificativa_custo }} </td></tr>
+
+<tr class="fortexto">
+    <td class="a4">Documento Justificativo:</td>
+    <td class="a4">
+        {% if x.documento_justificativo %}
+            <a href="{{ x.documento_justificativo.url }}" 
+               target="_blank" 
+               style="color: blue; font-weight: bold;">
+               Ver arquivo
+            </a>
+        {% else %}
+            Sem arquivo
+        {% endif %}
+    </td>
+  </tr>
+  
+
+<tr class="fortexto"><td class="a4">Estado de Aprovação:</td><td class="a4">{{ x.status_de_aprovacao.designacao }} </td></tr>
+<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
+{% endfor %}
+</table></span>
+{% endif %}
+</div>
+<br>
+
+
+{% endblock %}
+

@@ -1,0 +1,52 @@
+{% extends 'index.html' %}
+{% block InventarioPatrimonioDetalhado %}
+{% load static %}
+
+{% if registoachado %}
+<div align="center"><span class="a3">
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
+{% for x in registoachado %}
+<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" target ="bank"> <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" target ="bank"> <i>editar</i></a></td></td></tr>
+<tr class="fortexto"><td class="a4">Nome:</td><td class="a4">{{ x.nome}}</td></tr>
+<tr class="fortexto"><td class="a4">Descrição:</td><td class="a4">{{ x.descricao }}</td></tr>
+<tr class="fortexto"><td class="a4">Categoria do Património:</td><td class="a4">{{ x.categoria_patrimonio.designacao }} </td></tr>
+<tr class="fortexto"><td class="a4">Código:</td><td class="a4">{{ x.codigo }} </td></tr>
+<tr class="fortexto"><td class="a4">Quantidade:</td><td class="a4">{{ x.quantidade }} </td></tr>
+<tr class="fortexto"><td class="a4">localização:</td><td class="a4">{{ x.localizacao }} </td></tr>
+<tr class="fortexto"><td class="a4">Preço:</td><td class="a4">{{ x.preco}} </td></tr>
+<tr class="fortexto"><td class="a4">Moeda:</td><td class="a4"> {{ x.moeda}} </td></tr>
+<tr class="fortexto"><td class="a4">Data de Aquisição:</td><td class="a4">{{ x.data_aquisicao }} </td></tr>
+<tr class="fortexto"><td class="a4">Responsável:</td><td class="a4">{{ x.responsavel }} </td></tr>
+
+<tr class="fortexto">
+    <td class="a4">Foto:</td>
+    <td class="a4">
+        {% if x.foto %}
+            <a href="{{ x.foto.url }}" 
+               target="_blank" 
+               style="color: blue; font-weight: bold;">
+               Ver foto
+            </a>
+        {% else %}
+            Sem arquivo
+        {% endif %}
+    </td>
+  </tr>
+  
+
+<tr class="fortexto"><td class="a4">Estado:</td><td class="a4">{{ x.estado }} </td></tr>
+<tr class="fortexto"><td class="a4">Observação:</td><td class="a4">{{ x.observacao }} </td></tr>
+<tr class="fortexto"><td class="a4">Registro de Danos:</td><td class="a4">{{ x.registro_danos }} </td></tr>
+<tr class="fortexto"><td class="a4">Data da última manutenção:</td><td class="a4">{{ x.data_ultima_manutencao }} </td></tr>
+<tr class="fortexto"><td class="a4">Data da Próxima manutenção:</td><td class="a4">{{ x.data_proxima_manutencao }} </td></tr>
+<tr class="fortexto"><td class="a4">Data da Manutenção realizada:</td><td class="a4">{{ x.data_manutencao_realizada }} </td></tr>
+<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
+{% endfor %}
+</table></span>
+{% endif %}
+</div>
+<br>
+
+
+{% endblock %}
+

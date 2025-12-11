@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 {% block Formularioactualizacao %}
 
-<form  method="post" novalidate>
+<form  method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
 <table align="center"  class="styled-table" >
 {{ formulario.non_field_errors }}
@@ -17,7 +17,33 @@
         <th align ="Right" bgcolor="#548c2f" >{{ field.label_tag }}</th>
         <td bgcolor="">
           {{ field.errors }}
-          {{ field }}
+          {% if field.name == "momentos_realizados" %}
+              {% for checkbox in field %}
+                  <label style="display:block; color:black;">
+                      {{ checkbox.tag }} {{ checkbox.choice_label }}
+                  </label>
+              {% endfor %}
+          {% elif field.name == "documento_justificativo" %}
+              {% if field.value %}
+                  <p>
+                      <a href="{{ field.value.url }}" target="_blank" style="color:blue; font-weight:bold;">
+                          Abrir arquivo atual
+                      </a>
+                  </p>
+              {% endif %}
+              {{field}}
+          {% elif field.name == "foto" %}
+              {% if field.value %}
+                  <p>
+                      <a href="{{ field.value.url }}" target="_blank" style="color:blue; font-weight:bold;">
+                          Abrir arquivo atual
+                      </a>
+                  </p>
+              {% endif %}
+              {{field}}
+          {% else %}
+              {{ field }}
+          {% endif %}
           {{ field.help_text }}
         </td>
       </tr>

@@ -1,0 +1,51 @@
+{% extends 'index.html' %}
+{% block RelatorioSemanalCelula %}
+
+<table cellpadding="0" cellspacing="0" align="center" width="25%" border="0">
+<form action="/tibl/buscarelatoriosemanalcelula"  method="GET">
+<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
+<td>Nome da Celula</td><td>Lider Responsavel</td><td>Local Reuniao</td><td>Tema Palavra</td>
+</tr>
+<tr align="center">
+<td><input type="text" name="nomev" style="width: 100px; border: 1px solid gray"></td>
+<td><input type="text" name="liderv" style="width: 100px; border: 1px solid gray"></td>
+<td><input type="text" name="localv" style="width: 100px; border: 1px solid gray"></td>
+<td><input type="text" name="temav" style="width: 100px; border: 1px solid gray"></td>
+<input type="hidden" name="pagina" value= 1>
+<td><input type="submit" name="" value="Busca" class="button"></td>
+</tr>
+</form>
+</table>
+
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Relatorio Semanal da Celula | <a href="/tibl/relatoriosemanalcelula/criar/" class = 'aa'>Novo </b></a>]</font>
+</p>
+{% if bb %}
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Nome da Célula</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Lider Responsavel</b></font></a></td>
+</td>
+</tr>
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class = 'aa'>{{ x.nome_celula }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.lider_responsavel }}</font></td>
+</tr>
+{% endfor %}
+</table>
+<br>
+
+{% include 'paginacao' %}
+{% endif %}
+<br>
+<br>
+
+
+{% endblock %}
+

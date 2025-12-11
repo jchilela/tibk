@@ -4,6 +4,7 @@
 from django.db import models
 from datetime import datetime
 from django.utils import timezone
+from multiselectfield import MultiSelectField
 
 # Create your models here.
 PROVINCIAS = (('BNG','Bengo'),('BGL','Benguela'),('BIE','Bié'),('CAB','Cabinda'),('CNE','Cunene'),('HMB','Huambo'),('HLA','Huila'),('KKG','Kuando kubango'),('KZN','Kuanza Norte'),('KZS','Kuanza Sul'),('LDA','Luanda'),('LDN','Lunda Norte'),('LDS','Lunda Sul'),('MLG','Malange'),('MXC','Moxico'),('NMB','Namibe'),('UGE','Uige'),('ZAR','Zaire'))
@@ -23,6 +24,38 @@ class Profissao(models.Model):
     class Admin:
         pass
 
+
+class MomentosRealizados(models.Model):
+    designacao = models.CharField(max_length = 200)
+    def __str__(self):
+        return self.designacao
+    
+class Tipo_Celula(models.Model):
+    designacao = models.CharField(max_length = 200)
+    def __str__(self):
+        return self.designacao
+    
+class Centro_Custo(models.Model):
+    designacao = models.CharField(max_length = 200)
+    def __str__(self):
+        return self.designacao
+    
+class Status_Aprovacao(models.Model):
+    designacao = models.CharField(max_length = 200)
+    def __str__(self):
+        return self.designacao
+
+class Tipificacao_Custo(models.Model):
+    designacao = models.CharField(max_length = 200)
+    def __str__(self):
+        return self.designacao
+    
+class Tipo_Moeda(models.Model):
+    designacao = models.CharField(max_length = 200)
+    abreviatura = models.CharField(max_length = 20)
+    def __str__(self):
+        return self.designacao
+
 class Funcao(models.Model):
      designacao = models.CharField(max_length=50, unique = True )
      descricao = models.TextField("Descrição", blank=True)
@@ -36,6 +69,20 @@ class Cargo(models.Model):
      descricao = models.TextField("Descrição", blank=True)
      def __str__(self):
          return '%s' % self.designacao
+     class Admin:
+         pass
+     
+class Categoria_Patrimonio(models.Model):
+     designacao = models.CharField(max_length=50)
+     def __str__(self):
+         return '%s' % (self.designacao)
+     class Admin:
+         pass
+
+class Estado_Patrimonio(models.Model):
+     designacao = models.CharField(max_length=50)
+     def __str__(self):
+         return '%s' % (self.designacao)
      class Admin:
          pass
 
@@ -68,12 +115,14 @@ class Pessoa(models.Model):
      estadocivil = models.CharField("Estado Civil",max_length=30, choices = ESTADO_CIVIL, default = "S")
      grauescolaridade = models.CharField("Grau de Escolaridade",max_length=50, choices = ESCOLARIDADE, blank=True)
      profissao = models.ForeignKey(Profissao, on_delete = models.CASCADE, null = True, blank=True)
+     especialidade = models.CharField("Especialidade",max_length=50, blank=True)
      localdetrabalho = models.CharField("Local de Trabalho",max_length=50, blank=True)
      ruaenumero = models.CharField("Rua e Número",max_length=60,blank=True)
      bairro = models.CharField(max_length=50, blank=True)
      municipio = models.CharField("Município",max_length=50, choices = MUNICIPIOO, blank=True)
      provincia = models.CharField("Província",max_length=50, choices = PROVINCIAS, default = "LDA")
      telefones = models.CharField("Telefones",max_length=50, blank=True)
+     telefonewhatsapp = models.CharField("Telefone do Whatsapp",max_length=50, blank=True)
      email = models.EmailField( blank=True)
      observacao = models.TextField("Observação", blank=True)
      def __str__(self):
@@ -83,9 +132,11 @@ class Pessoa(models.Model):
      
 class Irmao(Pessoa):
      CULTO = (('P','Português'),('I','Inglês'),)
-     celula = models.ForeignKey(Sitio, blank=True, null=True, default=None, on_delete = models.PROTECT)
+     celula = models.ForeignKey(Sitio, blank=True, null=True, default=None, on_delete = models.PROTECT, related_name="celula")
+     localcongregacao = models.ForeignKey(Sitio,verbose_name="Local de Congregação", blank=True, null=True, default=None, on_delete = models.PROTECT,related_name="igreja")
      culto = models.CharField(max_length=2, choices = CULTO, default = 'P')
      dizimista = models.CharField(max_length = 10, choices = ACTIVO, default = 'nao')
+     batizado = models.BooleanField(default=False)
      def __str__(self):
          return '%s %s' % (self.nome, self.apelido)
      class Admin:
@@ -95,7 +146,8 @@ class Departamento(models.Model):
      designacao = models.CharField('Designação', max_length =100, unique = True)
      abreviacao = models.CharField('Abreviação', max_length =10, unique = True, blank=True, null=True)
      descricao = models.TextField("Descrição", blank=True)
-     integrantes = models.ManyToManyField(Irmao, through = 'Mandato', blank=True)
+     lider_departamento = models.ForeignKey(Irmao, blank=True, null=True, on_delete=models.CASCADE, related_name="lider_departamento")
+     integrantes = models.ManyToManyField(Irmao, through = 'Mandato', blank=True, related_name= "integrantes_departamento")
      def __str__(self):
          return '%s' % self.designacao
      class Admin:
@@ -214,14 +266,6 @@ class Rubricasaida(models.Model):
         return '%s' % (self.designacao)
     class Admin:
         pass
-
-class Patrimonio(models.Model):
-     designacao = models.CharField(max_length=50)
-     unidades = models.CharField(max_length=50)
-     def __str__(self):
-         return '%s' % (self.designacao)
-     class Admin:
-         pass
 
 class Servico(models.Model):
      designacao = models.CharField(max_length=200, unique = True)
@@ -362,22 +406,86 @@ class Pagamentoservico(models.Model):
         pass
 
 
-class Aquisicao(models.Model):
-     ESTADOEQ = (('Novo','Novo'),('Usado','Usado'),('Velho','Velho'))
-     patrimonio = models.ForeignKey(Patrimonio, blank=True, null=True, default=None, on_delete = models.CASCADE)
+class InventarioPatrimonio(models.Model):
+     nome = models.CharField(max_length=100)
+     descricao = models.CharField(max_length=100)
+     categoria_patrimonio = models.ForeignKey(Categoria_Patrimonio, blank=True, null=True, default=None, on_delete = models.CASCADE)
      codigo = models.CharField(max_length=100, unique = True)
-     fabricante = models.CharField(max_length=100)
-     modelo = models.CharField(max_length=100)
      quantidade = models.IntegerField()
-     custo = models.BigIntegerField()
-     moeda = models.CharField(max_length=10, choices = MOEDA)
-     data = models.DateField("Data de aquisição",null=True)
-     quemadquiriu = models.ForeignKey(Irmao, blank=True, null=True, default=None, on_delete = models.CASCADE)
-     saiudobanco = models.ForeignKey(Saidabanco, blank = True, null = True, on_delete = models.CASCADE)
-     saiudacaixa = models.ForeignKey(Saidacaixa, blank = True, null = True, on_delete = models.CASCADE)
-     estado = models.CharField(max_length=5,  choices = ESTADOEQ)
-     observacao = models.TextField("Observação", blank = True)
+     localizacao = models.CharField(max_length=100)
+     preco = models.BigIntegerField()
+     moeda = models.ForeignKey(Tipo_Moeda, on_delete=models.CASCADE, null=True, blank=True)
+     data_aquisicao = models.DateField("Data de aquisição",null=True, blank=True)
+     responsavel = models.ForeignKey(Irmao, blank=True, null=True, default=None, on_delete = models.CASCADE)
+     foto = models.FileField(upload_to='', blank=True,)
+     estado = models.ForeignKey(Estado_Patrimonio, on_delete=models.CASCADE, blank=True, null=True)
+     observacao = models.TextField("Observação", blank = True, null=True)
+     registo_danos = models.TextField("Registro de danos", blank = True, null=True)
+     data_ultima_manutencao = models.DateField("Data da ultima Manutenção", null=True, blank=True)
+     data_proxima_manutencao = models.DateField("Data da Proxima Manutenção", null=True, blank=True)
+     descricao_manutencao_realizada = models.TextField("Descrição da manutenção realizada", blank = True)
+     
+     data_criacao = models.DateTimeField(auto_now_add=True)
+     data_atualizacao = models.DateTimeField(auto_now=True)
      def __str__(self):
-         return '%s' % (self.patrimonio.designacao)
+         return '%s' % (self.nome)
      class Admin:
          pass
+
+
+
+class RelatorioSemanalCelula(models.Model):
+    nome_celula = models.ForeignKey(Tipo_Celula, blank=True, null=True, on_delete=models.CASCADE)
+    lider_responsavel = models.ForeignKey(Irmao, blank = True, null = True, on_delete = models.CASCADE)
+    local_reuniao = models.CharField(max_length=50)
+    numero_participantes_membros = models.IntegerField()
+    numero_participantes_visitantes = models.IntegerField()
+    numero_participantes_criancas = models.IntegerField()
+    momentos_realizados = models.ManyToManyField(MomentosRealizados)
+    tema_palavra = models.CharField(max_length=50)
+    versiculo_chave = models.CharField(max_length=50)
+    resumo_mensagem = models.TextField()
+    topicos_de_oracao = models.TextField()
+    alvos_e_accoes_para_proxima_semana = models.TextField()
+    observacoes_e_necessidades = models.TextField()
+    assinatura_lider = models.CharField(max_length=100)
+    data_reuniao = models.DateField()
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    def __str__(self):
+         return '%s' % (self.nome_celula1.designacao)
+    
+
+class PedidoSaida(models.Model):
+    departamento = models.ForeignKey(Departamento, null=True, blank=True, on_delete=models.CASCADE)
+    projecto = models.CharField(max_length=100)
+    montante = models.FloatField()
+    moeda = models.ForeignKey(Tipo_Moeda, null=True, blank=True, on_delete=models.CASCADE)
+    centro_custo = models.ForeignKey(Centro_Custo, null=True, blank=True, on_delete=models.CASCADE)
+    requerente = models.ForeignKey(Irmao, blank=True, null=True, default=None, on_delete = models.CASCADE)
+    tipificacao_custo = models.ForeignKey(Tipificacao_Custo, null=True, blank=True, on_delete=models.CASCADE)
+    iban = models.CharField(max_length=50)
+    justificativa_custo = models.TextField()
+    documento_justificativo = models.FileField(upload_to='', blank=True,) 
+    status_de_aprovacao = models.ForeignKey(Status_Aprovacao, null=True, blank=True, on_delete=models.CASCADE)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    def __str__(self):
+         return '%s' % (self.projecto)
+
+
+class OrcamentoDepartamento(models.Model):
+    departamento = models.ForeignKey(Departamento, on_delete=models.CASCADE, blank=True, null=True)
+    orcamento = models.FloatField()
+    moeda = models.ForeignKey(Tipo_Moeda, on_delete=models.CASCADE, blank=True, null=True)
+    ano = models.IntegerField()
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+
+class ConteudoEnsino(models.Model):
+    autor = models.ForeignKey(Irmao, on_delete=models.CASCADE, blank=True, null=True)
+    titulo = models.CharField(max_length=100)
+    ficheiro = models.FileField(upload_to='', blank=True,) 
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)

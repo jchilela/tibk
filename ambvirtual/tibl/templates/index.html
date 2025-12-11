@@ -27,8 +27,8 @@
   background-image: linear-gradient(red, yellow);
 }
 
-a.1{text-decoration:none}
-a.2{text-decoration:underline}
+a1{text-decoration:none}
+a2{text-decoration:underline}
 
 .formbutton{
 cursor:pointer;
@@ -189,7 +189,7 @@ h1.a1 {
 
 <html>
 <head><title></title>
-<body style = "">
+<body style = >
 
 {% load i18n %}
 
@@ -201,6 +201,7 @@ h1.a1 {
 <tr>
 <td valign="TOP">
 <div style="border:0px; background-color:#548c2f;padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
+<img src="media/static/fotos/2022/cba.png"/>
 <h1 class="a1"> CBA </h1>
 <h1 class="a1"> Terceira Igreja Baptista de Luanda </h1><br>
 </div>
@@ -208,20 +209,25 @@ h1.a1 {
 <div style="border:3px; padding-top:8px;background-color:#548c2f;padding-left:15px;font: 16px verdana,arial,sans-serif;">
 {% if user.is_authenticated %}
 <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
-<a href="/tibl/gestao/actividades/1" target = "blank">Actividades<a> &nbsp;
-<a href="/tibl/gestao/escalas/1" target = "blank">Escalas<a> &nbsp;
-<a href="/tibl/gestao/departamentos/1" target = "blank">Departamentos<a> &nbsp;
+<a href="/tibl/gestao/actividades/1">Actividades<a> &nbsp;
+<a href="/tibl/gestao/escalas/1">Escalas<a> &nbsp;
+<a href="/tibl/gestao/departamentos/1">Departamentos<a> &nbsp;
 <a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
-<a href="/tibl/gestao/contasbancarias/1" target = "blank">Contas Bancárias</a> &nbsp;&nbsp;
-<a href="/tibl/gestao/bancos/1" target = "blank">Bancos</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/entradabancos/1" target = "blank">Entrada via banco</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/saidabancos/1" target = "blank">Saida via banco</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/entradascaixa/1" target = "blank">Entrada via caixa</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/saidascaixa/1" target = "blank">Saida via caixa</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/dizimosofertas/1" target = "blank">Dízimos e ofertas</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
+<a href="/tibl/gestao/bancos/1">Bancos</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/entradabancos/1">Entrada via banco</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/saidabancos/1">Saida via banco</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/entradascaixa/1">Entrada via caixa</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/saidascaixa/1">Saida via caixa</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/dizimosofertas/1">Dízimos e ofertas</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/pedidosaida/1">Pedido de Saida</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
 {% if request.user|has_group:'administrador' %}
 <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
-<a href="/tibl/gestao/mandatos/1" target = "blank">Mandatos</a>&nbsp;&nbsp;
+<a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
 {% endif %}
 {% endif %}
 
@@ -262,6 +268,9 @@ h1.a1 {
 {% block Actividades %} {% endblock %}
 {% block Departamentos %} {% endblock %}
 {% block Dizimosofertas %} {% endblock %}
+{% block RelatorioSemanalCelula %} {% endblock %}
+{% block RelatorioSemanalCelulaFiltrados %} {% endblock %}
+{% block RelatorioSemanalCelulaDetalhado %} {% endblock %}
 {% block Saidabancos %} {% endblock %}
 {% block Entradasbanco %} {% endblock %}
 {% block Saidascaixa %} {% endblock %}
@@ -283,6 +292,20 @@ h1.a1 {
 {% block Entradascaixadetalhado %} {% endblock %}
 {% block Entradasbancofiltradas %} {% endblock %}
 {% block Entradabancosdetalhado %} {% endblock %}
+{% block PedidoSaida %} {% endblock %}
+{% block PedidoSaidaFiltrados %} {% endblock %}
+{% block PedidoSaidaDetalhado %} {% endblock %}
+{% block OrcamentoDepartamento %} {% endblock %}
+{% block OrcamentoDepartamentoFiltrados %} {% endblock %}
+{% block OrcamentoDepartamentoDetalhado %} {% endblock %}
+{% block InventarioPatrimonio %} {% endblock %}
+{% block InventarioPatrimonioFiltrados %} {% endblock %}
+{% block InventarioPatrimonioDetalhado %} {% endblock %}
+{% block ConteudoEnsino %} {% endblock %}
+{% block ConteudoEnsinoFiltrados %} {% endblock %}
+{% block ConteudoEnsinoDetalhado %} {% endblock %}
+
+
 
 
 {% block Irmaosfiltrados %} {% endblock %}

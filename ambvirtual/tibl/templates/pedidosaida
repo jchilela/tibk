@@ -1,0 +1,50 @@
+{% extends 'index.html' %}
+{% block PedidoSaida %}
+
+<table cellpadding="0" cellspacing="0" align="center" width="25%" border="0">
+<form action="/tibl/buscapedidosaida"  method="GET">
+<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
+<td>Projecto</td><td>Montante</td><td>IBAN</td>
+</tr>
+<tr align="center">
+<td><input type="text" name="projectov" style="width: 100px; border: 1px solid gray"></td>
+<td><input type="text" name="montantev" style="width: 100px; border: 1px solid gray"></td>
+<td><input type="text" name="ibanv" style="width: 100px; border: 1px solid gray"></td>
+<input type="hidden" name="pagina" value= 1>
+<td><input type="submit" name="" value="Busca" class="button"></td>
+</tr>
+</form>
+</table>
+
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Pedido de Saida | <a href="/tibl/pedidosaida/criar/" class = 'aa'>Novo </b></a>]</font>
+</p>
+{% if bb %}
+<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">
+<tr bgcolor="#548c2f">
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Projecto</b></font></a></td>
+<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Requerente</b></font></a></td>
+</td>
+</tr>
+{% for x in bb %}
+{% if forloop.counter|divisibleby:2 %}
+
+<tr bgcolor="f8f9fa">
+{% else %}
+<tr bgcolor="#d8f3dc">
+{% endif %}
+
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/pedidosaida/detalhe/{{ x.id }}" class = 'aa'>{{ x.projecto }} </a></font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.requerente }}</font></td>
+</tr>
+{% endfor %}
+</table>
+<br>
+
+{% include 'paginacao' %}
+{% endif %}
+<br>
+<br>
+
+
+{% endblock %}
+

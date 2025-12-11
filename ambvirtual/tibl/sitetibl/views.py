@@ -43,7 +43,11 @@ from sitetibl.models import Pagamentoservico
 from sitetibl.models import Gruporubrica
 from sitetibl.models import Servico
 from sitetibl.models import Tipoajuda
-
+from sitetibl.models import RelatorioSemanalCelula
+from sitetibl.models import PedidoSaida
+from sitetibl.forms import OrcamentoDepartamento
+from sitetibl.forms import InventarioPatrimonio
+from sitetibl.forms import ConteudoEnsino
 
 from sitetibl.forms import IrmaoForm
 from sitetibl.forms import AjudaForm
@@ -62,6 +66,12 @@ from sitetibl.forms import DizimoofertaForm
 from sitetibl.forms import PagamentoservicoForm
 from sitetibl.forms import GruporubricaForm
 from sitetibl.forms import ServicoForm
+from sitetibl.forms import RelatorioSemanalCelulaForm
+from sitetibl.forms import PedidoSaidaForm
+from sitetibl.forms import PedidoSaidaUpdateForm
+from sitetibl.forms import OrcamentoDepartamentoForm
+from sitetibl.forms import InventarioPatrimonioForm
+from sitetibl.forms import ConteudoEnsinoForm
 
 PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kuanza Norte','KZS':'Kuanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
@@ -87,7 +97,26 @@ def index(request):
     return HttpResponse(template.render({}, request))
 
 def mostraGestao(request,gestaoescolhida,pagina):
-    lista = {'escalas' : Escala, 'mandatos': Mandato, 'irmaos':Irmao, 'ajudas':Ajuda, 'cestas': Cestabasica, 'bancos': Banco, 'contasbancarias' : Contabancaria, 'actividades' : Actividade, 'departamentos' : Departamento,'entradabancos' : Entradabanco, 'saidabancos' : Saidabanco, 'entradascaixa' : Entradacaixa, 'saidascaixa' : Saidacaixa, 'dizimosofertas' : Dizimooferta }
+    lista = {'escalas' : Escala, 
+             'mandatos': Mandato, 
+             'irmaos':Irmao, 
+             'ajudas':Ajuda, 
+             'cestas': Cestabasica, 
+             'bancos': Banco, 
+             'contasbancarias' : Contabancaria, 
+             'actividades' : Actividade, 
+             'departamentos' : Departamento,
+             'entradabancos' : Entradabanco, 
+             'saidabancos' : Saidabanco, 
+             'entradascaixa' : Entradacaixa, 
+             'saidascaixa' : Saidacaixa, 
+             'dizimosofertas' : Dizimooferta,
+             'relatoriosemanalcelula' : RelatorioSemanalCelula, 
+             'pedidosaida' : PedidoSaida,
+             'orcamentodepartamento':OrcamentoDepartamento,
+             'inventariopatrimonio': InventarioPatrimonio,
+             'conteudoensino':ConteudoEnsino,
+             }
     if (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].objects.order_by('nome','outrosnomes')
     else:
@@ -108,15 +137,54 @@ def mostraGestao(request,gestaoescolhida,pagina):
     return render(request, gestaoescolhida, context)
 
 def mostraActualizacao(request, gestaoescolhida, id):
-    lista = {'escalas' : Escala, 'mandatos': Mandato, 'irmaos':Irmao, 'ajudas':Ajuda, 'cestas': Cestabasica, 'bancos': Banco, 'contasbancarias' : Contabancaria, 'actividades' : Actividade, 'departamentos' : Departamento, 'entradabancos' : Entradabanco, 'saidabancos' : Saidabanco, 'entradascaixa' : Entradacaixa, 'saidascaixa' : Saidacaixa, 'dizimosofertas' : Dizimooferta }
-    listaformularios = {'escalas' : EscalaForm, 'mandatos': MandatoForm, 'irmaos':IrmaoForm, 'ajudas':AjudaForm, 'cestas': CestabasicaForm, 'bancos': BancoForm, 'contasbancarias' : ContabancariaForm, 'actividades' : ActividadeForm, 'departamentos' : DepartamentoForm, 'entradabancos' : EntradabancoForm, 'saidabancos' : SaidabancoForm, 'entradascaixa' : EntradacaixaForm, 'saidascaixa' : SaidacaixaForm, 'dizimosofertas' : DizimoofertaForm }
+    lista = {'escalas' : Escala, 
+             'mandatos': Mandato, 
+             'irmaos':Irmao, 
+             'ajudas':Ajuda, 
+             'cestas': Cestabasica, 
+             'bancos': Banco, 
+             'contasbancarias' : Contabancaria, 
+             'actividades' : Actividade, 
+             'departamentos' : Departamento, 
+             'entradabancos' : Entradabanco, 
+             'saidabancos' : Saidabanco, 
+             'entradascaixa' : Entradacaixa, 
+             'saidascaixa' : Saidacaixa, 
+             'dizimosofertas' : Dizimooferta,
+             'relatoriosemanalcelula' : RelatorioSemanalCelula, 
+             'pedidosaida' : PedidoSaida,
+             'orcamentodepartamento': OrcamentoDepartamento,
+             'inventariopatrimonio': InventarioPatrimonio,
+             'conteudoensino':ConteudoEnsino,
 
+              }
+    listaformularios = {'escalas' : EscalaForm, 
+                        'mandatos': MandatoForm, 
+                        'irmaos':IrmaoForm, 
+                        'ajudas':AjudaForm, 
+                        'cestas': CestabasicaForm, 
+                        'bancos': BancoForm, 
+                        'contasbancarias' : ContabancariaForm, 
+                        'actividades' : ActividadeForm, 
+                        'departamentos' : DepartamentoForm, 
+                        'entradabancos' : EntradabancoForm, 
+                        'saidabancos' : SaidabancoForm, 
+                        'entradascaixa' : EntradacaixaForm, 
+                        'saidascaixa' : SaidacaixaForm, 
+                        'dizimosofertas' : DizimoofertaForm, 
+                        'relatoriosemanalcelula' : RelatorioSemanalCelulaForm,
+                        'pedidosaida' : PedidoSaidaUpdateForm,
+                        'orcamentodepartamento' : OrcamentoDepartamentoForm,
+                        'inventariopatrimonio': InventarioPatrimonioForm,
+                        'conteudoensino':ConteudoEnsinoForm,
+                        }
+    
     a = lista[gestaoescolhida]
     registo = get_object_or_404(a, id = id)
     if request.method == 'GET':
         return render(request, 'formulario_actualizacao.html', {'formulario':listaformularios[gestaoescolhida](instance=registo), 'id':id})
     elif request.method == 'POST':
-        formulario = listaformularios[gestaoescolhida](request.POST, instance=registo)
+        formulario = listaformularios[gestaoescolhida](request.POST,request.FILES,instance=registo)
         if formulario.is_valid():
             formulario.save()
             messages.success(request, 'Actualizacao foi bem sucedida')
@@ -126,7 +194,24 @@ def mostraActualizacao(request, gestaoescolhida, id):
             return render(request, 'formulario_actualizacao.html', {'formulario' : formulario})
 
 def mostraDetalhe(request, gestaoescolhida, identificador):
-    lista = {'irmaos':Irmao, 'ajudas':Ajuda, 'cestas': Cestabasica, 'bancos': Banco, 'contasbancarias' : Contabancaria, 'actividades' : Actividade, 'departamentos' : Departamento, 'entradabancos' : Entradabanco, 'saidabancos' : Saidabanco, 'entradascaixa' : Entradacaixa, 'saidascaixa' : Saidacaixa, 'dizimosofertas' : Dizimooferta }
+    lista = {'irmaos':Irmao, 
+             'ajudas':Ajuda, 
+             'cestas': Cestabasica, 
+             'bancos': Banco, 
+             'contasbancarias' : Contabancaria, 
+             'actividades' : Actividade, 
+             'departamentos' : Departamento, 
+             'entradabancos' : Entradabanco, 
+             'saidabancos' : Saidabanco, 
+             'entradascaixa' : Entradacaixa, 
+             'saidascaixa' : Saidacaixa, 
+             'dizimosofertas' : Dizimooferta,
+             'relatoriosemanalcelula' : RelatorioSemanalCelula,
+             'pedidosaida': PedidoSaida,
+             'orcamentodepartamento': OrcamentoDepartamento,
+             'inventariopatrimonio': InventarioPatrimonio,
+             'conteudoensino':ConteudoEnsino, 
+             }
     registoachado = lista[gestaoescolhida].objects.filter(id = identificador)
     ficheirodetalhado = gestaoescolhida + 'detalhado.html'
     if gestaoescolhida == 'cestas':
@@ -147,17 +232,53 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
     return render(request, ficheirodetalhado, context)
 
 def mostraEliminacao(request, gestaoescolhida, id):
-    lista = {'irmaos':Irmao, 'ajudas':Ajuda, 'cestas': Cestabasica, 'bancos': Banco, 'contasbancarias' : Contabancaria, 'actividades' : Actividade, 'departamentos' : Departamento, 'entradabancos' : Entradabanco, 'saidabancos' : Saidabanco, 'entradascaixa' : Entradacaixa, 'saidascaixa' : Saidacaixa, 'dizimosofertas' : Dizimooferta }
+    lista = {'irmaos':Irmao, 
+             'ajudas':Ajuda, 
+             'cestas': Cestabasica, 
+             'bancos': Banco, 
+             'contasbancarias' : Contabancaria, 
+             'actividades' : Actividade, 
+             'departamentos' : Departamento, 
+             'entradabancos' : Entradabanco, 
+             'saidabancos' : Saidabanco, 
+             'entradascaixa' : Entradacaixa, 
+             'saidascaixa' : Saidacaixa, 
+             'dizimosofertas' : Dizimooferta,
+             'relatoriosemanalcelula' : RelatorioSemanalCelula, 
+             'pedidosaida' : PedidoSaida,
+             'orcamentodepartamento': OrcamentoDepartamento,
+             'inventariopatrimonio': InventarioPatrimonio,
+             'conteudoensino':ConteudoEnsino,
+             }
     registo = get_object_or_404(lista[gestaoescolhida], id = id)
     registo.delete()
     return HttpResponseRedirect(reverse('index'))
 
 def mostraCriacao(request, gestaoescolhida):
-    listaformularios = {'escalas' : EscalaForm, 'manadatos': MandatoForm, 'irmaos':IrmaoForm, 'ajudas':AjudaForm, 'cestas': CestabasicaForm, 'bancos': BancoForm, 'contasbancarias' : ContabancariaForm, 'actividades' : ActividadeForm, 'departamentos' : DepartamentoForm, 'entradabancos' : EntradabancoForm, 'saidabancos' : SaidabancoForm, 'entradascaixa' : EntradacaixaForm, 'saidascaixa' : SaidacaixaForm, 'dizimosofertas' : DizimoofertaForm }
+    listaformularios = {'escalas' : EscalaForm, 
+                        'manadatos': MandatoForm, 
+                        'irmaos':IrmaoForm, 
+                        'ajudas':AjudaForm, 
+                        'cestas': CestabasicaForm, 
+                        'bancos': BancoForm, 
+                        'contasbancarias' : ContabancariaForm, 
+                        'actividades' : ActividadeForm, 
+                        'departamentos' : DepartamentoForm, 
+                        'entradabancos' : EntradabancoForm, 
+                        'saidabancos' : SaidabancoForm, 
+                        'entradascaixa' : EntradacaixaForm, 
+                        'saidascaixa' : SaidacaixaForm, 
+                        'dizimosofertas' : DizimoofertaForm,
+                        'relatoriosemanalcelula' : RelatorioSemanalCelulaForm, 
+                        'pedidosaida':PedidoSaidaForm,
+                        'orcamentodepartamento':OrcamentoDepartamentoForm,
+                        'inventariopatrimonio': InventarioPatrimonioForm,
+                        'conteudoensino':ConteudoEnsinoForm,
+                        }
     if request.method == 'GET':
         formulario = listaformularios[gestaoescolhida]()
     else:
-        formulario = listaformularios[gestaoescolhida](request.POST)
+        formulario = listaformularios[gestaoescolhida](request.POST, request.FILES)
         if formulario.is_valid():
             formulario.save()
             return HttpResponseRedirect(reverse('index'))
@@ -181,6 +302,43 @@ def encontraIrmao(request):
     cc = request.META['QUERY_STRING']
 
     return render(request,'irmaosfiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
+
+def encontraRelatorioSemanalCelula(request):
+    nomev = request.GET['nomev']
+    liderv = request.GET['liderv']
+    localv = request.GET['localv']
+    temav = request.GET['temav']
+    kwargs= {'nome_celula__icontains':nomev, 
+             'lider_responsavel__icontains' : liderv, 
+             'local_reuniao__icontains' : localv, 
+             'tema_palavra__icontains' : temav }
+    pagina= request.GET['pagina']
+    resultado = RelatorioSemanalCelula.objects.filter(**kwargs)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = dict(request.GET.lists())
+    del dd['pagina']
+    cc = request.META['QUERY_STRING']
+
+    return render(request,'relatoriosemanalcelulafiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
+
+def encontraPedidoSaida(request):
+    nomev = request.GET['projectov']
+    liderv = request.GET['montantev']
+    localv = request.GET['ibanv']
+    kwargs= {'projecto__icontains':nomev, 
+             'montante__icontains' : liderv, 
+             'iban__icontains' : localv, 
+              }
+    pagina= request.GET['pagina']
+    resultado = PedidoSaida.objects.filter(**kwargs)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = dict(request.GET.lists())
+    del dd['pagina']
+    cc = request.META['QUERY_STRING']
+
+    return render(request,'pedidosaidafiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
 
 def encontraContasbancarias(request):
     nomev = request.GET['nomev']
@@ -379,3 +537,58 @@ def encontraEntradasbanco(request):
     cc = request.META['QUERY_STRING']
     return render(request,'entradasbancofiltradas.html', {'bb':paginaresultado})
 
+
+def encontraOrcamentoDepartamento(request):
+    departamentov = request.GET['departamentov']
+    orcamentov = request.GET['orcamentov']
+    anov = request.GET['anov']
+    
+    kwargs= {'departamento__designacao__icontains':departamentov, 
+             'orcamento__icontains' : orcamentov, 
+             'ano__icontains' : anov, 
+            }
+    pagina= request.GET['pagina']
+    resultado = OrcamentoDepartamento.objects.filter(**kwargs)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = dict(request.GET.lists())
+    del dd['pagina']
+    cc = request.META['QUERY_STRING']
+    return render(request,'orcamentodepartamentofiltrados.html', {'bb':paginaresultado})
+
+
+def encontraInventarioPatrimonio(request):
+    nomev = request.GET['nomev']
+    descricaov = request.GET['descricaov']
+    codigov = request.GET['codigov']
+    
+    kwargs= {'nome__icontains':nomev, 
+             'descricao__icontains' : descricaov, 
+             'codigo__icontains' : codigov, 
+            }
+    pagina= request.GET['pagina']
+    resultado = InventarioPatrimonio.objects.filter(**kwargs)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = dict(request.GET.lists())
+    del dd['pagina']
+    cc = request.META['QUERY_STRING']
+    return render(request,'inventariopatrimoniofiltrados.html', {'bb':paginaresultado})
+
+def encontraConteudoEnsino(request):
+    autorv = request.GET['autorv']
+    titulov = request.GET['titulov']
+    
+    
+    kwargs= {'autor__nome__icontains':autorv, 
+             'titulo__icontains' : titulov, 
+             
+            }
+    pagina= request.GET['pagina']
+    resultado = ConteudoEnsino.objects.filter(**kwargs)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = dict(request.GET.lists())
+    del dd['pagina']
+    cc = request.META['QUERY_STRING']
+    return render(request,'conteudoensinofiltrados.html', {'bb':paginaresultado})

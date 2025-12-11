@@ -27,11 +27,25 @@ from sitetibl.models import Dizimooferta
 from sitetibl.models import Pagamentoservico
 from sitetibl.models import Gruporubrica
 from sitetibl.models import Servico
-from sitetibl.models import Patrimonio
-from sitetibl.models import Aquisicao
+from sitetibl.models import Categoria_Patrimonio
+from sitetibl.models import InventarioPatrimonio
 from sitetibl.models import Tipoajuda
+from sitetibl.models import RelatorioSemanalCelula
+from sitetibl.models import PedidoSaida
+from sitetibl.models import MomentosRealizados
+from sitetibl.models import Tipo_Celula
+from sitetibl.models import Centro_Custo
+from sitetibl.models import Tipificacao_Custo
+from sitetibl.models import Status_Aprovacao
+from sitetibl.models import Tipo_Moeda
+from sitetibl.models import OrcamentoDepartamento
+from sitetibl.models import Estado_Patrimonio
+from sitetibl.models import ConteudoEnsino
+from .forms import IrmaoForm
 
-
+@admin.register(Irmao)
+class SitioAdmin(admin.ModelAdmin):
+    form = IrmaoForm
 
 
 admin.site.register(Sitio)
@@ -39,7 +53,8 @@ admin.site.register(Departamento)
 admin.site.register(Banco)
 admin.site.register(Contabancaria)
 admin.site.register(Pessoa)
-admin.site.register(Irmao)
+#admin.site.register(Irmao)
+admin.site.register(RelatorioSemanalCelula)
 admin.site.register(Funcao)
 admin.site.register(Cestabasica)
 admin.site.register(Ajuda)
@@ -60,6 +75,16 @@ admin.site.register(Dizimooferta)
 admin.site.register(Pagamentoservico)
 admin.site.register(Gruporubrica)
 admin.site.register(Servico)
-admin.site.register(Patrimonio)
-admin.site.register(Aquisicao)
+admin.site.register(Categoria_Patrimonio)
+admin.site.register(InventarioPatrimonio)
 admin.site.register(Tipoajuda)
+admin.site.register(PedidoSaida)
+admin.site.register(MomentosRealizados)
+admin.site.register(Tipo_Celula)
+admin.site.register(Centro_Custo)
+admin.site.register(Tipificacao_Custo)
+admin.site.register(Status_Aprovacao)
+admin.site.register(Tipo_Moeda)
+admin.site.register(OrcamentoDepartamento)
+admin.site.register(Estado_Patrimonio)
+admin.site.register(ConteudoEnsino)

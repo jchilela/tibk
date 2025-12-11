@@ -1,0 +1,44 @@
+{% extends 'index.html' %}
+{% block RelatorioSemanalCelulaDetalhado %}
+{% load static %}
+
+{% if registoachado %}
+<div align="center"><span class="a3">
+<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
+{% for x in registoachado %}
+<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" target ="bank"> <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" target ="bank"> <i>editar</i></a></td></td></tr>
+<tr class="fortexto"><td class="a4">Nome da Célula:</td><td class="a4">{{ x.nome_celula.designacao}}</td></tr>
+<tr class="fortexto"><td class="a4">Lider Responsável:</td><td class="a4">{{ x.lider_responsavel }}</td></tr>
+<tr class="fortexto"><td class="a4">Local Reuniao:</td><td class="a4">{{ x.local_reuniao }} </td></tr>
+<tr class="fortexto"><td class="a4">Numero de Membros:</td><td class="a4">{{ x.numero_participantes_membros }} </td></tr>
+<tr class="fortexto"><td class="a4">Numero de Visitantes:</td><td class="a4">{{ x.numero_participantes_visitantes }} </td></tr>
+<tr class="fortexto"><td class="a4">Numero de Crianças:</td><td class="a4">{{ x.numero_participantes_criancas}} </td></tr>
+<tr class="fortexto">
+    <td class="a4">Momentos Realizados:</td>
+    <td class="a4">
+        {% for m in x.momentos_realizados.all %}
+        • {{ m.designacao }} <br> {% if not forloop.last %} {% endif %}
+        {% empty %}
+            Nenhum
+        {% endfor %}
+    </td>
+</tr>
+<tr class="fortexto"><td class="a4">Tema da Palavra:</td><td class="a4">{{ x.tema_palavra }} </td></tr>
+<tr class="fortexto"><td class="a4">Versiculo Chave:</td><td class="a4">{{ x.versiculo_chave }} </td></tr>
+<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
+<tr class="fortexto"><td class="a4">Resumo da Mensagem:</td><td class="a4">{{ x.resumo_mensagem }} </td></tr>
+<tr class="fortexto"><td class="a4">Topicos de Oração:</td><td class="a4">{{ x.topicos_oracao }}</td></tr>
+<tr class="fortexto"><td class="a4">Alvos e acções para a proxima semana:</td><td class="a4">{{ x.alvos_e_accoes_para_proxima_semana }} </td></tr>
+<tr class="fortexto"><td class="a4">Observações e Necessidades:</td><td class="a4">{{ x.observacoes_e_necessidades }} </td></tr>
+<tr class="fortexto"><td class="a4">Assinatura do Líder:</td><td class="a4">{{ x.assinatura_lider }} </td></tr>
+<tr class="fortexto"><td class="a4">Data da Reunião:</td><td class="a4">{{ x.data_reuniao }} </td></tr>
+<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
+{% endfor %}
+</table></span>
+{% endif %}
+</div>
+<br>
+
+
+{% endblock %}
+

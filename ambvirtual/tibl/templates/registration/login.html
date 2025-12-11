@@ -5,14 +5,73 @@
 
 
 {% block content %}
-<p><br><br></p>
-<form method="post">
-  {% csrf_token %}
-<table align="center" border="0"  class="styled-table" bgcolor = "#548c2f">
-  {{ form }}
-</table>
-  <p align="center">    <input type="submit" value="Submit" class = "button"></p>
-</form>
+
+<style>
+  body {
+      background: white; 
+  }
+
+  .login-card {
+      width: 350px;
+      margin: 80px auto;
+      padding: 40px;
+      border-radius: 25px;
+      background: linear-gradient(90deg, #548c2f, #548c2f);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      color: white;
+  }
+
+  .login-card h2 {
+      text-align: center;
+      font-weight: 300;
+      margin-bottom: 25px;
+      font-size: 28px;
+  }
+
+  .login-card label {
+      font-size: 14px;
+      opacity: 0.9;
+  }
+
+  .login-card input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      margin-bottom: 18px;
+      border: none;
+      border-radius: 25px;
+      background: #e0e0e0;
+      outline: none;
+  }
+
+  .login-btn {
+      width: 100%;
+      padding: 14px;
+      background: #52b5ff;
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+  }
+
+  .login-btn:hover {
+      opacity: 0.9;
+  }
+</style>
+
+<div class="login-card">
+
+  <h2>Login</h2>
+
+  <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <button type="submit" class="login-btn">Login</button>
+  </form>
+
+</div>
 {% endblock %}
 
 

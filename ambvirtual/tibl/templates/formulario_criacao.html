@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 {% block Formulariocriacao %}
 
-<form  method="post" >
+<form  method="post" enctype="multipart/form-data">
     {% csrf_token %}
 <table align="center"  class="styled-table" >
 {{ formulario.non_field_errors }}
@@ -17,7 +17,17 @@
         <th align ="Right" bgcolor="#548c2f" >{{ field.label_tag }}</th>
         <td bgcolor="">
           {{ field.errors }}
-          {{ field }}
+
+          {% if field.name == "momentos_realizados" %}
+              {% for subwidget in field.subwidgets %}
+                  <label style="display:block; color:black;">
+                    {{ subwidget.tag }} {{ subwidget.choice_label }}
+                  </label>
+              {% endfor %}
+          {% else %}
+              {{ field }}
+          {% endif %}
+          
           {{ field.help_text }}
         </td>
       </tr>
