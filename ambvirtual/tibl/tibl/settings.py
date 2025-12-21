@@ -152,6 +152,19 @@ STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = 'index1'
 LOGOUT_REDIRECT_URL = 'index1'
 
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Substitua pelo servidor SMTP do seu provedor de e-mail
+EMAIL_PORT = 587  # Porta do servidor SMTP (587 é comum para TLS)
+EMAIL_USE_TLS = True  # Use TLS para criptografar a conexão
+
+# Substitua com seu endereço de e-mail e senha
+EMAIL_HOST_USER = 'investdominis2023@gmail.com'
+EMAIL_HOST_PASSWORD = 'iiequgcuwwqieoxp'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 

@@ -50,7 +50,7 @@
 {% endif %}
 
 <td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/irmaos/detalhe/{{ x.id }}" class = 'aa'>{{ x.nome }} {{ x.outrosnomes}} {{ x.apelido }} </a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.telefones }}</font></td>
+<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.telefone }}</font></td>
 </tr>
 {% endfor %}
 </table>

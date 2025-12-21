@@ -48,6 +48,7 @@ from sitetibl.models import PedidoSaida
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
+from sitetibl.forms import EnvioMensagem
 
 from sitetibl.forms import IrmaoForm
 from sitetibl.forms import AjudaForm
@@ -72,6 +73,7 @@ from sitetibl.forms import PedidoSaidaUpdateForm
 from sitetibl.forms import OrcamentoDepartamentoForm
 from sitetibl.forms import InventarioPatrimonioForm
 from sitetibl.forms import ConteudoEnsinoForm
+from sitetibl.forms import EnvioMensagemForm
 
 PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kuanza Norte','KZS':'Kuanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
@@ -116,6 +118,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'orcamentodepartamento':OrcamentoDepartamento,
              'inventariopatrimonio': InventarioPatrimonio,
              'conteudoensino':ConteudoEnsino,
+             'enviomensagem':EnvioMensagem,
              }
     if (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].objects.order_by('nome','outrosnomes')
@@ -156,6 +159,8 @@ def mostraActualizacao(request, gestaoescolhida, id):
              'orcamentodepartamento': OrcamentoDepartamento,
              'inventariopatrimonio': InventarioPatrimonio,
              'conteudoensino':ConteudoEnsino,
+             'enviomensagem':EnvioMensagem,
+             
 
               }
     listaformularios = {'escalas' : EscalaForm, 
@@ -177,6 +182,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'orcamentodepartamento' : OrcamentoDepartamentoForm,
                         'inventariopatrimonio': InventarioPatrimonioForm,
                         'conteudoensino':ConteudoEnsinoForm,
+                        'enviomensagem':EnvioMensagemForm,
                         }
     
     a = lista[gestaoescolhida]
@@ -210,7 +216,8 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
              'pedidosaida': PedidoSaida,
              'orcamentodepartamento': OrcamentoDepartamento,
              'inventariopatrimonio': InventarioPatrimonio,
-             'conteudoensino':ConteudoEnsino, 
+             'conteudoensino':ConteudoEnsino,
+             'enviomensagem':EnvioMensagem, 
              }
     registoachado = lista[gestaoescolhida].objects.filter(id = identificador)
     ficheirodetalhado = gestaoescolhida + 'detalhado.html'
@@ -249,6 +256,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'orcamentodepartamento': OrcamentoDepartamento,
              'inventariopatrimonio': InventarioPatrimonio,
              'conteudoensino':ConteudoEnsino,
+             'enviomensagem':EnvioMensagem,
              }
     registo = get_object_or_404(lista[gestaoescolhida], id = id)
     registo.delete()
@@ -274,6 +282,7 @@ def mostraCriacao(request, gestaoescolhida):
                         'orcamentodepartamento':OrcamentoDepartamentoForm,
                         'inventariopatrimonio': InventarioPatrimonioForm,
                         'conteudoensino':ConteudoEnsinoForm,
+                        'enviomensagem':EnvioMensagemForm,
                         }
     if request.method == 'GET':
         formulario = listaformularios[gestaoescolhida]()
@@ -592,3 +601,22 @@ def encontraConteudoEnsino(request):
     del dd['pagina']
     cc = request.META['QUERY_STRING']
     return render(request,'conteudoensinofiltrados.html', {'bb':paginaresultado})
+
+
+def encontraEnvioMensagem(request):
+    mensagemv = request.GET['mensagemv']
+    quemenviou = request.GET['quemenviou']
+    
+    
+    kwargs= {'mensagem__icontains':mensagemv, 
+             'quemenviou__nome__icontains' : quemenviou, 
+             
+            }
+    pagina= request.GET['pagina']
+    resultado = EnvioMensagem.objects.filter(**kwargs)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = dict(request.GET.lists())
+    del dd['pagina']
+    cc = request.META['QUERY_STRING']
+    return render(request,'enviomensagemfiltrados.html', {'bb':paginaresultado})

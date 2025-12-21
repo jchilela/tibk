@@ -1,4 +1,42 @@
+{% load static %}
 <style>
+
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.fullscreen-bg {
+    /* background-image: url("{% static 'fotos/2022/homepage5.jpg' %}"); */
+    background-color: white;
+    background-size: cover;        /* cobre toda a tela */
+    background-repeat: no-repeat;  /* não repete */
+    background-position: center;   /* centraliza */
+    width: 100%;
+                     /* altura da tela */
+}
+.overlay {
+    background-color: rgba(84, 140, 47, 0.7); /* verde semi-transparente sobre a imagem */
+    width: 100%;
+    height: 100%;
+    padding: 50px 0;
+    text-align: center;
+    color: white;
+}
+.overlay h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+.overlay p {
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+.overlay .button {
+    padding: 12px 30px;
+    font-size: 16px;
+}
+
 
 .styled-table {
     border-collapse: collapse;
@@ -125,7 +163,7 @@ background-color:#D6E8BB;
 
 /* mouse over link */
 .aa:hover {
-    color: #FF0000;
+    color: #2bff00;
     text-decoration:none;
     font: bold ;
 }
@@ -184,12 +222,76 @@ h1.a1 {
 }
 
 
+/* menus */
+.menu-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 15px;
+    background: rgba(84, 140, 47, 0.85);
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+.menu-bar a {
+    padding: 8px 14px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    font-size: 14px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.menu-bar a:hover {
+    background-color: white;
+    color: #548c2f;
+    transform: translateY(-2px);
+}
+
+/* Destaque para admin */
+.menu-bar a.admin {
+    background-color: #ffb703;
+    color: #21341C;
+    font-weight: bold;
+}
+
+.menu-bar a.admin:hover {
+    background-color: white;
+    color: #ff0000;
+}
+
+
+/* user-online */
+.user-online {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-family: verdana, arial, sans-serif;
+    font-size: 14px;
+    color: white;
+    background-color: rgba(0,0,0,0.35);
+    padding: 6px 12px;
+    border-radius: 12px;
+}
+
+.user-online a {
+    color: #FFD700;
+    text-decoration: none;
+    margin-left: 5px;
+}
+
+.user-online a:hover {
+    text-decoration: underline;
+}
+
+
 </style>
-{% load static %}
+
 
 <html>
 <head><title></title>
-<body style = >
+<body class = "fullscreen-bg" >
 
 {% load i18n %}
 
@@ -197,49 +299,64 @@ h1.a1 {
 {% load verificagrupo %}
 
 
-<table  border="0"  cellspacing="0" cellpadding="0" width="80%" align="Center" bgcolor="#FFFFFF" >
+
 <tr>
 <td valign="TOP">
-<div style="border:0px; background-color:#548c2f;padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
-<img src="media/static/fotos/2022/cba.png"/>
-<h1 class="a1"> CBA </h1>
-<h1 class="a1"> Terceira Igreja Baptista de Luanda </h1><br>
+<div style="border:0px; padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
+<img src="{% static 'fotos/2022/cba.png' %}" alt="CBA"  width="150" height="100">
+<!-- <h1 class="a1"> CBA </h1>
+<h1 class="a1"> Terceira Igreja Baptista de Luanda </h1><br> -->
 </div>
 
-<div style="border:3px; padding-top:8px;background-color:#548c2f;padding-left:15px;font: 16px verdana,arial,sans-serif;">
-{% if user.is_authenticated %}
-<a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
-<a href="/tibl/gestao/actividades/1">Actividades<a> &nbsp;
-<a href="/tibl/gestao/escalas/1">Escalas<a> &nbsp;
-<a href="/tibl/gestao/departamentos/1">Departamentos<a> &nbsp;
-<a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
-<a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
-<a href="/tibl/gestao/bancos/1">Bancos</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/entradabancos/1">Entrada via banco</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/saidabancos/1">Saida via banco</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/entradascaixa/1">Entrada via caixa</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/saidascaixa/1">Saida via caixa</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/dizimosofertas/1">Dízimos e ofertas</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/pedidosaida/1">Pedido de Saida</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
-<a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
-{% if request.user|has_group:'administrador' %}
-<a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
-<a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
-{% endif %}
-{% endif %}
 
+{%  if user.is_authenticated and 'login' not in request.path  %}
+    <div class="menu-bar">
+        {% if user.is_authenticated %}
+            <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
+            <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
+            <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
+            <a href="/tibl/gestao/departamentos/1">Departamentos</a> &nbsp;
+            <a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
+            <a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
+            <a href="/tibl/gestao/bancos/1">Bancos</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/entradabancos/1">Entrada via banco</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/saidabancos/1">Saida via banco</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/entradascaixa/1">Entrada via caixa</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/saidascaixa/1">Saida via caixa</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/dizimosofertas/1">Dízimos e ofertas</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/pedidosaida/1">Pedido de Saida</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
+            <a href="/tibl/gestao/enviomensagem/1">Envio de Mensagem Massiva</a>&nbsp;&nbsp;
+            {% if request.user|has_group:'administrador' %}
+                <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
+                <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+            {% endif %}
+        {% endif %}
+
+    </div>
+{% endif %}
 {% if user.is_authenticated %}
 
-<p><font face="verdana,arial,helvetica" size="3" color = "RED">Usuário on-line : <i>{{ user }}</i> | <a href="{% url 'logout' %}" class ="aaa" > Sair</a></font></p>
+<div class="user-online">
+    Usuário on-line: <strong>{{ user }}</strong> |
+    <a href="{% url 'logout' %}">Sair</a>
+</div>
+
 {% else %}
-<p><font face="verdana,arial,helvetica" size="3" color = "RED">  <a href="{% url 'login' %}" class ="aaa" >Entrar</a></p>
-
+<div style="text-align:center; padding: 80px 0; background-color:#548c2f; color:white; border-radius:15px; width:60%; margin: -80px auto;">
+    <h2 style="font-size:28px; margin-bottom:20px;">Bem-vindo à Plataforma da Terceira Igreja Baptista de Luanda!</h2>
+    <p style="font-size:16px; margin-bottom:30px;">Acesse sua conta ou cadastre-se para participar das atividades.</p>
+    
+    <!-- Botões Login e Cadastrar centralizados -->
+    <a href="{% url 'login' %}" class="button" style="margin-right:20px; padding:12px 25px; font-size:16px;">Login</a>
+    <a href="{% url 'login' %}" class="button" style="padding:12px 25px; font-size:16px;">Cadastrar</a>
+</div>
 {% endif %}
 
-</div>
+
 </td>
 <td></td>
 
@@ -305,6 +422,9 @@ h1.a1 {
 {% block ConteudoEnsinoFiltrados %} {% endblock %}
 {% block ConteudoEnsinoDetalhado %} {% endblock %}
 
+{% block EnvioMensagem %} {% endblock %}
+{% block EnvioMensagemFiltrados %} {% endblock %}
+{% block EnvioMensagemDetalhado %} {% endblock %}
 
 
 
@@ -318,7 +438,7 @@ h1.a1 {
 {% endif%}
 </td>
 </tr>
-</table>
+
 {%  endlanguage %}
 </body>
 </html>

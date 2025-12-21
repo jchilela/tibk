@@ -21,14 +21,26 @@ from sitetibl.models import PedidoSaida
 from sitetibl.models import OrcamentoDepartamento
 from sitetibl.models import InventarioPatrimonio
 from sitetibl.models import ConteudoEnsino
+from sitetibl.models import EnvioMensagem
 
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django import forms
+from django.core.validators import RegexValidator
 
 
 
 
 class IrmaoForm(ModelForm):
+    telefone = forms.CharField(
+        max_length=9,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{9}$',
+                message='O telefone deve conter exatamente 9 números.'
+            )
+        ]
+    )
+
     class Meta:
         model = Irmao
         fields = '__all__'
@@ -194,4 +206,9 @@ class InventarioPatrimonioForm(ModelForm):
 class ConteudoEnsinoForm(ModelForm):
     class Meta:
         model = ConteudoEnsino
+        fields = '__all__'
+
+class EnvioMensagemForm(ModelForm):
+    class Meta:
+        model = EnvioMensagem
         fields = '__all__'

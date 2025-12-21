@@ -4,3 +4,6 @@ from django.apps import AppConfig
 class SitetiblConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'sitetibl'
+
+    def ready(self):
+        import sitetibl.signals
