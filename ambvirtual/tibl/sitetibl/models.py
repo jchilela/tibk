@@ -147,6 +147,7 @@ class Departamento(models.Model):
      abreviacao = models.CharField('Abreviação', max_length =10, unique = True, blank=True, null=True)
      descricao = models.TextField("Descrição", blank=True)
      lider_departamento = models.ForeignKey(Irmao, blank=True, null=True, on_delete=models.CASCADE, related_name="lider_departamento")
+     vice_lider_departamento = models.ForeignKey(Irmao, blank=True, null=True, on_delete=models.CASCADE, related_name="Vice_lider_departamento")
      integrantes = models.ManyToManyField(Irmao, through = 'Mandato', blank=True, related_name= "integrantes_departamento")
      def __str__(self):
          return '%s' % self.designacao
