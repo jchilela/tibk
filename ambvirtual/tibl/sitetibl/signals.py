@@ -11,6 +11,8 @@ from .models import EnvioMensagem, Irmao, PedidoSaida
 @receiver(post_save, sender=EnvioMensagem)
 def enviar_email_sms_massivo(sender, instance, created, **kwargs):
     irmaos = Irmao.objects.exclude(email__isnull=True).exclude(email='')
+    irmaos_telefone = Irmao.objects.exclude(email__isnull=True).exclude(email='').exclude(telefone__isnull=True) #exclui irmaos que não têm numero de telefone
+
 
     if created and instance.email:
 
@@ -53,27 +55,28 @@ def enviar_email_sms_massivo(sender, instance, created, **kwargs):
         connection.send_messages(emails)
         connection.close()
     
-    if instance.sms:
-            for irmao in irmaos:
-                # Enviar SMS 
-                sms_url = 'https://telcosms.co.ao/send_message'
-                sms_data = {
-                    "message": {
-                        "api_key_app": "prdc4b5a87b97d15edf8aa0cb5929",
-                        "phone_number": "925868498",  # campo para passar o numero de telefone do User
-                        "message_body": f"{instance.mensagem}.Antenciosamente a equipa TIBL."
-                    }
-                }
+    irmaos_telefone_unico = list(set(irmaos_telefone)) # lista sem numero repetidos e sem numeros nulos
+    # if instance.sms:
+    #         for irmao in  irmaos_telefone_unico :
+    #             # Enviar SMS 
+    #             sms_url = 'https://telcosms.co.ao/send_message'
+    #             sms_data = {
+    #                 "message": {
+    #                     "api_key_app": "prdc4b5a87b97d15edf8aa0cb5929",
+    #                     "phone_number": irmao.telefone,  # campo para passar o numero de telefone do User
+    #                     "message_body": f"{instance.mensagem}.Antenciosamente a equipa TIBL."
+    #                 }
+    #             }
                 
-                try:
-                    sms_response = requests.post(sms_url, json=sms_data)
-                    if sms_response.status_code == 200:
-                        print('Mensagem SMS enviada com sucesso!')
-                    else:
-                        print('Falha ao enviar a mensagem SMS. Código de status:', sms_response.status_code)
-                        print('Resposta do servidor:', sms_response.text)
-                except requests.exceptions.RequestException as e:
-                    print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
+    #             try:
+    #                 sms_response = requests.post(sms_url, json=sms_data)
+    #                 if sms_response.status_code == 200:
+    #                     print('Mensagem SMS enviada com sucesso!')
+    #                 else:
+    #                     print('Falha ao enviar a mensagem SMS. Código de status:', sms_response.status_code)
+    #                     print('Resposta do servidor:', sms_response.text)
+    #             except requests.exceptions.RequestException as e:
+    #                 print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
 
 
 @receiver(post_save, sender=PedidoSaida)
@@ -136,8 +139,10 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
 
         connection.close()
 
+    
     # ---------- SMS ----------
-    # for telefone in telefones:
+    # telefones_unicos = list(set(telefones)) #eliminar numeros repetidos
+    # for telefone in telefones_unicos:
         
     #     # Enviar SMS 
     #     sms_url = 'https://telcosms.co.ao/send_message'
@@ -160,8 +165,4 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
     #         print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
 
     
-    #     print(
-    #         f"SMS para {telefone}: "
-    #         f"Novo pedido de saída de caixa ({instance.projecto}) "
-    #         f"no valor de {instance.montante}."
-    #     )
+    #     print(telefones_unicos)
