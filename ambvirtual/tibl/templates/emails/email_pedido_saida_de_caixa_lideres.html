@@ -1,9 +1,104 @@
-<h2>Mensagem da TIBL</h2>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Novo Pedido de Saída de Caixa</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
 
-<p>Foi criado um novo pedido de saída de caixa!</p>
-<p>Justificativa de custo: {{justificativa}}</p>
-<p>Montante: {{montante}} {{moeda}}</p>
-<p>Requerente:  {{ requerente }}</p>
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
 
-<hr>
-<p>Terceira Igreja Baptista de Luanda</p>
+        .header {
+            background-color: #548c2f;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .content {
+            padding: 25px;
+            color: #333333;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .alert {
+            background-color: #eaf4ff;
+            border-left: 4px solid #0b3c5d;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .details {
+            margin-top: 10px;
+        }
+
+        .details p {
+            margin: 8px 0;
+        }
+
+        .details span {
+            font-weight: bold;
+            color: #0b3c5d;
+        }
+
+        .footer {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 15px;
+            font-size: 13px;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h2>Pedido de Saída de Caixa</h2>
+    </div>
+
+    <div class="content">
+        <div class="alert">
+            Foi criado um novo pedido de saída de caixa e aguarda análise.
+        </div>
+
+        <div class="details">
+            <p><span>Justificativa de custo:</span> {{ justificativa }}</p>
+            <p><span>Montante:</span> {{ montante }} {{ moeda }}</p>
+            <p><span>Requerente:</span> {{ requerente }}</p>
+        </div>
+
+        <p>
+            Por favor, aceda ao sistema para verificar os detalhes e proceder
+            com a devida validação.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Terceira Igreja Baptista de Luanda</strong></p>
+        <p>Este é um e-mail automático. Não responda a esta mensagem.</p>
+    </div>
+
+</div>
+
+</body>
+</html>

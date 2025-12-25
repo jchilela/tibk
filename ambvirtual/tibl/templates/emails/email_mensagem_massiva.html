@@ -1,10 +1,96 @@
-<h2>Mensagem da TIBL</h2>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Mensagem da TIBL</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
 
-<p>{{ mensagem }}</p>
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
 
-{% if autor %}
-<p><strong>Enviado por:</strong> {{ autor }}</p>
-{% endif %}
+        .header {
+            background-color: #548c2f;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
 
-<hr>
-<p>Terceira Igreja Baptista de Luanda</p>
+        .header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .content {
+            padding: 25px;
+            color: #333333;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .mensagem {
+            background-color: #f9fafb;
+            border-left: 4px solid #0b3c5d;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .autor {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555555;
+        }
+
+        .footer {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 15px;
+            font-size: 13px;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h2>Mensagem da TIBL</h2>
+    </div>
+
+    <div class="content">
+        <p>Prezados irmãos,</p>
+
+        <div class="mensagem">
+            {{ mensagem }}
+        </div>
+
+        {% if autor %}
+        <p class="autor">
+            <strong>Enviado por:</strong> {{ autor }}
+        </p>
+        {% endif %}
+
+        <p>Que Deus continue a abençoar grandemente.</p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Terceira Igreja Baptista de Luanda</strong></p>
+        <p>Este é um e-mail automático. Por favor, não responda.</p>
+    </div>
+
+</div>
+
+</body>
+</html>
