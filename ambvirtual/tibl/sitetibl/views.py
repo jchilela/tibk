@@ -185,19 +185,52 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'enviomensagem':EnvioMensagemForm,
                         }
     
-    a = lista[gestaoescolhida]
-    registo = get_object_or_404(a, id = id)
+    model = lista[gestaoescolhida]
+    registo = get_object_or_404(model, id=id)
+
     if request.method == 'GET':
-        return render(request, 'formulario_actualizacao.html', {'formulario':listaformularios[gestaoescolhida](instance=registo), 'id':id})
+        form = listaformularios[gestaoescolhida](instance=registo)
+        return render(request, 'formulario_actualizacao.html', {
+            'formulario': form,
+            'id': id
+        })
+
     elif request.method == 'POST':
-        formulario = listaformularios[gestaoescolhida](request.POST,request.FILES,instance=registo)
+        formulario = listaformularios[gestaoescolhida](
+            request.POST,
+            request.FILES,
+            instance=registo
+        )
+
         if formulario.is_valid():
-            formulario.save()
-            messages.success(request, 'Actualizacao foi bem sucedida')
+            obj = formulario.save(commit=False)
+
+            if gestaoescolhida == 'pedidosaida':
+                # só define aprovador se o estado NÃO for nulo
+                if obj.status_de_aprovacao is not None:
+                    try:
+                        obj.aprovador = Irmao.objects.get(user=request.user)
+                    except Irmao.DoesNotExist:
+                        messages.error(
+                            request,
+                            'O utilizador logado não está associado a nenhum Irmão.'
+                        )
+                        return render(request, 'formulario_actualizacao.html', {
+                            'formulario': formulario
+                        })
+                else:
+                    # se o estado for null, garante que o aprovador também fica null
+                    obj.aprovador = None
+
+            obj.save()
+            messages.success(request, 'Actualização foi bem sucedida')
             return HttpResponseRedirect(reverse('index'))
+
         else:
-            message.error(request, 'Foram encontrados erros seguintes:')
-            return render(request, 'formulario_actualizacao.html', {'formulario' : formulario})
+            messages.error(request, 'Foram encontrados erros.')
+            return render(request, 'formulario_actualizacao.html', {
+                'formulario': formulario
+            })
 
 def mostraDetalhe(request, gestaoescolhida, identificador):
     lista = {'irmaos':Irmao, 
@@ -258,9 +291,19 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'conteudoensino':ConteudoEnsino,
              'enviomensagem':EnvioMensagem,
              }
-    registo = get_object_or_404(lista[gestaoescolhida], id = id)
-    registo.delete()
-    return HttpResponseRedirect(reverse('index'))
+    model = lista.get(gestaoescolhida)
+    registo = get_object_or_404(model, id=id)
+
+    if request.method == 'POST':
+        registo.delete()
+        messages.success(request, 'Eliminação foi bem sucedida')
+        return redirect('index')
+
+    # GET → mostra confirmação
+    return render(request, 'confirmar_eliminacao.html', {
+        'registo': registo,
+        'gestao': gestaoescolhida
+    })
 
 def mostraCriacao(request, gestaoescolhida):
     listaformularios = {'escalas' : EscalaForm, 
@@ -290,7 +333,10 @@ def mostraCriacao(request, gestaoescolhida):
         formulario = listaformularios[gestaoescolhida](request.POST, request.FILES)
         if formulario.is_valid():
             formulario.save()
+            messages.success(request, 'Dados salvos com sucesso!')
             return HttpResponseRedirect(reverse('index'))
+        else:
+            messages.error(request, 'Foram encontrados erros ao preencher o formulário')
     return render(request, 'formulario_criacao.html', {'formulario' : formulario})
 
 def encontraIrmao(request):

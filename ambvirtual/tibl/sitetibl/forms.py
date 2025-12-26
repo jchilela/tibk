@@ -187,6 +187,7 @@ class PedidoSaidaUpdateForm(ModelForm):
     class Meta:
         model = PedidoSaida
         fields = '__all__'
+        exclude = ['aprovador']
 
 class OrcamentoDepartamentoForm(ModelForm):
     class Meta:

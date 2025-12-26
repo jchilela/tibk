@@ -5,6 +5,7 @@ from django.db import models
 from datetime import datetime
 from django.utils import timezone
 from multiselectfield import MultiSelectField
+from django.contrib.auth.models import User
 
 # Create your models here.
 PROVINCIAS = (('BNG','Bengo'),('BGL','Benguela'),('BIE','Bié'),('CAB','Cabinda'),('CNE','Cunene'),('HMB','Huambo'),('HLA','Huila'),('KKG','Kuando kubango'),('KZN','Kuanza Norte'),('KZS','Kuanza Sul'),('LDA','Luanda'),('LDN','Lunda Norte'),('LDS','Lunda Sul'),('MLG','Malange'),('MXC','Moxico'),('NMB','Namibe'),('UGE','Uige'),('ZAR','Zaire'))
@@ -137,6 +138,7 @@ class Irmao(Pessoa):
      culto = models.CharField(max_length=2, choices = CULTO, default = 'P')
      dizimista = models.CharField(max_length = 10, choices = ACTIVO, default = 'nao')
      batizado = models.BooleanField(default=False)
+     user = models.OneToOneField(User, verbose_name="User Django", blank=True, null=True, on_delete=models.CASCADE)
      def __str__(self):
          return '%s %s' % (self.nome, self.apelido)
      class Admin:
@@ -483,6 +485,8 @@ class OrcamentoDepartamento(models.Model):
     ano = models.IntegerField()
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
+    def __str__(self):
+         return 'Orçamento do departamento --- %s' % (self.departamento.designacao) 
 
 
 class ConteudoEnsino(models.Model):

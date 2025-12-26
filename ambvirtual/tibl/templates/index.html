@@ -367,6 +367,34 @@ h1.a1 {
 <p><br></p>
 
 
+{% if messages %}
+<div style="width:85%; margin:20px auto;">
+    {% for message in messages %}
+
+        {% if 'error' in message.tags %}
+            <div style="padding:12px 16px; margin-bottom:10px; border-radius:8px;
+                        font-size:14px; background-color:#f8d7da; color:#721c24;">
+                {{ message }}
+            </div>
+
+        {% elif 'success' in message.tags %}
+            <div style="padding:12px 16px; margin-bottom:10px; border-radius:8px;
+                        font-size:14px; background-color:#d4edda; color:#155724;">
+                {{ message }}
+            </div>
+
+        {% else %}
+            <div style="padding:12px 16px; margin-bottom:10px; border-radius:8px;
+                        font-size:14px; background-color:#cce5ff; color:#004085;">
+                {{ message }}
+            </div>
+        {% endif %}
+
+    {% endfor %}
+</div>
+{% endif %}
+
+
 {% block Titulo %} {% endblock %} 
 
 {% block content %} {% endblock %}
