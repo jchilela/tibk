@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.template import loader
 from django.db.models import Sum, Count, F
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import permission_required
 
 #from django.db.models import Count
 
@@ -139,6 +140,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
     paginaresultado = paginador.get_page(pagina)
     return render(request, gestaoescolhida, context)
 
+@permission_required('sitetibl.change_pedidosaida', raise_exception=True)
 def mostraActualizacao(request, gestaoescolhida, id):
     lista = {'escalas' : Escala, 
              'mandatos': Mandato, 

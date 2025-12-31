@@ -312,6 +312,7 @@ h1.a1 {
 {%  if user.is_authenticated and 'login' not in request.path  %}
     <div class="menu-bar">
         {% if user.is_authenticated %}
+            {% if request.user|has_group:'administrador' %}
             <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
             <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
             <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
@@ -330,7 +331,7 @@ h1.a1 {
             <a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
             <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
             <a href="/tibl/gestao/enviomensagem/1">Envio de Mensagem Massiva</a>&nbsp;&nbsp;
-            {% if request.user|has_group:'administrador' %}
+            
                 <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
             {% endif %}
