@@ -313,27 +313,30 @@ h1.a1 {
     <div class="menu-bar">
         {% if user.is_authenticated %}
             {% if request.user|has_group:'administrador' %}
-            <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
-            <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
-            <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
-            <a href="/tibl/gestao/departamentos/1">Departamentos</a> &nbsp;
-            <a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
-            <a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
-            <a href="/tibl/gestao/bancos/1">Bancos</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/entradabancos/1">Entrada via banco</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/saidabancos/1">Saida via banco</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/entradascaixa/1">Entrada via caixa</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/saidascaixa/1">Saida via caixa</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/dizimosofertas/1">Dízimos e ofertas</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/pedidosaida/1">Pedido de Saida</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
-            <a href="/tibl/gestao/enviomensagem/1">Envio de Mensagem Massiva</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
+                <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
+                <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
+                <a href="/tibl/gestao/departamentos/1">Departamentos</a> &nbsp;
+                <a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
+                <a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
+                <a href="/tibl/gestao/bancos/1">Bancos</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/entradabancos/1">Entrada via banco</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/saidabancos/1">Saida via banco</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/entradascaixa/1">Entrada via caixa</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/saidascaixa/1">Saida via caixa</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/dizimosofertas/1">Dízimos e ofertas</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/pedidosaida/1">Pedido de Saida</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/enviomensagem/1">Envio de Mensagem Massiva</a>&nbsp;&nbsp;
             
                 <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+            {% elif request.user|has_group:'financeiro' %}
+        
+                <a href="/tibl/gestao/irmaos/1">Irmãos</a>
             {% endif %}
         {% endif %}
 
