@@ -1,312 +1,49 @@
 {% load static %}
-<style>
-
-body, html {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-.fullscreen-bg {
-    /* background-image: url("{% static 'fotos/2022/homepage5.jpg' %}"); */
-    background-color: white;
-    background-size: cover;        /* cobre toda a tela */
-    background-repeat: no-repeat;  /* não repete */
-    background-position: center;   /* centraliza */
-    width: 100%;
-                     /* altura da tela */
-}
-.overlay {
-    background-color: rgba(84, 140, 47, 0.7); /* verde semi-transparente sobre a imagem */
-    width: 100%;
-    height: 100%;
-    padding: 50px 0;
-    text-align: center;
-    color: white;
-}
-.overlay h2 {
-    font-size: 36px;
-    margin-bottom: 20px;
-}
-.overlay p {
-    font-size: 18px;
-    margin-bottom: 30px;
-}
-.overlay .button {
-    padding: 12px 30px;
-    font-size: 16px;
-}
-
-
-.styled-table {
-    border-collapse: collapse;
-    font-size: 12px;
-    font-family: sans-serif;
-    Color : white;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-}
-
-
-.styled-table th,
-.styled-table td {
-    padding: 12px 15px;
-}
-
-.a6 {
-    font-family: sans-serif;
-    Color : white;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-}
-
-
-#grad1 {
-  height: 200px;
-  background-color: red; /* For browsers that do not support gradients */
-  background-image: linear-gradient(red, yellow);
-}
-
-a1{text-decoration:none}
-a2{text-decoration:underline}
-
-.formbutton{
-cursor:pointer;
-border:outset 1px #ccc;
-background:#ebebeb;
-color:#666;
-font-weight:bold;
-margin: 0;
-}
-
-.button {
-  display: inline-block;
-  padding: 2px 3px;
-  font-size: 14px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  outline: none;
-  color: #fff;
-  background-color: #548c2f;
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 2px #999;
-}
-
-.button:hover {background-color: #FF0000}
-
-.button:active {
-  background-color: #FF0000;
-  box-shadow: 0 5px #666;
-  transform: translateY(4px);
-}
-
-span.a3{ display: inline-block;
-  width: 500px;
-  height: 300px;
-  padding: 33px;
-}
-
-
-.cabecalho {
-width:85%;
-margin-left: 40px;
-/*background-color:#f4f1e5;*/
-font: bold 12px verdana,arial,sans-serif;
-
-color: #9d8f8f;
-}
-
-.titulo{
-font-family: verdana,arial,sans-serif;
-font-size: 70%;
-color:#21341C;
-background-color:#D6E8BB;
-}
-
-.aaa:link {
-    color: RED;
-    text-decoration:none;
-}
-
-/* visited link */
-.aaa:visited{
-    font-family:Verdana;
-    font-size:22px;
-    color: RED;
-}
-
-/* mouse over link */
-.aaa:hover {
-    color: #FFFFFF;
-    text-decoration:none;
-    font: bold ;
-}
-
-/* selected link */
-.aaa:active {
-    color: RED;
-    text-decoration:none;
-}
-
-
-.aa:link {
-    color: #afa3a3;
-    text-decoration:none;
-}
-
-/* visited link */
-.aa:visited{
-    font-family:Verdana;
-    font-size:22px;
-    color: #afa3a3;
-}
-
-/* mouse over link */
-.aa:hover {
-    color: #2bff00;
-    text-decoration:none;
-    font: bold ;
-}
-
-/* selected link */
-.aa:active {
-    color: #FF9C10;
-    text-decoration:none;
-}
-
-.fortexto{
-font-family: arial,helvetica,verdana ;
-font-size: 90%;
-}
-
-/* unvisited link */
-a:link {
-    color: WHITE;
-    text-decoration:none;
-}
-
-/* visited link */
-a:visited {
-    color: WHITE;
-    text-decoration:none;
-}
-
-/* mouse over link */
-a:hover {
-    color: #FF0000;
-    text-decoration:none;
-    font: bold ;
-}
-
-/* selected link */
-a:active {
-    color: WHITE;
-    text-decoration:none;
-}
-</style>
-<style type="text/css">
-.abc
-{
-border: 1px;
-border-color: red;
-}
-
-.a4{
-  border-bottom: 1px solid #ddd;
-}
-
-
-h1.a1 {
-  color: #FF0000;
-  text-shadow: 1px 1px 1px blue, 0 0 30px black, 0 0 5px #FF9C10;
-}
-
-
-/* menus */
-.menu-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 12px 15px;
-    background: rgba(84, 140, 47, 0.85);
-    border-radius: 12px;
-    margin-top: 10px;
-}
-
-.menu-bar a {
-    padding: 8px 14px;
-    background-color: rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    font-size: 14px;
-    color: white;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.menu-bar a:hover {
-    background-color: white;
-    color: #548c2f;
-    transform: translateY(-2px);
-}
-
-/* Destaque para admin */
-.menu-bar a.admin {
-    background-color: #ffb703;
-    color: #21341C;
-    font-weight: bold;
-}
-
-.menu-bar a.admin:hover {
-    background-color: white;
-    color: #ff0000;
-}
-
-
-/* user-online */
-.user-online {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-family: verdana, arial, sans-serif;
-    font-size: 14px;
-    color: white;
-    background-color: rgba(0,0,0,0.35);
-    padding: 6px 12px;
-    border-radius: 12px;
-}
-
-.user-online a {
-    color: #FFD700;
-    text-decoration: none;
-    margin-left: 5px;
-}
-
-.user-online a:hover {
-    text-decoration: underline;
-}
-
-
-</style>
-
-
 <html>
-<head><title></title>
-<body class = "fullscreen-bg" >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma TIB Luanda</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="{% static 'estilos/header-alter.css' %}" rel="stylesheet">
+    <link href="{% static 'estilos/footer-alter.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
+<body class="fullscreen-bg">
+
+<!-- =========================
+     HEADER PÚBLICO
+========================= -->
+
+
+<header class="public-header">
+    <div class="header-left">
+        <img src="{% static 'fotos/2022/cba.png' %}" alt="TIB Luanda">
+        <div class="header-title">
+            <h1>Terceira Igreja Baptista de Luanda</h1>
+            <span class="tagline">Servir a Deus · Edificar Pessoas · Transformar Vidas</span>
+        </div>
+    </div>
+
+    {% if not user.is_authenticated %}
+    <nav class="header-nav">
+        <a href="https://www.tibl.ao" target="_blank">Sobre</a>
+        <a href="https://www.tibl.ao/contactos" target="_blank">Contactos</a>
+    </nav>
+    {% endif %}
+</header>
 {% load i18n %}
 
 {% language 'pt' %}
 {% load verificagrupo %}
 
-
-
 <tr>
 <td valign="TOP">
-<div style="border:0px; padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
-<img src="{% static 'fotos/2022/cba.png' %}" alt="CBA"  width="150" height="100">
+<!-- <div style="border:0px; padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
+<img src="{% static 'fotos/2022/cba.png' %}" alt="CBA"  width="100" height="100"> -->
 <!-- <h1 class="a1"> CBA </h1>
 <h1 class="a1"> Terceira Igreja Baptista de Luanda </h1><br> -->
-</div>
+<!-- </div> -->
 
 
 {%  if user.is_authenticated and 'login' not in request.path  %}
@@ -350,17 +87,104 @@ h1.a1 {
 </div>
 
 {% else %}
-<div style="text-align:center; padding: 80px 0; background-color:#548c2f; color:white; border-radius:15px; width:60%; margin: -80px auto;">
-    <h2 style="font-size:28px; margin-bottom:20px;">Bem-vindo à Plataforma da Terceira Igreja Baptista de Luanda!</h2>
+<div style="text-align:center; padding: 80px 0; background-color:#548c2f; color:white; border-radius:15px;">
+    <h2 style="font-size:28px; margin-bottom:20px;">Bem-vindo à Plataforma de gestão da TIBL!</h2>
     <p style="font-size:16px; margin-bottom:30px;">Acesse sua conta ou cadastre-se para participar das atividades.</p>
     
     <!-- Botões Login e Cadastrar centralizados -->
     <a href="{% url 'login' %}" class="button" style="margin-right:20px; padding:12px 25px; font-size:16px;">Login</a>
-    <a href="{% url 'login' %}" class="button" style="padding:12px 25px; font-size:16px;">Cadastrar</a>
+    <!-- <a href="{% url 'login' %}" class="button" style="padding:12px 25px; font-size:16px;">Cadastrar</a> -->
 </div>
 {% endif %}
 
+{% if user.is_authenticated %}
+{% if request.resolver_match.url_name == ' ' or request.path == '/' %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<div class="dashboard-grid">
+  <div class="card">
+    <h3>Cestas Básicas (Último Quadrimestre)</h3>
+    <canvas id="barrasCestas"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Distribuição de Orçamento</h3>
+    <canvas id="pizzaOrcamento"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Envio de Mensagens (Semanal)</h3>
+    <canvas id="linhasMensagens"></canvas>
+  </div>
+</div>
+<div class="dashboard-grid2">
+  <div class="card card2">
+    <h3>Fluxo de Caixa (Banco + Caixa)</h3>
+    <span class="stat-highlight stat-highlight2">MT 150.000,00</span>
+    <div class="chart-container chart-container2">
+      <canvas id="fluxoCaixaChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card card2">
+    <h3>Dízimos vs. Ofertas</h3>
+    <div class="chart-container chart-container2">
+      <canvas id="ofertasChart "></canvas>
+    </div>
+  </div>
+
+  <div class="card card2">
+    <h3>Crescimento de Membros (Células)</h3>
+    <div class="chart-container chart-container2">
+      <canvas id="membrosChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+// 1. Gráfico de Barras (Cestas Básicas)
+new Chart(document.getElementById('barrasCestas'), {
+  type: 'bar',
+  data: {
+    labels: ['Set', 'Out', 'Nov', 'Dez'],
+    datasets: [{
+      label: 'Cestas Entregues',
+      data: [45, 52, 38, 65],
+      backgroundColor: '#769656'
+    }]
+  }
+});
+
+// 2. Gráfico de Pizza (Orçamento)
+new Chart(document.getElementById('pizzaOrcamento'), {
+  type: 'pie',
+  data: {
+    labels: ['Louvor', 'Missões', 'Infantil', 'Social'],
+    datasets: [{
+      data: [25, 40, 15, 20],
+      backgroundColor: ['#769656', '#98b37e', '#4d6338', '#b9ccaa']
+    }]
+  }
+});
+
+// 3. Gráfico de Linhas (Mensagens Massivas)
+new Chart(document.getElementById('linhasMensagens'), {
+  type: 'line',
+  data: {
+    labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+    datasets: [{
+      label: 'Mensagens Lidas',
+      data: [120, 150, 140, 180, 170, 210, 250],
+      borderColor: '#769656',
+      tension: 0.3,
+      fill: true,
+      backgroundColor: 'rgba(118, 150, 86, 0.1)'
+    }]
+  }
+});
+</script> 
+{% endif %}
+{% endif %}
 </td>
 <td></td>
 
@@ -472,6 +296,45 @@ h1.a1 {
 </tr>
 
 {%  endlanguage %}
+
+
+
+<footer class="site-footer">
+    <div class="footer-container">
+
+        <!-- LEFT -->
+        <div class="footer-brand">
+            <img src="{% static 'fotos/2022/cba.png' %}" alt="TIB Luanda">
+            <h3>Terceira Igreja Baptista de Luanda</h3>
+            <p>Servir a Deus · Edificar Pessoas · Transformar Vidas</p>
+        </div>
+
+        <!-- CENTER -->
+        <div class="footer-info">
+            <h4>Informações</h4>
+            <p>📍 Luanda, Angola</p>
+            <p>📞 +244 924 265 968</p>
+            <p>✉️ info@tibl.ao</p>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="footer-links">
+            <h4>Links Rápidos</h4>
+            <a href="https://www.tibl.ao" target="_blank">Sobre Nós</a>
+            <a href="https://www.tibl.ao/departamentos" target="_blank">Departamentos</a>
+            <a href="https://www.tibl.ao/programacao" target="_blank">Programação</a>
+            <a href="https://www.tibl.ao/ao-vivo" target="_blank">Ao Vivo</a>
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+        © 2026 Terceira Igreja Baptista de Luanda · Todos os direitos reservados
+    </div>
+</footer>
+
+
 </body>
+
 </html>
                                                

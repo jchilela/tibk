@@ -1,0 +1,445 @@
+
+
+/* =========================
+   BASE
+========================= */
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Verdana, Arial, sans-serif;
+    background-color: #f4f6f3;
+}
+
+/* =========================
+   BACKGROUND
+========================= */
+.fullscreen-bg {
+    background-color: white;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* =========================
+   OVERLAY / CARD CENTRAL
+========================= */
+.overlay {
+    background-color: rgba(84, 140, 47, 0.88);
+    width: 100%;
+    min-height: 100vh;
+    padding: 80px 20px;
+    text-align: center;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay > div {
+    max-width: 720px;
+    background: rgba(0, 0, 0, 0.12);
+    padding: 50px;
+    border-radius: 18px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+}
+
+/* =========================
+   TEXTOS
+========================= */
+.overlay h2 {
+    font-size: 34px;
+    margin-bottom: 20px;
+    line-height: 1.3;
+}
+
+.overlay p {
+    font-size: 17px;
+    margin-bottom: 35px;
+    line-height: 1.6;
+    opacity: 0.95;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+.button {
+    display: inline-block;
+    padding: 12px 34px;
+    font-size: 15px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #548c2f;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 30px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.button:hover {
+    background-color: #e9e9e9;
+    transform: translateY(-2px);
+}
+
+.button:active {
+    transform: translateY(1px);
+}
+
+/* =========================
+   TABELAS
+========================= */
+.styled-table {
+    border-collapse: collapse;
+    font-size: 13px;
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+
+/* =========================
+   LINKS
+========================= */
+a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #ffd700;
+}
+
+/* =========================
+   MENU
+========================= */
+.menu-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 18px;
+    background: rgba(84, 140, 47, 0.92);
+    border-radius: 14px;
+    margin-top: 15px;
+}
+
+.menu-bar a {
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    font-size: 14px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.menu-bar a:hover {
+    background-color: white;
+    color: #548c2f;
+    transform: translateY(-2px);
+}
+
+/* ADMIN */
+.menu-bar a.admin {
+    background-color: #ffb703;
+    color: #21341C;
+    font-weight: bold;
+}
+
+.menu-bar a.admin:hover {
+    background-color: white;
+    color: #d62828;
+}
+
+/* =========================
+   USER ONLINE
+========================= */
+.user-online {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 13px;
+    color: white;
+    background-color: rgba(0,0,0,0.35);
+    padding: 6px 14px;
+    border-radius: 16px;
+}
+
+.user-online a {
+    color: #ffd700;
+}
+
+.user-online a:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+@media (max-width: 600px) {
+    .overlay > div {
+        padding: 35px 25px;
+    }
+
+    .overlay h2 {
+        font-size: 26px;
+    }
+
+    .overlay p {
+        font-size: 15px;
+    }
+}
+.public-header {
+    position: relative;
+    height: 120px;
+}
+
+.header-left {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+@media (max-width: 768px) {
+    .public-header {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .header-nav {
+        justify-content: center;
+        margin-top: 8px;
+    }
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.header-left img {
+    width: 58px;
+}
+
+.header-nav {
+    display: flex;
+    gap: 20px;
+}
+
+.header-nav a {
+    color: black;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+
+
+
+
+
+/* =========================
+   TABELA DE IRMÃOS
+========================= */
+
+table {
+    width: 90%;                     /* 👈 MAIS LARGA */
+    max-width: 1200px;
+    margin: 30px auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.15);
+}
+
+/* CABEÇALHO */
+table tr:first-child {
+    background: linear-gradient(
+        to right,
+        #548c2f,
+        #6fbf73
+    ) !important;
+}
+
+table tr:first-child td {
+    padding: 14px;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* REMOVE SUBLINHADO DOS LINKS DO HEADER */
+table tr:first-child a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+/* LINHAS */
+table tr {
+    transition: all 0.2s ease;
+}
+
+/* LINHAS PARES */
+table tr:nth-child(even):not(:first-child) {
+    background-color: #f8f9fa !important;
+}
+
+/* LINHAS ÍMPARES */
+table tr:nth-child(odd):not(:first-child) {
+    background-color: #d8f3dc !important;
+}
+
+/* HOVER */
+table tr:hover:not(:first-child) {
+    background-color: #c2ebd2 !important;
+    transform: scale(1.003);
+}
+
+/* CÉLULAS */
+table td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #2f3e2f;
+}
+
+/* COLUNA NOME */
+table td:first-child {
+    font-weight: 600;
+}
+
+/* LINKS DOS NOMES */
+table a.aa {
+    color: #2f7a32;
+    text-decoration: none;
+}
+
+table a.aa:hover {
+    text-decoration: underline;
+    color: #1f5c25;
+}
+
+/* TELEFONES */
+table td:nth-child(2) {
+    text-align: center;
+    color: #6e684f;
+    font-weight: 500;
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+@media (max-width: 768px) {
+    table {
+        width: 100%;
+        font-size: 13px;
+    }
+
+    table td {
+        padding: 10px;
+    }
+}
+
+
+.aa{
+    color:black;
+}
+
+
+
+/* Ajuste para que os gráficos não estourem o container */
+canvas {
+  max-width: 100% !important;
+  max-height: 250px !important;
+}
+
+.dashboard-grid {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+.card {
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px); /* Efeito suave ao passar o mouse */
+}
+
+
+
+:root {
+  --primary-green: #769656; /* Cor base do seu menu */
+  --bg-light: #f4f7f1;
+  --text-dark: #333;
+  --white: #ffffff;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-light);
+  margin: 0;
+  padding: 20px;
+}
+
+/* Container do Dashboard */
+.dashboard-grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Estilo dos Cards onde ficarão os gráficos */
+.card2 {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border-top: 5px solid var(--primary-green);
+}
+
+.card2 h3 {
+  margin-top: 0;
+  color: var(--primary-green);
+  font-size: 1.1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+/* Espaço reservado para o Gráfico (Canvas do Chart.js ou similar) */
+.chart-container2 {
+  position: relative;
+  height: 250px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+/* Badge de Resumo */
+.stat-highlight2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-dark);
+  display: block;
+  margin-bottom: 5px;
+}
