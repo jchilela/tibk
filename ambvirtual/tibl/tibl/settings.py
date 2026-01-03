@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-=x=4@f=l21kx5o32y$c@4r(+5k-7mao4_aa0-!w-xz#qcm(9(=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.x0e1.ao','www.tibl.ao','localhost','127.0.0.1','178.157.82.149']
+#ALLOWED_HOSTS = ['www.x0e1.ao','www.tibl.ao','localhost','127.0.0.1','178.157.82.149']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
