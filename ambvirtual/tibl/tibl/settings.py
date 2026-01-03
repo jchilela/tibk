@@ -163,8 +163,8 @@ EMAIL_PORT = 587  # Porta do servidor SMTP (587 é comum para TLS)
 EMAIL_USE_TLS = True  # Use TLS para criptografar a conexão
 
 # Substitua com seu endereço de e-mail e senha
-EMAIL_HOST_USER = 'investdominis2023@gmail.com'
-EMAIL_HOST_PASSWORD = 'iiequgcuwwqieoxp'
+EMAIL_HOST_USER = 'tiblbaptista7@gmail.com'
+EMAIL_HOST_PASSWORD = 'daovvfeytdhijfki'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
