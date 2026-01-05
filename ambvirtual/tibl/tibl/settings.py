@@ -130,6 +130,15 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://gestao.tibl.ao",
+]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CORS_ALLOWED_ORIGINS = [
+    "https://gestao.tibl.ao",
+]
 
 
 # Internationalization
