@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="{% static 'estilos/header-alter.css' %}" rel="stylesheet">
     <link href="{% static 'estilos/footer-alter.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'estilos/messages.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <body class="fullscreen-bg">
@@ -222,27 +223,24 @@ new Chart(document.getElementById('linhasMensagens'), {
 
 
 {% if messages %}
-<div style="width:85%; margin:20px auto;">
+<div id="message-overlay">
     {% for message in messages %}
 
         {% if 'error' in message.tags %}
-            <div style="padding:12px 16px; margin-bottom:10px; border-radius:8px;
-                        font-size:14px; background-color:#f8d7da; color:#721c24;">
-                {{ message }}
-            </div>
-
+            <div class="message-card error">
         {% elif 'success' in message.tags %}
-            <div style="padding:12px 16px; margin-bottom:10px; border-radius:8px;
-                        font-size:14px; background-color:#d4edda; color:#155724;">
-                {{ message }}
-            </div>
-
+            <div class="message-card success">
         {% else %}
-            <div style="padding:12px 16px; margin-bottom:10px; border-radius:8px;
-                        font-size:14px; background-color:#cce5ff; color:#004085;">
-                {{ message }}
-            </div>
+            <div class="message-card info">
         {% endif %}
+
+                <span class="close-btn"
+                      onclick="document.getElementById('message-overlay').style.display='none'">
+                    ×
+                </span>
+
+                <p>{{ message }}</p>
+            </div>
 
     {% endfor %}
 </div>

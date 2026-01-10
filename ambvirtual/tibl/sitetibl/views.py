@@ -140,7 +140,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
     paginaresultado = paginador.get_page(pagina)
     return render(request, gestaoescolhida, context)
 
-@permission_required('sitetibl.change_pedidosaida', raise_exception=True)
+
 def mostraActualizacao(request, gestaoescolhida, id):
     lista = {'escalas' : Escala, 
              'mandatos': Mandato, 
@@ -188,6 +188,13 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         }
     
     model = lista[gestaoescolhida]
+  
+    # 🔐 verificação dinâmica
+    perm = f'{model._meta.app_label}.change_{model._meta.model_name}'
+    if not request.user.has_perm(perm):
+        messages.error(request, 'Acesso negado! Você não tem permissão para actualizar registros.')
+        return redirect('index')
+
     registo = get_object_or_404(model, id=id)
 
     if request.method == 'GET':
@@ -294,6 +301,13 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'enviomensagem':EnvioMensagem,
              }
     model = lista.get(gestaoescolhida)
+
+    # 🔐 verificação dinâmica
+    perm = f'{model._meta.app_label}.delete_{model._meta.model_name}'
+    if not request.user.has_perm(perm):
+        messages.error(request, 'Acesso negado! Você não tem permissão para eliminar registros.')
+        return redirect('index')
+
     registo = get_object_or_404(model, id=id)
 
     if request.method == 'POST':
@@ -329,17 +343,31 @@ def mostraCriacao(request, gestaoescolhida):
                         'conteudoensino':ConteudoEnsinoForm,
                         'enviomensagem':EnvioMensagemForm,
                         }
-    if request.method == 'GET':
-        formulario = listaformularios[gestaoescolhida]()
-    else:
-        formulario = listaformularios[gestaoescolhida](request.POST, request.FILES)
+    form_class = listaformularios.get(gestaoescolhida)
+    if not form_class:
+        messages.error(request, 'Tipo de formulário inválido.')
+        return redirect('index')
+
+    # 🔐 MODEL CORRETO
+    model = form_class._meta.model
+    perm = f'{model._meta.app_label}.add_{model._meta.model_name}'
+
+    if not request.user.has_perm(perm):
+        messages.error(request, 'Acesso negado! Você não tem permissão criar novos registros.')
+        return redirect('index')
+
+    if request.method == 'POST':
+        formulario = form_class(request.POST, request.FILES)
         if formulario.is_valid():
             formulario.save()
             messages.success(request, 'Dados salvos com sucesso!')
-            return HttpResponseRedirect(reverse('index'))
+            return redirect('index')
         else:
             messages.error(request, 'Foram encontrados erros ao preencher o formulário')
-    return render(request, 'formulario_criacao.html', {'formulario' : formulario})
+    else:
+        formulario = form_class()
+
+    return render(request, 'formulario_criacao.html', {'formulario': formulario})
 
 def encontraIrmao(request):
     nomev = request.GET['nomev']
