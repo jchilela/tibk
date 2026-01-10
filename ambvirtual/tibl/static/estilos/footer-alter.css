@@ -92,7 +92,7 @@
     flex-wrap: wrap;                  /* 👈 wraps to next line */
     gap: 10px;                        /* spacing between items */
     padding: 14px 18px;
-    margin: 20px auto;
+    margin: 50;
     background: linear-gradient(
         to right,
         rgba(84,140,47,0.95),

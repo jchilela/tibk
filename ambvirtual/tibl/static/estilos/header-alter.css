@@ -243,7 +243,51 @@ a:hover {
 }
 
 
+/* =========================
+   MENU TOGGLE / RESPONSIVE MENU
+========================= */
+.menu-toggle {
+    display: none;
+    background: rgba(255,255,255,0.12);
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
+.header-toggle {
+    margin-left: 12px;
+    background: rgba(84,140,47,0.9);
+}
+
+/* Utility: hide elements on small screens */
+.hide-on-mobile {
+    display: block; /* default: visible on desktop */
+}
+
+@media (max-width: 900px) {
+    .menu-toggle { display: inline-flex; align-items:center; gap:8px; margin: 8px 0; }
+    .header-toggle { display: inline-flex; align-items:center; border:none; position:absolute; top:12px; right:16px; }
+
+    /* collapse admin menu into a vertical dropdown */
+    .menu-bar { display: none; flex-direction: column; gap:10px; width:100%; line-height:0; }
+    .menu-bar.open { display: flex; }
+    .menu-bar a { width: 100%; box-sizing: border-box; padding: 12px 16px; line-height: normal; }
+
+    /* header nav collapses into vertical list */
+    .public-header { height: auto; padding: 10px 16px; }
+    .header-nav { display: none; flex-direction: column; gap:8px; margin-top: 8px; }
+    .header-nav.open { display: flex; }
+    .header-nav a { padding: 8px 12px; background: rgba(255,255,255,0.9); border-radius: 8px; color: #21341C; }
+
+    /* hide elements marked as hide-on-mobile */
+    .hide-on-mobile { display: none !important; }
+
+    /* adjust user-online element */
+    .user-online { position: static; margin-top: 10px; right: auto; }
+}
 
 
 
