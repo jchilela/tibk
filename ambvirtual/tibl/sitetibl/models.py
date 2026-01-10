@@ -139,6 +139,9 @@ class Irmao(Pessoa):
      dizimista = models.CharField(max_length = 10, choices = ACTIVO, default = 'nao')
      batizado = models.BooleanField(default=False)
      user = models.OneToOneField(User, verbose_name="User Django", blank=True, null=True, on_delete=models.CASCADE)
+     data_criacao = models.DateTimeField(auto_now_add=True)
+     data_atualizacao = models.DateTimeField(auto_now=True)
+
      def __str__(self):
          return '%s %s' % (self.nome, self.apelido)
      class Admin:
