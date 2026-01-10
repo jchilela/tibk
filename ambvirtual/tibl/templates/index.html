@@ -44,7 +44,7 @@
     <button class="menu-toggle" aria-expanded="false" aria-controls="menu-bar" id="menu-toggle" aria-label="Mostrar menu" style="background-color: #548c2f;">☰ Menu</button>
     <div class="menu-bar" id="menu-bar">
         {% if user.is_authenticated %}
-            {% if request.user|has_group:'administrador' %}
+            {% if request.user|has_group:'Administrador' %}
                 <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
                 <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
@@ -67,7 +67,7 @@
                 <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
             
-            {% elif request.user|has_group:'financeiro' %}
+            {% elif request.user|has_group:'Financeiro' %}
                 <a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/bancos/1">Bancos</a>&nbsp;&nbsp;
@@ -80,7 +80,7 @@
                 <a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
 
 
-            {% elif request.user|has_group:'secretaria' %}
+            {% elif request.user|has_group:'Secretaria' %}
                 <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
                 <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
@@ -91,6 +91,25 @@
                 <a href="/tibl/gestao/enviomensagem/1">Envio de Mensagem Massiva</a>&nbsp;&nbsp;
                 <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+            
+            {% elif request.user|has_group:'Membros Baptizados' %}
+                <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
+                <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
+                <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
+                <a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
+                <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+            
+            {% elif request.user|has_group:'Membro Geral' %}
+                <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
+                <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
+                <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
+                <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+
             {% endif %}
         {% endif %}
 
