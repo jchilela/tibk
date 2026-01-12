@@ -151,8 +151,8 @@
 
 <div class="dashboard-grid">
   <div class="card">
-    <h3>Cestas Básicas (Último Quadrimestre)</h3>
-    <canvas id="barrasCestas"></canvas>
+    <h3>Irmaos</h3>
+    <canvas id="irmaos"></canvas>
   </div>
 
   <div class="card">
@@ -189,19 +189,28 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 <script>
 // 1. Gráfico de Barras (Cestas Básicas)
-new Chart(document.getElementById('barrasCestas'), {
-  type: 'bar',
-  data: {
-    labels: ['Set', 'Out', 'Nov', 'Dez'],
-    datasets: [{
-      label: 'Cestas Entregues',
-      data: [45, 52, 38, 65],
-      backgroundColor: '#769656'
-    }]
-  }
-});
+fetch('dashboard/numero-irmaos-cadastrados-mensalmente')
+  .then(response => response.json())
+  .then(json => {
+      new Chart(document.getElementById('irmaos'), {
+          type: 'bar',
+          data: {
+              labels: json.labels,
+              datasets: [{
+                  label: 'Numero de irmaos cadastrados',
+                  data: json.data,
+                  backgroundColor: '#769656'
+              }]
+          },
+          options: {
+              responsive: true
+          }
+      });
+  });
 
 // 2. Gráfico de Pizza (Orçamento)
 new Chart(document.getElementById('pizzaOrcamento'), {

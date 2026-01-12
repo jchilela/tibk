@@ -696,3 +696,43 @@ def encontraEnvioMensagem(request):
     del dd['pagina']
     cc = request.META['QUERY_STRING']
     return render(request,'enviomensagemfiltrados.html', {'bb':paginaresultado})
+
+
+
+
+
+from django.db.models.functions import TruncMonth
+import json
+from django.http import JsonResponse
+from django.utils.timezone import now
+from collections import OrderedDict
+
+def dashboardIrmaos(request):
+    ano = now().year
+
+    queryset = (
+        Irmao.objects
+        .filter(data_criacao__year=ano)
+        .annotate(mes=TruncMonth('data_criacao'))
+        .values('mes')
+        .annotate(total=Count('id'))
+        .order_by('mes')   # ordem cronológica
+    )
+
+    # Cria todos os meses com valor zero
+    meses = OrderedDict()
+    for i in range(1, 13):
+        meses[i] = 0
+
+    # Preenche os meses que têm dados
+    for item in queryset:
+        meses[item['mes'].month] = item['total']
+
+    # Labels dinâmicos: mês + ano
+    labels = [f"{mes} {ano}" for mes in ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']]
+    data = list(meses.values())
+
+    return JsonResponse({
+        "labels": labels,
+        "data": data
+    })
