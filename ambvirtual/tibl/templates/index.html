@@ -213,16 +213,46 @@ fetch('dashboard/numero-irmaos-cadastrados-mensalmente')
   });
 
 // 2. Gráfico de Pizza (Orçamento)
-new Chart(document.getElementById('pizzaOrcamento'), {
-  type: 'pie',
-  data: {
-    labels: ['Louvor', 'Missões', 'Infantil', 'Social'],
-    datasets: [{
-      data: [25, 40, 15, 20],
-      backgroundColor: ['#769656', '#98b37e', '#4d6338', '#b9ccaa']
-    }]
-  }
-});
+fetch('/dashboard/orcamento-departamento')
+  .then(response => response.json())
+  .then(json => {
+
+      const canvas = document.getElementById('pizzaOrcamento');
+
+      // Paleta base de verdes
+      const baseColors = ['#769656', '#98b37e', '#4d6338', '#b9ccaa', '#5f7d48', '#cfe0bf'];
+
+      // Gera cores repetindo da paleta se houver mais departamentos do que cores
+      const colors = json.labels.map((_, i) => baseColors[i % baseColors.length]);
+
+      new Chart(canvas, {
+          type: 'pie',
+          data: {
+              labels: json.labels,
+              datasets: [{
+                  data: json.data,
+                  backgroundColor: colors
+              }]
+          },
+          options: {
+              responsive: true,
+              plugins: {
+                  tooltip: {
+                      callbacks: {
+                          label: function(context) {
+                              let total = context.dataset.data.reduce((a,b)=>a+b,0);
+                              let valor = context.parsed;
+                              let percent = ((valor / total) * 100).toFixed(1);
+                              return `${context.label}: ${valor.toLocaleString()} (${percent}%)`;
+                          }
+                      }
+                  }
+              }
+          }
+      });
+  })
+  .catch(err => console.error("Erro ao buscar dados da API:", err));
+
 
 // 3. Gráfico de Linhas (Mensagens Massivas)
 new Chart(document.getElementById('linhasMensagens'), {

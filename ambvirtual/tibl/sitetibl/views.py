@@ -736,3 +736,26 @@ def dashboardIrmaos(request):
         "labels": labels,
         "data": data
     })
+
+def dashboardOrcamentoDepartamento(request):
+    ano = now().year
+
+    queryset = (
+        OrcamentoDepartamento.objects
+        .filter(ano=ano)
+        .values('departamento__designacao')
+        .annotate(total=Sum('orcamento'))
+        .order_by('departamento__designacao')
+    )
+
+    labels = []
+    data = []
+
+    for item in queryset:
+        labels.append(item['departamento__designacao'])
+        data.append(float(item['total']))
+
+    return JsonResponse({
+        "labels": labels,
+        "data": data
+    })
