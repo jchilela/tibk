@@ -25,6 +25,13 @@ class Profissao(models.Model):
     class Admin:
         pass
 
+class TipoOferta(models.Model):
+    designacao = models.CharField(max_length = 200, unique = True)
+    def __str__(self):
+        return '%s' % self.designacao
+    class Admin:
+        pass
+
 
 class MomentosRealizados(models.Model):
     designacao = models.CharField(max_length = 200)
@@ -364,8 +371,9 @@ class ComposicaoCesta(models.Model):
 class Dizimooferta(models.Model):
     valor = models.DecimalField(max_digits = 11, decimal_places = 2)
     moeda = models.CharField(max_length=50, choices = MOEDA, default = "AKZ")
+    tipooferta = models.ForeignKey(TipoOferta, verbose_name = 'Tipo de oferta', on_delete = models.CASCADE)
     datacorrespondente = models.DateField()
-    irmao = models.ForeignKey(Irmao, verbose_name = 'irmaodizimista', on_delete = models.CASCADE)
+    irmao = models.ForeignKey(Irmao, verbose_name = 'Irmao Dizimista', on_delete = models.CASCADE)
     actividade = models.ForeignKey(Actividade, on_delete = models.CASCADE, blank = True, null = True)
     datacontrolo = models.DateField( auto_now = True)
     dataregisto = models.DateField(default = datetime.today)

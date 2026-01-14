@@ -15,11 +15,19 @@ from django.db.models import Sum, Count, F
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
 
+from django.db.models.functions import TruncMonth
+import json
+from django.http import JsonResponse
+from django.utils.timezone import now
+from collections import OrderedDict
+from django.db.models.functions import ExtractWeekDay
+
 #from django.db.models import Count
 
 # Register your models here.
 #from gestaoinfra.models import Contacto
 from sitetibl.models import Irmao
+from sitetibl.models import TipoOferta
 from sitetibl.models import Ajuda
 from sitetibl.models import Cestabasica
 from sitetibl.models import Banco
@@ -698,15 +706,6 @@ def encontraEnvioMensagem(request):
     return render(request,'enviomensagemfiltrados.html', {'bb':paginaresultado})
 
 
-
-
-
-from django.db.models.functions import TruncMonth
-import json
-from django.http import JsonResponse
-from django.utils.timezone import now
-from collections import OrderedDict
-
 def dashboardIrmaos(request):
     ano = now().year
 
@@ -758,4 +757,150 @@ def dashboardOrcamentoDepartamento(request):
     return JsonResponse({
         "labels": labels,
         "data": data
+    })
+
+def dashboardPedidosSaidaSemana(request):
+    ano = now().year
+
+    queryset = (
+        PedidoSaida.objects
+        .filter(data_criacao__year=ano)
+        .annotate(dia_semana=ExtractWeekDay('data_criacao'))
+        .values('dia_semana')
+        .annotate(total=Count('id'))
+    )
+
+    # Django: 1=Dom, 2=Seg, 3=Ter, ..., 7=Sáb
+    dias = {
+        1: 'Dom',
+        2: 'Seg',
+        3: 'Ter',
+        4: 'Qua',
+        5: 'Qui',
+        6: 'Sex',
+        7: 'Sáb',
+    }
+
+    # Inicializa todos os dias com zero
+    dados = {dia: 0 for dia in dias.values()}
+
+    for item in queryset:
+        nome_dia = dias[item['dia_semana']]
+        dados[nome_dia] = item['total']
+
+    return JsonResponse({
+        "ano":ano,
+        "labels": list(dados.keys()),
+        "data": list(dados.values())
+    })
+
+
+def dashboardConteudoEnsinoMensal(request):
+    ano = now().year
+
+    queryset = (
+        ConteudoEnsino.objects
+        .filter(data_criacao__year=ano)
+        .annotate(mes=TruncMonth('data_criacao'))
+        .values('mes')
+        .annotate(total=Count('id'))
+        .order_by('mes')
+    )
+
+    meses = {
+        1:'Jan',2:'Fev',3:'Mar',4:'Abr',5:'Mai',6:'Jun',
+        7:'Jul',8:'Ago',9:'Set',10:'Out',11:'Nov',12:'Dez'
+    }
+
+    labels = []
+    data = []
+    total_geral = 0
+
+    for item in queryset:
+        labels.append(meses[item['mes'].month])
+        data.append(item['total'])
+        total_geral += item['total']
+
+    return JsonResponse({
+        "ano": ano,
+        "labels": labels,
+        "data": data,
+        "total": total_geral
+    })
+
+def dashboardDizimoOferta(request):
+    ano = now().year
+
+    # Pega todos os tipos de oferta existentes
+    tipos = TipoOferta.objects.all()
+
+    meses = {i: 0 for i in range(1, 13)}
+    labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+
+    datasets = []
+
+    for tipo in tipos:
+        queryset = (
+            Dizimooferta.objects
+            .filter(datacorrespondente__year=ano, tipooferta=tipo)
+            .annotate(mes=TruncMonth('datacorrespondente'))
+            .values('mes')
+            .annotate(total=Sum('valor'))
+            .order_by('mes')
+        )
+
+        # Preenche todos os meses
+        data = meses.copy()
+        for item in queryset:
+            data[item['mes'].month] = float(item['total'] or 0)
+
+        datasets.append({
+            "label": tipo.designacao,   # Nome do tipo de oferta
+            "data": list(data.values())
+        })
+
+    return JsonResponse({
+        "ano": ano,
+        "labels": labels,
+        "datasets": datasets
+    })
+
+
+
+def dashboardCrescimentoMembros(request):
+    ano = now().year
+
+    queryset = (
+        RelatorioSemanalCelula.objects
+        .filter(data_reuniao__year=ano)
+        .annotate(mes=TruncMonth('data_reuniao'))
+        .values('mes')
+        .annotate(
+            total_membros=Sum('numero_participantes_membros'),
+            total_visitantes=Sum('numero_participantes_visitantes'),
+            total_criancas=Sum('numero_participantes_criancas')
+        )
+        .order_by('mes')
+    )
+
+    # Meses padrão
+    meses = {i: 0 for i in range(1, 13)}
+    labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+
+    data_membros = meses.copy()
+    data_visitantes = meses.copy()
+    data_criancas = meses.copy()
+
+    for item in queryset:
+        m = item['mes'].month
+        data_membros[m] = item['total_membros'] or 0
+        data_visitantes[m] = item['total_visitantes'] or 0
+        data_criancas[m] = item['total_criancas'] or 0
+
+    return JsonResponse({
+        "ano": ano,
+        "labels": labels,
+        "membros": list(data_membros.values()),
+        "visitantes": list(data_visitantes.values()),
+        "criancas": list(data_criancas.values())
     })

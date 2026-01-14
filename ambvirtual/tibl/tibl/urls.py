@@ -55,6 +55,11 @@ urlpatterns = [
     #endpoints para dashboard
     path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos),
     path('dashboard/orcamento-departamento', sitetibl.views.dashboardOrcamentoDepartamento),
+    path('dashboard/pedido-saida-semana', sitetibl.views.dashboardPedidosSaidaSemana),
+
+    path('dashboard/conteudo-ensino-mensal', sitetibl.views.dashboardConteudoEnsinoMensal),
+    path('dashboard/dizimo-oferta', sitetibl.views.dashboardDizimoOferta),
+    path('dashboard/crescimento-membros', sitetibl.views.dashboardCrescimentoMembros),
     ]
 
 if settings.DEBUG:

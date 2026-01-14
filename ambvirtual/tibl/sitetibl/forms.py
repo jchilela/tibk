@@ -105,7 +105,8 @@ class DizimoofertaForm(ModelForm):
         model = Dizimooferta
         fields = '__all__'
         widgets = {
-            'dataregisto': forms.DateInput(attrs={'type': 'date'})
+            'dataregisto': forms.DateInput(attrs={'type': 'date'}),
+            'datacorrespondente': forms.DateInput(attrs={'type': 'date'})
         }
 
 class SaidacaixaForm(ModelForm):

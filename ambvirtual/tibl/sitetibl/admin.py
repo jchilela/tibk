@@ -42,6 +42,7 @@ from sitetibl.models import OrcamentoDepartamento
 from sitetibl.models import Estado_Patrimonio
 from sitetibl.models import ConteudoEnsino
 from sitetibl.models import EnvioMensagem
+from sitetibl.models import TipoOferta
 from .forms import IrmaoForm
 
 @admin.register(Irmao)
@@ -90,3 +91,4 @@ admin.site.register(OrcamentoDepartamento)
 admin.site.register(Estado_Patrimonio)
 admin.site.register(ConteudoEnsino)
 admin.site.register(EnvioMensagem)
+admin.site.register(TipoOferta)
