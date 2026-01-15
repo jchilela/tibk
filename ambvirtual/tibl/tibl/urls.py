@@ -60,6 +60,15 @@ urlpatterns = [
     path('dashboard/conteudo-ensino-mensal', sitetibl.views.dashboardConteudoEnsinoMensal),
     path('dashboard/dizimo-oferta', sitetibl.views.dashboardDizimoOferta),
     path('dashboard/crescimento-membros', sitetibl.views.dashboardCrescimentoMembros),
+
+    #endpoints para baixar relatórios
+    path('relatorios/irmaos/pdf/', sitetibl.views.relatorio_irmaos_pdf, name="relatorio_irmaos_pdf"),
+    path('relatorios/dizimos/pdf/', sitetibl.views.relatorio_dizimos_pdf, name='relatorio_dizimos_pdf'),
+    path('relatorios/departamentos/pdf/', sitetibl.views.relatorio_departamentos_pdf, name='relatorio_departamentos_pdf'),
+    path('relatorios/escalas/pdf/', sitetibl.views.relatorio_escalas_pdf, name='relatorio_escalas_pdf'),
+    path('relatorios/actividades/pdf/', sitetibl.views.relatorio_actividades_pdf, name='relatorio_actividades_pdf'),
+    path('relatorios/inventario_patrimonio/pdf/', sitetibl.views.relatorio_inventario_patrimonio_pdf, name='relatorio_inventario_patrimonio_pdf'),
+    path('relatorios/saida_caixa/pdf/', sitetibl.views.relatorio_saida_caixa_pdf, name='relatorio_saida_caixa_pdf'),
     ]
 
 if settings.DEBUG:

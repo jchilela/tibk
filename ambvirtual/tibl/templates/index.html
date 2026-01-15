@@ -8,6 +8,7 @@
     <link href="{% static 'estilos/header-alter.css' %}" rel="stylesheet">
     <link href="{% static 'estilos/footer-alter.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'estilos/messages.css' %}">
+    <link rel="stylesheet" href="{% static 'estilos/relatorio.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <body class="fullscreen-bg">
@@ -63,9 +64,23 @@
                 <a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
                 <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
                 <a href="/tibl/gestao/enviomensagem/1">Envio de Mensagem Massiva</a>&nbsp;&nbsp;
-            
                 <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
                 <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+
+                <div class="menu-relatorio">
+                  <span class="menu-relatorio-btn">Relatórios ▾</span>
+                  <div class="menu-relatorio-content">
+                      <a href="{% url 'relatorio_irmaos_pdf' %}">1-Baixar PDF de Relatório de Irmãos</a>
+                      <a href="{% url 'relatorio_dizimos_pdf' %}">2-Baixar PDF de Relatório de Dízimos & Ofertas</a>
+                      <a href="{% url 'relatorio_departamentos_pdf' %}">3-Baixar PDF de Relatório de Departamentos</a>
+                      <a href="{% url 'relatorio_escalas_pdf' %}">4-Baixar PDF de Relatório de Escalas</a>
+                      <a href="{% url 'relatorio_actividades_pdf' %}">5-Baixar PDF de Relatório de Actividades</a>
+                      <a href="{% url 'relatorio_inventario_patrimonio_pdf' %}">6-Baixar PDF de Relatório de Inventário de Património</a>
+                      <a href="{% url 'relatorio_saida_caixa_pdf' %}">7-Baixar PDF de Relatório de Saída de Caixa</a>
+                  </div>
+              </div>
+              &nbsp;&nbsp;
+              
             
             {% elif request.user|has_group:'Financeiro' %}
                 <a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
