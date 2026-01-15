@@ -102,7 +102,7 @@ DATABASES = {
         'NAME': 'tibldb',
         'USER': 'tibl_user',
         'PASSWORD': 'tibl2026',
-        'HOST': 'host.docker.internal',
+        'HOST': 'localhost',
         #'HOST': '46.224.57.18',
         'PORT': '3306',
         'OPTIONS': {
