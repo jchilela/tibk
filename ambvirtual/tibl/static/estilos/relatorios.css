@@ -1,0 +1,82 @@
+/* ================================
+   Página de Relatórios
+================================= */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f5f0;
+    margin: 0;
+    padding: 0;
+}
+
+/* LOGO */
+.logo-container {
+    text-align: center;
+    margin-top: 30px;
+}
+.logo {
+    width: 120px;
+    height: auto;
+}
+
+/* TÍTULO */
+.page-title {
+    text-align: center;
+    color: #548c2f;
+    margin: 20px 0 40px;
+    font-size: 28px;
+}
+
+/* CONTAINER DE CARDS */
+.relatorios-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+    padding: 0 20px 50px;
+}
+
+/* CADA CARD */
+.relatorio-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 220px;
+    padding: 25px 20px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.relatorio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* ÍCONE DO CARD */
+.relatorio-icon {
+    font-size: 38px;
+    margin-bottom: 15px;
+}
+
+/* TÍTULO DO CARD */
+.relatorio-card h3 {
+    margin: 10px 0 20px;
+    font-size: 18px;
+    color: #21341c;
+}
+
+/* BOTÃO DE DOWNLOAD */
+.btn-download {
+    display: inline-block;
+    padding: 8px 18px;
+    background-color: #548c2f;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.btn-download:hover {
+    background-color: #40642a;
+    transform: translateY(-2px);
+}

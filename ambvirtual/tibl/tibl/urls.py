@@ -62,6 +62,8 @@ urlpatterns = [
     path('dashboard/crescimento-membros', sitetibl.views.dashboardCrescimentoMembros),
 
     #endpoints para baixar relatórios
+     path('relatorios/', sitetibl.views.pagina_relatorios, name='pagina_relatorios'),
+
     path('relatorios/irmaos/pdf/', sitetibl.views.relatorio_irmaos_pdf, name="relatorio_irmaos_pdf"),
     path('relatorios/dizimos/pdf/', sitetibl.views.relatorio_dizimos_pdf, name='relatorio_dizimos_pdf'),
     path('relatorios/departamentos/pdf/', sitetibl.views.relatorio_departamentos_pdf, name='relatorio_departamentos_pdf'),

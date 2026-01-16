@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios do Sistema</title>
+    <link rel="stylesheet" href="{% static 'estilos/relatorios.css' %}">
+</head>
+<body>
+
+<div class="relatorios-page">
+
+    <!-- LOGO -->
+    <div class="logo-container">
+        <img src="{% static 'fotos/2022/cba.png' %}" alt="Logo CBA" class="logo">
+    </div>
+
+    <!-- TÍTULO -->
+    <h2 class="page-title">📄 Relatórios do Sistema de Gestão TIBL</h2>
+
+    <!-- CONTAINER DE CARDS -->
+    <div class="relatorios-container">
+
+        <div class="relatorio-card">
+            <div class="relatorio-icon">👥</div>
+            <h3>Relatório de Irmãos</h3>
+            <a href="{% url 'relatorio_irmaos_pdf' %}" target="_blank" class="btn-download">
+                ⬇ Baixar PDF
+            </a>
+        </div>
+
+        <div class="relatorio-card">
+            <div class="relatorio-icon">💰</div>
+            <h3>Dízimos & Ofertas</h3>
+            <a href="{% url 'relatorio_dizimos_pdf' %}" target="_blank" class="btn-download">
+                ⬇ Baixar PDF
+            </a>
+        </div>
+
+        <div class="relatorio-card">
+            <div class="relatorio-icon">🏢</div>
+            <h3>Departamentos</h3>
+            <a href="{% url 'relatorio_departamentos_pdf' %}" target="_blank" class="btn-download">
+                ⬇ Baixar PDF
+            </a>
+        </div>
+
+        <div class="relatorio-card">
+            <div class="relatorio-icon">📅</div>
+            <h3>Escalas</h3>
+            <a href="{% url 'relatorio_escalas_pdf' %}" target="_blank" class="btn-download">
+                ⬇ Baixar PDF
+            </a>
+        </div>
+
+        <div class="relatorio-card">
+            <div class="relatorio-icon">🎤</div>
+            <h3>Actividades</h3>
+            <a href="{% url 'relatorio_actividades_pdf' %}" target="_blank" class="btn-download">
+                ⬇ Baixar PDF
+            </a>
+        </div>
+
+        <div class="relatorio-card">
+            <div class="relatorio-icon">📦</div>
+            <h3>Inventário de Património</h3>
+            <a href="{% url 'relatorio_inventario_patrimonio_pdf' %}" target="_blank" class="btn-download">
+                ⬇ Baixar PDF
+            </a>
+        </div>
+
+        <div class="relatorio-card">
+            <div class="relatorio-icon">💸</div>
+            <h3>Saída de Caixa</h3>
+            <a href="{% url 'relatorio_saida_caixa_pdf' %}" target="_blank" class="btn-download">
+                ⬇ Baixar PDF
+            </a>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

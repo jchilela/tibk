@@ -22,7 +22,7 @@ from django.conf import settings
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from reportlab.lib import colors
 import os
-
+from django.contrib.auth.decorators import login_required
 
 from django.db.models.functions import TruncMonth
 import json
@@ -919,6 +919,11 @@ def dashboardCrescimentoMembros(request):
 
 
 #VIEWS QUE GERAM RELATÓRIOS
+@login_required
+def pagina_relatorios(request):
+    return render(request, 'relatorios/template_relatorio.html')
+
+
 def relatorio_irmaos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_irmaos.pdf"'
