@@ -132,14 +132,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 CSRF_TRUSTED_ORIGINS = [
     "https://gestao.tibl.ao",
-    "http://46.224.57.18:8000",
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True
+#SESSION_COOKIE_SECURE = True
 CORS_ALLOWED_ORIGINS = [
     "https://gestao.tibl.ao",
-    "http://46.224.57.18:8000",
 ]
 
 
