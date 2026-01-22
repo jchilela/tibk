@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_mysql',
     'sitetibl',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -146,7 +147,7 @@ CORS_ALLOWED_ORIGINS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Luanda'
 
 USE_I18N = True
 
@@ -180,3 +181,7 @@ EMAIL_HOST_PASSWORD = 'daovvfeytdhijfki'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CRONJOBS = [
+    # Todos os dias às 08:00
+    ('00 08 * * *', 'sitetibl.cron.enviar_notificacoes_escala'),
+]
