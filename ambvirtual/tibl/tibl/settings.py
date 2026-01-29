@@ -185,3 +185,4 @@ CRONJOBS = [
     # Todos os dias às 08:00
     ('00 08 * * *', 'sitetibl.cron.enviar_notificacoes_escala'),
 ]
+####
