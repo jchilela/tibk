@@ -151,7 +151,7 @@ TIME_ZONE = 'Africa/Luanda'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -185,4 +185,3 @@ CRONJOBS = [
     # Todos os dias às 08:00
     ('00 08 * * *', 'sitetibl.cron.enviar_notificacoes_escala'),
 ]
-####
