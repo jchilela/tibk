@@ -13,6 +13,8 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'notificacoes_escala_cada_1_minuto': {
         'task': 'sitetibl.tasks.enviar_notificacoes_escala',
-        'schedule': crontab(minute='*/1'),  # a cada 1 minuto
+        'schedule': crontab(hour=4, minute=0),  # executa todos dias as 4h
+
+        #'schedule': crontab(minute='*/1'),  # a cada 1 minuto
     },
 }
