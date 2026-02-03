@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,6 +29,9 @@ DEBUG = True
 #ALLOWED_HOSTS = ['www.x0e1.ao','www.tibl.ao','localhost','127.0.0.1','178.157.82.149']
 ALLOWED_HOSTS = ['*']
 
+CRONTAB_PYTHON_EXECUTABLE = '/home/garcia_simao/Documentos/Projectos de trabalho/ProjectoTibl/tibl/ambvirtual/bin/python'
+
+
 
 # Application definition
 
@@ -41,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_mysql',
     'sitetibl',
-    'django_crontab',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -145,6 +149,12 @@ CORS_ALLOWED_ORIGINS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
+#configuração do redis
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Africa/Luanda'
@@ -181,7 +191,5 @@ EMAIL_HOST_PASSWORD = 'daovvfeytdhijfki'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CRONJOBS = [
-    # Todos os dias às 08:00
-    ('00 08 * * *', 'sitetibl.cron.enviar_notificacoes_escala'),
-]
+
+

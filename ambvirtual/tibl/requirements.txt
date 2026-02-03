@@ -22,3 +22,4 @@ django-clearcache==1.2.1
 django-mysql==4.19.0
 Pillow==10.1.0
 django-crontab == 0.7.1
+celery == 5.4.0

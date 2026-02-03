@@ -1,11 +1,13 @@
-from datetime import date, timedelta
+# sitetibl/tasks.py
+from celery import shared_task
 from django.core.mail import send_mail
-from .models import Actividade, Escala
 from django.conf import settings
+from datetime import date, timedelta
+from .models import Actividade, Escala
 
 
 
-
+@shared_task
 def enviar_notificacoes_escala():
     hoje = date.today()
 
