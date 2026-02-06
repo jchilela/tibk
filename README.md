@@ -323,12 +323,12 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 👥 Equipe
 
-- **Desenvolvedores**: [Seu Nome]
-- **Organização**: Temple of the Lord Baptist Church (TIBL)
+- **Desenvolvedores**: 
+- **Organização**: Terceira Igreja Baptista de Luanda (TIBL)
 
 ## 📞 Contato
 
-- **Email**: tiblbaptista7@gmail.com
+- **Email**: geral@tibl.ao
 - **Website**: [https://gestao.tibl.ao](https://gestao.tibl.ao)
 
 ## 🙏 Agradecimentos
