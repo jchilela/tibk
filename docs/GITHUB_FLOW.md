@@ -6,7 +6,7 @@ Este documento descreve o fluxo de trabalho GitHub Flow que será utilizado para
 
 ## 2. Princípios do GitHub Flow
 
-1. **Branch `main` **: A branch principal deve estar sempre em estado estável e pronta para produção
+1. **Branch `main`**: A branch principal deve estar sempre em estado estável e pronta para produção
 2. **Branches descritivas**: Criar branches com nomes claros que descrevem a funcionalidade
 3. **Commits frequentes**: Fazer commits pequenos e frequentes com mensagens descritivas
 4. **Pull Requests para colaboração**: Usar PRs para discussão e revisão de código
