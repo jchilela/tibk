@@ -1,4 +1,4 @@
-# Sistema TIBL - Temple of the Lord Baptist Church
+# Sistema TIBL - Terceira Igreja Baptista de Luanda
 
 ![Python](https://img.shields.io/badge/python-3.10-blue.svg)
 ![Django](https://img.shields.io/badge/django-4.2.5-green.svg)
@@ -21,7 +21,7 @@ Sistema de gestão integrada para administração de igreja batista, desenvolvid
 
 ## 🎯 Sobre o Projeto
 
-O Sistema TIBL foi desenvolvido para facilitar a gestão completa de uma igreja batista, oferecendo ferramentas para:
+O Sistema TIBL foi desenvolvido para facilitar a gestão completa de uma TIBL, oferecendo ferramentas para:
 
 - Cadastro e gestão de membros
 - Controle financeiro (dízimos, ofertas, entradas e saídas)
