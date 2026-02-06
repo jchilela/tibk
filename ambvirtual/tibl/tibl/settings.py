@@ -13,23 +13,42 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 import os
 import sys
+from dotenv import load_dotenv
+
+# Use PyMySQL as a fallback for mysqlclient (common on macOS)
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
+
+# Workaround for MariaDB 10.4 (Django 4.2+ requires 10.5+)
+from django.db.backends.base.base import BaseDatabaseWrapper
+BaseDatabaseWrapper.check_database_version_supported = lambda self: None
+
+from django.db.backends.mysql.features import DatabaseFeatures
+DatabaseFeatures.can_return_columns_from_insert = property(lambda self: False)
+DatabaseFeatures.can_return_rows_from_bulk_insert = property(lambda self: False)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=x=4@f=l21kx5o32y$c@4r(+5k-7mao4_aa0-!w-xz#qcm(9(='
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-=x=4@f=l21kx5o32y$c@4r(+5k-7mao4_aa0-!w-xz#qcm(9(=')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 #ALLOWED_HOSTS = ['www.x0e1.ao','www.tibl.ao','localhost','127.0.0.1','178.157.82.149']
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
-CRONTAB_PYTHON_EXECUTABLE = '/home/garcia_simao/Documentos/Projectos de trabalho/ProjectoTibl/tibl/ambvirtual/bin/python'
+CRONTAB_PYTHON_EXECUTABLE = sys.executable
 
 
 
@@ -101,17 +120,14 @@ WSGI_APPLICATION = 'tibl.wsgi.application'
 
 DATABASES = {
     'default': {
-        #'ENGINE': 'django.db.backends.sqlite3',
-        #'NAME': BASE_DIR / 'db.sqlite3',
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tibldb',
-        'USER': 'tibl_user',
-        'PASSWORD': 'tibl2026',
-        #'HOST': 'host.docker.internal',
-        'HOST': '46.224.57.18',
-        'PORT': '3306',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': os.getenv('DB_NAME', 'tibldb'),
+        'USER': os.getenv('DB_USER', 'tibl_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'tibl2026'),
+        'HOST': os.getenv('DB_HOST', '46.224.57.18'),
+        'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
-        'charset': 'utf8mb4',  # The characterset you need
+            'charset': 'utf8mb4',
         }
     }
 }
@@ -135,22 +151,19 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-CSRF_TRUSTED_ORIGINS = [
-    "https://gestao.tibl.ao",
-]
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', "https://gestao.tibl.ao").split(',')
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 #CSRF_COOKIE_SECURE = True
 #SESSION_COOKIE_SECURE = True
-CORS_ALLOWED_ORIGINS = [
-    "https://gestao.tibl.ao",
-]
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', "https://gestao.tibl.ao").split(',')
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
 #configuração do redis
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://127.0.0.1:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -177,14 +190,14 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Substitua pelo servidor SMTP do seu provedor de e-mail
-EMAIL_PORT = 587  # Porta do servidor SMTP (587 é comum para TLS)
-EMAIL_USE_TLS = True  # Use TLS para criptografar a conexão
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 
 # Substitua com seu endereço de e-mail e senha
-EMAIL_HOST_USER = 'tiblbaptista7@gmail.com'
-EMAIL_HOST_PASSWORD = 'daovvfeytdhijfki'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'tiblbaptista7@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'daovvfeytdhijfki')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
