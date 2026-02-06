@@ -515,24 +515,6 @@ Este documento será atualizado conforme o progresso da sprint. Todas as altera�
 
 **Última atualização**: 06 de Fevereiro de 2026
 
----
 
-**Aprovado por**:
-- [ ] Pastor/Líder da Igreja
-- [ ] Gestor Financeiro
-- [ ] Tech Lead
-
-**Assinaturas**:
-
-___________________________  
-Pastor/Líder
-
-___________________________  
-Gestor Financeiro
-
-___________________________  
-Tech Lead
-
----
 
 *"Cada um contribua segundo propôs no seu coração, não com tristeza ou por necessidade; porque Deus ama ao que dá com alegria." - 2 Coríntios 9:7*
