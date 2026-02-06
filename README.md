@@ -4,7 +4,7 @@
 ![Django](https://img.shields.io/badge/django-4.2.5-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-Sistema de gestão integrada para administração de igreja batista, desenvolvido em Django. Centraliza a gestão de membros, finanças, patrimônio, atividades, departamentos e comunicação.
+Sistema de gestão integrada para administração de TIBL, desenvolvido em Django. Centraliza a gestão de membros, finanças, patrimônio, atividades, departamentos e comunicação.
 
 ## 📋 Índice
 
