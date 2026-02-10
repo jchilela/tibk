@@ -1,18 +1,25 @@
-<div class="pagination" align="center">
-    <span class="step-links">
+<div class="modern-pagination" style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin: 2rem 0;">
+    <div class="step-links" style="display: flex; align-items: center; gap: 0.5rem;">
         {% if bb.has_previous %}
-            <a href="../1" class = 'aa'>&laquo; primeira</a>
-            <a href="../{{ bb.previous_page_number }}" class = 'aa'> | anterior</a>
+            <a href="../1" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--bg-sidebar); font-size: 0.8rem;" title="Primeira Página">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="../{{ bb.previous_page_number }}" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--bg-sidebar); font-size: 0.8rem;">
+                <i class="fas fa-angle-left"></i> Anterior
+            </a>
         {% endif %}
 
-        <span class="actual">
-          <font face="arial,helvetica,verdana" color="#afa3a3"  size="3">  Página {{ bb.number }} de {{ bb.paginator.num_pages }}</font>
-        </span>
+        <div style="padding: 0.5rem 1.5rem; background: white; border-radius: var(--radius-md); border: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">
+            Página <span style="color: var(--primary);">{{ bb.number }}</span> de {{ bb.paginator.num_pages }}
+        </div>
 
         {% if bb.has_next %}
-            <a href="../{{ bb.next_page_number }}" class = 'aa'>próxima | </a>
-            <a href="../{{ bb.paginator.num_pages }}" class = 'aa'>última &raquo;</a>
+            <a href="../{{ bb.next_page_number }}" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--bg-sidebar); font-size: 0.8rem;">
+                Próxima <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="../{{ bb.paginator.num_pages }}" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--bg-sidebar); font-size: 0.8rem;" title="Última Página">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
         {% endif %}
-    </span>
+    </div>
 </div>
-<br>

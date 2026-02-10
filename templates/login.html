@@ -1,18 +1,63 @@
-<!-- templates/registration/login.html -->
 {% extends 'index.html' %}
+{% load static %}
 
 {% block title %}Login{% endblock %}
 
-
 {% block content %}
-<p><br><br></p>
-<form method="post">
-  {% csrf_token %}
-<table align="center" border="0"  class="styled-table" bgcolor = "#362E6C">
-  {{ form }}
-</table>
-  <p align="center">    <input type="submit" value="Submit" class = "button"></p>
-</form>
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 2rem;">
+  <div class="modern-card" style="width: 100%; max-width: 450px; padding: 3rem; text-align: center;">
+    <div style="margin-bottom: 2rem;">
+      <i class="fas fa-lock" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+      <h2 style="margin-bottom: 0.5rem;">Acesso Restrito</h2>
+      <p style="color: var(--text-muted);">Identifique-se para continuar</p>
+    </div>
+
+    <form method="post" style="text-align: left;">
+      {% csrf_token %}
+
+      {% if form.errors %}
+      <div
+        style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 1rem; margin-bottom: 1.5rem; border-radius: var(--radius-sm);">
+        <p style="color: #991b1b; font-size: 0.875rem;">Usuário ou senha inválidos. Por favor, tente novamente.</p>
+      </div>
+      {% endif %}
+
+      <div style="margin-bottom: 1.5rem;">
+        <label for="id_username"
+          style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main);">Usuário</label>
+        <div style="position: relative;">
+          <i class="fas fa-user" style="position: absolute; left: 1rem; top: 1rem; color: var(--text-muted);"></i>
+          <input type="text" name="username" id="id_username" required
+            style="width: 100%; padding: 0.8rem 1rem 0.8rem 2.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md); font-size: 1rem; transition: var(--transition-fast); outline: none;"
+            onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(84, 140, 47, 0.1)'"
+            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <label for="id_password"
+          style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main);">Senha</label>
+        <div style="position: relative;">
+          <i class="fas fa-key" style="position: absolute; left: 1rem; top: 1rem; color: var(--text-muted);"></i>
+          <input type="password" name="password" id="id_password" required
+            style="width: 100%; padding: 0.8rem 1rem 0.8rem 2.5rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md); font-size: 1rem; transition: var(--transition-fast); outline: none;"
+            onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(84, 140, 47, 0.1)'"
+            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+        </div>
+      </div>
+
+      <button type="submit" class="bt-primary"
+        style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: var(--radius-md);">
+        Entrar no Dashboard <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
+      </button>
+    </form>
+
+    <div style="margin-top: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
+      <p style="font-size: 0.875rem; color: var(--text-muted);">
+        Esqueceu sua senha? <a href="#" style="color: var(--primary); font-weight: 600; text-decoration: none;">Contacte
+          o administrador</a>
+      </p>
+    </div>
+  </div>
+</div>
 {% endblock %}
-
-
