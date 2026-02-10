@@ -1,100 +1,104 @@
 {% extends 'index.html' %}
 {% block Actividades%}
-
 {% load ajudatotal %}
 
-<table cellpadding="0" cellspacing="0" align="center" width="50%" border="0">
-<form action="/tibl/buscaactividades"  method="GET">
-<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
-<td>Nome</td><td>Apelido</td><td>Designação</td><td>Função</td><td>Mês</td><td>Ano</td>
-</tr>
-<tr align="center">
-<td><input type="text" name="nomev" style="width: 100px; border: 1px solid gray"></td>
-<td><input type="text" name="apelidov" style="width: 100px; border: 1px solid gray"></td>
-<td><SELECT NAME="actividadev" style="border: 1px solid gray">
-<OPTION SELECTED VALUE=0> ------------
-{% if listaactividades %}
-{% for x in listaactividades %}
-<OPTION VALUE={{ x.id }} > {{ x.designacao }}
-{% endfor %}
-{% endif %}
-</SELECT></td>
-<td><SELECT NAME="funcaov" style="border: 1px solid gray">
-<OPTION SELECTED VALUE=0> ------------
-{% if listafuncoes %}
-{% for x in listafuncoes %}
-<OPTION VALUE={{ x.id }} > {{ x.designacao }}
-{% endfor %}
-{% endif %}
-</SELECT></td>
-<td><SELECT NAME="mesv" style="border: 1px solid gray">
-<OPTION SELECTED VALUE=0> ------------
-{% if listameses %}
-{% for x, y in listameses.items %}
-<OPTION VALUE={{ x }} > {{ y }}
-{% endfor %}
-{% endif %}
-</SELECT></td>
-<td>
-<SELECT NAME="anov" style="width: 80px; border: 1px solid gray">
-<OPTION SELECTED VALUE=0> ------------
-<OPTION VALUE=2010> 2010
-<OPTION VALUE=2011> 2011
-<OPTION VALUE=2012> 2012
-<OPTION VALUE=2013> 2013
-<OPTION VALUE=2014> 2014
-<OPTION VALUE=2015> 2015
-<OPTION VALUE=2016> 2016
-<OPTION VALUE=2017> 2017
-<OPTION VALUE=2018> 2018
-<OPTION VALUE=2019> 2019
-<OPTION VALUE=2020> 2020
-<OPTION VALUE=2021> 2021
-<OPTION VALUE=2022> 2022
-<OPTION VALUE=2023> 2023
-<OPTION VALUE=2024> 2024
-<OPTION VALUE=2025> 2025
-<OPTION VALUE=2026> 2026
-</SELECT></td>
-<input type="hidden" name="pagina" value= 1>
-<td><input type="submit" name="" value="Busca" class="button"></td>
-</tr>
-</form>
-</table>
+<div class="list-container">
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Actividades</h3>
+        <form action="/tibl/buscaactividades" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: flex-end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
+                <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Designação</label>
+                <select name="actividadev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">------------</option>
+                    {% if listaactividades %}
+                        {% for x in listaactividades %}
+                            <option value="{{ x.id }}">{{ x.designacao }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <option value="0">Mês</option>
+                        {% if listameses %}
+                            {% for x, y in listameses.items %}
+                                <option value="{{ x }}">{{ y }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    <select name="anov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <option value="0">Ano</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </form>
+    </div>
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Actividades</b> | <a href="/tibl/actividades/criar/" class = 'aa'><b>Nova </b></a>
-]</font>
-</p>
-{% if bb %}
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Designacao</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Inicio</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Fim</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Data</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Local</b></font></a></td>
-</td>
-</tr>
-{% for x in bb %}
-{% if forloop.counter|divisibleby:2 %}
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de Actividades</h2>
+        <a href="/tibl/actividades/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+            <i class="fas fa-plus"></i> Nova Actividade
+        </a>
+    </div>
 
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/actividades/detalhe/{{ x.id }}" class = 'aa'>{{ x.designacao }} </a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.inicio }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.fim }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.data }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.local }}</font></td>
-</tr>
-{% endfor %}
-{% endif %}
-</table>
-<br>
-<br>
-
-{% include 'paginacao' %}
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Actividade / Local</th>
+                    <th style="text-align: center;">Horário</th>
+                    <th style="text-align: center;">Data</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.designacao }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-map-marker-alt" style="font-size: 0.7rem;"></i> {{ x.local }}</div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span style="font-size: 0.85rem; color: var(--text-main);">
+                            <i class="far fa-clock"></i> {{ x.inicio }} - {{ x.fim }}
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <div style="font-weight: 600; color: var(--primary);">{{ x.data|date:"d/m/Y"|default:x.data }}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/actividades/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                            <i class="fas fa-info-circle"></i> Detalhes
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 3rem;">
+        <i class="fas fa-calendar-times" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+        <p style="color: var(--text-muted);">Nenhuma actividade encontrada para este período.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
-
