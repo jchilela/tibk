@@ -1,25 +1,22 @@
-<div class="modern-pagination" style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin: 2rem 0;">
-    <div class="step-links" style="display: flex; align-items: center; gap: 0.5rem;">
-        {% if bb.has_previous %}
-            <a href="../1" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--bg-sidebar); font-size: 0.8rem;" title="Primeira Página">
-                <i class="fas fa-angle-double-left"></i>
-            </a>
-            <a href="../{{ bb.previous_page_number }}" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--bg-sidebar); font-size: 0.8rem;">
-                <i class="fas fa-angle-left"></i> Anterior
-            </a>
-        {% endif %}
+<div class="modern-pagination">
+{% if bb.has_previous %}
+    <a href="?pagina=1{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Primeira">
+        <i class="fas fa-angles-left"></i>
+    </a>
+    <a href="?pagina={{ bb.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Anterior">
+        <i class="fas fa-angle-left"></i>
+    </a>
+{% endif %}
 
-        <div style="padding: 0.5rem 1.5rem; background: white; border-radius: var(--radius-md); border: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">
-            Página <span style="color: var(--primary);">{{ bb.number }}</span> de {{ bb.paginator.num_pages }}
-        </div>
+<span class="current-page">{{ bb.number }}</span>
+<span style="color: var(--text-muted); font-size: 0.8rem;">de {{ bb.paginator.num_pages }}</span>
 
-        {% if bb.has_next %}
-            <a href="../{{ bb.next_page_number }}" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--bg-sidebar); font-size: 0.8rem;">
-                Próxima <i class="fas fa-angle-right"></i>
-            </a>
-            <a href="../{{ bb.paginator.num_pages }}" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--bg-sidebar); font-size: 0.8rem;" title="Última Página">
-                <i class="fas fa-angle-double-right"></i>
-            </a>
-        {% endif %}
-    </div>
+{% if bb.has_next %}
+    <a href="?pagina={{ bb.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Próxima">
+        <i class="fas fa-angle-right"></i>
+    </a>
+    <a href="?pagina={{ bb.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Última">
+        <i class="fas fa-angles-right"></i>
+    </a>
+{% endif %}
 </div>

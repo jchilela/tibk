@@ -1,85 +1,111 @@
+{% extends 'index.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatórios do Sistema</title>
-    <link rel="stylesheet" href="{% static 'estilos/relatorios.css' %}">
-</head>
-<body>
 
-<div class="relatorios-page">
+{% block title %}Relatórios{% endblock %}
 
-    <!-- LOGO -->
-    <div class="logo-container">
-        <img src="{% static 'fotos/2022/cba.png' %}" alt="Logo CBA" class="logo">
-    </div>
-
-    <!-- TÍTULO -->
-    <h2 class="page-title">📄 Relatórios do Sistema de Gestão TIBL</h2>
-
-    <!-- CONTAINER DE CARDS -->
-    <div class="relatorios-container">
-
-        <div class="relatorio-card">
-            <div class="relatorio-icon">👥</div>
-            <h3>Relatório de Irmãos</h3>
-            <a href="{% url 'relatorio_irmaos_pdf' %}" target="_blank" class="btn-download">
-                ⬇ Baixar PDF
-            </a>
-        </div>
-
-        <div class="relatorio-card">
-            <div class="relatorio-icon">💰</div>
-            <h3>Dízimos & Ofertas</h3>
-            <a href="{% url 'relatorio_dizimos_pdf' %}" target="_blank" class="btn-download">
-                ⬇ Baixar PDF
-            </a>
-        </div>
-
-        <div class="relatorio-card">
-            <div class="relatorio-icon">🏢</div>
-            <h3>Departamentos</h3>
-            <a href="{% url 'relatorio_departamentos_pdf' %}" target="_blank" class="btn-download">
-                ⬇ Baixar PDF
-            </a>
-        </div>
-
-        <div class="relatorio-card">
-            <div class="relatorio-icon">📅</div>
-            <h3>Escalas</h3>
-            <a href="{% url 'relatorio_escalas_pdf' %}" target="_blank" class="btn-download">
-                ⬇ Baixar PDF
-            </a>
-        </div>
-
-        <div class="relatorio-card">
-            <div class="relatorio-icon">🎤</div>
-            <h3>Actividades</h3>
-            <a href="{% url 'relatorio_actividades_pdf' %}" target="_blank" class="btn-download">
-                ⬇ Baixar PDF
-            </a>
-        </div>
-
-        <div class="relatorio-card">
-            <div class="relatorio-icon">📦</div>
-            <h3>Inventário de Património</h3>
-            <a href="{% url 'relatorio_inventario_patrimonio_pdf' %}" target="_blank" class="btn-download">
-                ⬇ Baixar PDF
-            </a>
-        </div>
-
-        <div class="relatorio-card">
-            <div class="relatorio-icon">💸</div>
-            <h3>Saída de Caixa</h3>
-            <a href="{% url 'relatorio_saida_caixa_pdf' %}" target="_blank" class="btn-download">
-                ⬇ Baixar PDF
-            </a>
-        </div>
-
-    </div>
+{% block content %}
+<div class="page-header">
+    <h2><i class="fas fa-file-pdf"></i> Relatórios do Sistema</h2>
 </div>
 
-</body>
-</html>
+<p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem;">
+    Clique em qualquer botão abaixo para gerar e baixar o relatório em formato PDF.
+</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;">
+
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--primary-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            👥
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Relatório de Irmãos</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Listagem completa de membros
+            cadastrados</p>
+        <a href="{% url 'relatorio_irmaos_pdf' %}" target="_blank" class="bt-primary" style="font-size: 0.85rem;">
+            <i class="fas fa-download"></i> Baixar PDF
+        </a>
+    </div>
+
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--warning-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            💰
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Dízimos & Ofertas</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Relatório financeiro de
+            contribuições</p>
+        <a href="{% url 'relatorio_dizimos_pdf' %}" target="_blank" class="bt-primary" style="font-size: 0.85rem;">
+            <i class="fas fa-download"></i> Baixar PDF
+        </a>
+    </div>
+
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--info-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            🏢
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Departamentos</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Estrutura organizacional e
+            lideranças</p>
+        <a href="{% url 'relatorio_departamentos_pdf' %}" target="_blank" class="bt-primary"
+            style="font-size: 0.85rem;">
+            <i class="fas fa-download"></i> Baixar PDF
+        </a>
+    </div>
+
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--success-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            📅
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Escalas</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Programação de serviço e
+            voluntários</p>
+        <a href="{% url 'relatorio_escalas_pdf' %}" target="_blank" class="bt-primary" style="font-size: 0.85rem;">
+            <i class="fas fa-download"></i> Baixar PDF
+        </a>
+    </div>
+
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--primary-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            🎤
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Actividades</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Cultos, eventos e programações
+            realizadas</p>
+        <a href="{% url 'relatorio_actividades_pdf' %}" target="_blank" class="bt-primary" style="font-size: 0.85rem;">
+            <i class="fas fa-download"></i> Baixar PDF
+        </a>
+    </div>
+
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--warning-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            📦
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Inventário de Património</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Bens e equipamentos da igreja
+        </p>
+        <a href="{% url 'relatorio_inventario_patrimonio_pdf' %}" target="_blank" class="bt-primary"
+            style="font-size: 0.85rem;">
+            <i class="fas fa-download"></i> Baixar PDF
+        </a>
+    </div>
+
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--danger-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            💸
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Saída de Caixa</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Despesas e movimentações de
+            caixa</p>
+        <a href="{% url 'relatorio_saida_caixa_pdf' %}" target="_blank" class="bt-primary" style="font-size: 0.85rem;">
+            <i class="fas fa-download"></i> Baixar PDF
+        </a>
+    </div>
+
+</div>
+{% endblock %}
