@@ -46,72 +46,311 @@
     <div class="menu-bar" id="menu-bar">
         {% if user.is_authenticated %}
             {% if request.user|has_group:'Administrador' %}
-                <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
-                <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
-                <a href="/tibl/gestao/departamentos/1">Departamentos</a> &nbsp;
-                <a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/bancos/1">Bancos</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/entradabancos/1">Entrada via banco</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/saidabancos/1">Saida via banco</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/entradascaixa/1">Entrada via caixa</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/saidascaixa/1">Saida via caixa</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/dizimosofertas/1">Dízimos e ofertas</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/pedidosaida/1">Pedido de Saida</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/enviomensagem/1">Envio de Mensagem Massiva</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
-                <a href="{% url 'pagina_relatorios' %}" target="_blank" >Relatórios</a>
+              <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboards
+              </a>
+
+              <a href="/tibl/gestao/irmaos/1"
+                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
+                Irmãos
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/actividades/1"
+                class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
+                Actividades
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/escalas/1"
+                class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
+                Escalas
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/departamentos/1"
+                class="{% if '/tibl/gestao/departamentos/' in request.path %}active{% endif %}">
+                Departamentos
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/cestas/1"
+                class="{% if '/tibl/gestao/cestas/' in request.path %}active{% endif %}">
+                Cestas básicas
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/contasbancarias/1"
+                class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
+                Contas Bancárias
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/bancos/1"
+                class="{% if '/tibl/gestao/bancos/' in request.path %}active{% endif %}">
+                Bancos
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/entradabancos/1"
+                class="{% if '/tibl/gestao/entradabancos/' in request.path %}active{% endif %}">
+                Entrada via banco
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/saidabancos/1"
+                class="{% if '/tibl/gestao/saidabancos/' in request.path %}active{% endif %}">
+                Saida via banco
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/entradascaixa/1"
+                class="{% if '/tibl/gestao/entradascaixa/' in request.path %}active{% endif %}">
+                Entrada via caixa
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/saidascaixa/1"
+                class="{% if '/tibl/gestao/saidascaixa/' in request.path %}active{% endif %}">
+                Saida via caixa
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/dizimosofertas/1"
+                class="{% if '/tibl/gestao/dizimosofertas/' in request.path %}active{% endif %}">
+                Dízimos e ofertas
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                Relatório semanal da Célula
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/pedidosaida/1"
+                class="{% if '/tibl/gestao/pedidosaida/' in request.path %}active{% endif %}">
+                Pedido de Saida
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/orcamentodepartamento/1"
+                class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
+                Orçamento de Departamentos
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/inventariopatrimonio/1"
+                class="{% if '/tibl/gestao/inventariopatrimonio/' in request.path %}active{% endif %}">
+                Inventário de Património
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/conteudoensino/1"
+                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
+                Conteúdos de Ensino
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/enviomensagem/1"
+                class="{% if '/tibl/gestao/enviomensagem/' in request.path %}active{% endif %}">
+                Envio de Mensagem Massiva
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/ajudas/1"
+                class="{% if '/tibl/gestao/ajudas/' in request.path %}active{% endif %}">
+                Apoios
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/mandatos/1"
+                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
+                Mandatos
+              </a>&nbsp;&nbsp;
+
+              <a href="{% url 'pagina_relatorios' %}" target="_blank"
+                class="{% if '/tibl/gestao/relatorios/' in request.path %}active{% endif %}">
+                Relatórios
+              </a>
               &nbsp;&nbsp;
+
               
             
             {% elif request.user|has_group:'Financeiro' %}
-                <a href="/tibl/gestao/cestas/1">Cestas básicas</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/bancos/1">Bancos</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/entradabancos/1">Entrada via banco</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/saidabancos/1">Saida via banco</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/entradascaixa/1">Entrada via caixa</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/saidascaixa/1">Saida via caixa</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/dizimosofertas/1">Dízimos e ofertas</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/inventariopatrimonio/1">Inventário de Património</a>&nbsp;&nbsp;
+                <a href="{% url 'dashboard' %}"
+                    class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    Dashboards
+                </a>
+
+                <a href="/tibl/gestao/cestas/1"
+                    class="{% if '/tibl/gestao/cestas/' in request.path %}active{% endif %}">
+                    Cestas básicas
+                </a> &nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/contasbancarias/1"
+                    class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
+                    Contas Bancárias
+                </a> &nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/bancos/1"
+                    class="{% if '/tibl/gestao/bancos/' in request.path %}active{% endif %}">
+                    Bancos
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/entradabancos/1"
+                    class="{% if '/tibl/gestao/entradabancos/' in request.path %}active{% endif %}">
+                    Entrada via banco
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/saidabancos/1"
+                    class="{% if '/tibl/gestao/saidabancos/' in request.path %}active{% endif %}">
+                    Saida via banco
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/entradascaixa/1"
+                    class="{% if '/tibl/gestao/entradascaixa/' in request.path %}active{% endif %}">
+                    Entrada via caixa
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/saidascaixa/1"
+                    class="{% if '/tibl/gestao/saidascaixa/' in request.path %}active{% endif %}">
+                    Saida via caixa
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/dizimosofertas/1"
+                    class="{% if '/tibl/gestao/dizimosofertas/' in request.path %}active{% endif %}">
+                    Dízimos e ofertas
+                </a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/orcamentodepartamento/1"
+                    class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
+                    Orçamento de Departamentos
+                </a>&nbsp;&nbsp;
+                  
+                <a href="/tibl/gestao/inventariopatrimonio/1"
+                    class="{% if '/tibl/gestao/inventariopatrimonio/' in request.path %}active{% endif %}">
+                    Inventário de Património
+                </a>&nbsp;&nbsp;
 
 
             {% elif request.user|has_group:'Secretaria' %}
-                <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
-                <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
-                <a href="/tibl/gestao/departamentos/1">Departamentos</a> &nbsp;
-                <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/pedidosaida/1">Pedido de Saida</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/enviomensagem/1">Envio de Mensagem Massiva</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/ajudas/1">Apoios</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+              <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboards
+              </a>
+
+              <a href="/tibl/gestao/irmaos/1"
+                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
+                Irmãos
+              </a> &nbsp;&nbsp;
+          
+              <a href="/tibl/gestao/actividades/1"
+                  class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
+                  Actividades
+              </a> &nbsp;
+              
+              <a href="/tibl/gestao/escalas/1"
+                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
+                  Escalas
+              </a> &nbsp;
+              
+              <a href="/tibl/gestao/departamentos/1"
+                  class="{% if '/tibl/gestao/departamentos/' in request.path %}active{% endif %}">
+                  Departamentos
+              </a> &nbsp;
+              <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                Relatório semanal da Célula
+              </a>&nbsp;&nbsp;
+            
+              <a href="/tibl/gestao/pedidosaida/1"
+                class="{% if '/tibl/gestao/pedidosaida/' in request.path %}active{% endif %}">
+                Pedido de Saida
+              </a>&nbsp;&nbsp;
+                  
+              <a href="/tibl/gestao/conteudoensino/1"
+                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
+                Conteúdos de Ensino
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/enviomensagem/1"
+                class="{% if '/tibl/gestao/enviomensagem/' in request.path %}active{% endif %}">
+                Envio de Mensagem Massiva
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/ajudas/1"
+                class="{% if '/tibl/gestao/ajudas/' in request.path %}active{% endif %}">
+                Apoios
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/mandatos/1"
+                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
+                Mandatos
+              </a>&nbsp;&nbsp;
             
             {% elif request.user|has_group:'Membros Baptizados' %}
-                <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
-                <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
-                <a href="/tibl/gestao/orcamentodepartamento/1">Orçamento de Departamentos</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/contasbancarias/1">Contas Bancárias</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+              <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboards
+              </a>
+              
+              <a href="/tibl/gestao/irmaos/1"
+                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
+                Irmãos
+              </a> &nbsp;&nbsp;
+      
+              <a href="/tibl/gestao/actividades/1"
+                  class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
+                  Actividades
+              </a> &nbsp;
+          
+              <a href="/tibl/gestao/escalas/1"
+                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
+                  Escalas
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/orcamentodepartamento/1"
+                class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
+                Orçamento de Departamentos
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/contasbancarias/1"
+                class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
+                Contas Bancárias
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                Relatório semanal da Célula
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/conteudoensino/1"
+                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
+                Conteúdos de Ensino
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/mandatos/1"
+                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
+                Mandatos
+              </a>&nbsp;&nbsp
             
             {% elif request.user|has_group:'Membro Geral' %}
-                <a href="/tibl/gestao/irmaos/1">Irmãos</a> &nbsp;&nbsp;
-                <a href="/tibl/gestao/actividades/1">Actividades</a> &nbsp;
-                <a href="/tibl/gestao/escalas/1">Escalas</a> &nbsp;
-                <a href="/tibl/gestao/relatoriosemanalcelula/1">Relatório semanal da Célula</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/conteudoensino/1">Conteúdos de Ensino</a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/mandatos/1">Mandatos</a>&nbsp;&nbsp;
+              <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboards
+              </a>  
+
+              <a href="/tibl/gestao/irmaos/1"
+                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
+                Irmãos
+              </a> &nbsp;&nbsp;
+         
+              <a href="/tibl/gestao/actividades/1"
+                class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
+                Actividades
+              </a> &nbsp;
+         
+              <a href="/tibl/gestao/escalas/1"
+                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
+                  Escalas
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                Relatório semanal da Célula
+              </a>&nbsp;&nbsp;
+                
+              <a href="/tibl/gestao/conteudoensino/1"
+                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
+                Conteúdos de Ensino
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/mandatos/1"
+                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
+                Mandatos
+              </a>&nbsp;&nbsp;
 
             {% endif %}
         {% endif %}
@@ -125,7 +364,13 @@
   Grupo:
   <strong>{{ user.groups.first.name|default:"Sem grupo" }}</strong>
   |
-  <a href="{% url 'logout' %}">Sair</a>
+  <form method="post" action="{% url 'logout' %}" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" style="background:none;border:none;color:#ffb703;cursor:pointer;">
+        Sair
+    </button>
+</form>
+
 </div>
 
 
@@ -148,304 +393,6 @@
 </div>
 {% endif %}
 
-{% if user.is_authenticated %}
-{% if request.resolver_match.url_name == ' ' or request.path == '/' %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<div class="dashboard-grid">
-  <div class="card">
-    <h3>Irmaos</h3>
-    <canvas id="irmaos"></canvas>
-  </div>
-
-  <div class="card">
-    <h3>Distribuição de Orçamento</h3>
-    <canvas id="pizzaOrcamento"></canvas>
-  </div>
-
-  <div class="card">
-    <h3>Pedido de saida de caixa (Semanal)</h3>
-    <canvas id="pedidoSaida"></canvas>
-  </div>
-</div>
-<div class="dashboard-grid2">
-  <div class="card card2">
-    <h3>Conteúdos de Ensino Criados</h3>
-    <span id="fluxoTotalConteudos" class="stat-highlight stat-highlight2"></span>
-    <div class="chart-container chart-container2">
-      <canvas id="fluxoCaixaChartConteudos"></canvas>
-    </div>
-  </div>
-
-  <div class="card card2">
-    <h3>Dízimos vs. Ofertas</h3>
-    <div class="chart-container chart-container2">
-      <canvas id="ofertasChart"></canvas>
-    </div>
-  </div>
-
-  <div class="card card2">
-    <h3>Crescimento de Membros (Células)</h3>
-    <div class="chart-container chart-container2">
-      <canvas id="membrosChart"></canvas>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-<script>
-// 1. Gráfico de Barras (irmaos cadastrados)
-fetch('dashboard/numero-irmaos-cadastrados-mensalmente')
-  .then(response => response.json())
-  .then(json => {
-      new Chart(document.getElementById('irmaos'), {
-          type: 'bar',
-          data: {
-              labels: json.labels,
-              datasets: [{
-                  label: 'Numero de irmaos cadastrados',
-                  data: json.data,
-                  backgroundColor: '#769656'
-              }]
-          },
-          options: {
-              responsive: true
-          }
-      });
-  });
-
-// 2. Gráfico de Pizza (Orçamento)
-fetch('/dashboard/orcamento-departamento')
-  .then(response => response.json())
-  .then(json => {
-
-      const canvas = document.getElementById('pizzaOrcamento');
-
-      // Paleta base de verdes
-      const baseColors = ['#769656', '#98b37e', '#4d6338', '#b9ccaa', '#5f7d48', '#cfe0bf'];
-
-      // Gera cores repetindo da paleta se houver mais departamentos do que cores
-      const colors = json.labels.map((_, i) => baseColors[i % baseColors.length]);
-
-      new Chart(canvas, {
-          type: 'pie',
-          data: {
-              labels: json.labels,
-              datasets: [{
-                  data: json.data,
-                  backgroundColor: colors
-              }]
-          },
-          options: {
-              responsive: true,
-              plugins: {
-                  tooltip: {
-                      callbacks: {
-                          label: function(context) {
-                              let total = context.dataset.data.reduce((a,b)=>a+b,0);
-                              let valor = context.parsed;
-                              let percent = ((valor / total) * 100).toFixed(1);
-                              return `${context.label}: ${valor.toLocaleString()} (${percent}%)`;
-                          }
-                      }
-                  }
-              }
-          }
-      });
-  })
-  .catch(err => console.error("Erro ao buscar dados da API:", err));
-
-
-// 3. Gráfico de Linhas (pedido de saida)
-fetch('/dashboard/pedido-saida-semana')
-  .then(response => response.json())
-  .then(json => {
-
-      new Chart(document.getElementById('pedidoSaida'), {
-          type: 'line',
-          data: {
-              labels: json.labels,
-              datasets: [{
-                  label: `Pedidos de Saída (${json.ano})`,
-                  data: json.data,
-                  borderColor: '#769656',
-                  tension: 0.3,
-                  fill: true,
-                  backgroundColor: 'rgba(118, 150, 86, 0.1)'
-              }]
-          },
-          options: {
-              responsive: true,
-              plugins: {
-                  title: {
-                      display: true,
-                      text: `Pedidos de Saída por Dia da Semana – ${json.ano}`
-                  }
-              },
-              scales: {
-                  y: {
-                      beginAtZero: true,
-                      ticks: { precision: 0 }
-                  }
-              }
-          }
-      });
-
-  });
-
-
-// 4. Conteudos de ensino
-fetch('/dashboard/conteudo-ensino-mensal')
-  .then(r => r.json())
-  .then(json => {
-
-    // Número grande
-    document.getElementById('fluxoTotalConteudos').innerText =
-      `${json.total} conteúdos`;
-
-    // Gráfico
-    new Chart(document.getElementById('fluxoCaixaChartConteudos'), {
-      type: 'line',
-      data: {
-        labels: json.labels,
-        datasets: [{
-          label: `Conteúdos Criados (${json.ano})`,
-          data: json.data,
-          borderColor: '#769656',
-          backgroundColor: 'rgba(118,150,86,0.1)',
-          tension: 0.3,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 }
-          }
-        }
-      }
-    });
-
-  });
-
-//5. dizimo e pferta
-fetch('/dashboard/dizimo-oferta')
-  .then(r => r.json())
-  .then(json => {
-
-    // Gera cores automáticas (tons verdes parecidos)
-    const colors = [
-      '#769656','#98b37e','#4d6338','#b9ccaa','#5f7d48','#cfe0bf'
-    ];
-
-    // Adiciona cor em ordem para cada dataset
-    json.datasets.forEach((ds, i) => {
-      ds.borderColor = colors[i % colors.length];
-      ds.backgroundColor = colors[i % colors.length] + '33'; // alpha 20%
-      ds.tension = 0.3;
-      ds.fill = true;
-    });
-
-    new Chart(document.getElementById('ofertasChart'), {
-      type: 'line',
-      data: {
-        labels: json.labels,
-        datasets: json.datasets
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        },
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return context.dataset.label + ": " + context.parsed.y.toLocaleString() + " Kz";
-              }
-            }
-          }
-        }
-      }
-    });
-
-  });
-
-//6.mebros
-fetch('/dashboard/crescimento-membros')
-  .then(r => r.json())
-  .then(json => {
-
-    new Chart(document.getElementById('membrosChart'), {
-      type: 'line',
-      data: {
-        labels: json.labels,
-        datasets: [
-          {
-            label: `Membros (${json.ano})`,
-            data: json.membros,
-            borderColor: '#769656',
-            backgroundColor: 'rgba(118,150,86,0.1)',
-            tension: 0.3,
-            fill: true
-          },
-          {
-            label: `Visitantes (${json.ano})`,
-            data: json.visitantes,
-            borderColor: '#98b37e',
-            backgroundColor: 'rgba(152,179,126,0.1)',
-            tension: 0.3,
-            fill: true
-          },
-          {
-            label: `Crianças (${json.ano})`,
-            data: json.criancas,
-            borderColor: '#4d6338',
-            backgroundColor: 'rgba(77,99,56,0.1)',
-            tension: 0.3,
-            fill: true
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 }
-          }
-        },
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                return ctx.dataset.label + ": " + ctx.parsed.y;
-              }
-            }
-          }
-        }
-      }
-    });
-
-  });
-
-
-</script> 
-{% endif %}
-{% endif %}
-</td>
-<td></td>
-
-</tr>
-<tr>
-<td colspan=2>
-<p><br></p>
-<p><br></p>
 
 
 {% if messages %}

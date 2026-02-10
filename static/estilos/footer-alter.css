@@ -127,8 +127,8 @@
 
 /* ACTIVE / CURRENT PAGE (optional) */
 .menu-bar a.active {
-    background-color: #ffd700;
-    color: #21341C;
+    background-color: #ffffff; /* verde do menu */
+    color: #548c2f;              /* texto branco */
     font-weight: bold;
 }
 

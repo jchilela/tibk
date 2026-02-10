@@ -1542,3 +1542,11 @@ def relatorio_saida_caixa_pdf(request):
 
     doc.build(elements)
     return response
+
+
+@login_required
+def dashboard(request):
+    context = {
+        'titulo': 'Dashboard',
+    }
+    return render(request, 'dashboard.html', context)

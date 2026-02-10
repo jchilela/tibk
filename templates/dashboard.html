@@ -1,0 +1,53 @@
+{% extends "index.html" %}
+{% load static %}
+
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated and request.resolver_match.url_name == 'dashboard' %}
+
+<div class="dashboard-grid">
+  <div class="card">
+    <h3>Irmãos</h3>
+    <canvas id="irmaos"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Distribuição de Orçamento</h3>
+    <canvas id="pizzaOrcamento"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Pedido de saída de caixa (Semanal)</h3>
+    <canvas id="pedidoSaida"></canvas>
+  </div>
+</div>
+
+<div class="dashboard-grid2">
+  <div class="card card2">
+    <h3>Conteúdos de Ensino Criados</h3>
+    <span id="fluxoTotalConteudos" class="stat-highlight stat-highlight2"></span>
+    <canvas id="fluxoCaixaChartConteudos"></canvas>
+  </div>
+
+  <div class="card card2">
+    <h3>Dízimos vs. Ofertas</h3>
+    <canvas id="ofertasChart"></canvas>
+  </div>
+
+  <div class="card card2">
+    <h3>Crescimento de Membros (Células)</h3>
+    <canvas id="membrosChart"></canvas>
+  </div>
+</div>
+
+{% load static %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+{% endif %}
+
+{% endblock %}

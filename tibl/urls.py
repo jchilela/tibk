@@ -53,6 +53,8 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='index1'),
 
     #endpoints para dashboard
+    path('dashboard/', sitetibl.views.dashboard, name='dashboard'),
+
     path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos),
     path('dashboard/orcamento-departamento', sitetibl.views.dashboardOrcamentoDepartamento),
     path('dashboard/pedido-saida-semana', sitetibl.views.dashboardPedidosSaidaSemana),
