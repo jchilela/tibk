@@ -30,6 +30,7 @@ from django.http import JsonResponse
 from django.utils.timezone import now
 from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
+from django.shortcuts import redirect
 
 #from django.db.models import Count
 
@@ -253,7 +254,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
             return HttpResponseRedirect(reverse('index'))
 
         else:
-            messages.error(request, 'Foram encontrados erros.')
+            messages.error(request, 'Foram encontrados erros ao preencher o formulário.')
             return render(request, 'formulario_actualizacao.html', {
                 'formulario': formulario
             })
@@ -1550,3 +1551,6 @@ def dashboard(request):
         'titulo': 'Dashboard',
     }
     return render(request, 'dashboard.html', context)
+
+def root_redirect(request):
+    return redirect('dashboard')

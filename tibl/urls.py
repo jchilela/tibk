@@ -25,7 +25,6 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path('admin/clearcache/', include('clearcache.urls')),
     path('tibl/', sitetibl.views.comeco),
-    path('', sitetibl.views.index, name = 'index'),
     path('tibl/gestao/<gestaoescolhida>/<int:pagina>/', sitetibl.views.mostraGestao),
     path('tibl/<gestaoescolhida>/detalhe/<int:identificador>/', sitetibl.views.mostraDetalhe),
     path('tibl/<gestaoescolhida>/criar/', sitetibl.views.mostraCriacao),
@@ -50,22 +49,19 @@ urlpatterns = [
     path('tibl/buscaenviomensagem/', sitetibl.views.encontraEnvioMensagem),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('', TemplateView.as_view(template_name='index.html'), name='index1'),
+    path('', sitetibl.views.root_redirect, name='root'), # redireciona para o menu de dashboards
 
     #endpoints para dashboard
     path('dashboard/', sitetibl.views.dashboard, name='dashboard'),
-
     path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos),
     path('dashboard/orcamento-departamento', sitetibl.views.dashboardOrcamentoDepartamento),
     path('dashboard/pedido-saida-semana', sitetibl.views.dashboardPedidosSaidaSemana),
-
     path('dashboard/conteudo-ensino-mensal', sitetibl.views.dashboardConteudoEnsinoMensal),
     path('dashboard/dizimo-oferta', sitetibl.views.dashboardDizimoOferta),
     path('dashboard/crescimento-membros', sitetibl.views.dashboardCrescimentoMembros),
 
     #endpoints para baixar relatórios
-     path('relatorios/', sitetibl.views.pagina_relatorios, name='pagina_relatorios'),
-
+    path('relatorios/', sitetibl.views.pagina_relatorios, name='pagina_relatorios'),
     path('relatorios/irmaos/pdf/', sitetibl.views.relatorio_irmaos_pdf, name="relatorio_irmaos_pdf"),
     path('relatorios/dizimos/pdf/', sitetibl.views.relatorio_dizimos_pdf, name='relatorio_dizimos_pdf'),
     path('relatorios/departamentos/pdf/', sitetibl.views.relatorio_departamentos_pdf, name='relatorio_departamentos_pdf'),

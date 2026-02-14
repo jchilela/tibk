@@ -26,8 +26,9 @@ from sitetibl.models import EnvioMensagem
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django import forms
 from django.core.validators import RegexValidator
-
-
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+import re
 
 
 class IrmaoForm(ModelForm):
@@ -69,11 +70,96 @@ class BancoForm(ModelForm):
     class Meta:
         model = Banco
         fields = '__all__'
+        widgets = {
+            'email': forms.EmailInput(attrs={
+                'placeholder': 'exemplo@tibl.com'
+            }),
+            'telefone': forms.TextInput(attrs={
+                'placeholder': '9XXXXXXXX'
+            }),
+            
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+
+        if not email:
+            raise forms.ValidationError("O email é obrigatório.")
+
+        # Validação explícita de email válido
+        try:
+            validate_email(email)
+        except ValidationError:
+            raise forms.ValidationError("Digite um email válido.")
+
+        return email.lower()
+
+    def clean_telefone(self):
+        telefone = self.cleaned_data.get('telefone')
+
+        if not telefone:
+            raise forms.ValidationError("O telefone é obrigatório.")
+
+        # Permitir apenas números
+        if not telefone.isdigit():
+            raise forms.ValidationError("O telefone deve conter apenas números.")
+
+        # (Opcional) validar tamanho — exemplo: 9 dígitos
+        if len(telefone) < 9:
+            raise forms.ValidationError("O telefone deve conter no minimo 9 dígitos.")
+
+        return telefone
+
+            
+
 
 class ContabancariaForm(ModelForm):
     class Meta:
         model = Contabancaria
         fields = '__all__'
+        widgets = {
+            'numeroconta': forms.TextInput(attrs={
+                'placeholder': '1XXXXXXXX'
+            }),
+            'iban': forms.TextInput(attrs={
+                'placeholder': 'AO06 XXXX XXXX XXXX XXXX XXXX X'
+            }),
+        }
+    
+    def clean_numeroconta(self):
+        numero = self.cleaned_data.get('numeroconta')
+
+        if not numero:
+            raise forms.ValidationError("O número da conta é obrigatório.")
+
+        # Apenas números
+        if not numero.isdigit():
+            raise forms.ValidationError("O número da conta deve conter apenas números.")
+
+        # Exemplo: mínimo de 10 dígitos (ajuste conforme o banco)
+        if len(numero) < 10:
+            raise forms.ValidationError("O número da conta deve conter no mínimo 10 dígitos.")
+
+        return numero
+
+    def clean_iban(self):
+        iban = self.cleaned_data.get('iban')
+
+        if not iban:
+            raise forms.ValidationError("O IBAN é obrigatório.")
+
+        iban = iban.replace(' ', '').upper()
+
+        # Validação específica para Angola (AO)
+        if not iban.startswith('AO'):
+            raise forms.ValidationError("O IBAN deve ser de Angola e começar com (AO06).")
+        
+        # Validação básica de IBAN (estrutura)
+        if not re.match(r'^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$', iban):
+            raise forms.ValidationError("IBAN inválido.")
+
+
+        return iban
 
 class ActividadeForm(ModelForm):
     class Meta:
