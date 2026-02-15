@@ -78,7 +78,15 @@
         const c = colors[type] || colors.info;
 
         toast.style.cssText = 'background:' + c.bg + ';border:1px solid ' + c.border + ';border-left:5px solid ' + c.border + ';border-radius:8px;padding:1rem 1.25rem;color:' + c.color + ';font-size:0.9rem;display:flex;align-items:center;gap:0.75rem;box-shadow:0 4px 20px rgba(0,0,0,0.12);animation:tiblSlideIn 0.3s ease;cursor:pointer;';
-        toast.innerHTML = '<i class="fas ' + c.icon + '"></i><span>' + message + '</span>';
+
+        const icon = document.createElement('i');
+        icon.className = 'fas ' + c.icon;
+        toast.appendChild(icon);
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = message;
+        toast.appendChild(textSpan);
+
         toast.addEventListener('click', function () { toast.remove(); });
 
         container.appendChild(toast);
@@ -231,20 +239,48 @@
     // 8. TABLE SEARCH (client-side quick filter)
     // =========================================================================
 
-    window.TIBL.initTableSearch = function (inputId, tableId) {
+    window.TIBL.initTableSearch = function (inputId, tableSelector) {
         var input = document.getElementById(inputId);
-        var table = document.getElementById(tableId);
-        if (!input || !table) return;
+        if (!input) return;
 
         input.addEventListener('keyup', function () {
             var filter = this.value.toLowerCase();
-            var rows = table.querySelectorAll('tbody tr');
-            rows.forEach(function (row) {
-                var text = row.textContent.toLowerCase();
-                row.style.display = text.indexOf(filter) > -1 ? '' : 'none';
+            var tables = document.querySelectorAll(tableSelector || '.modern-table');
+
+            tables.forEach(function (table) {
+                var rows = table.querySelectorAll('tbody tr');
+                var matchCount = 0;
+
+                rows.forEach(function (row) {
+                    var text = row.textContent.toLowerCase();
+                    var isMatch = text.indexOf(filter) > -1;
+                    row.style.display = isMatch ? '' : 'none';
+                    if (isMatch) matchCount++;
+                });
+
+                // Optional: handle empty results visually
+                var emptyMsg = table.parentNode.querySelector('.table-empty-search');
+                if (matchCount === 0 && filter !== '') {
+                    if (!emptyMsg) {
+                        emptyMsg = document.createElement('div');
+                        emptyMsg.className = 'table-empty-search';
+                        emptyMsg.style.cssText = 'padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;';
+                        emptyMsg.innerHTML = '<i class="fas fa-search-minus" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i> Nenhum resultado encontrado para "' + filter + '"';
+                        table.style.display = 'none';
+                        table.parentNode.appendChild(emptyMsg);
+                    }
+                } else {
+                    table.style.display = '';
+                    if (emptyMsg) emptyMsg.remove();
+                }
             });
         });
     };
+
+    // Auto-init global search
+    document.addEventListener('DOMContentLoaded', function () {
+        window.TIBL.initTableSearch('global-search', '.modern-table');
+    });
 
     // =========================================================================
     // 9. PRINT & EXPORT UTILITIES

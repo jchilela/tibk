@@ -1,7 +1,6 @@
 {% load static %}
 {% load verificagrupo %}
 {% load i18n %}
-{% language 'pt' %}
 <!DOCTYPE html>
 <html lang="pt-pt">
 
@@ -34,20 +33,20 @@
         {% if user.is_authenticated %}
         <!-- Sidebar -->
         <aside class="modern-sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL Logo">
-                <h3>TIBL</h3>
-                <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.2rem;">Sistema de Gestão</p>
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fas fa-church"></i>
+                </div>
+                <div class="logo-text">TIBL System</div>
             </div>
 
             <nav class="sidebar-nav">
-                {% if request.user|has_group:'Administrador' or request.user|has_group:'Financeiro' or
-                request.user|has_group:'Secretaria' or request.user|has_group:'Membros Baptizados' or
-                request.user|has_group:'Membro Geral' %}
-
+                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or
+                request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or
+                request.user|has_group:"Membro Geral" %}
                 <a href="{% url 'dashboard' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="fas fa-chart-line fa-fw"></i> Dashboard
+                    <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
                 </a>
 
                 <a href="/tibl/gestao/irmaos/1" class="nav-item {% if '/irmaos/' in request.path %}active{% endif %}">
@@ -182,6 +181,11 @@
                     <i class="fas fa-bars"></i>
                 </button>
 
+                <div class="topbar-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="global-search" placeholder="Pesquisa rápida..." autocomplete="off">
+                </div>
+
                 <div class="user-info">
                     <div style="text-align: right;">
                         <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">{{
@@ -276,17 +280,17 @@
     <script src="{% static 'js/tibl-core.js' %}"></script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Sidebar toggle
-        const toggle = document.getElementById('sidebar-toggle');
-        const sidebar = document.getElementById('sidebar');
-        if (toggle && sidebar) {
-            toggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                sidebar.classList.toggle('open');
-            });
-        }
-    });
+        document.addEventListener('DOMContentLoaded', function () {
+            // Sidebar toggle
+            const toggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (toggle && sidebar) {
+                toggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('open');
+                });
+            }
+        });
     </script>
 
     {% block extra_js %}{% endblock %}
@@ -294,4 +298,3 @@
 </body>
 
 </html>
-{% endlanguage %}

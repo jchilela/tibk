@@ -3,47 +3,152 @@
 {% load static %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}"> <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Departamento:</td><td class="a4">{{ x.departamento.designacao}}</td></tr>
-<tr class="fortexto"><td class="a4">Projecto:</td><td class="a4">{{ x.projecto }}</td></tr>
-<tr class="fortexto"><td class="a4">Montante:</td><td class="a4">{{ x.montante }} </td></tr>
-<tr class="fortexto"><td class="a4">Moeda:</td><td class="a4">{{ x.moeda.designacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Centro de Custo:</td><td class="a4">{{ x.centro_custo.designacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Requerente:</td><td class="a4">{{ x.requerente }} </td></tr>
-<tr class="fortexto"><td class="a4">Tipificação de Custo:</td><td class="a4">{{ x.tipificacao_custo.designacao}} </td></tr>
-<tr class="fortexto"><td class="a4">Iban:</td><td class="a4"> {{ x.iban}} </td></tr>
-<tr class="fortexto"><td class="a4">Justificativa de Custo:</td><td class="a4">{{ x.justificativa_custo }} </td></tr>
+<div class="profile-container" style="max-width: 950px; margin: 0 auto; padding-bottom: 4rem;">
+    {% for x in registoachado %}
 
-<tr class="fortexto">
-    <td class="a4">Documento Justificativo:</td>
-    <td class="a4">
-        {% if x.documento_justificativo %}
-            <a href="{{ x.documento_justificativo.url }}" 
-               target="_blank" 
-               style="color: blue; font-weight: bold;">
-               Ver arquivo
+    <!-- Request Header Card -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; border-left: 6px solid var(--primary); background: linear-gradient(135deg, white, #f1f8ed); display: flex; justify-content: space-between; align-items: start;">
+        <div style="flex-grow: 1;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <span
+                    style="font-size: 0.75rem; color: white; background: var(--bg-sidebar); padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700;">Requisição
+                    de Saída</span>
+                <span class="badge"
+                    style="background: {% if x.status_de_aprovacao.designacao == 'Aprovado' %}#dcfce7; color: #166534;{% elif x.status_de_aprovacao.designacao == 'Pendente' %}#fef9c3; color: #854d0e;{% else %}#fee2e2; color: #991b1b;{% endif %} padding: 4px 12px; border-radius: 20px; font-weight: 700;">
+                    {{ x.status_de_aprovacao.designacao }}
+                </span>
+            </div>
+            <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{
+                x.montante|floatformat:2 }} {{ x.moeda.designacao }}</h1>
+            <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
+                <i class="fas fa-project-diagram mr-2" style="color: var(--primary);"></i> Projecto: {{ x.projecto }}
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                style="padding: 0.6rem 1rem;">
+                <i class="fas fa-edit"></i> Editar
             </a>
-        {% else %}
-            Sem arquivo
-        {% endif %}
-    </td>
-  </tr>
-  
+            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                style="background-color: #ef4444; padding: 0.6rem 1rem;">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+        </div>
+    </div>
 
-<tr class="fortexto"><td class="a4">Estado de Aprovação:</td><td class="a4">{{ x.status_de_aprovacao.designacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Aprovador:</td><td class="a4">{{ x.aprovador.nome }} {{ x.aprovador.apelido }} </td></tr>
-<tr class="fortexto"><td class="a4">Data de criação:</td><td class="a4">{{ x.data_criacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Data de atualização:</td><td class="a4">{{ x.data_atualizacao }} </td></tr>
-<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+        <!-- General Info -->
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-file-alt mr-2"></i> Detalhes da Requisição
+            </h3>
+
+            <div class="detail-row"
+                style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted); font-weight: 500;">Departamento</span>
+                <span style="font-weight: 600;">{{ x.departamento.designacao }}</span>
+            </div>
+
+            <div class="detail-row"
+                style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted); font-weight: 500;">Centro de Custo</span>
+                <span style="font-weight: 600;">{{ x.centro_custo.designacao }}</span>
+            </div>
+
+            <div class="detail-row"
+                style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted); font-weight: 500;">Tipificação de Custo</span>
+                <span style="font-weight: 600;">{{ x.tipificacao_custo.designacao }}</span>
+            </div>
+
+            <div class="detail-row"
+                style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted); font-weight: 500;">IBAN de Destino</span>
+                <span style="font-family: monospace; font-weight: 700;">{{ x.iban }}</span>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <label
+                    style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Justificativa
+                    de Custo</label>
+                <div
+                    style="background: rgba(0,0,0,0.02); padding: 1rem; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.6; border: 1px solid rgba(0,0,0,0.05);">
+                    {{ x.justificativa_custo|default:"Sem justificação detalhada." }}
+                </div>
+            </div>
+        </div>
+
+        <!-- workflow & Document -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <div class="modern-card" style="position: relative; overflow: hidden;">
+                <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                    <i class="fas fa-check-double mr-2"></i> Workflow de Aprovação
+                </h3>
+
+                <div
+                    style="padding: 1rem; background: #f8fafc; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Aprovador Responsável</p>
+                            <p style="font-weight: 700; color: var(--text-main); margin: 0;">{{ x.aprovador.nome }} {{
+                                x.aprovador.apelido }}</p>
+                        </div>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                        <span>Criado em: {{ x.data_criacao|date:"d/m/Y H:i" }}</span>
+                        <span>Atualizado: {{ x.data_atualizacao|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+
+                <div class="modern-card" style="border: 1px dashed var(--primary); background: white;">
+                    <h4
+                        style="font-size: 0.85rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-file-contract"></i> Documento Justificativo
+                    </h4>
+                    {% if x.documento_justificativo %}
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; background: #f1f8ed; padding: 0.75rem; border-radius: 8px;">
+                        <span style="font-size: 0.85rem; font-weight: 500;"><i class="fas fa-paperclip mr-2"></i>
+                            anexo_justificativo.pdf</span>
+                        <a href="{{ x.documento_justificativo.url }}" target="_blank" class="bt-primary"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">
+                            <i class="fas fa-external-link-alt"></i> Ver Arquivo
+                        </a>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; color: var(--text-muted); padding: 1rem;">
+                        <i class="fas fa-file-excel"
+                            style="font-size: 1.5rem; opacity: 0.3; margin-bottom: 0.5rem;"></i>
+                        <p style="font-size: 0.8rem;">Nenhum documento anexado.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="modern-card" style="background: var(--bg-sidebar); color: white; text-align: center;">
+                <p style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.5rem;">Requerente da Saída</p>
+                <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--accent);">{{ x.requerente }}</h4>
+                <div style="width: 40px; height: 2px; background: var(--accent); margin: 1rem auto;"></div>
+                <p style="font-size: 0.75rem; opacity: 0.7;">Identificação Ref: #REQ-{{ x.id }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
 </div>
-<br>
+{% endif %}
 
+<div style="text-align: center; margin-top: 3rem;">
+    <a href="/tibl/gestao/pedidosaida/1"
+        style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-chevron-left"></i> Voltar aos Pedidos
+    </a>
+</div>
 
 {% endblock %}
-

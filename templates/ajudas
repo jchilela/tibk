@@ -1,88 +1,108 @@
 {% extends 'index.html' %}
 {% block Ajudas %}
 
+<div class="list-container">
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Apoios</h3>
+        <form action="/tibl/buscaajudas" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: flex-end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
+                <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Apelido</label>
+                <input type="text" name="apelidov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Tipo de Ajuda</label>
+                <select name="tipoajudav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">------------</option>
+                    {% if tipoajuda %}
+                        {% for x in tipoajuda %}
+                            <option value="{{ x.id }}">{{ x.designacao }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <option value="0">Mês</option>
+                        {% if listameses %}
+                            {% for x, y in listameses.items %}
+                                <option value="{{ x }}">{{ y }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    <select name="anov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <option value="0">Ano</option>
+                        {% for year in "2020,2021,2022,2023,2024,2025,2026"|split:"," %}
+                            <option value="{{ year }}">{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </form>
+    </div>
 
-<table cellpadding="0" cellspacing="0" align="center" width="45%" border="0">
-<form action="/tibl/buscaajudas"  method="GET">
-<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
-<td>Nome</td><td>Apelido</td><td>Tipo de ajuda</td><td>Mes</td><td>Ano</td><td></td>
-</tr>
-<tr align="center">
-<td><input type="text" name="nomev" style="width: 100px; border: 1px solid gray"></td>
-<td><input type="text" name="apelidov" style="width: 100px; border: 1px solid gray"></td>
-<td><SELECT NAME="tipoajudav" style="border: 1px solid gray">
-<OPTION SELECTED VALUE=0> ------------
-{% if tipoajuda %}
-{% for x in tipoajuda %}
-<OPTION VALUE={{ x.id }} > {{ x.designacao }}
-{% endfor %}
-{% endif %}
-</SELECT></td>
-<td><SELECT NAME="mesv" style="border: 1px solid gray">
-<OPTION SELECTED VALUE=0> ------------
-{% if listameses %}
-{% for x, y in listameses.items %}
-<OPTION VALUE={{ x }} > {{ y }}
-{% endfor %}
-{% endif %}
-</SELECT></td>
-<td>
-<SELECT NAME="anov" style="width: 80px; border: 1px solid gray">
-<OPTION SELECTED VALUE=0> ------------
-<OPTION VALUE=2010> 2010
-<OPTION VALUE=2011> 2011
-<OPTION VALUE=2012> 2012
-<OPTION VALUE=2013> 2013
-<OPTION VALUE=2014> 2014
-<OPTION VALUE=2015> 2015
-<OPTION VALUE=2016> 2016
-<OPTION VALUE=2017> 2017
-<OPTION VALUE=2018> 2018
-<OPTION VALUE=2019> 2019
-<OPTION VALUE=2020> 2020
-<OPTION VALUE=2021> 2021
-<OPTION VALUE=2022> 2022
-<OPTION VALUE=2023> 2023
-<OPTION VALUE=2024> 2024
-<OPTION VALUE=2025> 2025
-<OPTION VALUE=2026> 2026
-</SELECT></td>
-<input type="hidden" name="pagina" value= 1>
-<td><input type="submit" name="" value="Busca" class="button"></td>
-</tr>
-</form>
-</table>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Registos de Apoios Sociais</h2>
+        <a href="/tibl/ajudas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+            <i class="fas fa-plus"></i> Novo Apoio
+        </a>
+    </div>
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Apoios</b> | <a href="/tibl/ajudas/criar/" class = 'aa'><b>Novo </b></a>
-]</font>
-</p>
-{% if bb %}
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Beneficiário</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Tipo de Ajuda</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Data</b></font></a></td>
-</td>
-</tr>
-{% for x in bb %}
-{% if forloop.counter|divisibleby:2 %}
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
-
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/ajudas/detalhe/{{ x.id }}" class = 'aa'> {{ x.beneficiario.nome}} {{ x.beneficiario.apelido}}</a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.ajuda }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.data }}</font></td>
-</tr>
-{% endfor %}
-</table>
-<br>
-{% include 'paginacao' %}
-{% endif %}
-<br>
-<br>
-
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Beneficiário</th>
+                    <th style="text-align: center;">Tipo de Ajuda</th>
+                    <th style="text-align: center;">Data</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.beneficiario.nome }} {{ x.beneficiario.apelido }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Membro Registado</div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="badge badge-info" style="background: var(--primary-light); color: var(--primary-dark); padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 600;">
+                            {{ x.ajuda }}
+                        </span>
+                    </td>
+                    <td style="text-align: center; color: var(--text-muted);">
+                        {{ x.data|date:"d/m/Y"|default:x.data }}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/ajudas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 3rem;">
+        <i class="fas fa-hand-holding-heart" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+        <p style="color: var(--text-muted);">Nenhum apoio social encontrado para esta busca.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
-

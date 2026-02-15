@@ -1,0 +1,59 @@
+/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+Watching for file changes with StatReloader
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 505, in parse
+    compile_func = self.tags[command]
+KeyError: 'endif'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/sitetibl/views.py", line 117, in index
+    return HttpResponse(template.render({}, request))
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 175, in render
+    return self._render(context)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 167, in _render
+    return self.nodelist.render(context)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/loader_tags.py", line 132, in render
+    compiled_parent = self.get_parent(context)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/loader_tags.py", line 129, in get_parent
+    return self.find_template(parent, context)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/loader_tags.py", line 107, in find_template
+    template, origin = context.template.engine.find_template(
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/engine.py", line 157, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/loaders/cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/loaders/base.py", line 28, in get_template
+    return Template(
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 200, in compile_nodelist
+    return parser.parse()
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 507, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "/Users/nsungukamukotelo/TBLgit/tibk/venv_new/lib/python3.9/site-packages/django/template/base.py", line 568, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 174: 'endif'. Did you forget to register or load this tag?
+[11/Feb/2026 18:22:13] "HEAD / HTTP/1.1" 500 0
+[11/Feb/2026 18:22:33] "HEAD / HTTP/1.1" 200 0
+[11/Feb/2026 18:23:55] "GET / HTTP/1.1" 200 4961
+Not Found: /login
+[11/Feb/2026 18:23:55] "HEAD /login HTTP/1.1" 404 0
+[11/Feb/2026 18:24:02] "HEAD /accounts/login/ HTTP/1.1" 200 0
