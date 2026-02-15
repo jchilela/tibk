@@ -277,7 +277,8 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
              'orcamentodepartamento': OrcamentoDepartamento,
              'inventariopatrimonio': InventarioPatrimonio,
              'conteudoensino':ConteudoEnsino,
-             'enviomensagem':EnvioMensagem, 
+             'enviomensagem':EnvioMensagem,
+             'escalas':Escala,  
              }
     registoachado = lista[gestaoescolhida].objects.filter(id = identificador)
     ficheirodetalhado = gestaoescolhida + 'detalhado.html'
@@ -317,6 +318,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'inventariopatrimonio': InventarioPatrimonio,
              'conteudoensino':ConteudoEnsino,
              'enviomensagem':EnvioMensagem,
+             'escalas':Escala,
              }
     model = lista.get(gestaoescolhida)
 
@@ -714,6 +716,42 @@ def encontraEnvioMensagem(request):
     del dd['pagina']
     cc = request.META['QUERY_STRING']
     return render(request,'enviomensagemfiltrados.html', {'bb':paginaresultado})
+
+def encontraBancos(request):
+    designacao = request.GET['designacao']
+    abreviatura = request.GET['abreviatura']
+    
+    
+    kwargs= {'designacao__icontains':designacao, 
+             'abreviacao__icontains' : abreviatura, 
+             
+            }
+    pagina= request.GET['pagina']
+    resultado = Banco.objects.filter(**kwargs)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = dict(request.GET.lists())
+    del dd['pagina']
+    cc = request.META['QUERY_STRING']
+    return render(request,'bancosfiltrados.html', {'bb':paginaresultado})
+
+def encontraEscalas(request):
+    actividade = request.GET['actividade']
+    funcao = request.GET['funcao']
+    
+    
+    kwargs= {'actividade__designacao__designacao__icontains':actividade, 
+             'funcao__designacao__icontains' : funcao, 
+             
+            }
+    pagina= request.GET['pagina']
+    resultado = Escala.objects.filter(**kwargs)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = dict(request.GET.lists())
+    del dd['pagina']
+    cc = request.META['QUERY_STRING']
+    return render(request,'escalasfiltrados.html', {'bb':paginaresultado})
 
 
 #VIEWS PARA OS DASHBOARDS

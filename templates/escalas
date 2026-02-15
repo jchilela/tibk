@@ -1,6 +1,20 @@
 {% extends 'index.html' %}
 {% block Escalas %}
 
+<table cellpadding="0" cellspacing="0" align="center" width="15%" border="0">
+<form action="/tibl/buscaescalas"  method="GET">
+<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
+<td>Activdade</td><td>Função</td>
+</tr>
+<tr align="center">
+<td><input type="text" name="actividade" style="width: 100px; border: 1px solid gray"></td>
+<td><input type="text" name="funcao" style="width: 150px; border: 1px solid gray"></td>
+<input type="hidden" name="pagina" value= 1>
+<td><input type="submit" name="" value="Busca" class="button"></td>
+</tr>
+</form>
+</table>
+    
 
 <p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Escalas | <a href="/tibl/escalas/criar/" class = 'aa'>Nova </b></a>]</font>
 </p>
@@ -21,7 +35,7 @@
 <tr bgcolor="#d8f3dc">
 {% endif %}
 
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/escalas/actualizar/{{ x.id }}" class = 'aa'>{{ x.irmao.nome }} {{ x.irmao.apelido }} </a></font></td>
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/escalas/detalhe/{{ x.id }}" class = 'aa'>{{ x.irmao.nome }} {{ x.irmao.apelido }} </a></font></td>
 <td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.actividade }}</font></td>
 <td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.funcao }}</font></td>
 </tr>

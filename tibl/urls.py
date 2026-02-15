@@ -47,9 +47,11 @@ urlpatterns = [
     path('tibl/buscainventariopatrimonio/', sitetibl.views.encontraInventarioPatrimonio),
     path('tibl/buscaconteudoensino/', sitetibl.views.encontraConteudoEnsino),
     path('tibl/buscaenviomensagem/', sitetibl.views.encontraEnvioMensagem),
+    path('tibl/buscabancos/', sitetibl.views.encontraBancos),
+    path('tibl/buscaescalas/', sitetibl.views.encontraEscalas),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('', sitetibl.views.root_redirect, name='root'), # redireciona para o menu de dashboards
+    path('', sitetibl.views.root_redirect, name='index'), # redireciona para o menu de dashboards
 
     #endpoints para dashboard
     path('dashboard/', sitetibl.views.dashboard, name='dashboard'),
