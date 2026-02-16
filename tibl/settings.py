@@ -121,16 +121,19 @@ WSGI_APPLICATION = 'tibl.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.mysql'),
-        'NAME': os.getenv('DB_NAME', 'tibldb'),
+        'NAME': os.getenv('DB_NAME', 'tibldb') if os.getenv('DB_ENGINE') != 'django.db.backends.sqlite3' else BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3'),
         'USER': os.getenv('DB_USER', 'tibl_user'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'tibl2026'),
         'HOST': os.getenv('DB_HOST', '46.224.57.18'),
         'PORT': os.getenv('DB_PORT', '3306'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        }
     }
 }
+
+# Add OPTIONS only for MySQL
+if DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
+    DATABASES['default']['OPTIONS'] = {
+        'charset': 'utf8mb4',
+    }
 
 
 

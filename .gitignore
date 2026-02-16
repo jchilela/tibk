@@ -21,7 +21,7 @@ wheels/
 *.egg
 
 # Virtual Environments
-
+venv/
 env/
 ENV/
 
@@ -48,3 +48,9 @@ ambivirtual.tar
 # OS
 .DS_Store
 Thumbs.db
+
+server.log
+run.sh
+remove_venv_git.sh
+test_mysql.py
+README_RESOLUCAO.md
