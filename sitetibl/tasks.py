@@ -54,22 +54,22 @@ def enviar_notificacoes_escala():
                         fail_silently=False,
                     )
 
-                # Enviar SMS 
-                # sms_url = 'https://telcosms.co.ao/send_message'
-                # sms_data = {
-                #     "message": {
-                #         "api_key_app": "prdc4b5a87b97d15edf8aa0cb5929",
-                #         "phone_number": irmao.telefone,  # campo para passar o numero de telefone do User
-                #         "message_body": f"{irmao.nome} {irmao.apelido}, Este é um lembrete de que você está escalado para uma actividade {actividade.designacao}, no dia {actividade.data}, na hora {actividade.inicio}, com a função {escala.funcao}."
-                #     }
-                # }
+                #Enviar SMS 
+                sms_url = 'https://telcosms.co.ao/send_message'
+                sms_data = {
+                    "message": {
+                        "api_key_app": "prdc4b5a87b97d15edf8aa0cb5929",
+                        "phone_number": irmao.telefone,  # campo para passar o numero de telefone do User
+                        "message_body": f"{irmao.nome} {irmao.apelido}, Este é um lembrete de que você está escalado para uma actividade {actividade.designacao}, no dia {actividade.data}, na hora {actividade.inicio}, com a função {escala.funcao}."
+                    }
+                }
                 
-                # try:
-                #     sms_response = requests.post(sms_url, json=sms_data)
-                #     if sms_response.status_code == 200:
-                #         print('Mensagem SMS enviada com sucesso!')
-                #     else:
-                #         print('Falha ao enviar a mensagem SMS. Código de status:', sms_response.status_code)
-                #         print('Resposta do servidor:', sms_response.text)
-                # except requests.exceptions.RequestException as e:
-                #     print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
+                try:
+                    sms_response = requests.post(sms_url, json=sms_data)
+                    if sms_response.status_code == 200:
+                        print('Mensagem SMS enviada com sucesso!')
+                    else:
+                        print('Falha ao enviar a mensagem SMS. Código de status:', sms_response.status_code)
+                        print('Resposta do servidor:', sms_response.text)
+                except requests.exceptions.RequestException as e:
+                    print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
