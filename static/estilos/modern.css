@@ -234,7 +234,8 @@ h4 {
 
 /* Sidebar */
 .modern-sidebar {
-    width: 280px;
+    width: 260px;
+    /* Reduced from 280px */
     background: linear-gradient(180deg, var(--bg-sidebar) 0%, var(--bg-sidebar-dark) 100%);
     color: white;
     display: flex;
@@ -247,16 +248,32 @@ h4 {
     border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.modern-sidebar.collapsed {
+    width: 80px;
+}
+
+.modern-sidebar.collapsed .logo-text,
+.modern-sidebar.collapsed .nav-item span,
+.modern-sidebar.collapsed .nav-section-title {
+    display: none;
+}
+
+.modern-sidebar.collapsed .logo-container {
+    justify-content: center;
+    padding: 1.5rem 0.5rem;
+}
+
+.modern-sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 0.85rem;
+}
+
 .sidebar-header {
     padding: 1.75rem 1.5rem;
     transition: var(--transition);
     display: flex;
     flex-direction: column;
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-}
-
-.modern-sidebar.collapsed {
-    width: 80px;
 }
 
 .modern-sidebar .logo-container {
@@ -337,16 +354,26 @@ h4 {
 
 /* Main Content Area */
 .modern-main {
-    margin-left: 280px;
+    margin-left: 260px;
+    /* Matched to sidebar width */
     min-height: 100vh;
-    transition: var(--transition);
+    transition: var(--transition-base);
     position: relative;
     background: var(--bg-main);
 }
 
+.modern-sidebar.collapsed+.modern-main {
+    margin-left: 80px;
+}
+
+.modern-main.no-sidebar {
+    margin-left: 0 !important;
+}
+
 .content-wrapper {
-    padding: 1.5rem 2rem 3rem;
-    max-width: 1400px;
+    padding: 1.5rem 2.5rem 3rem;
+    max-width: 1600px;
+    /* Increased from 1400px for larger PC screens */
     margin: 0 auto;
 }
 
@@ -1298,6 +1325,7 @@ input[type="file"]:hover {
 
 @media (max-width: 1024px) {
     .modern-sidebar {
+        width: 280px;
         transform: translateX(-100%);
     }
 
@@ -1306,8 +1334,9 @@ input[type="file"]:hover {
         box-shadow: var(--shadow-xl);
     }
 
-    .modern-main {
-        margin-left: 0;
+    .modern-main,
+    .modern-sidebar.collapsed+.modern-main {
+        margin-left: 0 !important;
     }
 
     .sidebar-toggle {
@@ -1323,7 +1352,7 @@ input[type="file"]:hover {
     }
 
     .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
 }
 
@@ -1470,7 +1499,8 @@ table[align="center"] {
     box-shadow: var(--shadow-sm);
     background: white;
     width: 100% !important;
-    max-width: 1200px;
+    max-width: 100% !important;
+    /* Made full width */
 }
 
 /* =========================================================================

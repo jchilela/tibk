@@ -38,12 +38,14 @@
                     <i class="fas fa-church"></i>
                 </div>
                 <div class="logo-text">TIBL System</div>
+                <button id="sidebar-collapse" class="d-none d-lg-flex"
+                    style="background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; margin-left:auto; padding:0.5rem;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
             </div>
 
             <nav class="sidebar-nav">
-                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or
-                request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or
-                request.user|has_group:"Membro Geral" %}
+                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or request.user|has_group:"Membro Geral" %}
                 <a href="{% url 'dashboard' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
@@ -174,7 +176,7 @@
         {% endif %}
 
         <!-- Main Content -->
-        <main class="modern-main">
+        <main class="modern-main {% if not user.is_authenticated %}no-sidebar{% endif %}" id="main-content">
             {% if user.is_authenticated %}
             <header class="modern-topbar">
                 <button class="sidebar-toggle" id="sidebar-toggle">
@@ -281,13 +283,36 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Sidebar toggle
+            // Sidebar mobile toggle
             const toggle = document.getElementById('sidebar-toggle');
             const sidebar = document.getElementById('sidebar');
             if (toggle && sidebar) {
                 toggle.addEventListener('click', function (e) {
                     e.stopPropagation();
                     sidebar.classList.toggle('open');
+                });
+            }
+
+            // Sidebar PC collapse toggle
+            const collapseBtn = document.getElementById('sidebar-collapse');
+            if (collapseBtn && sidebar) {
+                // Restore state
+                if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    const icon = collapseBtn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-chevron-right';
+                }
+
+                collapseBtn.addEventListener('click', function () {
+                    sidebar.classList.toggle('collapsed');
+                    const icon = collapseBtn.querySelector('i');
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+
+                    if (icon) {
+                        icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                    }
+
+                    localStorage.setItem('sidebar-collapsed', isCollapsed);
                 });
             }
         });
