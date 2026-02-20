@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lista de Contas Bancárias</title>
+</head>
+<body>
+    <h1>Contas Bancárias</h1>
+
+    <!-- Filtros -->
+    <form method="get">
+        <label for="banco">Banco:</label>
+        <select name="banco" id="banco">
+            <option value="">Todos</option>
+            <option value="Banco A">Banco A</option>
+            <option value="Banco B">Banco B</option>
+            <option value="Banco C">Banco C</option>
+        </select>
+
+        <label for="moeda">Moeda:</label>
+        <select name="moeda" id="moeda">
+            <option value="">Todas</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="AOA">AOA</option>
+        </select>
+
+        <button type="submit">Filtrar</button>
+    </form>
+
+    <!-- Lista -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Banco</th>
+                <th>Moeda</th>
+                <th>Saldo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for conta in contas %}
+                <tr>
+                    <td>{{ conta.numero }}</td>
+                    <td>{{ conta.banco }}</td>
+                    <td>{{ conta.moeda }}</td>
+                    <td>{{ conta.saldo }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">Nenhuma conta encontrada.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
