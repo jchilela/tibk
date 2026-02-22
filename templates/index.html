@@ -52,102 +52,102 @@
               </a>
 
               <a href="/tibl/gestao/irmaos/1"
-                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
                 Irmãos
               </a> &nbsp;&nbsp;
 
               <a href="/tibl/gestao/actividades/1"
-                class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
                 Actividades
               </a> &nbsp;
 
               <a href="/tibl/gestao/escalas/1"
-                class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
                 Escalas
               </a> &nbsp;
 
               <a href="/tibl/gestao/departamentos/1"
-                class="{% if '/tibl/gestao/departamentos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'departamentos' %}active{% endif %}">
                 Departamentos
               </a> &nbsp;
 
               <a href="/tibl/gestao/cestas/1"
-                class="{% if '/tibl/gestao/cestas/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'cestas' %}active{% endif %}">
                 Cestas básicas
               </a> &nbsp;&nbsp;
 
               <a href="/tibl/gestao/contasbancarias/1"
-                class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
                 Contas Bancárias
               </a> &nbsp;&nbsp;
 
               <a href="/tibl/gestao/bancos/1"
-                class="{% if '/tibl/gestao/bancos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'bancos' %}active{% endif %}">
                 Bancos
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/entradabancos/1"
-                class="{% if '/tibl/gestao/entradabancos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'entradabancos' %}active{% endif %}">
                 Entrada via banco
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/saidabancos/1"
-                class="{% if '/tibl/gestao/saidabancos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'saidabancos' %}active{% endif %}">
                 Saida via banco
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/entradascaixa/1"
-                class="{% if '/tibl/gestao/entradascaixa/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'entradascaixa' %}active{% endif %}">
                 Entrada via caixa
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/saidascaixa/1"
-                class="{% if '/tibl/gestao/saidascaixa/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
                 Saida via caixa
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/dizimosofertas/1"
-                class="{% if '/tibl/gestao/dizimosofertas/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'dizimosofertas' %}active{% endif %}">
                 Dízimos e ofertas
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
                 Relatório semanal da Célula
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/pedidosaida/1"
-                class="{% if '/tibl/gestao/pedidosaida/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
                 Pedido de Saida
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/orcamentodepartamento/1"
-                class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
                 Orçamento de Departamentos
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/inventariopatrimonio/1"
-                class="{% if '/tibl/gestao/inventariopatrimonio/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
                 Inventário de Património
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/conteudoensino/1"
-                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
                 Conteúdos de Ensino
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/enviomensagem/1"
-                class="{% if '/tibl/gestao/enviomensagem/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'enviomensagem' %}active{% endif %}">
                 Envio de Mensagem Massiva
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/ajudas/1"
-                class="{% if '/tibl/gestao/ajudas/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'ajudas' %}active{% endif %}">
                 Apoios
               </a> &nbsp;&nbsp;
 
               <a href="/tibl/gestao/mandatos/1"
-                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
                 Mandatos
               </a>&nbsp;&nbsp;
 
@@ -166,51 +166,51 @@
                 </a>
 
                 <a href="/tibl/gestao/cestas/1"
-                    class="{% if '/tibl/gestao/cestas/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'cestas' %}active{% endif %}">
                     Cestas básicas
                 </a> &nbsp;&nbsp;
                 
                 <a href="/tibl/gestao/contasbancarias/1"
-                    class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
                     Contas Bancárias
                 </a> &nbsp;&nbsp;
                 
                 <a href="/tibl/gestao/bancos/1"
-                    class="{% if '/tibl/gestao/bancos/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'bancos' %}active{% endif %}">
                     Bancos
                 </a>&nbsp;&nbsp;
                 
                 <a href="/tibl/gestao/entradabancos/1"
-                    class="{% if '/tibl/gestao/entradabancos/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'entradabancos' %}active{% endif %}">
                     Entrada via banco
                 </a>&nbsp;&nbsp;
                 
                 <a href="/tibl/gestao/saidabancos/1"
-                    class="{% if '/tibl/gestao/saidabancos/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'saidabancos' %}active{% endif %}">
                     Saida via banco
                 </a>&nbsp;&nbsp;
                 
                 <a href="/tibl/gestao/entradascaixa/1"
-                    class="{% if '/tibl/gestao/entradascaixa/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'entradascaixa' %}active{% endif %}">
                     Entrada via caixa
                 </a>&nbsp;&nbsp;
                 
                 <a href="/tibl/gestao/saidascaixa/1"
-                    class="{% if '/tibl/gestao/saidascaixa/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
                     Saida via caixa
                 </a>&nbsp;&nbsp;
                 
                 <a href="/tibl/gestao/dizimosofertas/1"
-                    class="{% if '/tibl/gestao/dizimosofertas/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'dizimosofertas' %}active{% endif %}">
                     Dízimos e ofertas
                 </a>&nbsp;&nbsp;
                 <a href="/tibl/gestao/orcamentodepartamento/1"
-                    class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
                     Orçamento de Departamentos
                 </a>&nbsp;&nbsp;
                   
                 <a href="/tibl/gestao/inventariopatrimonio/1"
-                    class="{% if '/tibl/gestao/inventariopatrimonio/' in request.path %}active{% endif %}">
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
                     Inventário de Património
                 </a>&nbsp;&nbsp;
 
@@ -222,51 +222,51 @@
               </a>
 
               <a href="/tibl/gestao/irmaos/1"
-                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
                 Irmãos
               </a> &nbsp;&nbsp;
           
               <a href="/tibl/gestao/actividades/1"
-                  class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
                   Actividades
               </a> &nbsp;
               
               <a href="/tibl/gestao/escalas/1"
-                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
                   Escalas
               </a> &nbsp;
               
               <a href="/tibl/gestao/departamentos/1"
-                  class="{% if '/tibl/gestao/departamentos/' in request.path %}active{% endif %}">
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'departamentos' %}active{% endif %}">
                   Departamentos
               </a> &nbsp;
               <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
                 Relatório semanal da Célula
               </a>&nbsp;&nbsp;
             
               <a href="/tibl/gestao/pedidosaida/1"
-                class="{% if '/tibl/gestao/pedidosaida/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
                 Pedido de Saida
               </a>&nbsp;&nbsp;
                   
               <a href="/tibl/gestao/conteudoensino/1"
-                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
                 Conteúdos de Ensino
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/enviomensagem/1"
-                class="{% if '/tibl/gestao/enviomensagem/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'enviomensagem' %}active{% endif %}">
                 Envio de Mensagem Massiva
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/ajudas/1"
-                class="{% if '/tibl/gestao/ajudas/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'ajudas' %}active{% endif %}">
                 Apoios
               </a> &nbsp;&nbsp;
 
               <a href="/tibl/gestao/mandatos/1"
-                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
                 Mandatos
               </a>&nbsp;&nbsp;
             
@@ -277,42 +277,42 @@
               </a>
               
               <a href="/tibl/gestao/irmaos/1"
-                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
                 Irmãos
               </a> &nbsp;&nbsp;
       
               <a href="/tibl/gestao/actividades/1"
-                  class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
                   Actividades
               </a> &nbsp;
           
               <a href="/tibl/gestao/escalas/1"
-                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
                   Escalas
               </a> &nbsp;
 
               <a href="/tibl/gestao/orcamentodepartamento/1"
-                class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
                 Orçamento de Departamentos
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/contasbancarias/1"
-                class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
                 Contas Bancárias
               </a> &nbsp;&nbsp;
 
               <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
                 Relatório semanal da Célula
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/conteudoensino/1"
-                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
                 Conteúdos de Ensino
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/mandatos/1"
-                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
                 Mandatos
               </a>&nbsp;&nbsp
             
@@ -323,32 +323,32 @@
               </a>  
 
               <a href="/tibl/gestao/irmaos/1"
-                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
                 Irmãos
               </a> &nbsp;&nbsp;
          
               <a href="/tibl/gestao/actividades/1"
-                class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
                 Actividades
               </a> &nbsp;
          
               <a href="/tibl/gestao/escalas/1"
-                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
                   Escalas
               </a> &nbsp;
 
               <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
                 Relatório semanal da Célula
               </a>&nbsp;&nbsp;
                 
               <a href="/tibl/gestao/conteudoensino/1"
-                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
                 Conteúdos de Ensino
               </a>&nbsp;&nbsp;
 
               <a href="/tibl/gestao/mandatos/1"
-                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
                 Mandatos
               </a>&nbsp;&nbsp;
 
