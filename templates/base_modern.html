@@ -8,14 +8,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Sistema de Gestão Integrada - Terceira Igreja Baptista de Luanda">
-    <meta name="theme-color" content="#548c2f">
+    <meta name="theme-color" content="#2e7d32">
     <title>{% block title %}TIB Luanda{% endblock %} | Sistema de Gestão</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&family=Outfit:wght@700&display=swap"
         rel="stylesheet">
 
     <!-- Icons -->
@@ -28,6 +28,11 @@
 </head>
 
 <body>
+
+    <!-- Mobile overlay -->
+    <div id="sidebar-overlay"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; backdrop-filter:blur(2px);"
+        onclick="closeSidebar()"></div>
 
     <div class="modern-layout">
         {% if user.is_authenticated %}
@@ -52,7 +57,7 @@
                 </a>
 
                 <a href="/tibl/gestao/irmaos/1" class="nav-item {% if '/irmaos/' in request.path %}active{% endif %}">
-                    <i class="fas fa-users fa-fw"></i> Irmãos
+                    <i class="fas fa-users fa-fw"></i> <span>Irmãos</span>
                 </a>
 
                 <a href="/tibl/gestao/actividades/1"
@@ -201,7 +206,7 @@
             {% endif %}
 
             {% if messages %}
-            <div class="messages-container" style="padding: 0 2rem; margin-top: 1rem;">
+            <div class="messages-container" style="padding: 0.75rem 1.25rem 0;">
                 {% for message in messages %}
                 <div
                     class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
@@ -282,36 +287,54 @@
     <script src="{% static 'js/tibl-core.js' %}"></script>
 
     <script>
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.style.display = 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            // Sidebar mobile toggle
             const toggle = document.getElementById('sidebar-toggle');
             const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            // Mobile hamburger toggle
             if (toggle && sidebar) {
                 toggle.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    sidebar.classList.toggle('open');
+                    const isOpen = sidebar.classList.toggle('open');
+                    if (overlay) overlay.style.display = isOpen ? 'block' : 'none';
                 });
             }
 
-            // Sidebar PC collapse toggle
+            // Close on ESC
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+
+            // Close sidebar when clicking a nav link on mobile
+            if (sidebar) {
+                sidebar.querySelectorAll('.nav-item').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        if (window.innerWidth < 1024) closeSidebar();
+                    });
+                });
+            }
+
+            // PC collapse toggle
             const collapseBtn = document.getElementById('sidebar-collapse');
             if (collapseBtn && sidebar) {
-                // Restore state
                 if (localStorage.getItem('sidebar-collapsed') === 'true') {
                     sidebar.classList.add('collapsed');
                     const icon = collapseBtn.querySelector('i');
                     if (icon) icon.className = 'fas fa-chevron-right';
                 }
-
                 collapseBtn.addEventListener('click', function () {
                     sidebar.classList.toggle('collapsed');
                     const icon = collapseBtn.querySelector('i');
                     const isCollapsed = sidebar.classList.contains('collapsed');
-
-                    if (icon) {
-                        icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
-                    }
-
+                    if (icon) icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
                     localStorage.setItem('sidebar-collapsed', isCollapsed);
                 });
             }
