@@ -4,45 +4,48 @@
    ========================================================================= */
 
 :root {
-    /* ---- Color Palette: Vivid Professional Greens ---- */
-    --primary: #2e7d32;
-    /* Rich Emerald Green  */
-    --primary-light: #4caf50;
-    /* Vivid Leaf Green    */
-    --primary-hover: #388e3c;
-    --primary-dark: #1b5e20;
-    /* Deep Forest Green   */
-    --primary-50: #e8f5e9;
-    --primary-100: #c8e6c9;
-    --accent: #ff6f00;
-    /* Deep Amber          */
-    --accent-light: #ffa000;
-    --accent-hover: #e65100;
+    /* ---- Color Palette: Deep Professional Greens ---- */
+    --primary: #1b4d3e;
+    /* Extra Dark Green   */
+    --primary-light: #2d6a4f;
+    /* Forest Green       */
+    --primary-hover: #164032;
+    --primary-dark: #081c15;
+    /* Near Black Green   */
+    --primary-50: #f0fdf4;
+    --primary-100: #dcfce7;
+    --accent: #b45309;
+    /* Bronze / Amber Dark */
+    --accent-light: #d97706;
+    --accent-hover: #92400e;
 
     /* ---- Neutral Background Palette ---- */
-    --bg-main: #f0f4f8;
-    --bg-body: #f0f4f8;
+    --bg-main: #f8fafc;
+    --bg-body: #f8fafc;
     --bg-card: #ffffff;
-    --bg-sidebar: #0d2137;
-    /* Navy Dark           */
-    --bg-sidebar-dark: #061525;
-    /* Near Black          */
+    --bg-sidebar: #0f172a;
+    /* Slate 900           */
+    --bg-sidebar-dark: #020617;
+    /* Slate 950           */
 
-    /* ---- Typography Colors ---- */
-    --text-main: #1a2332;
-    --text-secondary: #455a6e;
-    --text-muted: #8fa3b1;
+    /* ---- Typography Colors: High Contrast ---- */
+    --text-main: #0f172a;
+    /* Slate 900 (Almost Black) */
+    --text-secondary: #334155;
+    /* Slate 700 */
+    --text-muted: #64748b;
+    /* Slate 500 - much darker than before */
     --text-on-primary: #ffffff;
 
-    /* ---- Semantic Status Colors ---- */
-    --success: #00897b;
-    --success-bg: #e0f2f1;
-    --warning: #f9a825;
-    --warning-bg: #fff8e1;
-    --danger: #e53935;
-    --danger-bg: #ffebee;
-    --info: #1976d2;
-    --info-bg: #e3f2fd;
+    /* ---- Semantic Status Colors: High Contrast ---- */
+    --success: #15803d;
+    --success-bg: #f0fdf4;
+    --warning: #a16207;
+    --warning-bg: #fefce8;
+    --danger: #be123c;
+    --danger-bg: #fff1f2;
+    --info: #0369a1;
+    --info-bg: #f0f9ff;
 
     /* ---- Glass & Depth ---- */
     --glass-bg: rgba(255, 255, 255, 0.80);
@@ -291,11 +294,13 @@ h4 {
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 0.85rem;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.75);
+    /* Brighter for better contrast on dark */
     text-decoration: none;
     border-radius: var(--radius-md);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
+    /* Bolder */
     margin-bottom: 0.15rem;
     transition: var(--transition);
     white-space: nowrap;
@@ -397,8 +402,9 @@ h4 {
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 0.875rem;
+    color: #475569;
+    /* Much darker icon */
+    font-size: 0.9rem;
     pointer-events: none;
 }
 
@@ -700,18 +706,44 @@ table.a6 td {
     width: 34px;
     height: 34px;
     border-radius: var(--radius-md);
-    border: 1.5px solid #e2e8f0;
+    border: 1.5px solid #d1d5db;
+    /* Higher contrast border */
     background: white;
-    color: var(--text-muted);
+    color: var(--text-secondary);
+    /* Darker icon */
     cursor: pointer;
     transition: var(--transition-fast);
     text-decoration: none;
 }
 
 .bt-icon:hover {
-    background: var(--primary-50);
+    background: #f3f4f6;
     color: var(--primary);
-    border-color: var(--primary-100);
+    border-color: var(--primary-light);
+}
+
+/* Explicit High Contrast Semantic Buttons */
+.bt-info {
+    background: linear-gradient(135deg, var(--info), #0284c7);
+    color: white !important;
+    border: none;
+    padding: 0.65rem 1.35rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.bt-success {
+    background: linear-gradient(135deg, var(--success), #16a34a);
+    color: white !important;
+    border: none;
+    padding: 0.65rem 1.35rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
 }
 
 /* Legacy .button compat */
@@ -776,26 +808,31 @@ select,
 textarea {
     width: 100%;
     padding: 0.6rem 0.875rem;
-    border: 1.5px solid #d8e4ec;
+    border: 1.5px solid #cbd5e1;
+    /* Higher contrast border */
     border-radius: var(--radius-md);
     background-color: white;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    /* Larger for better readability */
     transition: var(--transition-fast);
     outline: none;
-    color: var(--text-main);
+    color: #0f172a;
+    /* Force slate 900 */
+    font-weight: 500;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: var(--primary-light);
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.14);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(27, 77, 62, 0.1);
 }
 
 input::placeholder,
 textarea::placeholder {
-    color: var(--text-muted);
+    color: #94a3b8;
+    /* Slate 400 */
 }
 
 textarea {
@@ -1432,7 +1469,33 @@ input[type="file"]:hover {
 .alert-info {
     background: var(--info-bg);
     border-color: var(--info);
-    color: #0d47a1;
+    color: #0c4a6e;
+    /* Much darker blue for readability */
+}
+
+/* Force high contrast on any blue button found */
+.btn-primary,
+.btn-info,
+.btn-blue,
+.btn-danger,
+.btn-success,
+input[type="submit"] {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Fix generic legacy button classes */
+.btn-primary,
+.btn-info,
+.btn-blue {
+    background-color: var(--info) !important;
+    border: none !important;
+}
+
+.btn-success {
+    background-color: var(--success) !important;
+    color: white !important;
 }
 
 /* =========================================================================

@@ -118,31 +118,31 @@ def index(request):
     return HttpResponse(template.render({}, request))
 
 def mostraGestao(request,gestaoescolhida,pagina):
-    lista = {'escalas' : Escala, 
-             'mandatos': Mandato, 
-             'irmaos':Irmao, 
-             'ajudas':Ajuda, 
-             'cestas': Cestabasica, 
-             'bancos': Banco, 
-             'contasbancarias' : Contabancaria, 
-             'actividades' : Actividade, 
-             'departamentos' : Departamento,
-             'entradabancos' : Entradabanco, 
-             'saidabancos' : Saidabanco, 
-             'entradascaixa' : Entradacaixa, 
-             'saidascaixa' : Saidacaixa, 
-             'dizimosofertas' : Dizimooferta,
-             'relatoriosemanalcelula' : RelatorioSemanalCelula, 
-             'pedidosaida' : PedidoSaida,
-             'orcamentodepartamento':OrcamentoDepartamento,
-             'inventariopatrimonio': InventarioPatrimonio,
-             'conteudoensino':ConteudoEnsino,
-             'enviomensagem':EnvioMensagem,
+    lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'funcao'), 
+             'mandatos': Mandato.objects.select_related('irmao', 'departamento', 'cargo'), 
+             'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'), 
+             'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'), 
+             'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
+             'bancos': Banco.objects, 
+             'contasbancarias' : Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'), 
+             'actividades' : Actividade.objects.select_related('designacao', 'localactividade'), 
+             'departamentos' : Departamento.objects.select_related('lider_departamento', 'vice_lider_departamento'),
+             'entradabancos' : Entradabanco.objects.select_related('contaaacreditar', 'rubrica', 'responsavel'), 
+             'saidabancos' : Saidabanco.objects.select_related('conta', 'rubrica', 'responsavel'), 
+             'entradascaixa' : Entradacaixa.objects.select_related('responsavel', 'rubrica'), 
+             'saidascaixa' : Saidacaixa.objects.select_related('responsavel', 'rubrica'), 
+             'dizimosofertas' : Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade'),
+             'relatoriosemanalcelula' : RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel'), 
+             'pedidosaida' : PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador'),
+             'orcamentodepartamento': OrcamentoDepartamento.objects.select_related('departamento', 'moeda'),
+             'inventariopatrimonio': InventarioPatrimonio.objects.select_related('categoria_patrimonio', 'responsavel', 'estado'),
+             'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
+             'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
              }
     if (gestaoescolhida == 'irmaos'):
-        resultado = lista[gestaoescolhida].objects.order_by('nome','outrosnomes')
+        resultado = lista[gestaoescolhida].all().order_by('nome','outrosnomes')
     else:
-        resultado = lista[gestaoescolhida].objects.order_by('id') 
+        resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     if (gestaoescolhida == 'ajudas') or (gestaoescolhida == 'cestas') or (gestaoescolhida == 'actividades'):
@@ -260,27 +260,28 @@ def mostraActualizacao(request, gestaoescolhida, id):
             })
 
 def mostraDetalhe(request, gestaoescolhida, identificador):
-    lista = {'irmaos':Irmao, 
-             'ajudas':Ajuda, 
-             'cestas': Cestabasica, 
-             'bancos': Banco, 
-             'contasbancarias' : Contabancaria, 
-             'actividades' : Actividade, 
-             'departamentos' : Departamento, 
-             'entradabancos' : Entradabanco, 
-             'saidabancos' : Saidabanco, 
-             'entradascaixa' : Entradacaixa, 
-             'saidascaixa' : Saidacaixa, 
-             'dizimosofertas' : Dizimooferta,
-             'relatoriosemanalcelula' : RelatorioSemanalCelula,
-             'pedidosaida': PedidoSaida,
-             'orcamentodepartamento': OrcamentoDepartamento,
-             'inventariopatrimonio': InventarioPatrimonio,
-             'conteudoensino':ConteudoEnsino,
-             'enviomensagem':EnvioMensagem,
-             'escalas':Escala,  
-             }
-    registoachado = lista[gestaoescolhida].objects.filter(id = identificador)
+    lista_qs = {
+        'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'),
+        'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'),
+        'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'),
+        'bancos': Banco.objects,
+        'contasbancarias': Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'),
+        'actividades': Actividade.objects.select_related('designacao', 'localactividade'),
+        'departamentos': Departamento.objects.select_related('lider_departamento', 'vice_lider_departamento'),
+        'entradabancos': Entradabanco.objects.select_related('contaaacreditar', 'rubrica', 'responsavel'),
+        'saidabancos': Saidabanco.objects.select_related('conta', 'rubrica', 'responsavel'),
+        'entradascaixa': Entradacaixa.objects.select_related('responsavel', 'rubrica'),
+        'saidascaixa': Saidacaixa.objects.select_related('responsavel', 'rubrica'),
+        'dizimosofertas': Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade'),
+        'relatoriosemanalcelula': RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel'),
+        'pedidosaida': PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador'),
+        'orcamentodepartamento': OrcamentoDepartamento.objects.select_related('departamento', 'moeda'),
+        'inventariopatrimonio': InventarioPatrimonio.objects.select_related('categoria_patrimonio', 'responsavel', 'estado'),
+        'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
+        'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
+        'escalas': Escala.objects.select_related('irmao', 'actividade', 'funcao'),
+    }
+    registoachado = lista_qs[gestaoescolhida].filter(id=identificador)
     ficheirodetalhado = gestaoescolhida + 'detalhado.html'
     if gestaoescolhida == 'cestas':
         detalhecestas = ComposicaoCesta.objects.filter(cesta = identificador)
@@ -399,7 +400,7 @@ def encontraIrmao(request):
     kwargs= {'nome__icontains':nomev, 'apelido__icontains' : apelidov, 'bairro__icontains' : bairrov, 'profissao_id' : profissaov }
     if (profissaov == 0):
         del kwargs['profissao_id']
-    resultado = Irmao.objects.filter(**kwargs)
+    resultado = Irmao.objects.select_related('profissao', 'celula', 'localcongregacao').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -418,7 +419,7 @@ def encontraRelatorioSemanalCelula(request):
              'local_reuniao__icontains' : localv, 
              'tema_palavra__icontains' : temav }
     pagina= request.GET['pagina']
-    resultado = RelatorioSemanalCelula.objects.filter(**kwargs)
+    resultado = RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -436,7 +437,7 @@ def encontraPedidoSaida(request):
              'iban__icontains' : localv, 
               }
     pagina= request.GET['pagina']
-    resultado = PedidoSaida.objects.filter(**kwargs)
+    resultado = PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -467,7 +468,7 @@ def encontraAjudas(request):
         del kwargs['data__year']
     if (tipoajudav == 0):
         del kwargs['ajuda_id']
-    resultado = Ajuda.objects.filter(**kwargs)
+    resultado = Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -484,7 +485,7 @@ def encontraCestas(request):
         del kwargs['codigo__month']
     if (anov == '0'):
         del kwargs['codigo__year']
-    resultado = Cestabasica.objects.filter(**kwargs)
+    resultado = Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -548,7 +549,7 @@ def encontraDizimosofertas(request):
         del kwargs['datacorrespondente__month']
     if (anov == '0'):
         del kwargs['datacorrespondente__year']
-    resultado = Dizimooferta.objects.filter(**kwargs)
+    resultado = Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())

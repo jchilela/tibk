@@ -50,7 +50,9 @@
             </div>
 
             <nav class="sidebar-nav">
-                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or request.user|has_group:"Membro Geral" %}
+                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or
+                request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or
+                request.user|has_group:"Membro Geral" %}
                 <a href="{% url 'dashboard' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
@@ -188,9 +190,17 @@
                     <i class="fas fa-bars"></i>
                 </button>
 
+                <div class="breadcrumb-nav d-none d-md-flex"
+                    style="flex: 1; margin-left: 1.5rem; gap: 0.5rem; align-items: center; font-size: 0.825rem; color: var(--text-muted); font-weight: 500;">
+                    <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">TIBL</a>
+                    <i class="fas fa-chevron-right" style="font-size: 0.65rem; opacity: 0.5;"></i>
+                    <span style="color: var(--text-main); font-weight: 600;">{{
+                        request.resolver_match.url_name|title|replace:"_, " }}</span>
+                </div>
+
                 <div class="topbar-search">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="global-search" placeholder="Pesquisa rápida..." autocomplete="off">
+                    <input type="text" id="global-search" placeholder="Filtrar dados na página..." autocomplete="off">
                 </div>
 
                 <div class="user-info">

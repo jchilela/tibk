@@ -14,8 +14,14 @@
         <h1 style="color: white; font-size: clamp(1.4rem, 4vw, 2rem); margin-bottom: 0.4rem; letter-spacing: -0.5px;">
           Olá, {{ user.first_name|default:user.username }}! 👋
         </h1>
-        <p style="opacity: 0.85; font-size: 0.95rem;">Bem-vindo ao centro de gestão da TIBL. Aqui está um resumo da
-          atividade recente.</p>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <p style="opacity: 0.85; font-size: 0.95rem; margin: 0;">Bem-vindo ao centro de gestão da TIBL. Aqui está um
+            resumo da atividade recente.</p>
+          <button onclick="window.location.reload()" class="bt-primary"
+            style="padding: 0.5rem 1rem; font-size: 0.75rem; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); box-shadow: none;">
+            <i class="fas fa-sync-alt"></i> Atualizar
+          </button>
+        </div>
       </div>
       <div style="text-align: right;" id="clock-container">
         <div id="current-date" style="font-weight: 700; font-size: 0.9rem; opacity: 0.9;"></div>
