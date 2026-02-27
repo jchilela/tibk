@@ -7,83 +7,98 @@
 <div style="padding: 0.5rem 0;">
 
   <!-- Welcome Header -->
-  <div class="modern-card"
-    style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%); color: white; border: none; padding: 2rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+  <div class="modern-card premium-gradient animate-fade-in"
+    style="margin-bottom: 2rem; border: none; padding: 2.5rem; border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg);">
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; position: relative; z-index: 1;">
       <div>
-        <h1 style="color: white; font-size: clamp(1.4rem, 4vw, 2rem); margin-bottom: 0.4rem; letter-spacing: -0.5px;">
-          Olá, {{ user.first_name|default:user.username }}! 👋
+        <h1
+          style="color: white; font-size: clamp(1.6rem, 5vw, 2.5rem); margin-bottom: 0.6rem; letter-spacing: -1px; font-family: 'Outfit', sans-serif;">
+          Olá, {{ user.first_name|default:user.username }}! ✨
         </h1>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-          <p style="opacity: 0.85; font-size: 0.95rem; margin: 0;">Bem-vindo ao centro de gestão da TIBL. Aqui está um
-            resumo da atividade recente.</p>
+        <div style="display: flex; gap: 1.25rem; align-items: center;">
+          <p style="opacity: 0.9; font-size: 1.05rem; margin: 0; font-weight: 400; max-width: 500px;">
+            Sua visão geral da comunidade TIBL está pronta. Veja o que mudou hoje.
+          </p>
           <button onclick="window.location.reload()" class="bt-primary"
-            style="padding: 0.5rem 1rem; font-size: 0.75rem; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); box-shadow: none;">
+            style="padding: 0.6rem 1.25rem; font-size: 0.8rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(4px); box-shadow: none;">
             <i class="fas fa-sync-alt"></i> Atualizar
           </button>
         </div>
       </div>
-      <div style="text-align: right;" id="clock-container">
-        <div id="current-date" style="font-weight: 700; font-size: 0.9rem; opacity: 0.9;"></div>
+      <div
+        style="text-align: right; background: rgba(0,0,0,0.1); padding: 1rem 1.5rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.1);"
+        id="clock-container">
+        <div id="current-date"
+          style="font-weight: 500; font-size: 0.85rem; opacity: 0.8; color: white; margin-bottom: 0.2rem;"></div>
         <div id="current-time"
-          style="font-family: monospace; font-size: 1.5rem; font-weight: 700; letter-spacing: 2px;"></div>
+          style="font-family: 'Inter', monospace; font-size: 1.75rem; font-weight: 700; color: white; letter-spacing: 1px;">
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Stats Cards -->
   <div
-    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
 
-    <div class="modern-card stat-card-v2" style="border-bottom: 4px solid var(--primary-light);">
-      <div class="icon-box" style="background: rgba(76,175,80,0.12); color: var(--primary-light);">
+    <div class="modern-card stat-card-v2 animate-fade-in-up"
+      style="border-bottom: 4px solid #10b981; animation-delay: 0.1s;">
+      <div class="icon-box" style="background: rgba(16,185,129,0.1); color: #10b981;">
         <i class="fas fa-users"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-label">Total de Irmãos</span>
+        <span class="stat-label">Comunidade</span>
         <h2 id="totalIrmaos" class="stat-value">--</h2>
-        <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> Ativos</span>
+        <span class="stat-trend positive" style="background: #ecfdf5; color: #065f46;"><i class="fas fa-chart-line"></i>
+          + Crescimento</span>
       </div>
     </div>
 
-    <div class="modern-card stat-card-v2" style="border-bottom: 4px solid var(--info);">
-      <div class="icon-box" style="background: rgba(25,118,210,0.10); color: var(--info);">
-        <i class="fas fa-hand-holding-heart"></i>
+    <div class="modern-card stat-card-v2 animate-fade-in-up"
+      style="border-bottom: 4px solid #3b82f6; animation-delay: 0.2s;">
+      <div class="icon-box" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+        <i class="fas fa-coins"></i>
       </div>
       <div class="stat-content">
         <span class="stat-label">Dízimos (Mês)</span>
-        <h2 id="totalDizimos" class="stat-value" style="font-size: 1.35rem;">--</h2>
-        <span class="stat-trend info">Kuanzas (AOA)</span>
+        <h2 id="totalDizimos" class="stat-value" style="font-size: 1.5rem;">--</h2>
+        <span class="stat-trend info" style="background: #eff6ff; color: #1e40af;"><i class="fas fa-wallet"></i>
+          Kuanzas</span>
       </div>
     </div>
 
-    <div class="modern-card stat-card-v2" style="border-bottom: 4px solid var(--warning);">
-      <div class="icon-box" style="background: rgba(249,168,37,0.12); color: var(--warning);">
-        <i class="fas fa-book-reader"></i>
+    <div class="modern-card stat-card-v2 animate-fade-in-up"
+      style="border-bottom: 4px solid #f59e0b; animation-delay: 0.3s;">
+      <div class="icon-box" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+        <i class="fas fa-book-open"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-label">Conteúdos</span>
+        <span class="stat-label">Recursos</span>
         <h2 id="fluxoTotalConteudos" class="stat-value">--</h2>
-        <span class="stat-trend neutral">Educativos</span>
+        <span class="stat-trend neutral" style="background: #fffbeb; color: #92400e;"><i
+            class="fas fa-check-circle"></i> Disponíveis</span>
       </div>
     </div>
 
-    <div class="modern-card stat-card-v2" style="border-bottom: 4px solid var(--danger);">
-      <div class="icon-box" style="background: rgba(229,57,53,0.10); color: var(--danger);">
-        <i class="fas fa-file-invoice-dollar"></i>
+    <div class="modern-card stat-card-v2 animate-fade-in-up"
+      style="border-bottom: 4px solid #ef4444; animation-delay: 0.4s;">
+      <div class="icon-box" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+        <i class="fas fa-file-invoice"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-label">Pedidos Pendentes</span>
+        <span class="stat-label">Pedidos</span>
         <h2 id="totalPedidos" class="stat-value">--</h2>
-        <span class="stat-trend danger"><i class="fas fa-clock"></i> Aguardando</span>
+        <span class="stat-trend danger" style="background: #fef2f2; color: #991b1b;"><i class="fas fa-clock"></i>
+          Pendentes</span>
       </div>
     </div>
 
   </div>
 
   <!-- Charts Grid -->
-  <div id="charts-grid"
-    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 1.5rem;">
+  <div id="charts-grid" class="animate-fade-in"
+    style="animation-delay: 0.5s; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 1.5rem;">
 
     <div class="modern-card">
       <div

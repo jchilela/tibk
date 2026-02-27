@@ -28,14 +28,14 @@
     --bg-sidebar-dark: #020617;
     /* Slate 950           */
 
-    /* ---- Typography Colors: High Contrast ---- */
-    --text-main: #0f172a;
-    /* Slate 900 (Almost Black) */
-    --text-secondary: #334155;
-    /* Slate 700 */
-    --text-muted: #64748b;
-    /* Slate 500 - much darker than before */
+    /* ---- Typography Colors ---- */
+    --text-main: #1a2332;
+    --text-secondary: #455a6e;
+    --text-muted: #8fa3b1;
     --text-on-primary: #ffffff;
+
+    /* ---- Borders ---- */
+    --border-color: rgba(0, 0, 0, 0.06);
 
     /* ---- Semantic Status Colors: High Contrast ---- */
     --success: #15803d;
@@ -74,6 +74,147 @@
     --sidebar-width: 255px;
     --sidebar-collapsed: 72px;
     --topbar-height: 64px;
+}
+
+/* ==========================================================================
+   1.1 DARK THEME VARIABLES
+   ========================================================================== */
+[data-theme="dark"] {
+    --bg-main: #0f172a;
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #020617;
+    --bg-sidebar-dark: #000000;
+
+    --text-main: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+
+    --border-color: rgba(255, 255, 255, 0.08);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background-color: #0f172a;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .modern-table th {
+    background: #0f172a;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .modern-table td {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .modern-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .topbar-search input {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Fix chart text color in dark mode handled by JS optionally */
+[data-theme="dark"] .modern-table th {
+    background: linear-gradient(90deg, #1e293b, #1e293b);
+    color: var(--text-secondary);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .modern-table td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* =========================================================================
+   1.2 ANIMATIONS & PREMIUM EFFECTS
+   ========================================================================= */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse-subtle {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .glass-card {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.premium-gradient {
+    background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-gradient::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    pointer-events: none;
 }
 
 /* =========================================================================
@@ -356,20 +497,17 @@ h4 {
 
 /* ---- Top Bar ---- */
 .modern-topbar {
-    height: var(--topbar-height);
-    background: var(--glass-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    height: 70px;
+    background: var(--bg-card);
     display: flex;
     align-items: center;
-    padding: 0 1.5rem;
+    justify-content: space-between;
+    padding: 0 2rem;
+    box-shadow: var(--shadow-sm);
     position: sticky;
     top: 0;
-    z-index: 900;
-    justify-content: space-between;
-    gap: 1rem;
-    box-shadow: var(--shadow-xs);
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar-toggle {
@@ -457,7 +595,7 @@ h4 {
 
 .modern-card {
     background: var(--bg-card);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);

@@ -1,16 +1,17 @@
 {% extends 'index.html' %}
 {% block Dizimosofertasfiltradas %}
 
-<div class="list-container">
+<div class="list-container animate-fade-in-up">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Resultados da
-                Pesquisa Financeira</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Registos de dízimos e ofertas encontrados.</p>
+            <h2
+                style="font-family: 'Outfit', sans-serif; font-size: 1.75rem; color: var(--text-main); letter-spacing: -0.5px;">
+                Resultados Financeiros
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Registos de dízimos e ofertas encontrados.</p>
         </div>
-        <a href="/tibl/gestao/dizimosofertas/1" class="bt-primary"
-            style="background-color: var(--bg-sidebar); color: white;">
-            <i class="fas fa-undo"></i> Voltar à Lista
+        <a href="/tibl/gestao/dizimosofertas/1" class="bt-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar à Lista
         </a>
     </div>
 
@@ -29,19 +30,34 @@
                 {% for x in bb %}
                 <tr>
                     <td>
-                        <div style="font-weight: 600; color: var(--text-main);">{{ x.irmao }}</div>
+                        <div style="font-weight: 600; color: var(--text-main); font-size: 1rem;">
+                            {{ x.irmao }}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+                            Recibo: #{{ x.id }}
+                        </div>
                     </td>
-                    <td style="text-align: center; color: var(--text-muted);">
-                        <i class="fas fa-calendar-alt" style="font-size: 0.8rem; margin-right: 0.3rem;"></i> {{
-                        x.datacorrespondente }}
+                    <td style="text-align: center; color: var(--text-secondary);">
+                        <span
+                            style="background: var(--bg-main); padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.85rem;">
+                            <i class="fas fa-calendar-alt"
+                                style="font-size: 0.8rem; margin-right: 0.4rem; color: var(--primary);"></i>
+                            {{ x.datacorrespondente }}
+                        </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="font-weight: 700; color: var(--primary);">{{ x.valor|floatformat:2 }}</span>
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ x.get_moeda_display }}</span>
+                        <div
+                            style="font-weight: 800; color: var(--primary-light); font-size: 1.1rem; letter-spacing: -0.5px;">
+                            {{ x.valor|floatformat:2 }}
+                            <span
+                                style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; vertical-align: middle; border: 1px solid var(--border-color); padding: 1px 4px; border-radius: 4px; margin-left: 3px;">
+                                {{ x.get_moeda_display }}
+                            </span>
+                        </div>
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}" class="bt-primary"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                            style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                             <i class="fas fa-receipt"></i> Detalhes
                         </a>
                     </td>
@@ -54,11 +70,21 @@
     <div style="margin-top: 2rem;">
         {% include 'paginacao' %}
     </div>
+
     {% else %}
-    <div class="modern-card" style="text-align: center; padding: 4rem;">
-        <i class="fas fa-search-dollar" style="font-size: 3rem; color: #ddd; margin-bottom: 1.5rem;"></i>
-        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Pesquisa sem resultados</h3>
-        <p style="color: var(--text-muted);">Não encontramos registos financeiros para os critérios fornecidos.</p>
+    <div class="modern-card animate-fade-in"
+        style="text-align: center; padding: 5rem 2rem; border: 2px dashed var(--border-color);">
+        <div
+            style="width: 80px; height: 80px; background: var(--bg-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+            <i class="fas fa-search-dollar" style="font-size: 2rem; color: var(--text-muted);"></i>
+        </div>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Nenhum registo
+            financeiro</h3>
+        <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;">Não foi possível encontrar dízimos ou
+            ofertas com os critérios atuais.</p>
+        <div style="margin-top: 2rem;">
+            <a href="/tibl/gestao/dizimosofertas/1" class="bt-primary">Nova consulta</a>
+        </div>
     </div>
     {% endif %}
 </div>

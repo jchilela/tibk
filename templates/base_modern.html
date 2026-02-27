@@ -35,7 +35,7 @@
         onclick="closeSidebar()"></div>
 
     <div class="modern-layout">
-        {% if user.is_authenticated %}
+        {% if request.user.is_authenticated %}
         <!-- Sidebar -->
         <aside class="modern-sidebar" id="sidebar">
             <div class="logo-container">
@@ -50,7 +50,9 @@
             </div>
 
             <nav class="sidebar-nav">
-                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or request.user|has_group:"Membro Geral" %}
+                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or
+                request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or
+                request.user|has_group:"Membro Geral" %}
                 <a href="{% url 'dashboard' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
@@ -181,8 +183,8 @@
         {% endif %}
 
         <!-- Main Content -->
-        <main class="modern-main {% if not user.is_authenticated %}no-sidebar{% endif %}" id="main-content">
-            {% if user.is_authenticated %}
+        <main class="modern-main {% if not request.user.is_authenticated %}no-sidebar{% endif %}" id="main-content">
+            {% if request.user.is_authenticated %}
             <header class="modern-topbar">
                 <button class="sidebar-toggle" id="sidebar-toggle">
                     <i class="fas fa-bars"></i>
@@ -201,14 +203,28 @@
                     <input type="text" id="global-search" placeholder="Filtrar dados na página..." autocomplete="off">
                 </div>
 
-                <div class="user-info">
-                    <div style="text-align: right;">
+                <div class="user-info" style="gap: 1.5rem;">
+                    <!-- Table Export -->
+                    <button class="d-none d-md-flex" id="global-export-btn"
+                        style="background:none; border:none; cursor:pointer; color:var(--primary); font-size:1.1rem; display:none;"
+                        title="Exportar Tabela (Excel)">
+                        <i class="fas fa-file-excel"></i>
+                    </button>
+
+                    <!-- Dark Mode Toggle -->
+                    <button id="dark-mode-toggle"
+                        style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:1.1rem;"
+                        title="Modo Noturno">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    <div style="text-align: right; margin-left: 0.5rem;" class="d-none d-md-block">
                         <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">{{
-                            user.first_name|default:user.username }}</div>
+                            request.user.first_name|default:request.user.username }}</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted);">{{
-                            user.groups.first.name|default:"Usuário" }}</div>
+                            request.user.groups.first.name|default:"Usuário" }}</div>
                     </div>
-                    <div class="user-avatar">{{ user.username|first|upper }}</div>
+                    <div class="user-avatar">{{ request.user.username|first|upper }}</div>
                 </div>
             </header>
             {% endif %}
@@ -229,7 +245,7 @@
             <div class="content-wrapper">
                 {% block content %}{% endblock %}
 
-                <!-- Compatibility Blocks for all existing templates -->
+                <!-- Compatibility Blocks -->
                 {% block Titulo %}{% endblock %}
                 {% block Irmaos %}{% endblock %}
                 {% block irmaosdetalhe %}{% endblock %}
@@ -307,7 +323,6 @@
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
 
-            // Mobile hamburger toggle
             if (toggle && sidebar) {
                 toggle.addEventListener('click', function (e) {
                     e.stopPropagation();
@@ -316,12 +331,10 @@
                 });
             }
 
-            // Close on ESC
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') closeSidebar();
             });
 
-            // Close sidebar when clicking a nav link on mobile
             if (sidebar) {
                 sidebar.querySelectorAll('.nav-item').forEach(function (link) {
                     link.addEventListener('click', function () {
@@ -330,7 +343,6 @@
                 });
             }
 
-            // PC collapse toggle
             const collapseBtn = document.getElementById('sidebar-collapse');
             if (collapseBtn && sidebar) {
                 if (localStorage.getItem('sidebar-collapsed') === 'true') {
@@ -346,11 +358,54 @@
                     localStorage.setItem('sidebar-collapsed', isCollapsed);
                 });
             }
+
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            if (darkModeToggle) {
+                const currentTheme = localStorage.getItem('tibl-theme');
+                const icon = darkModeToggle.querySelector('i');
+
+                if (currentTheme) {
+                    document.documentElement.setAttribute('data-theme', currentTheme);
+                    if (currentTheme === 'dark') {
+                        icon.classList.replace('fa-moon', 'fa-sun');
+                        icon.style.color = '#f59e0b';
+                    }
+                }
+
+                darkModeToggle.addEventListener('click', function () {
+                    let theme = document.documentElement.getAttribute('data-theme');
+                    if (theme === 'dark') {
+                        document.documentElement.removeAttribute('data-theme');
+                        localStorage.setItem('tibl-theme', 'light');
+                        icon.classList.replace('fa-sun', 'fa-moon');
+                        icon.style.color = 'var(--text-muted)';
+                    } else {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('tibl-theme', 'dark');
+                        icon.classList.replace('fa-moon', 'fa-sun');
+                        icon.style.color = '#f59e0b';
+                    }
+                });
+            }
+
+            setTimeout(function () {
+                const globalExportBtn = document.getElementById('global-export-btn');
+                const hasTable = document.querySelector('.modern-table');
+                if (globalExportBtn && hasTable) {
+                    globalExportBtn.style.display = 'block';
+                    globalExportBtn.addEventListener('click', function () {
+                        const pageTitle = document.title.split('|')[0].trim() || 'TIBL_Export';
+                        const timeStr = new Date().toISOString().slice(0, 10);
+                        if (window.TIBL && window.TIBL.exportTableToCSV) {
+                            window.TIBL.exportTableToCSV('.modern-table', `${pageTitle}_${timeStr}`);
+                        }
+                    });
+                }
+            }, 500);
         });
     </script>
 
     {% block extra_js %}{% endblock %}
-
 </body>
 
 </html>

@@ -283,11 +283,50 @@
     });
 
     // =========================================================================
-    // 9. PRINT & EXPORT UTILITIES
+    // 9. EXPORT & PRINT UTILITIES (Premium Features)
     // =========================================================================
 
     window.TIBL.print = function () {
         window.print();
+    };
+
+    window.TIBL.exportTableToCSV = function (tableSelector, filename) {
+        var table = document.querySelector(tableSelector);
+        if (!table) {
+            window.TIBL.toast("Nenhuma tabela encontrada para exportar", "warning");
+            return;
+        }
+
+        var csv = [];
+        var rows = table.querySelectorAll("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+            for (var j = 0; j < cols.length; j++) {
+                // Remove elements that shouldn't be exported (like buttons)
+                var clone = cols[j].cloneNode(true);
+                var toRemove = clone.querySelectorAll('.bt-primary, .bt-secondary, button, i');
+                toRemove.forEach(r => r.remove());
+
+                var data = clone.textContent.replace(/(\r\n|\n|\r)/gm, " ").trim();
+                // Escape quotes and wrap in quotes for CSV safety
+                data = data.replace(/"/g, '""');
+                row.push('"' + data + '"');
+            }
+            csv.push(row.join(";")); // Use ; for better Excel compatibility in PT/AO region
+        }
+
+        // Download CSV
+        var csvFile = new Blob(["\uFEFF" + csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+        var downloadLink = document.createElement("a");
+        downloadLink.download = filename + ".csv";
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
+        window.TIBL.toast("Dados exportados com sucesso!", "success");
     };
 
     // =========================================================================
