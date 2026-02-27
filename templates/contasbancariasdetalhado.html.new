@@ -30,9 +30,9 @@
                 style="padding: 0.6rem 1rem;">
                 <i class="fas fa-edit"></i> Editar
             </a>
-            <a href="/tibl/contasbancarias/inativar/{{ x.id }}" class="bt-primary"
-                style="background-color: #f59e0b; padding: 0.6rem 1rem;">
-                <i class="fas fa-pause-circle"></i> Inativar
+            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                style="background-color: #ef4444; padding: 0.6rem 1rem;">
+                <i class="fas fa-trash"></i> Eliminar
             </a>
         </div>
     </div>

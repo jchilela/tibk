@@ -30,7 +30,10 @@ urlpatterns = [
     path('tibl/<gestaoescolhida>/criar/', sitetibl.views.mostraCriacao),
     path('tibl/<gestaoescolhida>/actualizar/<int:id>/', sitetibl.views.mostraActualizacao),
     path('tibl/<gestaoescolhida>/eliminar/<int:id>/', sitetibl.views.mostraEliminacao),
-    path('tibl/buscairmao/', sitetibl.views.encontraIrmao),
+    path('tibl/contasbancarias/inativar/<int:id>/', sitetibl.views.inativaContabancaria, name='inativaContabancaria'),
+    # contas bancárias: filtro avançado (banco/moeda)
+    path('tibl/filtrarcontasbancarias/', sitetibl.views.ContaBancariaFilterListView.as_view(), name='contasFiltradas'),
+    # contas bancárias: busca por campos soltos (proprietário/banco)
     path('tibl/buscacontasbancarias/', sitetibl.views.encontraContasbancarias),
     path('tibl/buscaajudas/', sitetibl.views.encontraAjudas),
     path('tibl/buscacestas/', sitetibl.views.encontraCestas),

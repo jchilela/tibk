@@ -1,54 +1,94 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Lista de Contas Bancárias</title>
-</head>
-<body>
-    <h1>Contas Bancárias</h1>
+{% extends 'base_modern.html' %}
+{% load crispy_forms_tags %}
 
-    <!-- Filtros -->
-    <form method="get">
-        <label for="banco">Banco:</label>
-        <select name="banco" id="banco">
-            <option value="">Todos</option>
-            <option value="Banco A">Banco A</option>
-            <option value="Banco B">Banco B</option>
-            <option value="Banco C">Banco C</option>
-        </select>
+{% block content %}
 
-        <label for="moeda">Moeda:</label>
-        <select name="moeda" id="moeda">
-            <option value="">Todas</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-            <option value="AOA">AOA</option>
-        </select>
+{% if messages %}
+    <div class="container mt-3">
+        {% for message in messages%}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 
-        <button type="submit">Filtrar</button>
-    </form>
+{% if form.errors %}
+    <div class="alert alert-danger">
+        <strong>Erro ao gravar:</strong> Por favor, verifique os campos abaixo.
+        {{ form.non_field_errors }}
+    </div>
+{% endif %}
 
-    <!-- Lista -->
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Número</th>
-                <th>Banco</th>
-                <th>Moeda</th>
-                <th>Saldo</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for conta in contas %}
-                <tr>
-                    <td>{{ conta.numero }}</td>
-                    <td>{{ conta.banco }}</td>
-                    <td>{{ conta.moeda }}</td>
-                    <td>{{ conta.saldo }}</td>
-                </tr>
-            {% empty %}
-                <tr><td colspan="4">Nenhuma conta encontrada.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+<div class="container-fluid" style="padding: 20px;">
+    <div class="d-flex justify-content-between align-items-center mb-4"> 
+        <a href="/tibl/gestao/contasbancarias/1" class="bt-primary"
+            style="background-color: var(--bg-sidebar); color: white;">
+            <i class="fas fa-undo"></i> Voltar à Lista
+        </a>
+        <a href="/tibl/contasbancarias/criar/" class="btn btn-success d-flex align-items-center shadow-sm" style="border-radius: 8px; padding: 8px 16px; font-weight: 500;">
+            <i class="bi bi-plus-circle-fill me-2" style="font-size: 1.2rem;"></i>Novo Registo
+        </a>
+    </div>
+    <div class="card shadow-sm mb-4" style="border-radius: 15px; border: none; background: #f8f9fa;">
+        <div class="card-body">
+            <!--h5 class="card-title mb-3"><i class="fas fa-search"></i>Pesquisa Rápida</h5-->
+            <form method="get">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                    {{ filter.form.banco|as_crispy_field }}
+                    </div>
+                    <div class="col-md-5">
+                    {{ filter.form.moeda|as_crispy_field }}
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100" style="height: 38px; margin-bottom: 16px; border-radius: 8px;">Buscar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm" style="border-radius: 15px; border: none;">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" style="border-radius: 15px; overflow: hidden;">
+                <thead style="background-color: #2e3e4e; color:white">
+                    <tr>
+                        <th class="ps-4">Instituição / Banco</th>
+                        <th>Titular da conta</th>
+                        <th>Nº Conta / IBAN</th>
+                        <th class="text-center" style="width: 120px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for conta in bb %}
+                    <tr>
+                        <td class="ps-4">
+                            <div style="font-weight: 600;"><strong>{{ conta.banco.abreviacao }}</strong></div>
+                            <div style="font-size: 0.85rem; color: #666;">{{ conta.banco.designacao }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 500;">{{ conta.proprietario.nome }} {{ conta.proprietario.apelido }}</div>
+                        </td>
+                        <td>
+                            <div style="font-family: monospace; font-size: 0.9rem;">{{ conta.numeroconta }}</div>
+                            <div style="font-size: 0.85rem; color: #999;">IBAN: {{ conta.iban }}</div>
+                        </td>
+                        <td class="text-center">
+                            <a href="/tibl/contasbancarias/detalhe/{{ conta.id }}" class="btn btn-sm btn-info" style="font-size: 0.8rem;">
+                                <i class="fas fa-eye"></i> Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">Nenhuma conta encontrada para estes critérios</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

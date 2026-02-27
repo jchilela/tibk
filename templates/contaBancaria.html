@@ -1,0 +1,64 @@
+{% extends 'base_modern.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 30px;">
+    <div class="row mb-4">
+        <div class="col-md-12">
+           <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+            <div class="bg-sucess bg-opacity-10 p-2 rounded-3 me-3">
+                <i class="fas fa-university text-sucess fs-4"></i>
+            </div>
+                <div>
+                    <h3 class="mb-0 fw-bold text-dark"> Registar Conta Bancária</h3>
+                    <small class="text-muted">Adicione os detalhes da nova conta para a gestão financeira</small>
+                </div>
+           </div>
+        </div>
+    </div>
+    <div class="card shadow-sm" style="border-radius: 15px; border: nome;">
+        <div class="card-body p-4">
+            <form method="post" autocomplete="off">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {{form.banco|as_crispy_field}}
+                    </div>
+                    <div class="col-md-6">
+                        {{form.moeda|as_crispy_field}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{form.numeroconta|as_crispy_field}}
+                    </div>
+                    <div class="col-md-6">
+                        {{form.iban|as_crispy_field}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{form.proprietario|as_crispy_field}}
+                    </div>
+                    <div class="col-md-6">
+                        {{form.instituicao|as_crispy_field}}
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-4 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted small"><i class="fas fa-info-circle me-1"></i>
+                    Todos os campos com * são obrigatórios.</span>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'contasFiltradas' %}" class="btn btn-light px-4 border">Cancelar</a>
+                            <button type="submit" class="btn btn-sucess px-5 shadow-sm fw-bold">
+                            <i class="fas fa-check-circle me-2"></i>Gravar Conta
+                            </button>
+                    </div>  
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

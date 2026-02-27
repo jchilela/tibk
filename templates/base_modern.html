@@ -190,10 +190,14 @@
 
                 <div class="user-info">
                     <div style="text-align: right;">
-                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">{{
-                            user.first_name|default:user.username }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">{{
-                            user.groups.first.name|default:"Usuário" }}</div>
+                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">
+                            {{ user.first_name|default:user.username }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted, #888);">
+                            {% with grupo=user.groups.first %}
+                             {% if grupo %}{{grupo.name}}{% else %}
+                             Usuário{% endif %}
+                            {% endwith %}
+                        </div>
                     </div>
                     <div class="user-avatar">{{ user.username|first|upper }}</div>
                 </div>

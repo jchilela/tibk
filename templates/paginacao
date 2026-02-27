@@ -8,8 +8,8 @@
     </a>
 {% endif %}
 
-<span class="current-page">{{ bb.number }}</span>
-<span style="color: var(--text-muted); font-size: 0.8rem;">de {{ bb.paginator.num_pages }}</span>
+<span class="current-page" style="color: var(--text-main); background: var(--primary-light);">{{ bb.number }}</span>
+<span style="color: var(--text-main); font-size: 0.8rem;">de {{ bb.paginator.num_pages }}</span>
 
 {% if bb.has_next %}
     <a href="?pagina={{ bb.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Próxima">
