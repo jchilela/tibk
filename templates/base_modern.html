@@ -50,9 +50,7 @@
             </div>
 
             <nav class="sidebar-nav">
-                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or
-                request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or
-                request.user|has_group:"Membro Geral" %}
+                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or request.user|has_group:"Membro Geral" %}
                 <a href="{% url 'dashboard' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
