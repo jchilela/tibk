@@ -301,6 +301,9 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             valorgasto = total * totalcestasajuda
             cestasremanescentes = int((a - valorgasto)/total)
             context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida, 'detalhecestas' : subtotal, 'total' : total, 'totalcestasajuda' : totalcestasajuda, 'montantedisponibilizado' : a, 'valorgasto' : valorgasto, 'cestasremanescentes' : cestasremanescentes}
+    elif gestaoescolhida == 'actividades':
+        escalas_da_actividade = Escala.objects.filter(actividade_id=identificador).select_related('irmao', 'funcao').order_by('funcao__designacao')
+        context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida, 'escalas_da_actividade': escalas_da_actividade}
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)

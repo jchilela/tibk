@@ -109,19 +109,74 @@
                     Observações / Relatório</h4>
                 <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
                     {{ x.observacao|default:"Nenhuma observação adicional registrada para esta actividade." }}
-                </p>
             </div>
         </div>
+
+        <!-- Escalas Section -->
+        <div style="margin-top: 3rem;">
+            <h3
+                style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem; color: var(--text-main);">
+                <i class="fas fa-users-cog mr-2"></i> Pessoas Escaladas
+            </h3>
+
+            {% if escalas_da_actividade %}
+            {% regroup escalas_da_actividade by funcao.designacao as escalas_agrupadas %}
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                {% for grupo in escalas_agrupadas %}
+                <div class="modern-card" style="border-top: 4px solid var(--primary); height: 100%;">
+                    <h4
+                        style="font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+                        <i class="fas fa-user-tag" style="opacity: 0.5; margin-right: 0.5rem;"></i>
+                        {{ grupo.grouper }}
+                    </h4>
+                    <ul
+                        style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                        {% for escala in grupo.list %}
+                        <li
+                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                            <div
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;">
+                                {{ escala.irmao.nome|first }}{{ escala.irmao.apelido|first }}
+                            </div>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">
+                                    {{ escala.irmao.nome }} {{ escala.irmao.apelido }}
+                                </span>
+                                {% if escala.irmao.celula %}
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">
+                                    Célula: {{ escala.irmao.celula }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="modern-card"
+                style="text-align: center; padding: 3rem; background: #f8fafc; border: 1px dashed #cbd5e1;">
+                <i class="fas fa-user-clock" style="font-size: 3rem; color: #94a3b8; margin-bottom: 1rem;"></i>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">Não existem escalas registadas para esta
+                    actividade.</p>
+                <a href="/tibl/escalas/criar/" class="bt-primary"
+                    style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary); color: white !important;">
+                    <i class="fas fa-plus"></i> Adicionar Escala
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="text-align: center; margin-top: 3rem;">
+        <a href="/tibl/gestao/actividades/1" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+            <i class="fas fa-chevron-left"></i> Voltar para Cronograma
+        </a>
     </div>
 
-    {% endfor %}
-</div>
-{% endif %}
-
-<div style="text-align: center; margin-top: 3rem;">
-    <a href="/tibl/gestao/actividades/1" style="color: var(--primary); font-weight: 600; text-decoration: none;">
-        <i class="fas fa-chevron-left"></i> Voltar para Cronograma
-    </a>
-</div>
-
-{% endblock %}
+    {% endblock %}
