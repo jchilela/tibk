@@ -50,9 +50,6 @@
             </div>
 
             <nav class="sidebar-nav">
-                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or
-                request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or
-                request.user|has_group:"Membro Geral" %}
                 <a href="{% url 'dashboard' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
@@ -167,7 +164,6 @@
                 </a>
                 {% endif %}
 
-                {% endif %}
             </nav>
 
             <div style="padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08);">
@@ -217,11 +213,17 @@
                         <i class="fas fa-moon"></i>
                     </button>
 
-                    <div style="text-align: right; margin-left: 0.5rem;" class="d-none d-md-block">
-                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">{{
-                            request.user.first_name|default:request.user.username }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">{{
-                            request.user.groups.first.name|default:"Usuário" }}</div>
+                    <div style="text-align: right; margin-right: 0.5rem;">
+                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">{% if request.user.first_name %}{{ request.user.first_name }}{% else %}{{ request.user.username }}{% endif %}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                            {% if request.user|has_group:"Administrador" %}Administrador
+                            {% elif request.user|has_group:"Financeiro" %}Financeiro
+                            {% elif request.user|has_group:"Secretaria" %}Secretaria
+                            {% elif request.user|has_group:"Membros Baptizados" %}Membros Baptizados
+                            {% elif request.user|has_group:"Membro Geral" %}Membro Geral
+                            {% elif request.user.is_superuser %}Administrador
+                            {% else %}Usuário{% endif %}
+                        </div>
                     </div>
                     <div class="user-avatar">{{ request.user.username|first|upper }}</div>
                 </div>
@@ -304,6 +306,7 @@
                 {% block Formulariocriacao %}{% endblock %}
             </div>
         </main>
+    {% endif %}
     </div>
 
     <!-- Core JS -->
