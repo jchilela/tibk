@@ -396,12 +396,15 @@ def mostraCriacao(request, gestaoescolhida):
     return render(request, 'formulario_criacao.html', {'formulario': formulario})
 
 def encontraIrmao(request):
-    nomev = request.GET['nomev']
-    apelidov = request.GET['apelidov']
-    municipiov = request.GET['municipiov']
-    bairrov = request.GET['bairrov']
-    profissaov = int(request.GET['profissaov'])
-    pagina= request.GET['pagina']
+    nomev = request.GET.get('nomev', '').strip()
+    apelidov = request.GET.get('apelidov', '').strip()
+    municipiov = request.GET.get('municipiov', '').strip()
+    bairrov = request.GET.get('bairrov', '').strip()
+    
+    profissaov_str = request.GET.get('profissaov', '0').strip()
+    profissaov = int(profissaov_str) if profissaov_str.isdigit() else 0
+    
+    pagina = request.GET.get('pagina', '1')
     kwargs= {'nome__icontains':nomev, 'apelido__icontains' : apelidov, 'bairro__icontains' : bairrov, 'profissao_id' : profissaov }
     if (profissaov == 0):
         del kwargs['profissao_id']
