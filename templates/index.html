@@ -2,24 +2,348 @@
 {% load static %}
 {% load i18n %}
 
-{% block content %}
-{% if not user.is_authenticated %}
-<div class="landing-hero modern-card"
-  style="text-align: center; padding: 4rem 2rem; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; margin-top: 2rem;">
-  <img src="{% static 'fotos/2022/cba.png' %}" alt="TIB Luanda"
-    style="width: 120px; margin-bottom: 2rem; filter: drop-shadow(0 0 15px rgba(255,255,255,0.3));">
-  <h1 style="color: white; font-size: 3rem; margin-bottom: 1rem;">Terceira Igreja Baptista de Luanda</h1>
-  <p style="font-size: 1.25rem; opacity: 0.9; margin-bottom: 2.5rem;">Servir a Deus · Edificar Pessoas · Transformar
-    Vidas</p>
+{% language 'pt' %}
+{% load verificagrupo %}
 
-  <div
-    style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 2rem; border-radius: var(--radius-lg); max-width: 500px; margin: 0 auto; border: 1px solid rgba(255,255,255,0.2);">
-    <h2 style="color: white; font-size: 1.5rem; margin-bottom: 1.5rem;">Plataforma de Gestão Integrada</h2>
-    <p style="font-size: 1rem; margin-bottom: 2rem;">Acesse o sistema para gerir membros, finanças e ddepartamentos.</p>
-    <a href="{% url 'login' %}" class="bt-primary"
-      style="background: var(--accent); color: var(--primary-dark); padding: 1rem 3rem; font-size: 1.1rem; display: inline-block;">Entrar
-      no Sistema</a>
-  </div>
+<tr>
+<td valign="TOP">
+<!-- <div style="border:0px; padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
+<img src="{% static 'fotos/2022/cba.png' %}" alt="CBA"  width="100" height="100"> -->
+<!-- <h1 class="a1"> CBA </h1>
+<h1 class="a1"> Terceira Igreja Baptista de Luanda </h1><br> -->
+<!-- </div> -->
+
+
+{%  if user.is_authenticated and 'login' not in request.path  %}
+    <button class="menu-toggle" aria-expanded="false" aria-controls="menu-bar" id="menu-toggle" aria-label="Mostrar menu" style="background-color: #548c2f;">☰ Menu</button>
+    <div class="menu-bar" id="menu-bar">
+        {% if user.is_authenticated %}
+            {% if request.user|has_group:'Administrador' %}
+              <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboards
+              </a>
+
+              <a href="/tibl/gestao/irmaos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
+                Irmãos
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/actividades/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
+                Actividades
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/escalas/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
+                Escalas
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/departamentos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'departamentos' %}active{% endif %}">
+                Departamentos
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/cestas/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'cestas' %}active{% endif %}">
+                Cestas básicas
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/contasbancarias/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
+                Contas Bancárias
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/bancos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'bancos' %}active{% endif %}">
+                Bancos
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/entradabancos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'entradabancos' %}active{% endif %}">
+                Entrada via banco
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/saidabancos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'saidabancos' %}active{% endif %}">
+                Saida via banco
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/entradascaixa/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'entradascaixa' %}active{% endif %}">
+                Entrada via caixa
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/saidascaixa/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
+                Saida via caixa
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/dizimosofertas/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'dizimosofertas' %}active{% endif %}">
+                Dízimos e ofertas
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
+                Relatório semanal da Célula
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/pedidosaida/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
+                Pedido de Saida
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/orcamentodepartamento/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
+                Orçamento de Departamentos
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/inventariopatrimonio/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
+                Inventário de Património
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/conteudoensino/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
+                Conteúdos de Ensino
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/enviomensagem/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'enviomensagem' %}active{% endif %}">
+                Envio de Mensagem Massiva
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/ajudas/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'ajudas' %}active{% endif %}">
+                Apoios
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/mandatos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
+                Mandatos
+              </a>&nbsp;&nbsp;
+
+              <a href="{% url 'pagina_relatorios' %}" target="_blank"
+                class="{% if '/tibl/gestao/relatorios/' in request.path %}active{% endif %}">
+                Relatórios
+              </a>
+              &nbsp;&nbsp;
+
+              
+            
+            {% elif request.user|has_group:'Financeiro' %}
+                <a href="{% url 'dashboard' %}"
+                    class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    Dashboards
+                </a>
+
+                <a href="/tibl/gestao/cestas/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'cestas' %}active{% endif %}">
+                    Cestas básicas
+                </a> &nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/contasbancarias/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
+                    Contas Bancárias
+                </a> &nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/bancos/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'bancos' %}active{% endif %}">
+                    Bancos
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/entradabancos/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'entradabancos' %}active{% endif %}">
+                    Entrada via banco
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/saidabancos/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'saidabancos' %}active{% endif %}">
+                    Saida via banco
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/entradascaixa/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'entradascaixa' %}active{% endif %}">
+                    Entrada via caixa
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/saidascaixa/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
+                    Saida via caixa
+                </a>&nbsp;&nbsp;
+                
+                <a href="/tibl/gestao/dizimosofertas/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'dizimosofertas' %}active{% endif %}">
+                    Dízimos e ofertas
+                </a>&nbsp;&nbsp;
+                <a href="/tibl/gestao/orcamentodepartamento/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
+                    Orçamento de Departamentos
+                </a>&nbsp;&nbsp;
+                  
+                <a href="/tibl/gestao/inventariopatrimonio/1"
+                    class="{% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
+                    Inventário de Património
+                </a>&nbsp;&nbsp;
+
+
+            {% elif request.user|has_group:'Secretaria' %}
+              <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboards
+              </a>
+
+              <a href="/tibl/gestao/irmaos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
+                Irmãos
+              </a> &nbsp;&nbsp;
+          
+              <a href="/tibl/gestao/actividades/1"
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
+                  Actividades
+              </a> &nbsp;
+              
+              <a href="/tibl/gestao/escalas/1"
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
+                  Escalas
+              </a> &nbsp;
+              
+              <a href="/tibl/gestao/departamentos/1"
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'departamentos' %}active{% endif %}">
+                  Departamentos
+              </a> &nbsp;
+              <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
+                Relatório semanal da Célula
+              </a>&nbsp;&nbsp;
+            
+              <a href="/tibl/gestao/pedidosaida/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
+                Pedido de Saida
+              </a>&nbsp;&nbsp;
+                  
+              <a href="/tibl/gestao/conteudoensino/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
+                Conteúdos de Ensino
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/enviomensagem/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'enviomensagem' %}active{% endif %}">
+                Envio de Mensagem Massiva
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/ajudas/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'ajudas' %}active{% endif %}">
+                Apoios
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/mandatos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
+                Mandatos
+              </a>&nbsp;&nbsp;
+            
+            {% elif request.user|has_group:'Membros Baptizados' %}
+              <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboards
+              </a>
+              
+              <a href="/tibl/gestao/irmaos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
+                Irmãos
+              </a> &nbsp;&nbsp;
+      
+              <a href="/tibl/gestao/actividades/1"
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
+                  Actividades
+              </a> &nbsp;
+          
+              <a href="/tibl/gestao/escalas/1"
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
+                  Escalas
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/orcamentodepartamento/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
+                Orçamento de Departamentos
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/contasbancarias/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
+                Contas Bancárias
+              </a> &nbsp;&nbsp;
+
+              <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
+                Relatório semanal da Célula
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/conteudoensino/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
+                Conteúdos de Ensino
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/mandatos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
+                Mandatos
+              </a>&nbsp;&nbsp
+            
+            {% elif request.user|has_group:'Membro Geral' %}
+              <a href="{% url 'dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboards
+              </a>  
+
+              <a href="/tibl/gestao/irmaos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
+                Irmãos
+              </a> &nbsp;&nbsp;
+         
+              <a href="/tibl/gestao/actividades/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
+                Actividades
+              </a> &nbsp;
+         
+              <a href="/tibl/gestao/escalas/1"
+                  class="{% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
+                  Escalas
+              </a> &nbsp;
+
+              <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
+                Relatório semanal da Célula
+              </a>&nbsp;&nbsp;
+                
+              <a href="/tibl/gestao/conteudoensino/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
+                Conteúdos de Ensino
+              </a>&nbsp;&nbsp;
+
+              <a href="/tibl/gestao/mandatos/1"
+                class="{% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
+                Mandatos
+              </a>&nbsp;&nbsp;
+
+            {% endif %}
+        {% endif %}
+
+    </div>
+{% endif %}
+{% if user.is_authenticated %}
+
+<div class="user-online">
+  Usuário on-line: <strong>{{ user.username }}</strong> |
+  Grupo:
+  <strong>{{ user.groups.first.name|default:"Sem grupo" }}</strong>
+  |
+  <form method="post" action="{% url 'logout' %}" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" style="background:none;border:none;color:#ffb703;cursor:pointer;">
+        Sair
+    </button>
+</form>
+
 </div>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 3rem;">
@@ -40,4 +364,151 @@
   </div>
 </div>
 {% endif %}
-{% endblock %}
+
+
+
+{% if messages %}
+<div id="message-overlay">
+    {% for message in messages %}
+
+        {% if 'error' in message.tags %}
+            <div class="message-card error">
+        {% elif 'success' in message.tags %}
+            <div class="message-card success">
+        {% else %}
+            <div class="message-card info">
+        {% endif %}
+
+                <span class="close-btn"
+                      onclick="document.getElementById('message-overlay').style.display='none'">
+                    ×
+                </span>
+
+                <p>{{ message }}</p>
+            </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+
+{% block Titulo %} {% endblock %} 
+
+{% block content %} {% endblock %}
+
+{% if user.is_authenticated %}
+
+{% block Irmaos %} {% endblock %}
+{% block irmaosdetalhe %} {% endblock %}
+{% block Escalas %} {% endblock %}
+{% block EscalasDetalhados %} {% endblock %}
+{% block EscalasFiltrados %} {% endblock %}
+{% block Mandatos %} {% endblock %}
+{% block MandatoDetalhado %} {% endblock %}
+{% block Ajudas %} {% endblock %}
+{% block ajudasdetalhe %} {% endblock %}
+{% block Cestas %} {% endblock %}
+{% block Contasbancarias %}{% endblock %}
+{% block Actividades %} {% endblock %}
+{% block Departamentos %} {% endblock %}
+{% block Dizimosofertas %} {% endblock %}
+{% block RelatorioSemanalCelula %} {% endblock %}
+{% block RelatorioSemanalCelulaFiltrados %} {% endblock %}
+{% block RelatorioSemanalCelulaDetalhado %} {% endblock %}
+{% block Saidabancos %} {% endblock %}
+{% block Entradasbanco %} {% endblock %}
+{% block Saidascaixa %} {% endblock %}
+{% block Entradascaixa %} {% endblock %}
+{% block Irmaodetalhado %} {% endblock %}
+{% block Ajudasdetalhado %} {% endblock %}
+{% block Bancos %}{% endblock %}
+{% block Bancosdetalhado %} {% endblock %}
+{% block BancosFiltrados %}{% endblock %}
+{% block Contasbancariasdetalhado %} {% endblock %}
+{% block Actividadesdetalhado %} {% endblock %}
+{% block Cestasdetalhado %} {% endblock %}
+{% block Departamentosdetalhado %} {% endblock %}
+{% block Dizimosofertasfiltradas %} {% endblock %}
+{% block Dizimosofertasdetalhado %} {% endblock %}
+{% block Saidascaixadetalhado %} {% endblock %}
+{% block Saidascaixafiltradas %} {% endblock %}
+{% block Entradascaixafiltradas %} {% endblock %}
+{% block Saidabancosfiltradas %} {% endblock %}
+{% block Saidabancosdetalhado %} {% endblock %}
+{% block Entradascaixadetalhado %} {% endblock %}
+{% block Entradasbancofiltradas %} {% endblock %}
+{% block Entradabancosdetalhado %} {% endblock %}
+{% block PedidoSaida %} {% endblock %}
+{% block PedidoSaidaFiltrados %} {% endblock %}
+{% block PedidoSaidaDetalhado %} {% endblock %}
+{% block OrcamentoDepartamento %} {% endblock %}
+{% block OrcamentoDepartamentoFiltrados %} {% endblock %}
+{% block OrcamentoDepartamentoDetalhado %} {% endblock %}
+{% block InventarioPatrimonio %} {% endblock %}
+{% block InventarioPatrimonioFiltrados %} {% endblock %}
+{% block InventarioPatrimonioDetalhado %} {% endblock %}
+{% block ConteudoEnsino %} {% endblock %}
+{% block ConteudoEnsinoFiltrados %} {% endblock %}
+{% block ConteudoEnsinoDetalhado %} {% endblock %}
+
+{% block EnvioMensagem %} {% endblock %}
+{% block EnvioMensagemFiltrados %} {% endblock %}
+{% block EnvioMensagemDetalhado %} {% endblock %}
+
+
+
+{% block Irmaosfiltrados %} {% endblock %}
+{% block Contasbancariasfiltradas %} {% endblock %}
+{% block Actividadesfiltradas %} {% endblock %}
+
+{% block Formularioactualizacao %} {% endblock %}
+{% block Formulariocriacao %} {% endblock %}
+
+{% endif%}
+</td>
+</tr>
+
+{%  endlanguage %}
+
+
+
+<footer class="site-footer">
+    <div class="footer-container">
+
+        <!-- LEFT -->
+        <div class="footer-brand">
+            <img src="{% static 'fotos/2022/cba.png' %}" alt="TIB Luanda">
+            <h3>Terceira Igreja Baptista de Luanda</h3>
+            <p>Servir a Deus · Edificar Pessoas · Transformar Vidas</p>
+        </div>
+
+        <!-- CENTER -->
+        <div class="footer-info">
+            <h4>Informações</h4>
+            <p>📍 Luanda, Angola</p>
+            <p>📞 +244 924 265 968</p>
+            <p>✉️ info@tibl.ao</p>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="footer-links">
+            <h4>Links Rápidos</h4>
+            <a href="https://www.tibl.ao" target="_blank">Sobre Nós</a>
+            <a href="https://www.tibl.ao/departamentos" target="_blank">Departamentos</a>
+            <a href="https://www.tibl.ao/programacao" target="_blank">Programação</a>
+            <a href="https://www.tibl.ao/ao-vivo" target="_blank">Ao Vivo</a>
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+        © 2026 Terceira Igreja Baptista de Luanda · Todos os direitos reservados
+    </div>
+</footer>
+
+
+<script src="{% static 'js/menu-toggle.js' %}"></script>
+</body>
+
+</html>
+                                               
