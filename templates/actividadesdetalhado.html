@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% block Actividadesdetalhado %}
+{% block actividadesdetalhe %}
 
 {% if registoachado %}
 <div class="profile-container" style="max-width: 900px; margin: 0 auto;">
@@ -26,9 +26,13 @@
                 </div>
             </div>
 
-            <h1 style="font-size: 2.8rem; color: white; margin-bottom: 0.5rem;">{{ x.designacao }}</h1>
-            <p style="font-size: 1.25rem; opacity: 0.9; font-weight: 400;"><i class="fas fa-map-marker-alt"></i> {{
-                x.local }}</p>
+            <h1 style="font-size: 2.8rem; color: white; margin-bottom: 0.5rem;">
+                {{ x.designacao }}
+            </h1>
+            <p style="font-size: 1.25rem; opacity: 0.9; font-weight: 400;">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ x.localactividade|default:"Sede" }}
+            </p>
         </div>
 
         <div style="position: absolute; right: -30px; bottom: -30px; opacity: 0.1; font-size: 15rem;">
@@ -43,10 +47,12 @@
                 <div
                     style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">
                     Data da Actividade</div>
-                <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary);">{{
-                    x.data|date:"d"|default:x.data }}</div>
-                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">{{ x.data|date:"F
-                    Y"|default:"" }}</div>
+                <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary);">
+                    {{ x.data|date:"d"|default:x.data }}
+                </div>
+                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">
+                    {{ x.data|date:"F Y"|default:"" }}
+                </div>
                 <div
                     style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; color: var(--text-muted);">
                     <i class="far fa-clock"></i> {{ x.inicio }} às {{ x.fim }}
@@ -54,8 +60,9 @@
             </div>
 
             <div class="modern-card" style="text-align: center; background: #f0fdf4; border: 1px solid #dcfce7;">
-                <div style="font-size: 2.5rem; color: var(--primary); font-weight: 800;">{{ x.totalpresentes|default:"0"
-                    }}</div>
+                <div style="font-size: 2.5rem; color: var(--primary); font-weight: 800;">
+                    {{ x.totalpresentes|default:"0" }}
+                </div>
                 <div
                     style="font-size: 0.8rem; color: var(--primary-dark); font-weight: 600; text-transform: uppercase;">
                     Participantes</div>
@@ -72,8 +79,9 @@
                 <h4
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
                     Tema Central</h4>
-                <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-dark);">{{ x.tema|default:"Não
-                    especificado" }}</p>
+                <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-dark);">
+                    {{ x.tema|default:"Não especificado" }}
+                </p>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
@@ -81,14 +89,17 @@
                     <h4
                         style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
                         Versos Bíblicos</h4>
-                    <p style="font-size: 0.95rem; font-style: italic;">"{{ x.versosbiblicos|default:"Consultar Bíblia"
-                        }}"</p>
+                    <p style="font-size: 0.95rem; font-style: italic;">
+                        "{{ x.versosbiblicos|default:"Consultar Bíblia" }}"
+                    </p>
                 </div>
                 <div>
                     <h4
                         style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
                         Hinos</h4>
-                    <p style="font-size: 0.95rem;">{{ x.hinos|default:"Selecção de louvor" }}</p>
+                    <p style="font-size: 0.95rem;">
+                        {{ x.hinos|default:"Selecção de louvor" }}
+                    </p>
                 </div>
             </div>
 

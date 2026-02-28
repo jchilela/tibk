@@ -5,34 +5,42 @@
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Actividades</h3>
-        <form action="/tibl/buscaactividades" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: flex-end;">
+        <form action="/tibl/buscaactividades" method="GET"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: flex-end;">
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
-                <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
+                <input type="text" name="nomev"
+                    style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Designação</label>
-                <select name="actividadev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Designação</label>
+                <select name="actividadev"
+                    style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">------------</option>
                     {% if listaactividades %}
-                        {% for x in listaactividades %}
-                            <option value="{{ x.id }}">{{ x.designacao }}</option>
-                        {% endfor %}
+                    {% for x in listaactividades %}
+                    <option value="{{ x.id }}">{{ x.designacao }}</option>
+                    {% endfor %}
                     {% endif %}
                 </select>
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
                 <div style="display: flex; gap: 0.5rem;">
-                    <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <select name="mesv"
+                        style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                         <option value="0">Mês</option>
                         {% if listameses %}
-                            {% for x, y in listameses.items %}
-                                <option value="{{ x }}">{{ y }}</option>
-                            {% endfor %}
+                        {% for x, y in listameses.items %}
+                        <option value="{{ x }}">{{ y }}</option>
+                        {% endfor %}
                         {% endif %}
                     </select>
-                    <select name="anov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <select name="anov"
+                        style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                         <option value="0">Ano</option>
                         <option value="2025">2025</option>
                         <option value="2026" selected>2026</option>
@@ -47,8 +55,10 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de Actividades</h2>
-        <a href="/tibl/actividades/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de
+            Actividades</h2>
+        <a href="/tibl/actividades/criar/" class="bt-primary"
+            style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
             <i class="fas fa-plus"></i> Nova Actividade
         </a>
     </div>
@@ -69,7 +79,8 @@
                 <tr>
                     <td>
                         <div style="font-weight: 600; color: var(--primary-dark);">{{ x.designacao }}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-map-marker-alt" style="font-size: 0.7rem;"></i> {{ x.local }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-map-marker-alt"
+                                style="font-size: 0.7rem;"></i> {{ x.localactividade|default:"Sede" }}</div>
                     </td>
                     <td style="text-align: center;">
                         <span style="font-size: 0.85rem; color: var(--text-main);">
@@ -77,10 +88,11 @@
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <div style="font-weight: 600; color: var(--primary);">{{ x.data|date:"d/m/Y"|default:x.data }}</div>
+                        <div style="font-weight: 600; color: var(--primary);">{{ x.data|date:"d/m/Y"|default:x.data }}
+                        </div>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/actividades/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                        <a href="/tibl/actividades/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary); color: white !important;">
                             <i class="fas fa-info-circle"></i> Detalhes
                         </a>
                     </td>
@@ -89,7 +101,7 @@
             </tbody>
         </table>
     </div>
-    
+
     <div style="margin-top: 2rem;">
         {% include 'paginacao' %}
     </div>
