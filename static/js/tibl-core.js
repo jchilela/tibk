@@ -225,14 +225,7 @@
             }
         });
 
-        // Highlight active nav item based on URL
-        var currentPath = window.location.pathname;
-        document.querySelectorAll('.nav-item').forEach(function (item) {
-            var href = item.getAttribute('href');
-            if (href && href !== '#' && currentPath.indexOf(href.split('/').slice(0, -2).join('/')) > -1 && href.length > 4) {
-                item.classList.add('active');
-            }
-        });
+
     });
 
     // =========================================================================

@@ -42,7 +42,7 @@
                 <div class="logo-icon">
                     <i class="fas fa-church"></i>
                 </div>
-                <div class="logo-text">TIBL System</div>
+                <div class="logo-text">TIBL</div>
                 <button id="sidebar-collapse" class="d-none d-lg-flex"
                     style="background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; margin-left:auto; padding:0.5rem;">
                     <i class="fas fa-chevron-left"></i>
@@ -214,7 +214,9 @@
                     </button>
 
                     <div style="text-align: right; margin-right: 0.5rem;">
-                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">{% if request.user.first_name %}{{ request.user.first_name }}{% else %}{{ request.user.username }}{% endif %}</div>
+                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">
+                            {% firstof request.user.first_name request.user.username %}
+                        </div>
                         <div style="font-size: 0.7rem; color: var(--text-muted);">
                             {% if request.user|has_group:"Administrador" %}Administrador
                             {% elif request.user|has_group:"Financeiro" %}Financeiro
@@ -306,7 +308,7 @@
                 {% block Formulariocriacao %}{% endblock %}
             </div>
         </main>
-    {% endif %}
+        {% endif %}
     </div>
 
     <!-- Core JS -->
