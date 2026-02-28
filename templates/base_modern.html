@@ -24,6 +24,9 @@
     <!-- Modern Styles -->
     <link rel="stylesheet" href="{% static 'estilos/modern.css' %}">
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'fotos/2022/cba.png' %}">
+
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -173,6 +176,7 @@
                 </form>
             </div>
         </aside>
+        {% endif %}
 
         <!-- Main Content -->
         <main class="modern-main {% if not request.user.is_authenticated %}no-sidebar{% endif %}" id="main-content">
@@ -305,7 +309,6 @@
                 {% block Formulariocriacao %}{% endblock %}
             </div>
         </main>
-        {% endif %}
     </div>
 
     <!-- Core JS -->
