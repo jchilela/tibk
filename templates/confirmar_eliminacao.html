@@ -2,16 +2,25 @@
 {% load static %}
 
 {% block content %}
-<div style="display:flex; justify-content:center; align-items:center; height:80vh;">
-    <div style="background-color:white; padding:30px; border-radius:15px; box-shadow:0 0 20px rgba(0,0,0,0.3); width:400px; text-align:center;">
-        <h2 style="color:#d9534f;">Confirmar eliminação</h2>
+<div style="display:flex; justify-content:center; align-items:center; min-height:60vh; padding: 2rem;">
+    <div class="confirm-dialog">
+        <div class="dialog-icon">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <h2>Confirmar Eliminação</h2>
         <p>Tem a certeza que deseja eliminar este registo?</p>
-        <p><strong>{{ registo }}</strong></p>
+        <p style="font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 1.5rem;">{{ registo }}</p>
 
         <form method="post">
             {% csrf_token %}
-            <button type="submit" class="button" style="background-color:white; margin-right:10px;">Sim, eliminar</button>
-            <a href="javascript:history.back()" class="button" style="background-color: white;">Cancelar</a>
+            <div class="dialog-actions">
+                <a href="javascript:history.back()" class="bt-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="bt-danger">
+                    <i class="fas fa-trash-alt"></i> Sim, Eliminar
+                </button>
+            </div>
         </form>
     </div>
 </div>

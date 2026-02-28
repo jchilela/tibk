@@ -31,6 +31,20 @@ from django.core.validators import validate_email
 import re
 
 
+class ContabancariaForm(forms.ModelForm):
+    class Meta:
+        model = Contabancaria
+        fields = ['banco','numeroconta','iban','moeda','proprietario','instituicao']
+        #Estilos bootstrap
+        widgets = {
+            'banco': forms.Select(attrs={'class': 'form-control'}),
+            'numeroconta': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Nº da Conta'}),
+            'iban': forms.TextInput(attrs={'class': 'form-control','placeholder': 'AO06...'}),
+            'moeda': forms.Select(attrs={'class': 'form-control'}),
+            'proprietario': forms.Select(attrs={'class': 'form-control'}),
+            'instituicao': forms.Select(attrs={'class': 'form-control'}),
+        }
+
 class IrmaoForm(ModelForm):
     telefone = forms.CharField(
         max_length=9,

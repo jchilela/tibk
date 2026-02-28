@@ -1,39 +1,145 @@
 {% extends 'index.html' %}
-{% block Irmaodetalhado %}
 {% load static %}
 
-{% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}"> <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}"> <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td colspan=2d align="center">{% if x.foto %}<img src = "{{ x.foto.url }}" > {% endif %}</td></tr>
-<tr class="fortexto"><td class="a4">Nome:</td><td class="a4">{{ x.nome}}</td></tr>
-<tr class="fortexto"><td class="a4">Apelido:</td><td class="a4">{{ x.apelido }}</td></tr>
-<tr class="fortexto"><td class="a4">Outros nomes:</td><td class="a4">{{ x.outrosnomes }} {{ x.serie }} </td></tr>
-<tr class="fortexto"><td class="a4">Sexo:</td><td class="a4">{{ x.get_sexo_display }} </td></tr>
-<tr class="fortexto"><td class="a4">Data Nascimento:</td><td class="a4">{{ x.datanascimento }} </td></tr>
-<tr class="fortexto"><td class="a4">Estado Civil:</td><td class="a4">{{ x.get_estadocivil_display}} </td></tr>
-<tr class="fortexto"><td class="a4">Grau de escolaridade:</td><td class="a4"> {{ x.grauescolaridade}} </td></tr>
-<tr class="fortexto"><td class="a4">Profissão:</td><td class="a4">{{ x.profissao }} </td></tr>
-<tr class="fortexto"><td class="a4">Local de trabalho:</td><td class="a4">{{ x.localdetrabalho }} </td></tr>
-<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
-<tr class="fortexto"><td class="a4">Endereço:</td><td class="a4">{{ x.ruaenumero }} </td></tr>
-<tr class="fortexto"><td class="a4">Bairro:</td><td class="a4">{{ x.bairro }}</td></tr>
-<tr class="fortexto"><td class="a4">Município:</td><td class="a4">{{ x.get_municipio_display }} </td></tr>
-<tr class="fortexto"><td class="a4">Província:</td><td class="a4">{{ x.get_provincia_display }} </td></tr>
-<tr class="fortexto"><td class="a4">Telefone:</td><td class="a4">{{ x.telefone }} </td></tr>
-<tr class="fortexto"><td class="a4">Email:</td><td class="a4">{{ x.email }} </td></tr>
-<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
-<tr class="fortexto"><td class="a4">Congregação:</td><td class="a4">{{ x.congregacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Data de criação:</td><td class="a4">{{ x.data_criacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Data de atualização:</td><td class="a4">{{ x.data_atualizacao }} </td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
-</div>
-<br>
+{% block Irmaodetalhado %}
 
+{% if registoachado %}
+<div class="profile-container" style="max-width: 900px; margin: 0 auto;">
+    {% for x in registoachado %}
+
+    <!-- Profile Header Card -->
+    <div class="modern-card"
+        style="display: flex; gap: 2.5rem; align-items: center; margin-bottom: 2rem; position: relative; overflow: hidden; background: linear-gradient(135deg, white, #f1f8ed);">
+        <div
+            style="width: 180px; height: 180px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-md); background: #eee; flex-shrink: 0; border: 4px solid white;">
+            {% if x.foto %}
+            <img src="{{ x.foto.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+            <div
+                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-sidebar); color: white; font-size: 4rem;">
+                {{ x.nome|first }}{{ x.apelido|first }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="flex-grow: 1;">
+            <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--primary-dark);">{{ x.nome }} {{ x.apelido
+                }}</h1>
+            <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                <i class="fas fa-id-card mr-2"></i> {{ x.outrosnomes|default:"Membro Registado" }}
+            </p>
+
+            <div style="display: flex; gap: 1rem;">
+                <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary">
+                    <i class="fas fa-edit"></i> Editar Perfil
+                </a>
+                <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                    style="background-color: #ef4444;">
+                    <i class="fas fa-trash"></i> Eliminar
+                </a>
+            </div>
+        </div>
+
+        <div
+            style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 10rem; transform: rotate(-15deg);">
+            <i class="fas fa-church"></i>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Personal Info -->
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-user-circle mr-2"></i> Dados Pessoais
+            </h3>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Sexo</span>
+                <span style="font-weight: 600;">{{ x.get_sexo_display }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Nascimento</span>
+                <span style="font-weight: 600;">{{ x.datanascimento }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Estado Civil</span>
+                <span style="font-weight: 600;">{{ x.get_estadocivil_display }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Escolaridade</span>
+                <span style="font-weight: 600;">{{ x.grauescolaridade }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Profissão</span>
+                <span style="font-weight: 600;">{{ x.profissao }}</span>
+            </div>
+        </div>
+
+        <!-- Contact & Location -->
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-address-book mr-2"></i> Contacto e Localização
+            </h3>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Telefone</span>
+                <span style="font-weight: 600;">{{ x.telefone }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Email</span>
+                <span style="font-weight: 600;">{{ x.email }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Bairro</span>
+                <span style="font-weight: 600;">{{ x.bairro }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Município</span>
+                <span style="font-weight: 600;">{{ x.get_municipio_display }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-weight: 500;">Local de Trabalho</span>
+                <span style="font-weight: 600;">{{ x.localdetrabalho }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Timeline / Registration Info -->
+    <div class="modern-card" style="margin-top: 2rem;">
+        <h3 style="margin-bottom: 1rem;"><i class="fas fa-info-circle mr-2"></i> Informações do Sistema</h3>
+        <div style="display: flex; gap: 3rem;">
+            <div>
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Criado em</p>
+                <p style="font-weight: 500;">{{ x.data_criacao }}</p>
+            </div>
+            <div>
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Última Atualização
+                </p>
+                <p style="font-weight: 500;">{{ x.data_atualizacao }}</p>
+            </div>
+            <div>
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Congregação</p>
+                <p style="font-weight: 500;">{{ x.congregacao }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 3rem;">
+    <a href="/tibl/gestao/irmaos/1" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+        <i class="fas fa-chevron-left"></i> Voltar para a lista
+    </a>
+</div>
 
 {% endblock %}
-

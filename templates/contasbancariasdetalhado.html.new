@@ -1,0 +1,112 @@
+{% extends 'index.html' %}
+{% block Contasbancarias %}
+
+{% if registoachado %}
+<div class="profile-container" style="max-width: 800px; margin: 0 auto; padding-bottom: 3rem;">
+    {% for x in registoachado %}
+
+    <!-- Account Header Card -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; border-top: 6px solid var(--primary); background: linear-gradient(135deg, white, #f8fafc); display: flex; justify-content: space-between; align-items: flex-start; position: relative; overflow: hidden;">
+        <div
+            style="position: absolute; right: -20px; top: -10px; opacity: 0.05; font-size: 8rem; pointer-events: none;">
+            <i class="fas fa-university"></i>
+        </div>
+
+        <div style="position: relative; z-index: 1;">
+            <div
+                style="font-weight: 700; color: var(--primary); background: var(--primary-light); display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase;">
+                <input type="text" value="{{ x.banco.abreviacao|default:x.banco }}" readonly style="background: transparent; border: none; font-weight:700; color: inherit; width: auto;">
+            </div>
+            <div style="margin-bottom: 0.5rem;">
+                <input type="text" value="{{ x.numeroconta }}" readonly style="font-size: 1.7rem; color: var(--primary-dark); font-weight:800; border: none; background: transparent;">
+            </div>
+            <p style="color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-id-card"></i> Detalhes da Conta Corrente
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; position: relative; z-index: 1;">
+            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                style="padding: 0.6rem 1rem;">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                style="background-color: #ef4444; padding: 0.6rem 1rem;">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+        </div>
+    </div>
+
+    <!-- Financial & Identity Grid -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Banking Info -->
+        <div class="modern-card" style="border-bottom: 4px solid var(--primary);">
+            <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-piggy-bank mr-2" style="color: var(--primary);"></i> Dados Bancários
+            </h3>
+
+            <div class="detail-row"
+                style="margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <label
+                    style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">IBAN</label>
+                <input type="text" value="{{ x.iban }}" readonly style="font-family: monospace; font-size: 1rem; font-weight:700; color: var(--text-main); border:1px solid #e6eef6; padding:6px 8px; border-radius:6px; width:100%;">
+            </div>
+
+            <div class="detail-row"
+                style="margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <label
+                    style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Saldo
+                    Atual</label>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <input type="text" value="{{ x.saldo|floatformat:2 }}" readonly style="font-size: 1.1rem; font-weight:700; color: var(--primary-dark); border:1px solid #e6eef6; padding:6px 8px; border-radius:6px; width:120px; text-align:right;">
+                    <input type="text" value="{{ x.moeda }}" readonly style="font-size: 0.95rem; font-weight:600; border:1px solid #e6eef6; padding:6px 8px; border-radius:6px; width:80px;">
+                </div>
+            </div>
+
+            <div class="detail-row"
+                style="margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <label
+                    style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Instituição</label>
+                <input type="text" value="{{ x.instituicao|default:x.banco }}" readonly style="font-weight:600; border:1px solid #e6eef6; padding:6px 8px; border-radius:6px; width:100%;">
+            </div>
+        </div>
+
+        <!-- Ownership Info -->
+        <div class="modern-card" style="border-bottom: 4px solid var(--bg-sidebar);">
+            <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-user-shield mr-2" style="color: var(--bg-sidebar);"></i> Titularidade
+            </h3>
+
+            <div class="detail-row"
+                style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                <label
+                    style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Proprietário
+                    / Titular</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <input type="text" value="{{ x.proprietario.nome }}" readonly style="border:1px solid #e6eef6; padding:6px 8px; border-radius:6px;">
+                    <input type="text" value="{{ x.proprietario.apelido }}" readonly style="border:1px solid #e6eef6; padding:6px 8px; border-radius:6px;">
+                </div>
+            </div>
+
+            <div
+                style="background: rgba(0,0,0,0.02); padding: 1.25rem; border-radius: var(--radius-md); text-align: center; border: 1px dashed #cbd5e1;">
+                <i class="fas fa-info-circle"
+                    style="color: var(--primary); margin-bottom: 0.5rem; display: block; font-size: 1.2rem;"></i>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Esta conta é
+                    utilizada para movimentações financeiras no ecossistema da Igreja TIBL.</p>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 3rem;">
+    <a href="/tibl/gestao/contasbancarias/1"
+        style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-arrow-left"></i> Voltar à Lista de Contas
+    </a>
+</div>
+
+{% endblock %}

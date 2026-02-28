@@ -1,32 +1,5 @@
+{% extends 'base_modern.html' %}
 {% load static %}
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma TIB Luanda</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="{% static 'estilos/header-alter.css' %}" rel="stylesheet">
-    <link href="{% static 'estilos/footer-alter.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'estilos/messages.css' %}">
-    <link rel="stylesheet" href="{% static 'estilos/relatorios.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-<body class="fullscreen-bg">
-
-<!-- =========================
-     HEADER PÚBLICO
-========================= -->
-
-
-<header class="public-header">
-    {% if not user.is_authenticated %}
-    <button class="menu-toggle header-toggle" aria-expanded="false" aria-controls="header-nav" id="header-toggle" aria-label="Mostrar menu">☰</button>
-    <nav class="header-nav" id="header-nav">
-        <a href="https://www.tibl.ao" target="_blank">Sobre</a>
-        <a href="https://www.tibl.ao/contactos" target="_blank">Contactos</a>
-    </nav>
-    {% endif %}
-</header> 
 {% load i18n %}
 
 {% language 'pt' %}
@@ -373,23 +346,22 @@
 
 </div>
 
-
-{% else %}
-
-     
-<div style="text-align:center; padding: 80px 0; background-color:#548c2f; color:white; border-radius:15px; margin: 50;">
-   <img src="{% static 'fotos/2022/cba.png' %}" alt="TIB Luanda">
-        <div class="header-title">
-           <p><h1>Terceira Igreja Baptista de Luanda</h1> <p/>
-            <span class="tagline">Servir a Deus · Edificar Pessoas · Transformar Vidas</span>
-        </div>
-  
-    <h2 style="font-size:28px; margin-bottom:20px;">Bem-vindo à Plataforma de gestão</h2>
-    <p style="font-size:16px; margin-bottom:30px;">Acesse sua conta.</p>
-    
-    <!-- Botões Login e Cadastrar centralizados -->
-    <a href="{% url 'login' %}" class="button" style="margin-right:20px; padding:12px 25px; font-size:16px;">Login</a>
-    <!-- <a href="{% url 'login' %}" class="button" style="padding:12px 25px; font-size:16px;">Cadastrar</a> -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 3rem;">
+  <div class="modern-card" style="text-align: center;">
+    <i class="fas fa-users" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+    <h3>Membros</h3>
+    <p>Gestão completa da comunhão e dados dos irmãos.</p>
+  </div>
+  <div class="modern-card" style="text-align: center;">
+    <i class="fas fa-chart-pie" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+    <h3>Finanças</h3>
+    <p>Controle transparente de dízimos e ofertas.</p>
+  </div>
+  <div class="modern-card" style="text-align: center;">
+    <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+    <h3>Actividades</h3>
+    <p>Organização de cultos, eventos e escalas.</p>
+  </div>
 </div>
 {% endif %}
 

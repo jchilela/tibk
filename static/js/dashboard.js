@@ -1,130 +1,97 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-// 1. Gráfico de Barras (irmaos cadastrados)
-fetch('/dashboard/numero-irmaos-cadastrados-mensalmente')
-  .then(response => response.json())
-  .then(json => {
-      new Chart(document.getElementById('irmaos'), {
-          type: 'bar',
-          data: {
-              labels: json.labels,
-              datasets: [{
-                  label: 'Numero de irmaos cadastrados',
-                  data: json.data,
-                  backgroundColor: '#769656'
-              }]
-          },
-          options: {
-              responsive: true
-          }
-      });
-  });
+  // Helper: Safe Fetch with Error Handling and Toast integration
+  async function safeFetch(url) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error(`Fetch error on ${url}:`, error);
+      if (window.TIBL && window.TIBL.toast) {
+        window.TIBL.toast(`Erro ao carregar dados do gráfico: ${url.split('/').pop()}`, 'error');
+      }
+      return null;
+    }
+  }
 
-// 2. Gráfico de Pizza (Orçamento)
-fetch('/dashboard/orcamento-departamento')
-  .then(response => response.json())
-  .then(json => {
-
-      const canvas = document.getElementById('pizzaOrcamento');
-
-      // Paleta base de verdes
-      const baseColors = ['#769656', '#98b37e', '#4d6338', '#b9ccaa', '#5f7d48', '#cfe0bf'];
-
-      // Gera cores repetindo da paleta se houver mais departamentos do que cores
-      const colors = json.labels.map((_, i) => baseColors[i % baseColors.length]);
-
-      new Chart(canvas, {
-          type: 'pie',
-          data: {
-              labels: json.labels,
-              datasets: [{
-                  data: json.data,
-                  backgroundColor: colors
-              }]
-          },
-          options: {
-              responsive: true,
-              plugins: {
-                  tooltip: {
-                      callbacks: {
-                          label: function(context) {
-                              let total = context.dataset.data.reduce((a,b)=>a+b,0);
-                              let valor = context.parsed;
-                              let percent = ((valor / total) * 100).toFixed(1);
-                              return `${context.label}: ${valor.toLocaleString()} (${percent}%)`;
-                          }
-                      }
-                  }
-              }
-          }
-      });
-  })
-  .catch(err => console.error("Erro ao buscar dados da API:", err));
-
-
-// 3. Gráfico de Linhas (pedido de saida)
-fetch('/dashboard/pedido-saida-semana')
-  .then(response => response.json())
-  .then(json => {
-
-      new Chart(document.getElementById('pedidoSaida'), {
-          type: 'line',
-          data: {
-              labels: json.labels,
-              datasets: [{
-                  label: `Pedidos de Saída (${json.ano})`,
-                  data: json.data,
-                  borderColor: '#769656',
-                  tension: 0.3,
-                  fill: true,
-                  backgroundColor: 'rgba(118, 150, 86, 0.1)'
-              }]
-          },
-          options: {
-              responsive: true,
-              plugins: {
-                  title: {
-                      display: true,
-                      text: `Pedidos de Saída por Dia da Semana – ${json.ano}`
-                  }
-              },
-              scales: {
-                  y: {
-                      beginAtZero: true,
-                      ticks: { precision: 0 }
-                  }
-              }
-          }
-      });
-
-  });
-
-
-// 4. Conteudos de ensino
-fetch('/dashboard/conteudo-ensino-mensal')
-  .then(r => r.json())
-  .then(json => {
-
-    // Número grande
-    document.getElementById('fluxoTotalConteudos').innerText =
-      `${json.total} conteúdos`;
-
-    // Gráfico
-    new Chart(document.getElementById('fluxoCaixaChartConteudos'), {
-      type: 'line',
+  // 1. Gráfico de Barras (irmaos cadastrados)
+  safeFetch('/dashboard/numero-irmaos-cadastrados-mensalmente').then(json => {
+    if (!json) return;
+    new Chart(document.getElementById('irmaos'), {
+      type: 'bar',
       data: {
         labels: json.labels,
         datasets: [{
-          label: `Conteúdos Criados (${json.ano})`,
+          label: 'Numero de irmaos cadastrados',
           data: json.data,
-          borderColor: '#769656',
-          backgroundColor: 'rgba(118,150,86,0.1)',
-          tension: 0.3,
-          fill: true
+          backgroundColor: '#769656'
+        }]
+      },
+      options: {
+        responsive: true
+      }
+    });
+  });
+
+  // 2. Gráfico de Pizza (Orçamento)
+  safeFetch('/dashboard/orcamento-departamento').then(json => {
+    if (!json) return;
+    const canvas = document.getElementById('pizzaOrcamento');
+    const baseColors = ['#769656', '#98b37e', '#4d6338', '#b9ccaa', '#5f7d48', '#cfe0bf'];
+    const colors = json.labels.map((_, i) => baseColors[i % baseColors.length]);
+
+    new Chart(canvas, {
+      type: 'pie',
+      data: {
+        labels: json.labels,
+        datasets: [{
+          data: json.data,
+          backgroundColor: colors
         }]
       },
       options: {
         responsive: true,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                let valor = context.parsed;
+                let percent = ((valor / total) * 100).toFixed(1);
+                return `${context.label}: ${valor.toLocaleString()} (${percent}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+
+  // 3. Gráfico de Linhas (pedido de saida)
+  safeFetch('/dashboard/pedido-saida-semana').then(json => {
+    if (!json) return;
+    new Chart(document.getElementById('pedidoSaida'), {
+      type: 'line',
+      data: {
+        labels: json.labels,
+        datasets: [{
+          label: `Pedidos de Saída (${json.ano})`,
+          data: json.data,
+          borderColor: '#769656',
+          tension: 0.3,
+          fill: true,
+          backgroundColor: 'rgba(118, 150, 86, 0.1)'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: `Pedidos de Saída por Dia da Semana – ${json.ano}`
+          }
+        },
         scales: {
           y: {
             beginAtZero: true,
@@ -133,23 +100,51 @@ fetch('/dashboard/conteudo-ensino-mensal')
         }
       }
     });
-
   });
 
-//5. dizimo e pferta
-fetch('/dashboard/dizimo-oferta')
-  .then(r => r.json())
-  .then(json => {
 
-    // Gera cores automáticas (tons verdes parecidos)
-    const colors = [
-      '#769656','#98b37e','#4d6338','#b9ccaa','#5f7d48','#cfe0bf'
-    ];
+  // 4. Conteudos de ensino
+  safeFetch('/dashboard/conteudo-ensino-mensal').then(json => {
+    if (!json) return;
+    const totalEl = document.getElementById('fluxoTotalConteudos');
+    if (totalEl) totalEl.innerText = `${json.total} conteúdos`;
 
-    // Adiciona cor em ordem para cada dataset
+    const chartEl = document.getElementById('fluxoCaixaChartConteudos');
+    if (chartEl) {
+      new Chart(chartEl, {
+        type: 'line',
+        data: {
+          labels: json.labels,
+          datasets: [{
+            label: `Conteúdos Criados (${json.ano})`,
+            data: json.data,
+            borderColor: '#769656',
+            backgroundColor: 'rgba(118,150,86,0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 }
+            }
+          }
+        }
+      });
+    }
+  });
+
+  // 5. dizimo e oferta
+  safeFetch('/dashboard/dizimo-oferta').then(json => {
+    if (!json || !json.datasets) return;
+    const colors = ['#769656', '#98b37e', '#4d6338', '#b9ccaa', '#5f7d48', '#cfe0bf'];
+
     json.datasets.forEach((ds, i) => {
       ds.borderColor = colors[i % colors.length];
-      ds.backgroundColor = colors[i % colors.length] + '33'; // alpha 20%
+      ds.backgroundColor = colors[i % colors.length] + '33';
       ds.tension = 0.3;
       ds.fill = true;
     });
@@ -163,14 +158,12 @@ fetch('/dashboard/dizimo-oferta')
       options: {
         responsive: true,
         scales: {
-          y: {
-            beginAtZero: true
-          }
+          y: { beginAtZero: true }
         },
         plugins: {
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 return context.dataset.label + ": " + context.parsed.y.toLocaleString() + " Kz";
               }
             }
@@ -178,14 +171,11 @@ fetch('/dashboard/dizimo-oferta')
         }
       }
     });
-
   });
 
-//6.mebros
-fetch('/dashboard/crescimento-membros')
-  .then(r => r.json())
-  .then(json => {
-
+  // 6. membros
+  safeFetch('/dashboard/crescimento-membros').then(json => {
+    if (!json) return;
     new Chart(document.getElementById('membrosChart'), {
       type: 'line',
       data: {
@@ -228,7 +218,7 @@ fetch('/dashboard/crescimento-membros')
         plugins: {
           tooltip: {
             callbacks: {
-              label: function(ctx) {
+              label: function (ctx) {
                 return ctx.dataset.label + ": " + ctx.parsed.y;
               }
             }
@@ -236,7 +226,6 @@ fetch('/dashboard/crescimento-membros')
         }
       }
     });
-
   });
 
 });

@@ -3,50 +3,135 @@
 {% load static %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}"> <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Nome:</td><td class="a4">{{ x.nome}}</td></tr>
-<tr class="fortexto"><td class="a4">Descrição:</td><td class="a4">{{ x.descricao }}</td></tr>
-<tr class="fortexto"><td class="a4">Categoria do Património:</td><td class="a4">{{ x.categoria_patrimonio.designacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Código:</td><td class="a4">{{ x.codigo }} </td></tr>
-<tr class="fortexto"><td class="a4">Quantidade:</td><td class="a4">{{ x.quantidade }} </td></tr>
-<tr class="fortexto"><td class="a4">localização:</td><td class="a4">{{ x.localizacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Preço:</td><td class="a4">{{ x.preco}} </td></tr>
-<tr class="fortexto"><td class="a4">Moeda:</td><td class="a4"> {{ x.moeda}} </td></tr>
-<tr class="fortexto"><td class="a4">Data de Aquisição:</td><td class="a4">{{ x.data_aquisicao }} </td></tr>
-<tr class="fortexto"><td class="a4">Responsável:</td><td class="a4">{{ x.responsavel }} </td></tr>
+<div class="profile-container" style="max-width: 900px; margin: 0 auto;">
+    {% for x in registoachado %}
 
-<tr class="fortexto">
-    <td class="a4">Foto:</td>
-    <td class="a4">
-        {% if x.foto %}
-            <a href="{{ x.foto.url }}" 
-               target="_blank" 
-               style="color: blue; font-weight: bold;">
-               Ver foto
-            </a>
-        {% else %}
-            Sem arquivo
-        {% endif %}
-    </td>
-  </tr>
-  
+    <div class="modern-card" style="margin-bottom: 2rem; border-left: 6px solid var(--primary);">
+        <div style="display: flex; gap: 2rem; align-items: flex-start;">
+            <div
+                style="width: 200px; height: 200px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                {% if x.foto %}
+                <img src="{{ x.foto.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                <i class="fas fa-camera" style="font-size: 3rem; color: #cbd5e1;"></i>
+                {% endif %}
+            </div>
 
-<tr class="fortexto"><td class="a4">Estado:</td><td class="a4">{{ x.estado }} </td></tr>
-<tr class="fortexto"><td class="a4">Observação:</td><td class="a4">{{ x.observacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Registro de Danos:</td><td class="a4">{{ x.registro_danos }} </td></tr>
-<tr class="fortexto"><td class="a4">Data da última manutenção:</td><td class="a4">{{ x.data_ultima_manutencao }} </td></tr>
-<tr class="fortexto"><td class="a4">Data da Próxima manutenção:</td><td class="a4">{{ x.data_proxima_manutencao }} </td></tr>
-<tr class="fortexto"><td class="a4">Data da Manutenção realizada:</td><td class="a4">{{ x.data_manutencao_realizada }} </td></tr>
-<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
+            <div style="flex-grow: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.2rem;">{{ x.nome }}
+                        </h1>
+                        <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1rem;">{{ x.descricao }}
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                            style="padding: 0.5rem 1rem;">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                            style="padding: 0.5rem 1rem; background-color: #ef4444;">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <div style="background: white; padding: 0.8rem; border-radius: 8px; border: 1px solid #f1f5f9;">
+                        <span
+                            style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Código</span>
+                        <span style="font-weight: 700; font-family: monospace; font-size: 1.1rem;">{{ x.codigo }}</span>
+                    </div>
+                    <div style="background: white; padding: 0.8rem; border-radius: 8px; border: 1px solid #f1f5f9;">
+                        <span
+                            style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Quantidade</span>
+                        <span style="font-weight: 700; font-size: 1.1rem; color: var(--primary);">{{ x.quantidade }}
+                            Unidades</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <!-- Technical Details -->
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-info-circle mr-2"></i> Detalhes Técnicos
+            </h3>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted);">Categoria</span>
+                <span style="font-weight: 600;">{{ x.categoria_patrimonio.designacao }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted);">Estado de Conservação</span>
+                <span style="font-weight: 600; color: {% if x.estado == 'Bom' %}#10b981{% else %}#f59e0b{% endif %};">{{
+                    x.estado }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted);">Localização</span>
+                <span style="font-weight: 600;">{{ x.localizacao }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted);">Valor de Aquisição</span>
+                <span style="font-weight: 600;">{{ x.preco }} {{ x.moeda }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted);">Responsável</span>
+                <span style="font-weight: 600;">{{ x.responsavel }}</span>
+            </div>
+        </div>
+
+        <!-- Maintenance Info -->
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-tools mr-2"></i> Manutenção
+            </h3>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted);">Última Manutenção</span>
+                <span style="font-weight: 600;">{{ x.data_ultima_manutencao|default:"---" }}</span>
+            </div>
+            <div class="detail-row"
+                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted);">Próxima Revisão</span>
+                <span style="font-weight: 600; color: #ef4444;">{{ x.data_proxima_manutencao|default:"---" }}</span>
+            </div>
+            <div style="margin-top: 1.5rem;">
+                <h4
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                    Registro de Danos</h4>
+                <div
+                    style="background: #fff1f2; padding: 1rem; border-radius: 8px; border: 1px solid #fecdd3; color: #9f1239; font-size: 0.9rem;">
+                    {{ x.registro_danos|default:"Nenhum dano registrado." }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modern-card" style="margin-top: 1.5rem; background: #f8fafc;">
+        <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+            Observações Gerais</h4>
+        <p style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6;">
+            {{ x.observacao|default:"Não há observações complementares para este item." }}
+        </p>
+    </div>
+
+    {% endfor %}
 </div>
-<br>
+{% endif %}
 
+<div style="text-align: center; margin-top: 3rem;">
+    <a href="/tibl/gestao/inventariopatrimonio/1"
+        style="color: var(--primary); font-weight: 600; text-decoration: none;">
+        <i class="fas fa-chevron-left"></i> Voltar para Inventário
+    </a>
+</div>
 
 {% endblock %}
-

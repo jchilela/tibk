@@ -1,6 +1,16 @@
 {% extends 'index.html' %}
 {% block Mandatos %}
 
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">Mandatos Executivos</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão de cargos e departamentos oficiais.</p>
+        </div>
+        <a href="/tibl/mandatos/criar/" class="bt-primary" style="background-color: var(--accent); color: var(--primary-dark); padding: 0.8rem 1.5rem;">
+            <i class="fas fa-handshake"></i> Novo Mandato
+        </a>
+    </div>
 
 <p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Mandatos | <a href="/tibl/mandatos/criar/" class = 'aa'>Novo </b></a>]</font></p>
 
@@ -42,4 +52,3 @@
 
 
 {% endblock %}
-

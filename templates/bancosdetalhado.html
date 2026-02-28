@@ -2,21 +2,89 @@
 {% block Bancosdetalhado %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a>  |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Designação</td><td class="a4">{{ x.designacao }}</td></tr>
-<tr class="fortexto"><td class="a4">Abreviação:</td><td class="a4">{{ x.abreviacao }}</td></tr>
-<tr class="fortexto"><td class="a4">Gestor:</td><td class="a4">{{ x.gestor }} </td></tr>
-<tr class="fortexto"><td class="a4">Telefones:</td><td class="a4">{{ x.telefone }} </td></tr>
-<tr class="fortexto"><td class="a4">Email:</td><td class="a4">{{ x.email }} </td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
-</div>
-<br>
+<div class="profile-container" style="max-width: 800px; margin: 0 auto; padding-bottom: 3rem;">
+    {% for x in registoachado %}
 
+    <!-- Bank Header Card -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; border-top: 6px solid var(--primary); background: linear-gradient(135deg, white, #f1f8ed); display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <div
+                style="font-weight: 700; color: var(--primary); background: var(--primary-light); display: inline-block; padding: 4px 15px; border-radius: 8px; font-size: 1.1rem; margin-bottom: 1rem;">
+                {{ x.abreviacao }}
+            </div>
+            <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.5rem;">{{ x.designacao }}</h1>
+            <p style="color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-university"></i> Instituição Bancária Registada
+            </p>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                style="background-color: #ef4444;">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+        </div>
+    </div>
+
+    <!-- Details Card -->
+    <div class="modern-card">
+        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
+            <i class="fas fa-info-circle mr-2"></i> Informações de Contacto
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div class="detail-section">
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Gestor
+                        de Conta</label>
+                    <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">{{ x.gestor|default:"Não
+                        especificado" }}</span>
+                </div>
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Telefones</label>
+                    <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);"><i
+                            class="fas fa-phone mr-2" style="color: var(--primary);"></i> {{ x.telefone|default:"---"
+                        }}</span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Endereço
+                        de Email</label>
+                    <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);"><i
+                            class="fas fa-envelope mr-2" style="color: var(--primary);"></i> {{ x.email|default:"sem
+                        email" }}</span>
+                </div>
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Sistema
+                        ID</label>
+                    <span style="font-family: monospace; color: var(--text-muted);">#BANK-{{ x.id }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 3rem;">
+    <a href="/tibl/gestao/bancos/1"
+        style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-arrow-left"></i> Voltar à Lista de Bancos
+    </a>
+</div>
 
 {% endblock %}
-

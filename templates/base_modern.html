@@ -1,0 +1,329 @@
+{% load static %}
+{% load verificagrupo %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="pt-pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Gestão Integrada - Terceira Igreja Baptista de Luanda">
+    <meta name="theme-color" content="#548c2f">
+    <title>{% block title %}TIB Luanda{% endblock %} | Sistema de Gestão</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Modern Styles -->
+    <link rel="stylesheet" href="{% static 'estilos/modern.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <div class="modern-layout">
+        {% if user.is_authenticated %}
+        <!-- Sidebar -->
+        <aside class="modern-sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fas fa-church"></i>
+                </div>
+                <div class="logo-text">TIBL System</div>
+                <button id="sidebar-collapse" class="d-none d-lg-flex"
+                    style="background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; margin-left:auto; padding:0.5rem;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or request.user|has_group:"Membro Geral" %}
+                <a href="{% url 'dashboard' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
+                </a>
+
+                <a href="/tibl/gestao/irmaos/1" class="nav-item {% if '/irmaos/' in request.path %}active{% endif %}">
+                    <i class="fas fa-users fa-fw"></i> Irmãos
+                </a>
+
+                <a href="/tibl/gestao/actividades/1"
+                    class="nav-item {% if '/actividades/' in request.path %}active{% endif %}">
+                    <i class="fas fa-calendar-check fa-fw"></i> Actividades
+                </a>
+
+                <a href="/tibl/gestao/escalas/1" class="nav-item {% if '/escalas/' in request.path %}active{% endif %}">
+                    <i class="fas fa-clipboard-list fa-fw"></i> Escalas
+                </a>
+
+                <a href="/tibl/gestao/departamentos/1"
+                    class="nav-item {% if '/departamentos/' in request.path %}active{% endif %}">
+                    <i class="fas fa-sitemap fa-fw"></i> Departamentos
+                </a>
+
+                <a href="/tibl/gestao/mandatos/1"
+                    class="nav-item {% if '/mandatos/' in request.path %}active{% endif %}">
+                    <i class="fas fa-handshake fa-fw"></i> Mandatos
+                </a>
+
+                {% if request.user|has_group:'Administrador' or request.user|has_group:'Financeiro' %}
+                <div class="nav-section-title">Financeiro</div>
+
+                <a href="/tibl/gestao/contasbancarias/1"
+                    class="nav-item {% if '/contasbancarias/' in request.path %}active{% endif %}">
+                    <i class="fas fa-university fa-fw"></i> Contas Bancárias
+                </a>
+
+                <a href="/tibl/gestao/dizimosofertas/1"
+                    class="nav-item {% if '/dizimosofertas/' in request.path %}active{% endif %}">
+                    <i class="fas fa-hand-holding-heart fa-fw"></i> Dízimos e Ofertas
+                </a>
+
+                <a href="/tibl/gestao/entradabancos/1"
+                    class="nav-item {% if '/entradabancos/' in request.path %}active{% endif %}">
+                    <i class="fas fa-arrow-circle-right fa-fw"></i> Entrada (Banco)
+                </a>
+
+                <a href="/tibl/gestao/saidabancos/1"
+                    class="nav-item {% if '/saidabancos/' in request.path %}active{% endif %}">
+                    <i class="fas fa-arrow-circle-left fa-fw"></i> Saída (Banco)
+                </a>
+
+                <a href="/tibl/gestao/entradascaixa/1"
+                    class="nav-item {% if '/entradascaixa/' in request.path %}active{% endif %}">
+                    <i class="fas fa-coins fa-fw"></i> Entrada (Caixa)
+                </a>
+
+                <a href="/tibl/gestao/saidascaixa/1"
+                    class="nav-item {% if '/saidascaixa/' in request.path %}active{% endif %}">
+                    <i class="fas fa-money-bill-wave fa-fw"></i> Saída (Caixa)
+                </a>
+
+                <a href="/tibl/gestao/pedidosaida/1"
+                    class="nav-item {% if '/pedidosaida/' in request.path %}active{% endif %}">
+                    <i class="fas fa-file-invoice-dollar fa-fw"></i> Pedidos de Saída
+                </a>
+
+                <a href="/tibl/gestao/orcamentodepartamento/1"
+                    class="nav-item {% if '/orcamentodepartamento/' in request.path %}active{% endif %}">
+                    <i class="fas fa-chart-pie fa-fw"></i> Orçamento Dept.
+                </a>
+                {% endif %}
+
+                <div class="nav-section-title">Social & Comunidade</div>
+
+                <a href="/tibl/gestao/ajudas/1" class="nav-item {% if '/ajudas/' in request.path %}active{% endif %}">
+                    <i class="fas fa-hands-helping fa-fw"></i> Ajudas
+                </a>
+
+                <a href="/tibl/gestao/cestas/1" class="nav-item {% if '/cestas/' in request.path %}active{% endif %}">
+                    <i class="fas fa-shopping-basket fa-fw"></i> Cestas Básicas
+                </a>
+
+                <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                    class="nav-item {% if '/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                    <i class="fas fa-book fa-fw"></i> Relatório Células
+                </a>
+
+                <a href="/tibl/gestao/conteudoensino/1"
+                    class="nav-item {% if '/conteudoensino/' in request.path %}active{% endif %}">
+                    <i class="fas fa-graduation-cap fa-fw"></i> Conteúdo Ensino
+                </a>
+
+                <a href="/tibl/gestao/enviomensagem/1"
+                    class="nav-item {% if '/enviomensagem/' in request.path %}active{% endif %}">
+                    <i class="fas fa-envelope fa-fw"></i> Envio Mensagem
+                </a>
+
+                <div class="nav-section-title">Administração</div>
+
+                <a href="/tibl/gestao/inventariopatrimonio/1"
+                    class="nav-item {% if '/inventariopatrimonio/' in request.path %}active{% endif %}">
+                    <i class="fas fa-boxes-stacked fa-fw"></i> Património
+                </a>
+
+                <a href="{% url 'pagina_relatorios' %}" class="nav-item" target="_blank">
+                    <i class="fas fa-file-pdf fa-fw"></i> Relatórios PDF
+                </a>
+
+                {% if request.user|has_group:'Administrador' %}
+                <a href="/admin/" class="nav-item" target="_blank">
+                    <i class="fas fa-cog fa-fw"></i> Admin Django
+                </a>
+                {% endif %}
+
+                {% endif %}
+            </nav>
+
+            <div style="padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-item"
+                        style="background:none; border:none; width:100%; cursor:pointer; text-align:left; color: rgba(255,255,255,0.5);">
+                        <i class="fas fa-sign-out-alt fa-fw"></i> Terminar Sessão
+                    </button>
+                </form>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- Main Content -->
+        <main class="modern-main {% if not user.is_authenticated %}no-sidebar{% endif %}" id="main-content">
+            {% if user.is_authenticated %}
+            <header class="modern-topbar">
+                <button class="sidebar-toggle" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="topbar-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="global-search" placeholder="Pesquisa rápida..." autocomplete="off">
+                </div>
+
+                <div class="user-info">
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">
+                            {{ user.first_name|default:user.username }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted, #888);">
+                            {% with grupo=user.groups.first %}
+                             {% if grupo %}{{grupo.name}}{% else %}
+                             Usuário{% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="user-avatar">{{ user.username|first|upper }}</div>
+                </div>
+            </header>
+            {% endif %}
+
+            {% if messages %}
+            <div class="messages-container" style="padding: 0 2rem; margin-top: 1rem;">
+                {% for message in messages %}
+                <div
+                    class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
+                    <i
+                        class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+
+                <!-- Compatibility Blocks for all existing templates -->
+                {% block Titulo %}{% endblock %}
+                {% block Irmaos %}{% endblock %}
+                {% block irmaosdetalhe %}{% endblock %}
+                {% block Irmaosfiltrados %}{% endblock %}
+                {% block Escalas %}{% endblock %}
+                {% block Mandatos %}{% endblock %}
+                {% block Ajudas %}{% endblock %}
+                {% block ajudasdetalhe %}{% endblock %}
+                {% block Ajudasfiltradas %}{% endblock %}
+                {% block Cestas %}{% endblock %}
+                {% block cestasdetalhe %}{% endblock %}
+                {% block Cestasfiltradas %}{% endblock %}
+                {% block Bancos %}{% endblock %}
+                {% block Contasbancarias %}{% endblock %}
+                {% block contasbancariasfiltradas %}{% endblock %}
+                {% block Actividades %}{% endblock %}
+                {% block actividadesdetalhe %}{% endblock %}
+                {% block Actividadesfiltradas %}{% endblock %}
+                {% block Departamentos %}{% endblock %}
+                {% block departamentosdetalhe %}{% endblock %}
+                {% block Departamentosfiltrados %}{% endblock %}
+                {% block Dizimosofertas %}{% endblock %}
+                {% block dizimosofertasdetalhe %}{% endblock %}
+                {% block Dizimosofertasfiltradas %}{% endblock %}
+                {% block RelatorioSemanalCelula %}{% endblock %}
+                {% block relatoriosemanalceluladetalhe %}{% endblock %}
+                {% block Relatoriosemanalcelulafiltrados %}{% endblock %}
+                {% block Saidabancos %}{% endblock %}
+                {% block saidabancosdetalhe %}{% endblock %}
+                {% block Saidasbancofiltradas %}{% endblock %}
+                {% block Entradasbanco %}{% endblock %}
+                {% block entradabancosdetalhe %}{% endblock %}
+                {% block Entradasbancofiltradas %}{% endblock %}
+                {% block Saidascaixa %}{% endblock %}
+                {% block saidascaixadetalhe %}{% endblock %}
+                {% block Saidascaixafiltradas %}{% endblock %}
+                {% block Entradascaixa %}{% endblock %}
+                {% block entradascaixadetalhe %}{% endblock %}
+                {% block Entradascaixafiltradas %}{% endblock %}
+                {% block OrcamentoDepartamento %}{% endblock %}
+                {% block orcamentodepartamentodetalhe %}{% endblock %}
+                {% block Orcamentodepartamentofiltrados %}{% endblock %}
+                {% block PedidoSaida %}{% endblock %}
+                {% block pedidosaidadetalhe %}{% endblock %}
+                {% block Pedidosaidafiltrados %}{% endblock %}
+                {% block Irmaodetalhado %}{% endblock %}
+                {% block InventarioPatrimonio %}{% endblock %}
+                {% block inventariopatrimoniodetalhe %}{% endblock %}
+                {% block Inventariopatrimoniofiltrados %}{% endblock %}
+                {% block ConteudoEnsino %}{% endblock %}
+                {% block conteudoensinodetalhe %}{% endblock %}
+                {% block Conteudoensinofiltrados %}{% endblock %}
+                {% block EnvioMensagem %}{% endblock %}
+                {% block enviomensagemdetalhe %}{% endblock %}
+                {% block Enviomensagemfiltrados %}{% endblock %}
+                {% block Formularioactualizacao %}{% endblock %}
+                {% block Formulariocriacao %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Core JS -->
+    <script src="{% static 'js/tibl-core.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Sidebar mobile toggle
+            const toggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (toggle && sidebar) {
+                toggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('open');
+                });
+            }
+
+            // Sidebar PC collapse toggle
+            const collapseBtn = document.getElementById('sidebar-collapse');
+            if (collapseBtn && sidebar) {
+                // Restore state
+                if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    const icon = collapseBtn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-chevron-right';
+                }
+
+                collapseBtn.addEventListener('click', function () {
+                    sidebar.classList.toggle('collapsed');
+                    const icon = collapseBtn.querySelector('i');
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+
+                    if (icon) {
+                        icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                    }
+
+                    localStorage.setItem('sidebar-collapsed', isCollapsed);
+                });
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+
+</html>

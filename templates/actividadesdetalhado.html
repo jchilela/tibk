@@ -2,26 +2,115 @@
 {% block Actividadesdetalhado %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a> |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Designacao:</td><td class="a4">{{ x.designacao }}</td></tr>
-<tr class="fortexto"><td class="a4">Início:</td><td class="a4">{{ x.inicio }}</td></tr>
-<tr class="fortexto"><td class="a4">Fim:</td><td class="a4">{{ x.fim }} </td></tr>
-<tr class="fortexto"><td class="a4">Data:</td><td class="a4">{{ x.data }} </td></tr>
-<tr class="fortexto"><td class="a4">Local:</td><td class="a4">{{ x.local }} </td></tr>
-<tr class="fortexto"><td class="a4">Tema:</td><td class="a4">{{ x.tema }} </td></tr>
-<tr class="fortexto"><td class="a4">Versos bíblicos:</td><td class="a4">{{ x.versosbiblicos }} </td></tr>
-<tr class="fortexto"><td class="a4">Hinos:</td><td class="a4">{{ x.hinos }} </td></tr>
-<tr class="fortexto"><td class="a4">Total de participantes:</td><td class="a4">{{ x.totalpresentes }} </td></tr>
-<tr class="fortexto"><td class="a4">Observacao:</td><td class="a4">{{ x.observacao }} </td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
-</div>
-<br>
+<div class="profile-container" style="max-width: 900px; margin: 0 auto;">
+    {% for x in registoachado %}
 
+    <!-- Event Banner -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; overflow: hidden; position: relative;">
+        <div style="position: relative; z-index: 2; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                <span
+                    style="background: rgba(255,255,255,0.2); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(5px);">
+                    <i class="fas fa-church"></i> Evento de Culto / Actividade
+                </span>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                        style="background: white; color: var(--primary-dark); padding: 0.5rem 1rem;">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                        style="background: #ef4444; color: white; padding: 0.5rem 1rem;">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+
+            <h1 style="font-size: 2.8rem; color: white; margin-bottom: 0.5rem;">{{ x.designacao }}</h1>
+            <p style="font-size: 1.25rem; opacity: 0.9; font-weight: 400;"><i class="fas fa-map-marker-alt"></i> {{
+                x.local }}</p>
+        </div>
+
+        <div style="position: absolute; right: -30px; bottom: -30px; opacity: 0.1; font-size: 15rem;">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+        <!-- Time and Stats -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="modern-card" style="text-align: center; padding: 2rem;">
+                <div
+                    style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">
+                    Data da Actividade</div>
+                <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary);">{{
+                    x.data|date:"d"|default:x.data }}</div>
+                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">{{ x.data|date:"F
+                    Y"|default:"" }}</div>
+                <div
+                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; color: var(--text-muted);">
+                    <i class="far fa-clock"></i> {{ x.inicio }} às {{ x.fim }}
+                </div>
+            </div>
+
+            <div class="modern-card" style="text-align: center; background: #f0fdf4; border: 1px solid #dcfce7;">
+                <div style="font-size: 2.5rem; color: var(--primary); font-weight: 800;">{{ x.totalpresentes|default:"0"
+                    }}</div>
+                <div
+                    style="font-size: 0.8rem; color: var(--primary-dark); font-weight: 600; text-transform: uppercase;">
+                    Participantes</div>
+            </div>
+        </div>
+
+        <!-- Spiritual Details -->
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-bible mr-2"></i> Conteúdo Espiritual
+            </h3>
+
+            <div style="margin-bottom: 2rem;">
+                <h4
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                    Tema Central</h4>
+                <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-dark);">{{ x.tema|default:"Não
+                    especificado" }}</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                <div>
+                    <h4
+                        style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Versos Bíblicos</h4>
+                    <p style="font-size: 0.95rem; font-style: italic;">"{{ x.versosbiblicos|default:"Consultar Bíblia"
+                        }}"</p>
+                </div>
+                <div>
+                    <h4
+                        style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Hinos</h4>
+                    <p style="font-size: 0.95rem;">{{ x.hinos|default:"Selecção de louvor" }}</p>
+                </div>
+            </div>
+
+            <div style="padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
+                <h4
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                    Observações / Relatório</h4>
+                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+                    {{ x.observacao|default:"Nenhuma observação adicional registrada para esta actividade." }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 3rem;">
+    <a href="/tibl/gestao/actividades/1" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+        <i class="fas fa-chevron-left"></i> Voltar para Cronograma
+    </a>
+</div>
 
 {% endblock %}
-

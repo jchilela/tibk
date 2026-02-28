@@ -1,18 +1,22 @@
-<div class="pagination" align="center">
-    <span class="step-links">
-        {% if bb.has_previous %}
-            <a href="../1" class = 'aa'>&laquo; primeira</a>
-            <a href="../{{ bb.previous_page_number }}" class = 'aa'> | anterior</a>
-        {% endif %}
+<div class="modern-pagination">
+{% if bb.has_previous %}
+    <a href="?pagina=1{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Primeira">
+        <i class="fas fa-angles-left"></i>
+    </a>
+    <a href="?pagina={{ bb.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Anterior">
+        <i class="fas fa-angle-left"></i>
+    </a>
+{% endif %}
 
-        <span class="actual">
-          <font face="arial,helvetica,verdana" color="#afa3a3"  size="3">  Página {{ bb.number }} de {{ bb.paginator.num_pages }}</font>
-        </span>
+<span class="current-page" style="color: var(--text-main); background: var(--primary-light);">{{ bb.number }}</span>
+<span style="color: var(--text-main); font-size: 0.8rem;">de {{ bb.paginator.num_pages }}</span>
 
-        {% if bb.has_next %}
-            <a href="../{{ bb.next_page_number }}" class = 'aa'>próxima | </a>
-            <a href="../{{ bb.paginator.num_pages }}" class = 'aa'>última &raquo;</a>
-        {% endif %}
-    </span>
+{% if bb.has_next %}
+    <a href="?pagina={{ bb.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Próxima">
+        <i class="fas fa-angle-right"></i>
+    </a>
+    <a href="?pagina={{ bb.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'pagina' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Última">
+        <i class="fas fa-angles-right"></i>
+    </a>
+{% endif %}
 </div>
-<br>

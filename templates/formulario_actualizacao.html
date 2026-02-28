@@ -1,56 +1,176 @@
 {% extends 'index.html' %}
 {% block Formularioactualizacao %}
 
-<form  method="post" enctype="multipart/form-data" novalidate>
-    {% csrf_token %}
-<table align="center"  class="styled-table" >
-{{ formulario.non_field_errors }}
+<div class="modern-form-container" style="max-width: 1000px; margin: 0 auto; padding-bottom: 4rem;">
+    <div class="modern-card"
+        style="padding: 2.5rem; position: relative; overflow: hidden; border-top: 5px solid var(--primary);">
 
-  {% for hidden_field in formulario.hidden_fields %}
-    {{ hidden_field.errors }}
-    {{ hidden_field }}
-  {% endfor %}
+        <div
+            style="position: absolute; right: -20px; top: -20px; opacity: 0.03; font-size: 15rem; transform: rotate(-15deg); pointer-events: none;">
+            <i class="fas fa-edit"></i>
+        </div>
 
+        <div style="margin-bottom: 3rem; border-bottom: 2px solid var(--primary-light); padding-bottom: 1.5rem;">
+            <h2 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.5rem;">
+                <i class="fas fa-sync-alt mr-2" style="color: var(--primary);"></i> Atualizar Registro
+            </h2>
+            <p style="color: var(--text-muted); font-size: 1rem;">Revise e modifique os detalhes deste registro. As
+                alterações serão salvas no banco de dados central.</p>
+        </div>
 
-    {% for field in formulario.visible_fields %}
-      <tr>
-        <th align ="Right" bgcolor="#548c2f" >{{ field.label_tag }}</th>
-        <td bgcolor="">
-          {{ field.errors }}
-          {% if field.name == "momentos_realizados" %}
-              {% for checkbox in field %}
-                  <label style="display:block; color:black;">
-                      {{ checkbox.tag }} {{ checkbox.choice_label }}
-                  </label>
-              {% endfor %}
-          {% elif field.name == "documento_justificativo" %}
-              {% if field.value %}
-                  <p>
-                      <a href="{{ field.value.url }}" target="_blank" style="color:blue; font-weight:bold;">
-                          Abrir arquivo atual
-                      </a>
-                  </p>
-              {% endif %}
-              {{field}}
-          {% elif field.name == "foto" %}
-              {% if field.value %}
-                  <p>
-                      <a href="{{ field.value.url }}" target="_blank" style="color:blue; font-weight:bold;">
-                          Abrir arquivo atual
-                      </a>
-                  </p>
-              {% endif %}
-              {{field}}
-          {% else %}
-              {{ field }}
-          {% endif %}
-          {{ field.help_text }}
-        </td>
-      </tr>
-    {% endfor %}
- </table>
-<p align="center">    <input type="submit" value="Save" class = "button"></p>
-</form>
+        <form method="post" enctype="multipart/form-data" class="modern-form" id="update-form" novalidate>
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+            <div class="modern-card"
+                style="background: #fee2e2; border: 1px solid #ef4444; margin-bottom: 2.5rem; padding: 1.25rem;">
+                {% for error in formulario.non_field_errors %}
+                <p style="color: #991b1b; font-size: 0.9rem; font-weight: 600;"><i
+                        class="fas fa-exclamation-circle mr-2"></i> {{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% for hidden_field in formulario.hidden_fields %}
+            {{ hidden_field }}
+            {% endfor %}
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                {% for field in formulario.visible_fields %}
+                <div class="form-group {% if field.errors %}has-error{% endif %}"
+                    style="{% if field.name == 'observacoes' or field.name == 'descricao' or 'nomes' in field.name %}grid-column: 1 / -1;{% endif %}">
+
+                    <label for="{{ field.id_for_label }}" class="form-label"
+                        style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 0.95rem; color: var(--text-main);">
+                        {{ field.label }} {% if field.field.required %}<span style="color: #ef4444;">*</span>{% endif %}
+                    </label>
+
+                    <div class="field-container">
+                        {% if field.name == "momentos_realizados" %}
+                        <div
+                            style="background: rgba(0,0,0,0.02); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid #e2e8f0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem;">
+                            {% for checkbox in field %}
+                            <label class="checkbox-custom"
+                                style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-size: 0.9rem;">
+                                {{ checkbox.tag }} <span>{{ checkbox.choice_label }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% elif field.name == "documento_justificativo" or field.name == "foto" %}
+                        <div
+                            style="border: 1.5px dashed var(--primary-light); padding: 1.25rem; border-radius: var(--radius-md); background: #f8fafc; transition: var(--transition);">
+                            {% if field.value %}
+                            <div
+                                style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 1rem; background: white; padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                                <div
+                                    style="width: 40px; height: 40px; background: var(--primary-light); color: var(--primary-dark); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                    <i
+                                        class="fas {% if field.name == 'foto' %}fa-image{% else %}fa-file-pdf{% endif %}"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Arquivo Atual:
+                                    </p>
+                                    <a href="{{ field.value.url }}" target="_blank"
+                                        style="font-size: 0.9rem; font-weight: 700; color: var(--primary); text-decoration: none;">
+                                        Visualizar Anexo <i class="fas fa-external-link-alt"
+                                            style="font-size: 0.7rem;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="file-input-wrapper">
+                                {{ field }}
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ field }}
+                        {% endif %}
+
+                        {% if field.errors %}
+                        <div style="color: #ef4444; font-size: 0.825rem; margin-top: 0.5rem; font-weight: 500;">
+                            {% for error in field.errors %}
+                            <p style="margin: 2px 0;"><i class="fas fa-times-circle mr-1"></i> {{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if field.help_text %}
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4;">
+                            <i class="fas fa-info-circle" style="opacity: 0.5;"></i> {{ field.help_text|safe }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-actions"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 4rem; border-top: 1px solid #f1f5f9; padding-top: 2rem;">
+                <button type="button" onclick="window.history.back()" class="bt-primary"
+                    style="background: #f1f5f9; color: var(--text-main); box-shadow: none;">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" class="bt-primary" id="btn-save">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .modern-form input[type="text"],
+    .modern-form input[type="number"],
+    .modern-form input[type="email"],
+    .modern-form input[type="password"],
+    .modern-form input[type="date"],
+    .modern-form select,
+    .modern-form textarea {
+        width: 100%;
+        padding: 0.85rem 1.1rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: var(--radius-md);
+        background: white;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        color: var(--text-main);
+    }
+
+    .modern-form input:focus,
+    .modern-form select:focus,
+    .modern-form textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(84, 140, 47, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .checkbox-custom input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary);
+    }
+
+    .form-group.has-error input {
+        border-color: #ef4444 !important;
+        background: #fff8f8 !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('update-form');
+        const saveBtn = document.getElementById('btn-save');
+
+        form.addEventListener('submit', function () {
+            if (form.checkValidity()) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Atualizando...';
+            }
+        });
+    });
+</script>
 
 {% endblock %}
-

@@ -2,20 +2,75 @@
 {% block Departamentosdetalhado %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a>  |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Designação:</td><td class="a4">{{ x.designacao }}</td></tr>
-<tr class="fortexto"><td class="a4">Abreviação:</td><td class="a4">{{ x.abreviacao }}</td></tr>
-<tr class="fortexto"><td class="a4">Observacao:</td><td class="a4">{{ x.observacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Lider do Departamento:</td><td class="a4">{{ x.lider_departamento }} </td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
-</div>
-<br>
+<div class="profile-container" style="max-width: 800px; margin: 0 auto;">
+    {% for x in registoachado %}
 
+    <div class="modern-card" style="margin-bottom: 2rem; border-top: 5px solid var(--primary);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+            <div>
+                <h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.5rem;">{{ x.designacao }}</h1>
+                <span
+                    style="background: var(--primary-light); color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                    {{ x.abreviacao }}
+                </span>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                    style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                    style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #ef4444;">
+                    <i class="fas fa-trash"></i> Eliminar
+                </a>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div class="modern-card" style="background: #f8fafc; border: none; padding: 1.5rem;">
+                <h4
+                    style="color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; margin-bottom: 1rem;">
+                    Liderança</h4>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <p style="font-weight: 700; color: var(--text-main); font-size: 1.1rem;">{{
+                            x.lider_departamento|default:"Não definido" }}</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">Líder do Departamento</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modern-card" style="background: #f8fafc; border: none; padding: 1.5rem;">
+                <h4
+                    style="color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; margin-bottom: 1rem;">
+                    Abreviação</h4>
+                <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ x.abreviacao }}</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Identificador curto</p>
+            </div>
+        </div>
+
+        <div class="modern-card" style="margin-top: 1.5rem; background: #fffbeb; border: 1px solid #fde68a;">
+            <h4
+                style="color: #92400e; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; margin-bottom: 0.5rem;">
+                Observações</h4>
+            <p style="color: #92400e; font-size: 0.95rem; line-height: 1.6;">
+                {{ x.observacao|default:"Nenhuma observação registrada para este departamento." }}
+            </p>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/tibl/gestao/departamentos/1" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+        <i class="fas fa-arrow-left"></i> Voltar para Lista de Departamentos
+    </a>
+</div>
 
 {% endblock %}
-

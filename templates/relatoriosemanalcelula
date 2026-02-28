@@ -1,51 +1,82 @@
 {% extends 'index.html' %}
 {% block RelatorioSemanalCelula %}
 
-<table cellpadding="0" cellspacing="0" align="center" width="25%" border="0">
-<form action="/tibl/buscarelatoriosemanalcelula"  method="GET">
-<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
-<td>Nome da Celula</td><td>Lider Responsavel</td><td>Local Reuniao</td><td>Tema Palavra</td>
-</tr>
-<tr align="center">
-<td><input type="text" name="nomev" style="width: 100px; border: 1px solid gray"></td>
-<td><input type="text" name="liderv" style="width: 100px; border: 1px solid gray"></td>
-<td><input type="text" name="localv" style="width: 100px; border: 1px solid gray"></td>
-<td><input type="text" name="temav" style="width: 100px; border: 1px solid gray"></td>
-<input type="hidden" name="pagina" value= 1>
-<td><input type="submit" name="" value="Busca" class="button"></td>
-</tr>
-</form>
-</table>
+<div class="list-container">
+    <!-- Header Section -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Relatórios de Células</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão e acompanhamento das atividades semanais das células.</p>
+        </div>
+        <a href="/tibl/relatoriosemanalcelula/criar/" class="bt-primary">
+            <i class="fas fa-plus"></i> Novo Relatório
+        </a>
+    </div>
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Relatorio Semanal da Celula | <a href="/tibl/relatoriosemanalcelula/criar/" class = 'aa'>Novo </b></a>]</font>
-</p>
-{% if bb %}
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Nome da Célula</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Lider Responsavel</b></font></a></td>
-</td>
-</tr>
-{% for x in bb %}
-{% if forloop.counter|divisibleby:2 %}
+    <!-- Filter Section (Simplified & Modern) -->
+    <div class="modern-card" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);">
+        <form action="/tibl/buscarelatoriosemanalcelula" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 1rem; align-items: end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nome da Célula</label>
+                <input type="text" name="nomev" class="modern-input" placeholder="Ex: Célula Betel..." style="padding: 0.6rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Líder</label>
+                <input type="text" name="liderv" class="modern-input" placeholder="Nome do líder..." style="padding: 0.6rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Local / Tema</label>
+                <input type="text" name="localv" class="modern-input" placeholder="Local ou Tema..." style="padding: 0.6rem;">
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="height: 42px; padding: 0 1.5rem;">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
 
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
-
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class = 'aa'>{{ x.nome_celula }} </a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.lider_responsavel }}</font></td>
-</tr>
-{% endfor %}
-</table>
-<br>
-
-{% include 'paginacao' %}
-{% endif %}
-<br>
-<br>
-
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Nome da Célula</th>
+                    <th>Líder Responsável</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--primary-dark);">
+                            <i class="fas fa-users-cog" style="margin-right: 0.5rem; opacity: 0.5;"></i> {{ x.nome_celula }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500; color: var(--text-main);">{{ x.lider_responsavel }}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                            <i class="fas fa-file-alt"></i> Ver Relatório
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum relatório registado</h3>
+        <p style="color: var(--text-muted);">Comece criando o primeiro relatório semanal da célula.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
-

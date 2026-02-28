@@ -2,23 +2,101 @@
 {% block Saidascaixadetalhado %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a>  |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}"> <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Valor:</td><td class="a4">{{ x.valor }}</td></tr>
-<tr class="fortexto"><td class="a4">Data:</td><td class="a4">{{ x.data }}</td></tr>
-<tr class="fortexto"><td class="a4">Hora:</td><td class="a4">{{ x.hora }} </td></tr>
-<tr class="fortexto"><td class="a4">O responsável:</td><td class="a4">{{ x.responsavel }} </td></tr>
-<tr class="fortexto"><td class="a4">Rúbrica:</td><td class="a4">{{ x.rubrica.designacao }} </td></tr>
-<tr class="fortexto"><td class="a4">O beneficiário:</td><td class="a4">{{ x.beneficiario }} </td></tr>
-<tr class="fortexto"><td class="a4">Observação:</td><td class="a4">{{ x.observacao }} </td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
-</div>
-<br>
+<div class="profile-container" style="max-width: 800px; margin: 0 auto; padding-bottom: 3rem;">
+    {% for x in registoachado %}
 
+    <!-- Exit Header Card -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; border-left: 6px solid #ef4444; background: linear-gradient(135deg, white, #fff1f2); display: flex; justify-content: space-between; align-items: center;">
+        <div style="flex-grow: 1;">
+            <div
+                style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
+                Registo de Despesa (Caixa)</div>
+            <h1 style="font-size: 2rem; color: #991b1b; margin-bottom: 0.25rem;">- {{ x.valor|floatformat:2 }} {{
+                x.moeda|default:"Kz" }}</h1>
+            <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
+                <i class="fas fa-wallet mr-2" style="color: #ef4444;"></i> Saída de Numerário
+            </p>
+        </div>
+        <div style="display: gap: 0.75rem; display: flex;">
+            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                style="padding: 0.6rem 1rem;">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                style="background-color: #ef4444; padding: 0.6rem 1rem;">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+        </div>
+    </div>
+
+    <!-- Details Card -->
+    <div class="modern-card" style="position: relative; overflow: hidden;">
+        <div
+            style="position: absolute; right: -20px; bottom: -20px; opacity: 0.05; font-size: 10rem; transform: rotate(-10deg); pointer-events: none;">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+
+        <h3 style="border-bottom: 2px solid #ef4444; padding-bottom: 0.5rem; margin-bottom: 2rem;">
+            <i class="fas fa-info-circle mr-2"></i> Informações da Despesa
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; position: relative; z-index: 1;">
+            <div class="detail-section">
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Data
+                        / Hora</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.data|date:"d/m/Y"|default:x.data }} às
+                        {{ x.hora|default:"--:--" }}</span>
+                </div>
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">O
+                        Responsável</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.responsavel }}</span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Rúbrica
+                        / Destino</label>
+                    <span style="font-weight: 700; color: #991b1b;">{{ x.rubrica.designacao|default:x.rubrica }}</span>
+                </div>
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Beneficiário</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.beneficiario|default:"---" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; position: relative; z-index: 1;">
+            <label
+                style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Observações
+                / Justificação</label>
+            <div
+                style="background: rgba(0,0,0,0.02); padding: 1.25rem; border-radius: var(--radius-md); font-size: 0.95rem; min-height: 100px; border: 1px solid rgba(0,0,0,0.05); line-height: 1.5;">
+                {{ x.observacao|default:"Nenhuma observação registada para esta saída de caixa." }}
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/tibl/gestao/saidascaixa/1" class="bt-primary"
+        style="background: transparent; color: #ef4444; border: 2px solid #ef4444; box-shadow: none;">
+        <i class="fas fa-chevron-left"></i> Voltar às Saídas
+    </a>
+</div>
 
 {% endblock %}
-

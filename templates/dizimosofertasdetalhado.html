@@ -1,24 +1,110 @@
 {% extends 'index.html' %}
-{% block  Dizimosofertasdetalhado %}
+{% block Dizimosofertasdetalhado %}
 {% load static %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Irmão:</td><td class="a4">{{ x.irmao }}</td></tr>
-<tr class="fortexto"><td class="a4">Valor:</td><td class="a4">{{ x.valor }} {{ x.moeda }} </td></tr>
-<tr class="fortexto"><td class="a4">Data correpondente:</td><td class="a4"> {{ x.datacorrespondente }} </td></tr>
-<tr class="fortexto"><td class="a4">actividade:</td><td class="a4">{{ x.actividade }} </td></tr>
-<tr class="fortexto"><td class="a4">Tipo de oferta:</td><td class="a4">{{ x.tipooferta.designacao }} </td></tr>
-<tr class="fortexto"><td class="a4">Data de registo:</td><td class="a4">{{ x.dataregisto }} </td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
-</div>
-<br>
+<div class="profile-container" style="max-width: 800px; margin: 0 auto; padding-bottom: 3rem;">
+    {% for x in registoachado %}
 
+    <!-- Receipt Header Card -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; border-left: 6px solid var(--primary); background: linear-gradient(135deg, white, #f1f8ed); display: flex; justify-content: space-between; align-items: center;">
+        <div style="flex-grow: 1;">
+            <div
+                style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
+                Recibo de Contribuição</div>
+            <h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.valor|floatformat:2 }}
+                {{ x.moeda }}</h1>
+            <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
+                <i class="fas fa-user-circle mr-2" style="color: var(--primary);"></i> Contribuinte: {{ x.irmao }}
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                style="padding: 0.6rem 1rem;">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                style="background-color: #ef4444; padding: 0.6rem 1rem;">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+        </div>
+    </div>
+
+    <!-- Receipt Details -->
+    <div class="modern-card" style="position: relative; overflow: hidden;">
+        <div
+            style="position: absolute; right: -30px; bottom: -30px; opacity: 0.05; font-size: 12rem; transform: rotate(-15deg); pointer-events: none;">
+            <i class="fas fa-receipt"></i>
+        </div>
+
+        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
+            <i class="fas fa-file-invoice-dollar mr-2"></i> Detalhes da Operação
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; position: relative;">
+            <div class="detail-section">
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Tipo
+                        de Oferta</label>
+                    <span style="font-weight: 600; color: var(--primary-dark);">{{
+                        x.tipooferta.designacao|default:"Geral" }}</span>
+                </div>
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Período
+                        Correspondente</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.datacorrespondente }}</span>
+                </div>
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Actividade</label>
+                    <span style="font-weight: 500; color: var(--text-main);">{{ x.actividade|default:"---" }}</span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Moeda
+                        de Operação</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_moeda_display|default:x.moeda
+                        }}</span>
+                </div>
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Data
+                        de Registo</label>
+                    <span style="font-weight: 500; color: var(--text-muted);"><i class="far fa-clock mr-1"></i> {{
+                        x.dataregisto }}</span>
+                </div>
+                <div class="detail-row"
+                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Sistema
+                        ID</label>
+                    <span style="font-family: monospace; font-size: 0.85rem; color: var(--primary);">#REC-{{ x.id
+                        }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/tibl/gestao/dizimosofertas/1" class="bt-primary"
+        style="background: transparent; color: var(--primary); border: 2px solid var(--primary); box-shadow: none;">
+        <i class="fas fa-chevron-left"></i> Voltar às Ofertas
+    </a>
+</div>
 
 {% endblock %}
-
