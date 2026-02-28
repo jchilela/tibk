@@ -50,12 +50,14 @@ urlpatterns = [
     path('tibl/buscabancos/', sitetibl.views.encontraBancos),
     path('tibl/buscaescalas/', sitetibl.views.encontraEscalas),
     path('tibl/actividade/<int:actividade_id>/escalas/',sitetibl.views.EscalasPorActividadeView.as_view()),
+    path('tibl/actividade/<int:actividade_id>/escalar-massa/', sitetibl.views.escalar_em_massa, name='escalar_em_massa'),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', sitetibl.views.root_redirect, name='index'), # redireciona para o menu de dashboards
 
     #endpoints para dashboard
     path('dashboard/', sitetibl.views.dashboard, name='dashboard'),
+    path('dashboard/as-minhas-escalas/', sitetibl.views.minhas_escalas, name='minhas_escalas'),
     path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos),
     path('dashboard/orcamento-departamento', sitetibl.views.dashboardOrcamentoDepartamento),
     path('dashboard/pedido-saida-semana', sitetibl.views.dashboardPedidosSaidaSemana),

@@ -303,7 +303,15 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida, 'detalhecestas' : subtotal, 'total' : total, 'totalcestasajuda' : totalcestasajuda, 'montantedisponibilizado' : a, 'valorgasto' : valorgasto, 'cestasremanescentes' : cestasremanescentes}
     elif gestaoescolhida == 'actividades':
         escalas_da_actividade = Escala.objects.filter(actividade_id=identificador).select_related('irmao', 'funcao').order_by('funcao__designacao')
-        context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida, 'escalas_da_actividade': escalas_da_actividade}
+        todas_funcoes = Funcao.objects.all().order_by('designacao')
+        todos_irmaos = Irmao.objects.select_related('celula', 'localcongregacao').order_by('nome', 'apelido')
+        context = {
+            'registoachado': registoachado, 
+            'gestaoescolhida': gestaoescolhida, 
+            'escalas_da_actividade': escalas_da_actividade,
+            'todas_funcoes': todas_funcoes,
+            'todos_irmaos': todos_irmaos
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
@@ -525,15 +533,15 @@ def encontraActividades(request):
         messages.warning(request, "Preencha pelo menos um campo para efectuar a busca.")
         return redirect('/tibl/gestao/actividades/1/')
     
-    if (actividadev == 0):
+    if (actividadev == '0'):
         del kwargs['actividade__designacao']
-    if (funcaov == 0):
+    if (funcaov == '0'):
         del kwargs['funcao_id']
     if (mesv == '0'):
         del kwargs['actividade__data__month']
     if (anov == '0'):
         del kwargs['actividade__data__year']
-    resultado = Escala.objects.values('actividade_id','actividade__designacao','actividade__designacao__designacao','actividade__data','funcao__designacao','irmao__nome','irmao__apelido','actividade__localactividade').filter(**kwargs)
+    resultado = Escala.objects.values('actividade_id','actividade__designacao','actividade__designacao__designacao','actividade__data','funcao__designacao','irmao__nome','irmao__apelido','actividade__localactividade__designacao').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -1638,3 +1646,53 @@ def dashboard(request):
 
 def root_redirect(request):
     return redirect('dashboard')
+
+@login_required
+def minhas_escalas(request):
+    import datetime
+    agora = datetime.datetime.now()
+    try:
+        irmao_obj = request.user.irmao
+        escalas = Escala.objects.filter(irmao=irmao_obj, actividade__data__gte=agora.date()).select_related(
+            'actividade', 
+            'actividade__designacao', 
+            'actividade__localactividade', 
+            'funcao'
+        ).order_by('actividade__data', 'actividade__inicio')
+    except:
+        escalas = []
+
+    context = {
+        'escalas': escalas,
+        'titulo': 'As Minhas Escalas'
+    }
+    return render(request, 'minhasescalas.html', context)
+
+@login_required
+def escalar_em_massa(request, actividade_id):
+    if request.method == 'POST':
+        funcao_id = request.POST.get('funcao')
+        irmaos_ids = request.POST.getlist('irmaos') # Multiple select returns list
+        
+        if funcao_id and irmaos_ids:
+            actividade = get_object_or_404(Actividade, id=actividade_id)
+            funcao = get_object_or_404(Funcao, id=funcao_id)
+            
+            novas_escalas = []
+            for irmao_id in irmaos_ids:
+                # Evitar duplicados
+                if not Escala.objects.filter(actividade=actividade, irmao_id=irmao_id, funcao=funcao).exists():
+                    novas_escalas.append(Escala(
+                        actividade=actividade,
+                        irmao_id=irmao_id,
+                        funcao=funcao
+                    ))
+            
+            if novas_escalas:
+                Escala.objects.bulk_create(novas_escalas)
+                messages.success(request, f'{len(novas_escalas)} irmãos escalados para {funcao.designacao} com sucesso!')
+            else:
+                messages.info(request, 'As pessoas selecionadas já estavam escaladas para esta função.')
+                
+    # Redirect back to the details page regardless of success/failure
+    return redirect(f'/tibl/actividades/detalhe/{actividade_id}/')

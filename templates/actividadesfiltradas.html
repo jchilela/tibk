@@ -16,46 +16,52 @@
     </div>
 
     {% if bb %}
-    <div class="modern-table-container">
-        <table class="modern-table">
-            <thead>
-                <tr>
-                    <th>Atividade / Local</th>
-                    <th style="text-align: center;">Data</th>
-                    <th>Responsável / Função</th>
-                    <th style="text-align: right;">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for x in bb %}
-                <tr>
-                    <td>
-                        <div style="font-weight: 600; color: var(--primary-dark);">{{
-                            x.actividade__designacao__designacao }}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">
-                            <i class="fas fa-map-marker-alt" style="font-size: 0.7rem;"></i> {{
-                            x.actividade__local__designacao|default:x.actividade__local }}
-                        </div>
-                    </td>
-                    <td style="text-align: center;">
-                        <div style="font-weight: 600; color: var(--primary);">{{
-                            x.actividade__data|date:"d/m/Y"|default:x.actividade__data }}</div>
-                    </td>
-                    <td>
-                        <div style="font-weight: 500;">{{ x.irmao__nome }} {{ x.irmao__apelido }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted); font-style: italic;">{{
-                            x.funcao__designacao }}</div>
-                    </td>
-                    <td style="text-align: right;">
-                        <a href="/tibl/actividades/detalhe/{{ x.actividade_id }}" class="bt-primary"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
-                            <i class="fas fa-info-circle"></i> Ver
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+        {% for x in bb %}
+        <div class="modern-card"
+            style="border-top: 5px solid var(--primary); padding: 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+            <div style="padding: 1.5rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <span
+                        style="background: var(--primary-50); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="far fa-calendar-alt"></i>
+                        {{ x.actividade__data|date:"d M Y"|default:x.actividade__data }}
+                    </span>
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; background: #f1f5f9; padding: 0.2rem 0.6rem; border-radius: 12px;">
+                        <i class="fas fa-user-tag" style="color: var(--primary);"></i> {{ x.funcao__designacao }}
+                    </span>
+                </div>
+
+                <h3 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 1.35rem; line-height: 1.3;">
+                    {{ x.actividade__designacao__designacao }}
+                </h3>
+
+                <p
+                    style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
+                    {{ x.actividade__localactividade__designacao|default:"Sede Principal" }}
+                </p>
+
+                <div
+                    style="background: #f8fafc; padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                    <div
+                        style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
+                        {{ x.irmao__nome|first }}{{ x.irmao__apelido|first }}
+                    </div>
+                    <span style="font-weight: 600;">{{ x.irmao__nome }} {{ x.irmao__apelido }}</span>
+                </div>
+            </div>
+
+            <div style="padding: 1rem 1.5rem; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+                <a href="/tibl/actividades/detalhe/{{ x.actividade_id }}" class="bt-primary"
+                    style="display: block; width: 100%; text-align: center; padding: 0.6rem; background: var(--primary); color: white !important; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; border-radius: var(--radius-sm);">
+                    <i class="fas fa-info-circle mr-1"></i> Detalhes da Actividade
+                </a>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 
     <div style="margin-top: 2rem;">

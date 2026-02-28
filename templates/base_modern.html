@@ -55,6 +55,11 @@
                     <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
                 </a>
 
+                <a href="{% url 'minhas_escalas' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'minhas_escalas' %}active{% endif %}">
+                    <i class="fas fa-user-clock fa-fw"></i> <span>As Minhas Escalas</span>
+                </a>
+
                 <a href="/tibl/gestao/irmaos/1" class="nav-item {% if '/irmaos/' in request.path %}active{% endif %}">
                     <i class="fas fa-users fa-fw"></i> <span>Irmãos</span>
                 </a>
