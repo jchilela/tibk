@@ -21,7 +21,7 @@
 <tr bgcolor="#d8f3dc">
 {% endif %}
 
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/mandatos/actualizar/{{ x.id }}" class = 'aa'>{{ x.irmao.nome }} {{ x.irmao.apelido }} </a></font></td>
+<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/mandatos/detalhe/{{ x.id }}" class = 'aa'>{{ x.irmao.nome }} {{ x.irmao.apelido }} </a></font></td>
 <td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.departamento }}</font></td>
 <td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.cargo }}</font></td>
 <td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.inicio }}</font></td>

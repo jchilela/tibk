@@ -180,6 +180,10 @@ class MandatoForm(ModelForm):
     class Meta:
         model = Mandato
         fields = '__all__'
+        widgets = {
+            'inicio': forms.DateInput(attrs={'type': 'date'}),
+            'fim': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class EscalaForm(ModelForm):
     class Meta:

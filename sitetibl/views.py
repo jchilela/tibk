@@ -267,6 +267,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
 def mostraDetalhe(request, gestaoescolhida, identificador):
     lista = {'irmaos':Irmao, 
              'ajudas':Ajuda, 
+             'mandatos':Mandato,
              'cestas': Cestabasica, 
              'bancos': Banco, 
              'contasbancarias' : Contabancaria, 
@@ -348,7 +349,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
 
 def mostraCriacao(request, gestaoescolhida):
     listaformularios = {'escalas' : EscalaForm, 
-                        'manadatos': MandatoForm, 
+                        'mandatos': MandatoForm, 
                         'irmaos':IrmaoForm, 
                         'ajudas':AjudaForm, 
                         'cestas': CestabasicaForm, 

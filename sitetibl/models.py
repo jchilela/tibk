@@ -6,6 +6,9 @@ from datetime import datetime
 from django.utils import timezone
 from multiselectfield import MultiSelectField
 from django.contrib.auth.models import User
+from django.db.models import Sum, DecimalField
+from django.db.models.functions import Coalesce
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 PROVINCIAS = (('BNG','Bengo'),('BGL','Benguela'),('BIE','Bié'),('CAB','Cabinda'),('CNE','Cunene'),('HMB','Huambo'),('HLA','Huila'),('KKG','Kuando kubango'),('KZN','Kuanza Norte'),('KZS','Kuanza Sul'),('LDA','Luanda'),('LDN','Lunda Norte'),('LDS','Lunda Sul'),('MLG','Malange'),('MXC','Moxico'),('NMB','Namibe'),('UGE','Uige'),('ZAR','Zaire'))
@@ -198,10 +201,32 @@ class Contabancaria(models.Model):
      saldo = models.DecimalField( max_digits = 11, decimal_places = 2, default =0)
      proprietario = models.ForeignKey(Pessoa, on_delete = models.CASCADE, blank=True, null=True )
      instituicao = models.ForeignKey(Sitio, on_delete = models.CASCADE, blank=True, null=True )
+
+     # ✅ saldo dinâmico
+     def saldo_actual(self):
+
+        entradas = Entradabanco.objects.filter(
+            contaaacreditar=self
+        ).aggregate(
+            total=Coalesce(Sum('valor'), 0, output_field=DecimalField())
+        )['total']
+
+        saidas = Saidabanco.objects.filter(
+            conta=self
+        ).aggregate(
+            total=Coalesce(Sum('valor'), 0, output_field=DecimalField())
+        )['total']
+
+        transferencias_saida = Entradabanco.objects.filter(
+            contaorigem=self
+        ).aggregate(
+            total=Coalesce(Sum('valor'), 0, output_field=DecimalField())
+        )['total']
+
+        return self.saldo + entradas - saidas - transferencias_saida
+
      def __str__(self):
-         return '%s' % (self.numeroconta)
-     class Admin:
-         pass
+        return self.numeroconta
 
 class Listaactividades(models.Model):
     designacao = models.CharField(max_length = 200, unique = True)
@@ -315,7 +340,7 @@ class Saidacaixa(models.Model):
         pass
 
 class Entradabanco(models.Model):
-    contaaacreditar = models.ForeignKey(Contabancaria, on_delete = models.CASCADE)
+    contaaacreditar = models.ForeignKey(Contabancaria, on_delete = models.CASCADE,  blank = True, null = True)
     valor = models.DecimalField(max_digits = 11, decimal_places = 2)
     moeda = models.CharField(max_length=50, choices = MOEDA, default = "AKZ")
     data = models.DateField(default = datetime.today)
@@ -326,6 +351,28 @@ class Entradabanco(models.Model):
     responsavel = models.ForeignKey(Irmao, on_delete = models.CASCADE)
     datacontrolo = models.DateField( auto_now = True)
     observacao = models.TextField("Observação", blank = True)
+
+    def clean(self):
+
+        # valida apenas se for transferência
+        if self.contaorigem:
+
+            saldo_origem = self.contaorigem.saldo_actual()
+
+            if self.valor > saldo_origem:
+                raise ValidationError(
+                    {"valor": f"Saldo insuficiente na conta origem ({saldo_origem})"}
+                )
+
+            if self.contaorigem == self.contaaacreditar:
+                raise ValidationError(
+                    "Conta origem não pode ser igual à conta destino."
+                )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return '%s %s %s' % (self.valor, self.contaaacreditar, self.data)
     class Admin:
@@ -342,6 +389,25 @@ class Saidabanco(models.Model):
     contaaacreditar = models.ForeignKey(Contabancaria, related_name = 'contadestino', blank = True, null = True, on_delete = models.CASCADE)
     datacontrolo = models.DateField( auto_now = True)
     observacao = models.TextField("Observação", blank = True)
+
+    def clean(self):
+
+        saldo = self.conta.saldo_actual()
+
+        # quando editar registo existente
+        if self.pk:
+            anterior = Saidabanco.objects.get(pk=self.pk)
+            saldo += anterior.valor
+
+        if self.valor > saldo:
+            raise ValidationError(
+                {"valor": f"Saldo insuficiente. Saldo actual: {saldo}"}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return '%s %s %s' % (self.valor, self.conta, self.data)
     class Admin:
