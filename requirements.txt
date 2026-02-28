@@ -8,12 +8,8 @@ mysqlclient==2.1.1
 redis==5.0.1
 django_redis==5.4.0
 reportlab>=3.6.0
-
 requests==2.31.0
-
-
 firebase-admin==6.6.0
-
 PyJWT==2.10.1
 pytz==2023.3.post1
 gunicorn==23.0.0

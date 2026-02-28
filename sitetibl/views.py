@@ -31,6 +31,9 @@ from django.utils.timezone import now
 from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 #from django.db.models import Count
 
@@ -68,6 +71,8 @@ from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
 from sitetibl.forms import EnvioMensagem
+
+from sitetibl.serializers import EscalaSerializer
 
 from sitetibl.forms import IrmaoForm
 from sitetibl.forms import AjudaForm
@@ -344,7 +349,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
 
 def mostraCriacao(request, gestaoescolhida):
     listaformularios = {'escalas' : EscalaForm, 
-                        'manadatos': MandatoForm, 
+                        'mandatos': MandatoForm, 
                         'irmaos':IrmaoForm, 
                         'ajudas':AjudaForm, 
                         'cestas': CestabasicaForm, 
@@ -494,14 +499,26 @@ def encontraCestas(request):
     return render(request,'cestasfiltradas.html', {'bb':paginaresultado})
 
 def encontraActividades(request):
-    nomev = request.GET['nomev']
-    apelidov = request.GET['apelidov']
-    actividadev = int(request.GET['actividadev'])
-    funcaov = int(request.GET['funcaov'])
-    mesv= request.GET['mesv']
-    anov= request.GET['anov']
-    pagina= request.GET['pagina']
+    nomev = request.GET.get('nomev', '').strip()
+    apelidov = request.GET.get('apelidov', '').strip()
+    actividadev = request.GET.get('actividadev', '0')
+    funcaov = request.GET.get('funcaov', '0')
+    mesv = request.GET.get('mesv', '0')
+    anov = request.GET.get('anov', '0')
+    pagina = request.GET.get('pagina', 1)
     kwargs= {'irmao__nome__icontains' : nomev, 'irmao__apelido__icontains' : apelidov, 'actividade__designacao' : actividadev, 'funcao_id' : funcaov, 'actividade__data__month':mesv, 'actividade__data__year' : anov}
+    
+    if (
+        not nomev and
+        not apelidov and
+        actividadev == '0' and
+        funcaov == '0' and
+        mesv == '0' and
+        anov == '0'
+    ):
+        messages.warning(request, "Preencha pelo menos um campo para efectuar a busca.")
+        return redirect('/tibl/gestao/actividades/1/')
+    
     if (actividadev == 0):
         del kwargs['actividade__designacao']
     if (funcaov == 0):
@@ -510,7 +527,7 @@ def encontraActividades(request):
         del kwargs['actividade__data__month']
     if (anov == '0'):
         del kwargs['actividade__data__year']
-    resultado = Escala.objects.values('actividade_id','actividade__designacao','actividade__designacao__designacao','actividade__data','funcao__designacao','irmao__nome','irmao__apelido','actividade__local').filter(**kwargs)
+    resultado = Escala.objects.values('actividade_id','actividade__designacao','actividade__designacao__designacao','actividade__data','funcao__designacao','irmao__nome','irmao__apelido','actividade__localactividade').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -753,6 +770,28 @@ def encontraEscalas(request):
     del dd['pagina']
     cc = request.META['QUERY_STRING']
     return render(request,'escalasfiltrados.html', {'bb':paginaresultado})
+
+
+class EscalasPorActividadeView(APIView):
+
+    def get(self, request, actividade_id):
+
+        try:
+            actividade = Actividade.objects.get(id=actividade_id)
+        except Actividade.DoesNotExist:
+            return Response(
+                {"erro": "Actividade não encontrada"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        escalas = Escala.objects.filter(actividade=actividade)
+
+        serializer = EscalaSerializer(escalas, many=True)
+
+        return Response({
+            "actividade": str(actividade),
+            "escalas": serializer.data
+        })
 
 
 #VIEWS PARA OS DASHBOARDS
