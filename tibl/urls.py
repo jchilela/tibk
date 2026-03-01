@@ -56,6 +56,7 @@ urlpatterns = [
     path('tibl/buscaenviomensagem/', sitetibl.views.encontraEnvioMensagem),
     path('tibl/buscabancos/', sitetibl.views.encontraBancos),
     path('tibl/buscaescalas/', sitetibl.views.encontraEscalas),
+    path('tibl/actividade/<int:actividade_id>/escalas/',sitetibl.views.EscalasPorActividadeView.as_view()),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', sitetibl.views.root_redirect, name='index'), # redireciona para o menu de dashboards

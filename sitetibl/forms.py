@@ -195,6 +195,10 @@ class MandatoForm(ModelForm):
     class Meta:
         model = Mandato
         fields = '__all__'
+        widgets = {
+            'inicio': forms.DateInput(attrs={'type': 'date'}),
+            'fim': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class EscalaForm(ModelForm):
     class Meta:
@@ -242,7 +246,15 @@ class SaidacaixaForm(ModelForm):
             'data': forms.DateInput(attrs={'type': 'date'}),
             'hora': forms.DateInput(attrs={'type': 'time'}),
         }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+
+       
+        if valor < 0:
+            raise forms.ValidationError("O valor digitado não pode ser negativo.")
         
+        return valor
 
 class EntradacaixaForm(ModelForm):
     class Meta:
@@ -252,7 +264,15 @@ class EntradacaixaForm(ModelForm):
             'data': forms.DateInput(attrs={'type': 'date'}),
             'hora': forms.DateInput(attrs={'type': 'time'})
         }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+
+       
+        if valor < 0:
+            raise forms.ValidationError("O valor digitado não pode ser negativo.")
         
+        return valor
 
 class SaidabancoForm(ModelForm):
     class Meta:
