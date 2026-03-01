@@ -27,6 +27,9 @@
 
     <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.5rem;">
         <div style="display: flex; gap: 1rem;">
+            <a href="/tibl/contasbancarias/inativas/" class="bt-primary" style="background-color: #dc3545; color: white;">
+                <i class="fas fa-archive"></i> Histórico Inativas
+            </a>
             <a href="/tibl/filtrarcontasbancarias/" class="bt-primary" style="background-color: #6c757d; color: white;">
                 <i class="fas fa-filter"></i> Filtro Avançado
             </a>

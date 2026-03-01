@@ -8,10 +8,12 @@
                 Pesquisa Financeira</h2>
             <p style="color: var(--text-muted); font-size: 0.9rem;">Registos de dízimos e ofertas encontrados.</p>
         </div>
-        <a href="/tibl/gestao/dizimosofertas/1" class="bt-primary"
-            style="background-color: var(--bg-sidebar); color: white;">
-            <i class="fas fa-undo"></i> Voltar à Lista
-        </a>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="/tibl/gestao/dizimosofertas/1" class="bt-primary"
+                style="background-color: var(--bg-sidebar); color: white;">
+                <i class="fas fa-undo"></i> Voltar à Lista
+            </a>
+        </div>
     </div>
 
     {% if bb %}
@@ -32,15 +34,14 @@
                         <div style="font-weight: 600; color: var(--text-main);">{{ x.irmao }}</div>
                     </td>
                     <td style="text-align: center; color: var(--text-muted);">
-                        <i class="fas fa-calendar-alt" style="font-size: 0.8rem; margin-right: 0.3rem;"></i> {{
-                        x.datacorrespondente }}
+                        <i class="fas fa-calendar-alt" style="font-size: 0.8rem; margin-right: 0.3rem;"></i> {{ x.datacorrespondente }}
                     </td>
                     <td style="text-align: center;">
                         <span style="font-weight: 700; color: var(--primary);">{{ x.valor|floatformat:2 }}</span>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">{{ x.get_moeda_display }}</span>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}" class="bt-primary"
+                        <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}/" class="bt-primary"
                             style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
                             <i class="fas fa-receipt"></i> Detalhes
                         </a>

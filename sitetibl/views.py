@@ -87,6 +87,8 @@ from sitetibl.forms import SaidabancoForm
 from sitetibl.forms import EntradacaixaForm
 from sitetibl.forms import EntradabancoForm
 from sitetibl.forms import DizimoofertaForm
+from sitetibl.forms import DizimoForm
+from sitetibl.forms import OfertaForm
 from sitetibl.forms import PagamentoservicoForm
 from sitetibl.forms import GruporubricaForm
 from sitetibl.forms import ServicoForm
@@ -186,7 +188,23 @@ class ContaBancariaFilterListView(ListView):
         context['filter'] = getattr(self, 'filter', None)
         return context
 
+def contasbancariasinativas(request):
+    """Lista todas as contas bancárias inativas (histórico)."""
+    pagina = request.GET.get('pagina', '1')
     
+    # Buscar contas inativas
+    contas_inativas = Contabancaria.objects.filter(is_active=False).order_by('-id')
+    
+    # Paginação
+    paginador = Paginator(contas_inativas, 20)
+    resultado = paginador.get_page(pagina)
+    
+    context = {
+        'bb': resultado,
+        'total_inativas': contas_inativas.count()
+    }
+    
+    return render(request, 'contasbancariasinativas.html', context)
 
 def comeco(request):
     return render(request, 'index.html')
@@ -444,6 +462,29 @@ def inativaContabancaria(request, id):
         'gestao': 'contasbancarias'
     })
 
+@login_required
+def reativaContabancaria(request, id):
+    """Reativa uma conta bancária inativa."""
+    conta = get_object_or_404(Contabancaria, id=id)
+    
+    # 🔐 verificação de permissão
+    perm = 'sitetibl.change_contabancaria'
+    if not request.user.has_perm(perm):
+        messages.error(request, 'Acesso negado! Você não tem permissão para reativar contas.')
+        return redirect('index')
+    
+    if request.method == 'POST':
+        conta.is_active = True
+        conta.save()
+        messages.success(request, 'Conta bancária reativada com sucesso.')
+        return redirect('/tibl/contasbancarias/inativas/')
+    
+    # GET → mostra confirmação
+    return render(request, 'confirmar_reativacao.html', {
+        'registo': conta,
+        'gestao': 'contasbancarias'
+    })
+
 def mostraCriacao(request, gestaoescolhida):
     listaformularios = {'escalas' : EscalaForm, 
                         'manadatos': MandatoForm, 
@@ -653,23 +694,139 @@ def encontraDepartamentos(request):
 
 
 def encontraDizimosofertas(request):
-    nomev = request.GET['nomev']
-    apelidov = request.GET['apelidov']
-    mesv= request.GET['mesv']
-    anov= request.GET['anov']
-    pagina= request.GET['pagina']
-    kwargs= {'irmao__nome__icontains' : nomev, 'irmao__apelido__icontains' : apelidov, 'datacorrespondente__month':mesv, 'datacorrespondente__year' : anov}
-    if (mesv == '0'):
-        del kwargs['datacorrespondente__month']
-    if (anov == '0'):
-        del kwargs['datacorrespondente__year']
-    resultado = Dizimooferta.objects.filter(**kwargs)
-    paginador = Paginator(resultado, 20)
-    paginaresultado = paginador.get_page(pagina)
-    dd = dict(request.GET.lists())
-    del dd['pagina']
-    cc = request.META['QUERY_STRING']
-    return render(request,'dizimosofertasfiltradas.html', {'bb':paginaresultado})
+    from django.db.models import Q
+    nomev = request.GET.get('nomev','')
+    apelidov = request.GET.get('apelidov','')
+    mesv = request.GET.get('mesv','0')
+    anov = request.GET.get('anov','0')
+    pagina = request.GET.get('pagina', '1')
+    q = request.GET.get('q','').strip()
+    
+    kwargs = {'irmao__nome__icontains': nomev, 'irmao__apelido__icontains': apelidov}
+    if mesv != '0':
+        kwargs['datacorrespondente__month'] = mesv
+    if anov != '0':
+        kwargs['datacorrespondente__year'] = anov
+    
+    qs = Dizimooferta.objects.filter(**kwargs)
+    
+    if q:
+        qs = qs.filter(
+            Q(irmao__nome__icontains=q) |
+            Q(irmao__apelido__icontains=q) |
+            Q(irmao__email__icontains=q) |
+            Q(irmao__ruaenumero__icontains=q) |
+            Q(irmao__bairro__icontains=q) |
+            Q(tipooferta__designacao__icontains=q) |
+            Q(moeda=q)
+        )
+    
+    paginador = Paginator(qs, 20)
+    resultado = paginador.get_page(pagina)
+    return render(request, 'dizimosofertasfiltradas.html', {'bb': resultado})
+
+def relatoriodizimosmembro(request):
+    from django.db.models import Sum, Count, Q
+    
+    mesv = request.GET.get('mesv', '0')
+    anov = request.GET.get('anov', '0')
+    q = request.GET.get('q', '').strip()
+    
+    # Queryset base
+    qs = Dizimooferta.objects.all()
+    
+    # Aplicar filtros de mês e ano
+    if mesv != '0':
+        qs = qs.filter(datacorrespondente__month=mesv)
+    if anov != '0':
+        qs = qs.filter(datacorrespondente__year=anov)
+    
+    # Aplicar busca global
+    if q:
+        qs = qs.filter(
+            Q(irmao__nome__icontains=q) |
+            Q(irmao__apelido__icontains=q) |
+            Q(irmao__email__icontains=q) |
+            Q(tipooferta__designacao__icontains=q)
+        )
+    
+    # Agrupar por membro e calcular totais
+    from django.db.models import OuterRef, Subquery
+    relatorio = []
+    for dizia in qs.values('irmao').annotate(
+        total_valor=Sum('valor'),
+        total_registos=Count('id')
+    ).order_by('-total_valor'):
+        irmao = Irmao.objects.get(id=dizia['irmao'])
+        relatorio.append({
+            'irmao': irmao,
+            'total_valor': dizia['total_valor'],
+            'total_registos': dizia['total_registos'],
+            'moeda': 'AKZ'  # Moeda padrão (pode servir para filtros futuros)
+        })
+    
+    # Calcular totais gerais
+    total_geral = sum(item['total_valor'] for item in relatorio)
+    total_contribuintes = len(relatorio)
+    
+    context = {
+        'relatorio': relatorio,
+        'total_geral': total_geral,
+        'total_contribuintes': total_contribuintes,
+        'mesv': mesv,
+        'anov': anov,
+        'listameses': {
+            '1': 'Janeiro', '2': 'Fevereiro', '3': 'Março', '4': 'Abril',
+            '5': 'Maio', '6': 'Junho', '7': 'Julho', '8': 'Agosto',
+            '9': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
+        }
+    }
+    
+    return render(request, 'relatoriodizimosmembro.html', context)
+
+def relatorioofertasportipo(request):
+    from django.db.models import Sum, Count, Q
+    
+    mes = request.GET.get('mes', '')
+    ano = request.GET.get('ano', '')
+    q = request.GET.get('q', '').strip()
+    
+    # Queryset base
+    qs = Dizimooferta.objects.all()
+    
+    # Aplicar filtros de mês e ano
+    if mes:
+        qs = qs.filter(datacorrespondente__month=mes)
+    if ano:
+        qs = qs.filter(datacorrespondente__year=ano)
+    
+    # Aplicar busca global
+    if q:
+        qs = qs.filter(
+            Q(tipooferta__designacao__icontains=q) |
+            Q(irmao__nome__icontains=q) |
+            Q(irmao__apelido__icontains=q) |
+            Q(irmao__email__icontains=q)
+        )
+    
+    # Agrupar por tipo de oferta
+    reporte = qs.values('tipooferta__designacao').annotate(
+        total=Sum('valor'),
+        count=Count('id')
+    ).order_by('-total')
+    
+    # Calcular total geral
+    total_geral = qs.aggregate(total=Sum('valor'))['total'] or 0
+    
+    context = {
+        'reporte': reporte,
+        'total_geral': total_geral,
+        'mes': mes,
+        'ano': ano,
+        'q': q,
+    }
+    
+    return render(request, 'relatorioofertasportipo.html', context)
 
 def encontraSaidascaixa(request):
     rubricav = int(request.GET['rubricav'])
@@ -1697,6 +1854,21 @@ def relatorio_saida_caixa_pdf(request):
     doc.build(elements)
     return response
 
+
+def dizimosofertascreate(request):
+    """Create a new tithes/offerings record. Called via dynamic URL pattern."""
+    if request.method == 'POST':
+        form = DizimoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Sucesso! O registo de dízimo/oferta foi gravado.')
+            return redirect('index')
+        else:
+            messages.error(request, 'Erro ao gravar. Verifique os dados no formulário.')
+    else:
+        form = DizimoForm()
+    
+    return render(request, 'dizimosofertasdetalhado.html', {'form': form})
 
 @login_required
 def dashboard(request):

@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% block Dizimosofertasdetalhado %}
+{% block dizimosofertasdetalhe %}
 {% load static %}
 
 {% if registoachado %}
@@ -47,10 +47,8 @@
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Tipo
-                        de Oferta</label>
-                    <span style="font-weight: 600; color: var(--primary-dark);">{{
-                        x.tipooferta.designacao|default:"Geral" }}</span>
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Tipo de Oferta</label>
+                    <span style="font-weight: 600; color: var(--primary-dark);">{{ x.tipooferta.designacao }}</span>
                 </div>
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
@@ -71,27 +69,42 @@
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Moeda
-                        de Operação</label>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_moeda_display|default:x.moeda
-                        }}</span>
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Moeda de Operação</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_moeda_display }}</span>
                 </div>
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Data
-                        de Registo</label>
-                    <span style="font-weight: 500; color: var(--text-muted);"><i class="far fa-clock mr-1"></i> {{
-                        x.dataregisto }}</span>
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Data de Registo</label>
+                    <span style="font-weight: 500; color: var(--text-muted);"><i class="far fa-clock mr-1"></i> {{ x.dataregisto }}</span>
                 </div>
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Sistema
-                        ID</label>
-                    <span style="font-family: monospace; font-size: 0.85rem; color: var(--primary);">#REC-{{ x.id
-                        }}</span>
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Sistema ID</label>
+                    <span style="font-family: monospace; font-size: 0.85rem; color: var(--primary);">#REC-{{ x.id }}</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Details Card -->
+    <div class="modern-card" style="margin-top: 2rem;">
+        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+            <i class="fas fa-user mr-2"></i> Detalhes do Membro
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+                <strong>Nome:</strong> {{ x.irmao.nome }} {{ x.irmao.apelido }}
+            </div>
+            <div>
+                <strong>Telefone:</strong> {{ x.irmao.telefone|default:"(não registado)" }}
+            </div>
+            <div>
+                <strong>Email:</strong> {{ x.irmao.email|default:"(não registado)" }}
+            </div>
+            <div>
+                <strong>Morada:</strong> {{ x.irmao.ruaenumero }} {{ x.irmao.bairro }}
             </div>
         </div>
     </div>
@@ -100,7 +113,7 @@
 </div>
 {% endif %}
 
-<div style="text-align: center; margin-top: 2rem;">
+<div style="text-align: center; margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
     <a href="/tibl/gestao/dizimosofertas/1" class="bt-primary"
         style="background: transparent; color: var(--primary); border: 2px solid var(--primary); box-shadow: none;">
         <i class="fas fa-chevron-left"></i> Voltar às Ofertas

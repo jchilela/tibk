@@ -31,6 +31,8 @@ urlpatterns = [
     path('tibl/<gestaoescolhida>/actualizar/<int:id>/', sitetibl.views.mostraActualizacao),
     path('tibl/<gestaoescolhida>/eliminar/<int:id>/', sitetibl.views.mostraEliminacao),
     path('tibl/contasbancarias/inativar/<int:id>/', sitetibl.views.inativaContabancaria, name='inativaContabancaria'),
+    path('tibl/contasbancarias/reativar/<int:id>/', sitetibl.views.reativaContabancaria, name='reativaContabancaria'),
+    path('tibl/contasbancarias/inativas/', sitetibl.views.contasbancariasinativas, name='contasbancariasinativas'),
     # contas bancárias: filtro avançado (banco/moeda)
     path('tibl/filtrarcontasbancarias/', sitetibl.views.ContaBancariaFilterListView.as_view(), name='contasFiltradas'),
     # contas bancárias: busca por campos soltos (proprietário/banco)
@@ -40,6 +42,8 @@ urlpatterns = [
     path('tibl/buscaactividades/', sitetibl.views.encontraActividades),
     path('tibl/buscadepartamentos/', sitetibl.views.encontraDepartamentos),
     path('tibl/buscadizimosofertas/', sitetibl.views.encontraDizimosofertas),
+    path('tibl/relatoriodizimosmembro/', sitetibl.views.relatoriodizimosmembro),
+    path('tibl/relatorioofertasportipo/', sitetibl.views.relatorioofertasportipo),
     path('tibl/buscasaidascaixa/', sitetibl.views.encontraSaidascaixa),
     path('tibl/buscaentradascaixa/', sitetibl.views.encontraEntradascaixa),
     path('tibl/buscasaidasbanco/', sitetibl.views.encontraSaidasbanco),

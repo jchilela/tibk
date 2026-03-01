@@ -22,6 +22,7 @@ from sitetibl.models import OrcamentoDepartamento
 from sitetibl.models import InventarioPatrimonio
 from sitetibl.models import ConteudoEnsino
 from sitetibl.models import EnvioMensagem
+from sitetibl.models import TipoOferta
 
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django import forms
@@ -207,6 +208,30 @@ class DizimoofertaForm(ModelForm):
         widgets = {
             'dataregisto': forms.DateInput(attrs={'type': 'date'}),
             'datacorrespondente': forms.DateInput(attrs={'type': 'date'})
+        }
+
+class DizimoForm(ModelForm):
+    class Meta:
+        model = Dizimooferta
+        fields = '__all__'
+        widgets = {
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00', 'step': '0.01'}),
+            'moeda': forms.Select(attrs={'class': 'form-control'}),
+            'tipooferta': forms.Select(attrs={'class': 'form-control'}),
+            'datacorrespondente': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'irmao': forms.Select(attrs={'class': 'form-control'}),
+            'actividade': forms.Select(attrs={'class': 'form-control'}),
+            'dataregisto': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'entradabanco': forms.Select(attrs={'class': 'form-control'}),
+            'entradacaixa': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+class OfertaForm(ModelForm):
+    class Meta:
+        model = TipoOferta
+        fields = '__all__'
+        widgets = {
+            'designacao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Designação da Oferta'}),
         }
 
 class SaidacaixaForm(ModelForm):
