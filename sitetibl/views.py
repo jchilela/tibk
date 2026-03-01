@@ -1679,9 +1679,15 @@ def escalar_em_massa(request, actividade_id):
             funcao = get_object_or_404(Funcao, id=funcao_id)
             
             novas_escalas = []
+            ids_processados = set()
+            
             for irmao_id in irmaos_ids:
-                # Evitar duplicados
-                if not Escala.objects.filter(actividade=actividade, irmao_id=irmao_id, funcao=funcao).exists():
+                if irmao_id in ids_processados:
+                    continue
+                ids_processados.add(irmao_id)
+                
+                # Evitar que o membro seja escalado duas vezes na mesma Actividade (mesmo que com funções diferentes)
+                if not Escala.objects.filter(actividade=actividade, irmao_id=irmao_id).exists():
                     novas_escalas.append(Escala(
                         actividade=actividade,
                         irmao_id=irmao_id,
@@ -1692,7 +1698,7 @@ def escalar_em_massa(request, actividade_id):
                 Escala.objects.bulk_create(novas_escalas)
                 messages.success(request, f'{len(novas_escalas)} irmãos escalados para {funcao.designacao} com sucesso!')
             else:
-                messages.info(request, 'As pessoas selecionadas já estavam escaladas para esta função.')
+                messages.info(request, 'As pessoas selecionadas já estavam escaladas para esta actividade.')
                 
     # Redirect back to the details page regardless of success/failure
     return redirect(f'/tibl/actividades/detalhe/{actividade_id}/')
