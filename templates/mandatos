@@ -52,7 +52,7 @@
                     <td style="text-align: right;">
                         <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                             <a href="/tibl/mandatos/actualizar/{{ x.id }}" class="bt-primary"
-                                style="padding: 0.4rem 0.6rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                                style="padding: 0.4rem 0.6rem; font-size: 0.8rem; background: var(--info);">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <a href="/tibl/mandatos/eliminar/{{ x.id }}" class="bt-primary"
