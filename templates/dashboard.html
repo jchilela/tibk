@@ -1,125 +1,147 @@
-{% extends "index.html" %}
+{% extends 'index.html' %}
 {% load static %}
 
 {% block title %}Painel Administrativo | TIBL{% endblock %}
 
 {% block content %}
-<div class="dashboard-wrapper" style="padding: 1rem 0;">
+<div style="padding: 0.5rem 0;">
+
   <!-- Welcome Header -->
-  <div class="welcome-header modern-card"
-    style="margin-bottom: 2.5rem; background: linear-gradient(135deg, white, var(--bg-body)); border-left: 6px solid var(--primary); display: flex; justify-content: space-between; align-items: center;">
-    <div>
-      <h1 style="font-size: 2.25rem; margin-bottom: 0.5rem; letter-spacing: -0.5px;">Olá, 
-        {{user.first_name|default:user.username}}!</h1>
-      <p style="color: var(--text-muted); font-size: 1.1rem;">Bem-vindo ao centro de gestão da TIBL. Aqui está um resumo
-        da atividade recente.</p>
-    </div>
-    <div style="text-align: right; display: none;" class="d-md-block">
-      <div id="current-date" style="font-weight: 700; color: var(--text-main);"></div>
-      <div id="current-time" style="color: var(--primary); font-family: monospace; font-size: 1.25rem;"></div>
+  <div class="modern-card premium-gradient animate-fade-in"
+    style="margin-bottom: 2rem; border: none; padding: 2.5rem; border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg);">
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; position: relative; z-index: 1;">
+      <div>
+        <h1
+          style="color: white; font-size: clamp(1.6rem, 5vw, 2.5rem); margin-bottom: 0.6rem; letter-spacing: -1px; font-family: 'Outfit', sans-serif;">
+          Olá, {{ user.first_name|default:user.username }}! ✨
+        </h1>
+        <div style="display: flex; gap: 1.25rem; align-items: center;">
+          <p style="opacity: 0.9; font-size: 1.05rem; margin: 0; font-weight: 400; max-width: 500px;">
+            Sua visão geral da comunidade TIBL está pronta. Veja o que mudou hoje.
+          </p>
+          <button onclick="window.location.reload()" class="bt-primary"
+            style="padding: 0.6rem 1.25rem; font-size: 0.8rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(4px); box-shadow: none;">
+            <i class="fas fa-sync-alt"></i> Atualizar
+          </button>
+        </div>
+      </div>
+      <div
+        style="text-align: right; background: rgba(0,0,0,0.1); padding: 1rem 1.5rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.1);"
+        id="clock-container">
+        <div id="current-date"
+          style="font-weight: 500; font-size: 0.85rem; opacity: 0.8; color: white; margin-bottom: 0.2rem;"></div>
+        <div id="current-time"
+          style="font-family: 'Inter', monospace; font-size: 1.75rem; font-weight: 700; color: white; letter-spacing: 1px;">
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Stats Cards Grid -->
+  <!-- Stats Cards -->
   <div
-    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
-    <div class="modern-card stat-card-v2" style="border-bottom: 4px solid #548c2f;">
-      <div class="icon-box" style="background: rgba(84, 140, 47, 0.1); color: #548c2f;">
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+
+    <div class="modern-card stat-card-v2 animate-fade-in-up"
+      style="border-bottom: 4px solid #10b981; animation-delay: 0.1s;">
+      <div class="icon-box" style="background: rgba(16,185,129,0.1); color: #10b981;">
         <i class="fas fa-users"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-label">Total de Irmãos</span>
+        <span class="stat-label">Comunidade</span>
         <h2 id="totalIrmaos" class="stat-value">--</h2>
-        <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> Ativos</span>
+        <span class="stat-trend positive" style="background: #ecfdf5; color: #065f46;"><i class="fas fa-chart-line"></i>
+          + Crescimento</span>
       </div>
     </div>
 
-    <div class="modern-card stat-card-v2" style="border-bottom: 4px solid #3b82f6;">
-      <div class="icon-box" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
-        <i class="fas fa-hand-holding-heart"></i>
+    <div class="modern-card stat-card-v2 animate-fade-in-up"
+      style="border-bottom: 4px solid #3b82f6; animation-delay: 0.2s;">
+      <div class="icon-box" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+        <i class="fas fa-coins"></i>
       </div>
       <div class="stat-content">
         <span class="stat-label">Dízimos (Mês)</span>
         <h2 id="totalDizimos" class="stat-value" style="font-size: 1.5rem;">--</h2>
-        <span class="stat-trend info">Kuanzas (AOA)</span>
+        <span class="stat-trend info" style="background: #eff6ff; color: #1e40af;"><i class="fas fa-wallet"></i>
+          Kuanzas</span>
       </div>
     </div>
 
-    <div class="modern-card stat-card-v2" style="border-bottom: 4px solid #f59e0b;">
-      <div class="icon-box" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
-        <i class="fas fa-book-reader"></i>
+    <div class="modern-card stat-card-v2 animate-fade-in-up"
+      style="border-bottom: 4px solid #f59e0b; animation-delay: 0.3s;">
+      <div class="icon-box" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+        <i class="fas fa-book-open"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-label">Conteúdos</span>
+        <span class="stat-label">Recursos</span>
         <h2 id="fluxoTotalConteudos" class="stat-value">--</h2>
-        <span class="stat-trend neutral">Educativos</span>
+        <span class="stat-trend neutral" style="background: #fffbeb; color: #92400e;"><i
+            class="fas fa-check-circle"></i> Disponíveis</span>
       </div>
     </div>
 
-    <div class="modern-card stat-card-v2" style="border-bottom: 4px solid #ef4444;">
-      <div class="icon-box" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-        <i class="fas fa-file-invoice-dollar"></i>
+    <div class="modern-card stat-card-v2 animate-fade-in-up"
+      style="border-bottom: 4px solid #ef4444; animation-delay: 0.4s;">
+      <div class="icon-box" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+        <i class="fas fa-file-invoice"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-label">Pedidos Pendentes</span>
+        <span class="stat-label">Pedidos</span>
         <h2 id="totalPedidos" class="stat-value">--</h2>
-        <span class="stat-trend danger"><i class="fas fa-clock"></i> Aguardando</span>
+        <span class="stat-trend danger" style="background: #fef2f2; color: #991b1b;"><i class="fas fa-clock"></i>
+          Pendentes</span>
       </div>
     </div>
+
   </div>
 
   <!-- Charts Grid -->
-  <div class="chart-grid"
-    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem;">
-    <div class="modern-card chart-container">
-      <div class="chart-header"
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div id="charts-grid" class="animate-fade-in"
+    style="animation-delay: 0.5s; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 1.5rem;">
+
+    <div class="modern-card">
+      <div
+        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
         <div>
-          <h3 style="margin: 0;"><i class="fas fa-chart-bar mr-2" style="color: var(--primary);"></i> Cadastro Mensal
-          </h3>
-          <p style="font-size: 0.8rem; color: var(--text-muted);">Crescimento da comunidade este ano</p>
+          <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-chart-bar mr-2"
+              style="color: var(--primary-light);"></i> Cadastro Mensal</h3>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Crescimento da comunidade este
+            ano</p>
         </div>
       </div>
-      <canvas id="irmaos" height="250"></canvas>
+      <canvas id="irmaos" height="220"></canvas>
     </div>
 
-    <div class="modern-card chart-container">
-      <div class="chart-header"
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <div>
-          <h3 style="margin: 0;"><i class="fas fa-chart-pie mr-2" style="color: var(--primary);"></i> Orçamento Dept.
-          </h3>
-          <p style="font-size: 0.8rem; color: var(--text-muted);">Divisão de recursos financeiros</p>
-        </div>
+    <div class="modern-card">
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-chart-pie mr-2"
+            style="color: var(--primary-light);"></i> Orçamento Dept.</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Divisão de recursos financeiros</p>
       </div>
-      <div style="max-width: 300px; margin: 0 auto;">
+      <div style="max-width: 260px; margin: 0 auto;">
         <canvas id="pizzaOrcamento"></canvas>
       </div>
     </div>
 
-    <div class="modern-card chart-container">
-      <div class="chart-header"
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <div>
-          <h3 style="margin: 0;"><i class="fas fa-wave-square mr-2" style="color: var(--primary);"></i> Entradas
-            Financeiras</h3>
-          <p style="font-size: 0.8rem; color: var(--text-muted);">Comparativo Dízimos vs Ofertas</p>
-        </div>
+    <div class="modern-card">
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-wave-square mr-2"
+            style="color: var(--primary-light);"></i> Entradas Financeiras</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Comparativo Dízimos vs Ofertas</p>
       </div>
-      <canvas id="ofertasChart" height="250"></canvas>
+      <canvas id="ofertasChart" height="220"></canvas>
     </div>
 
-    <div class="modern-card chart-container">
-      <div class="chart-header"
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <div>
-          <h3 style="margin: 0;"><i class="fas fa-project-diagram mr-2" style="color: var(--primary);"></i> Células &
-            Grupo</h3>
-          <p style="font-size: 0.8rem; color: var(--text-muted);">Membros, Visitantes e Crianças</p>
-        </div>
+    <div class="modern-card">
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-project-diagram mr-2"
+            style="color: var(--primary-light);"></i> Células & Grupo</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Membros, Visitantes e Crianças</p>
       </div>
-      <canvas id="membrosChart" height="250"></canvas>
+      <canvas id="membrosChart" height="220"></canvas>
     </div>
+
   </div>
 </div>
 
@@ -127,58 +149,73 @@
   .stat-card-v2 {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding: 1.5rem !important;
+    gap: 1.25rem;
+    padding: 1.25rem !important;
     position: relative;
     overflow: hidden;
+    transition: var(--transition);
   }
 
-  .stat-card-v2 .icon-box {
-    width: 60px;
-    height: 60px;
+  .stat-card-v2:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .icon-box {
+    width: 54px;
+    height: 54px;
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     flex-shrink: 0;
   }
 
-  .stat-card-v2 .stat-label {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-weight: 500;
-    margin-bottom: 0.25rem;
+  .stat-content {
+    flex: 1;
+    min-width: 0;
   }
 
-  .stat-card-v2 .stat-value {
+  .stat-label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .stat-value {
     margin: 0;
     font-size: 1.75rem;
     font-weight: 700;
     color: var(--text-main);
     letter-spacing: -1px;
+    line-height: 1.1;
   }
 
   .stat-trend {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 4px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-top: 0.5rem;
+    margin-top: 0.4rem;
   }
 
   .stat-trend.positive {
-    background: #dcfce7;
-    color: #166534;
+    background: #e8f5e9;
+    color: #1b5e20;
   }
 
   .stat-trend.info {
-    background: #dbeafe;
-    color: #1e40af;
+    background: var(--info-bg);
+    color: #0d47a1;
   }
 
   .stat-trend.neutral {
@@ -187,13 +224,27 @@
   }
 
   .stat-trend.danger {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--danger-bg);
+    color: #b71c1c;
   }
 
-  @media (max-width: 768px) {
-    .chart-grid {
-      grid-template-columns: 1fr;
+  @media (max-width: 600px) {
+    .stat-card-v2 {
+      gap: 0.875rem;
+    }
+
+    .icon-box {
+      width: 44px;
+      height: 44px;
+      font-size: 1.1rem;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+    }
+
+    #charts-grid {
+      grid-template-columns: 1fr !important;
     }
   }
 </style>
@@ -202,49 +253,41 @@
 <script src="{% static 'js/dashboard.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Date & Time
     const dateEl = document.getElementById('current-date');
     const timeEl = document.getElementById('current-time');
 
     function updateDateTime() {
       const now = new Date();
-      dateEl.innerText = now.toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
-      timeEl.innerText = now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      if (dateEl) dateEl.innerText = now.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      if (timeEl) timeEl.innerText = now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
+    if (dateEl) { updateDateTime(); setInterval(updateDateTime, 1000); }
 
-    if (dateEl) {
-      updateDateTime();
-      setInterval(updateDateTime, 1000);
-      dateEl.parentElement.style.display = 'block';
-    }
-
-    // Hook into dashboard.js data flow to update stat cards
-    const originalFetch = window.fetch;
+    // Intercept fetch to update stat cards
+    const _fetch = window.fetch;
     window.fetch = async function () {
-      const resp = await originalFetch.apply(this, arguments);
-      const url = arguments[0];
-
-      if (url.includes('numero-irmaos-cadastrados-mensalmente')) {
-        const clone = resp.clone();
-        const json = await clone.json();
-        const total = json.data.reduce((a, b) => a + b, 0);
-        document.getElementById('totalIrmaos').innerText = total;
-      } else if (url.includes('dizimo-oferta')) {
-        const clone = resp.clone();
-        const json = await clone.json();
-        if (json.datasets && json.datasets[0]) {
-          const lastVal = json.datasets[0].data.filter(v => v > 0).pop() || 0;
-          document.getElementById('totalDizimos').innerText = lastVal.toLocaleString() + ' Kz';
+      const resp = await _fetch.apply(this, arguments);
+      const url = (arguments[0] || '').toString();
+      try {
+        if (url.includes('numero-irmaos-cadastrados-mensalmente')) {
+          const j = await resp.clone().json();
+          const total = (j.data || []).reduce((a, b) => a + b, 0);
+          document.getElementById('totalIrmaos').innerText = total;
+        } else if (url.includes('dizimo-oferta')) {
+          const j = await resp.clone().json();
+          if (j.datasets && j.datasets[0]) {
+            const last = j.datasets[0].data.filter(v => v > 0).pop() || 0;
+            document.getElementById('totalDizimos').innerText = last.toLocaleString('pt-PT') + ' Kz';
+          }
+        } else if (url.includes('pedido-saida-semana')) {
+          const j = await resp.clone().json();
+          const total = (j.data || []).reduce((a, b) => a + b, 0);
+          document.getElementById('totalPedidos').innerText = total;
         }
-      } else if (url.includes('pedido-saida-semana')) {
-        const clone = resp.clone();
-        const json = await clone.json();
-        const total = json.data.reduce((a, b) => a + b, 0);
-        document.getElementById('totalPedidos').innerText = total;
-      }
-
+      } catch (e) { }
       return resp;
     };
   });
 </script>
+
 {% endblock %}

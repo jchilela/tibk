@@ -3,16 +3,20 @@
 
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem;">
-        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-search mr-2"></i> Pesquisar Dízimos e Ofertas</h3>
-        <form action="/tibl/buscadizimosofertas/" method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: flex-end;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros Financeiros</h3>
+        <form action="/tibl/buscadizimosofertas" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; align-items: flex-end;">
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Pesquisar</label>
-                <input type="text" name="q" placeholder="Digite nome, email, moeda, tipo de oferta..." style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
+                <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Mês</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Apelido</label>
+                <input type="text" name="apelidov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês</label>
                 <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-                    <option value="0">Todos</option>
+                    <option value="0">------------</option>
                     {% if listameses %}
                         {% for x, y in listameses.items %}
                             <option value="{{ x }}">{{ y }}</option>
@@ -21,9 +25,9 @@
                 </select>
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Ano</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Ano</label>
                 <select name="anov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-                    <option value="0">Todos</option>
+                    <option value="0">------------</option>
                     <option value="2022">2022</option>
                     <option value="2023">2023</option>
                     <option value="2024">2024</option>
@@ -32,25 +36,17 @@
                 </select>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.6rem 1.2rem; background-color: var(--primary);">
-                <i class="fas fa-search"></i> Pesquisar
+            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
+                <i class="fas fa-search"></i> Filtrar
             </button>
         </form>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Dízimos e Ofertas</h2>
-        <div style="display: flex; gap: 0.8rem;">
-            <a href="/tibl/relatoriodizimosmembro/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-dark); color: white;">
-                <i class="fas fa-chart-bar"></i> Por Membro
-            </a>
-            <a href="/tibl/relatorioofertasportipo/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-dark); color: white;">
-                <i class="fas fa-chart-bar"></i> Por Tipo
-            </a>
-            <a href="/tibl/dizimosofertas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: white;">
-                <i class="fas fa-plus"></i> Registrar Entrada
-            </a>
-        </div>
+        <a href="/tibl/dizimosofertas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+            <i class="fas fa-plus"></i> Registrar Entrada
+        </a>
     </div>
 
     {% if bb %}
@@ -79,7 +75,7 @@
                         <span style="font-size: 0.75rem; color: var(--text-muted);">{{ x.get_moeda_display }}</span>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}/" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                        <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
                             <i class="fas fa-receipt"></i> Detalhes
                         </a>
                     </td>

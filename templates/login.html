@@ -1,54 +1,186 @@
 {% extends 'index.html' %}
 {% load static %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Acesso Seguro | TIBL{% endblock %}
 
 {% block content %}
-<div class="landing-hero">
-  <div class="login-card">
-    <div class="login-header">
-      <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL"
-        style="width: 72px; margin-bottom: 0.75rem; filter: drop-shadow(0 2px 8px rgba(84,140,47,0.15));">
-      <h2>Acesso Restrito</h2>
-      <p>Identifique-se para continuar</p>
-    </div>
+<style>
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top right, #1b4d3e, #020617);
+    position: relative;
+    overflow: hidden;
+    padding: 2rem;
+  }
 
-    <form method="post" class="modern-form">
-      {% csrf_token %}
+  .login-wrapper::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: var(--primary);
+    filter: blur(120px);
+    opacity: 0.2;
+    top: 10%;
+    left: 10%;
+    border-radius: 50%;
+  }
 
-      {% if form.errors %}
-      <div class="non-field-errors">
-        <i class="fas fa-exclamation-circle"></i>
-        Usuário ou senha inválidos. Por favor, tente novamente.
+  .login-container {
+    width: 100%;
+    max-width: 420px;
+    z-index: 10;
+    animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .login-box {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .logo-glow {
+    filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.4));
+    transition: transform 0.3s ease;
+  }
+
+  .logo-glow:hover {
+    transform: scale(1.05);
+  }
+
+  .login-header h2 {
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-top: 1rem;
+    letter-spacing: -0.5px;
+  }
+
+  .login-header p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+  }
+
+  .form-group label {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .form-group input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    padding: 0.85rem 1.25rem !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .form-group input:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--primary-light) !important;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15) !important;
+    outline: none;
+  }
+
+  .form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .bt-login {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+  }
+
+  .bt-login:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 25px -5px rgba(16, 185, 129, 0.5);
+    filter: brightness(1.1);
+  }
+
+  .error-msg {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+</style>
+
+<div class="login-wrapper">
+  <div class="login-container">
+    <div class="login-box">
+      <div class="login-header">
+        <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL" class="logo-glow" style="width: 80px;">
+        <h2>Painel TIBL</h2>
+        <p>Identifique-se para gerir a sua comunidade</p>
       </div>
-      {% endif %}
 
-      <div class="form-group">
-        <label for="id_username">
-          <i class="fas fa-user" style="margin-right: 0.35rem; color: var(--text-muted);"></i> Usuário
-        </label>
-        <input type="text" name="username" id="id_username" required autofocus
-          placeholder="Digite o seu nome de utilizador">
-      </div>
+      <form method="post">
+        {% csrf_token %}
 
-      <div class="form-group">
-        <label for="id_password">
-          <i class="fas fa-lock" style="margin-right: 0.35rem; color: var(--text-muted);"></i> Senha
-        </label>
-        <input type="password" name="password" id="id_password" required placeholder="Digite a sua senha">
-      </div>
+        {% if form.errors %}
+        <div class="error-msg">
+          <i class="fas fa-circle-exclamation"></i>
+          Usuário ou senha inválidos.
+        </div>
+        {% endif %}
 
-      <button type="submit" class="bt-primary"
-        style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-top: 0.5rem; justify-content: center;">
-        Entrar no Dashboard <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
-      </button>
-    </form>
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label for="id_username">NOME DE UTILIZADOR</label>
+          <input type="text" name="username" id="id_username" required autofocus placeholder="Ex: joao.silva">
+        </div>
 
-    <div style="margin-top: 1.5rem; border-top: 1px solid #f1f5f9; padding-top: 1.25rem; text-align: center;">
-      <p style="font-size: 0.8rem; color: var(--text-muted);">
-        Esqueceu sua senha?
-        <a href="#" style="color: var(--primary); font-weight: 600;">Contacte o administrador</a>
-      </p>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="id_password">PALAVRA-PASSE</label>
+          <input type="password" name="password" id="id_password" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="bt-login">
+          EFETUAR LOGIN <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+        </button>
+      </form>
+
+      <footer
+        style="margin-top: 2rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+        <p style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+          &copy; {% now 'Y' %} TIBL · Luanda, Angola
+        </p>
+      </footer>
     </div>
   </div>
 </div>

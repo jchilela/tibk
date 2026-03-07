@@ -5,34 +5,42 @@
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Actividades</h3>
-        <form action="/tibl/buscaactividades" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: flex-end;">
+        <form action="/tibl/buscaactividades" method="GET"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: flex-end;">
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
-                <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
+                <input type="text" name="nomev"
+                    style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Designação</label>
-                <select name="actividadev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Designação</label>
+                <select name="actividadev"
+                    style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">------------</option>
                     {% if listaactividades %}
-                        {% for x in listaactividades %}
-                            <option value="{{ x.id }}">{{ x.designacao }}</option>
-                        {% endfor %}
+                    {% for x in listaactividades %}
+                    <option value="{{ x.id }}">{{ x.designacao }}</option>
+                    {% endfor %}
                     {% endif %}
                 </select>
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
                 <div style="display: flex; gap: 0.5rem;">
-                    <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <select name="mesv"
+                        style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                         <option value="0">Mês</option>
                         {% if listameses %}
-                            {% for x, y in listameses.items %}
-                                <option value="{{ x }}">{{ y }}</option>
-                            {% endfor %}
+                        {% for x, y in listameses.items %}
+                        <option value="{{ x }}">{{ y }}</option>
+                        {% endfor %}
                         {% endif %}
                     </select>
-                    <select name="anov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <select name="anov"
+                        style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                         <option value="0">Ano</option>
                         <option value="2025">2025</option>
                         <option value="2026" selected>2026</option>
@@ -47,49 +55,55 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de Actividades</h2>
-        <a href="/tibl/actividades/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de
+            Actividades</h2>
+        <a href="/tibl/actividades/criar/" class="bt-primary"
+            style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
             <i class="fas fa-plus"></i> Nova Actividade
         </a>
     </div>
 
     {% if bb %}
-    <div class="modern-table-container">
-        <table class="modern-table">
-            <thead>
-                <tr>
-                    <th>Actividade / Local</th>
-                    <th style="text-align: center;">Horário</th>
-                    <th style="text-align: center;">Data</th>
-                    <th style="text-align: right;">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for x in bb %}
-                <tr>
-                    <td>
-                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.designacao }}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-map-marker-alt" style="font-size: 0.7rem;"></i> {{ x.local }}</div>
-                    </td>
-                    <td style="text-align: center;">
-                        <span style="font-size: 0.85rem; color: var(--text-main);">
-                            <i class="far fa-clock"></i> {{ x.inicio }} - {{ x.fim }}
-                        </span>
-                    </td>
-                    <td style="text-align: center;">
-                        <div style="font-weight: 600; color: var(--primary);">{{ x.data|date:"d/m/Y"|default:x.data }}</div>
-                    </td>
-                    <td style="text-align: right;">
-                        <a href="/tibl/actividades/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
-                            <i class="fas fa-info-circle"></i> Detalhes
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+        {% for x in bb %}
+        <div class="modern-card" style="border-top: 5px solid var(--primary); padding: 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+            <div style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <span style="background: var(--primary-50); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="far fa-calendar-alt"></i>
+                        {{ x.data|date:"d M Y"|default:x.data }}
+                    </span>
+                    <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">
+                        <i class="far fa-clock"></i> {{ x.inicio }}
+                    </span>
+                </div>
+                
+                <h3 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 1.35rem; line-height: 1.3;">
+                    {{ x.designacao }}
+                </h3>
+                
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
+                    {{ x.localactividade|default:"Sede Principal" }}
+                </p>
+
+                {% if x.tema %}
+                <div style="background: #f8fafc; padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0; font-size: 0.85rem; color: var(--text-muted);">
+                    <i class="fas fa-quote-left" style="opacity: 0.3; margin-right: 0.4rem;"></i>
+                    <span style="font-style: italic;">{{ x.tema|truncatechars:60 }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div style="padding: 1rem 1.5rem; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+                <a href="/tibl/actividades/detalhe/{{ x.id }}" class="bt-primary" style="display: block; width: 100%; text-align: center; padding: 0.6rem; background: var(--primary); color: white !important; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; border-radius: var(--radius-sm);">
+                    <i class="fas fa-info-circle mr-1"></i> Ver Detalhes Completos
+                </a>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    
+
     <div style="margin-top: 2rem;">
         {% include 'paginacao' %}
     </div>

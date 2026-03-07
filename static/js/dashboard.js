@@ -23,9 +23,10 @@ document.addEventListener("DOMContentLoaded", function () {
       data: {
         labels: json.labels,
         datasets: [{
-          label: 'Numero de irmaos cadastrados',
+          label: 'Irmãos Cadastrados',
           data: json.data,
-          backgroundColor: '#769656'
+          backgroundColor: '#2e7d32', /* Premium Emerald */
+          borderRadius: 6
         }]
       },
       options: {
@@ -38,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
   safeFetch('/dashboard/orcamento-departamento').then(json => {
     if (!json) return;
     const canvas = document.getElementById('pizzaOrcamento');
-    const baseColors = ['#769656', '#98b37e', '#4d6338', '#b9ccaa', '#5f7d48', '#cfe0bf'];
+    const baseColors = ['#1b5e20', '#2e7d32', '#4caf50', '#81c784', '#a5d6a7', '#c8e6c9'];
     const colors = json.labels.map((_, i) => baseColors[i % baseColors.length]);
 
     new Chart(canvas, {
@@ -68,79 +69,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // 3. Gráfico de Linhas (pedido de saida)
+  /* 3. Gráfico de Linhas (pedido de saida) - Comentado por falta de canvas no HTML
   safeFetch('/dashboard/pedido-saida-semana').then(json => {
-    if (!json) return;
-    new Chart(document.getElementById('pedidoSaida'), {
-      type: 'line',
-      data: {
-        labels: json.labels,
-        datasets: [{
-          label: `Pedidos de Saída (${json.ano})`,
-          data: json.data,
-          borderColor: '#769656',
-          tension: 0.3,
-          fill: true,
-          backgroundColor: 'rgba(118, 150, 86, 0.1)'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: `Pedidos de Saída por Dia da Semana – ${json.ano}`
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 }
-          }
-        }
-      }
-    });
+    ...
   });
+  */
 
 
-  // 4. Conteudos de ensino
+  /* 4. Conteudos de ensino - Update stat only
   safeFetch('/dashboard/conteudo-ensino-mensal').then(json => {
     if (!json) return;
     const totalEl = document.getElementById('fluxoTotalConteudos');
     if (totalEl) totalEl.innerText = `${json.total} conteúdos`;
-
-    const chartEl = document.getElementById('fluxoCaixaChartConteudos');
-    if (chartEl) {
-      new Chart(chartEl, {
-        type: 'line',
-        data: {
-          labels: json.labels,
-          datasets: [{
-            label: `Conteúdos Criados (${json.ano})`,
-            data: json.data,
-            borderColor: '#769656',
-            backgroundColor: 'rgba(118,150,86,0.1)',
-            tension: 0.3,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { precision: 0 }
-            }
-          }
-        }
-      });
-    }
   });
+  */
 
   // 5. dizimo e oferta
   safeFetch('/dashboard/dizimo-oferta').then(json => {
     if (!json || !json.datasets) return;
-    const colors = ['#769656', '#98b37e', '#4d6338', '#b9ccaa', '#5f7d48', '#cfe0bf'];
+    const colors = ['#1b5e20', '#2e7d32', '#ff6f00', '#0288d1', '#7b1fa2', '#c2185b'];
 
     json.datasets.forEach((ds, i) => {
       ds.borderColor = colors[i % colors.length];
@@ -184,26 +131,29 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             label: `Membros (${json.ano})`,
             data: json.membros,
-            borderColor: '#769656',
-            backgroundColor: 'rgba(118,150,86,0.1)',
+            borderColor: '#1b5e20',
+            backgroundColor: 'rgba(27,94,32,0.1)',
             tension: 0.3,
-            fill: true
+            fill: true,
+            pointRadius: 4
           },
           {
             label: `Visitantes (${json.ano})`,
             data: json.visitantes,
-            borderColor: '#98b37e',
-            backgroundColor: 'rgba(152,179,126,0.1)',
+            borderColor: '#2e7d32',
+            backgroundColor: 'rgba(46,125,50,0.1)',
             tension: 0.3,
-            fill: true
+            fill: true,
+            pointRadius: 4
           },
           {
             label: `Crianças (${json.ano})`,
             data: json.criancas,
-            borderColor: '#4d6338',
-            backgroundColor: 'rgba(77,99,56,0.1)',
+            borderColor: '#ff6f00',
+            backgroundColor: 'rgba(255,111,0,0.1)',
             tension: 0.3,
-            fill: true
+            fill: true,
+            pointRadius: 4
           }
         ]
       },
