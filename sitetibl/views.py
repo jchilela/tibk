@@ -1896,6 +1896,231 @@ def relatorio_saida_caixa_pdf(request):
     return response
 
 
+# =========================================
+# 🧾 GERAÇÃO DE RECIBO EM PDF
+# =========================================
+
+def numero_por_extenso(valor):
+    """
+    Converte um número decimal em extenso (português de Angola).
+    Exemplo: 1500.50 -> "Mil e quinhentos kwanzas e cinquenta cêntimos"
+    """
+    try:
+        valor = float(valor)
+        inteiro = int(valor)
+        centavos = int(round((valor - inteiro) * 100))
+        
+        # Números básicos
+        unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove']
+        especiais = ['dez', 'onze', 'doze', 'treze', 'catorze', 'quinze', 'dezasseis', 'dezassete', 'dezoito', 'dezanove']
+        dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa']
+        centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos']
+        
+        def converter_grupo(n):
+            """Converte um grupo de até 3 dígitos"""
+            if n == 0:
+                return ''
+            elif n < 10:
+                return unidades[n]
+            elif n < 20:
+                return especiais[n - 10]
+            elif n < 100:
+                d = n // 10
+                u = n % 10
+                return dezenas[d] + (' e ' + unidades[u] if u > 0 else '')
+            elif n == 100:
+                return 'cem'
+            else:
+                c = n // 100
+                resto = n % 100
+                resultado = centenas[c]
+                if resto > 0:
+                    resultado += ' e ' + converter_grupo(resto)
+                return resultado
+        
+        # Converte a parte inteira
+        if inteiro == 0:
+            extenso_inteiro = 'zero'
+        elif inteiro < 1000:
+            extenso_inteiro = converter_grupo(inteiro)
+        elif inteiro < 1000000:
+            milhares = inteiro // 1000
+            resto = inteiro % 1000
+            if milhares == 1:
+                extenso_inteiro = 'mil'
+            else:
+                extenso_inteiro = converter_grupo(milhares) + ' mil'
+            if resto > 0:
+                extenso_inteiro += ' e ' + converter_grupo(resto)
+        elif inteiro < 1000000000:
+            milhoes = inteiro // 1000000
+            resto = inteiro % 1000000
+            if milhoes == 1:
+                extenso_inteiro = 'um milhão'
+            else:
+                extenso_inteiro = converter_grupo(milhoes) + ' milhões'
+            if resto > 0:
+                if resto < 1000:
+                    extenso_inteiro += ' e ' + converter_grupo(resto)
+                else:
+                    milhares = resto // 1000
+                    centena = resto % 1000
+                    extenso_inteiro += ' ' + converter_grupo(milhares) + ' mil'
+                    if centena > 0:
+                        extenso_inteiro += ' e ' + converter_grupo(centena)
+        else:
+            return str(valor)  # Para valores muito grandes, retorna o número
+        
+        # Adiciona a moeda
+        resultado = extenso_inteiro.capitalize() + ' kwanzas'
+        
+        # Adiciona os cêntimos se houver
+        if centavos > 0:
+            extenso_centavos = converter_grupo(centavos)
+            resultado += ' e ' + extenso_centavos + ' cêntimos'
+        
+        return resultado
+    except:
+        return str(valor)
+
+
+@login_required
+def gerar_recibo_dizimo(request, dizimo_id):
+    """
+    Gera um recibo em PDF para um dízimo específico.
+    URL: /dizimos/recibo/<id>/
+    """
+    # Busca o dízimo
+    dizimo = get_object_or_404(Dizimooferta, pk=dizimo_id)
+    
+    # Cria o response PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="recibo_dizimo_{dizimo_id}.pdf"'
+    
+    # Cria o canvas
+    c = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    
+    # Margens
+    margin_left = 50
+    margin_right = width - 50
+    margin_top = height - 50
+    y = margin_top
+    
+    # =============================
+    # LOGO (se existir)
+    # =============================
+    logo_path = os.path.join(
+        settings.BASE_DIR,
+        'static',
+        'fotos',
+        '2022',
+        'cba.png'
+    )
+    
+    if os.path.exists(logo_path):
+        c.drawImage(logo_path, margin_left, y - 80, width=80, height=80, preserveAspectRatio=True)
+        y -= 100
+    
+    # =============================
+    # CABEÇALHO
+    # =============================
+    c.setFont("Helvetica-Bold", 20)
+    c.drawCentredString(width / 2, y, "RECIBO")
+    y -= 30
+    
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(width / 2, y, "TABERNACULO BIBLICO DA RESTAURACAO - IGREJA CENTRAL")
+    y -= 15
+    c.drawCentredString(width / 2, y, "NIF: ___________  |  Luanda, Angola")
+    y -= 40
+    
+    # =============================
+    # NÚMERO DO RECIBO
+    # =============================
+    c.setFont("Helvetica-Bold", 11)
+    c.drawRightString(margin_right, y, f"Nº: {dizimo_id:06d}")
+    y -= 30
+    
+    # =============================
+    # CORPO DO RECIBO
+    # =============================
+    c.setFont("Helvetica", 11)
+    
+    # Linha 1: Recebi de
+    texto = f"Recebi de {dizimo.irmao.nome} {dizimo.irmao.apelido} {dizimo.irmao.outrosnomes}"
+    c.drawString(margin_left, y, texto)
+    y -= 25
+    
+    # Linha 2: Valor
+    valor_formatado = f"{dizimo.valor:,.2f}"
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(margin_left, y, f"a quantia de {valor_formatado} {dizimo.moeda}")
+    y -= 25
+    
+    # Linha 3: Valor por extenso
+    c.setFont("Helvetica-Oblique", 11)
+    valor_extenso = numero_por_extenso(dizimo.valor)
+    c.drawString(margin_left, y, f"({valor_extenso})")
+    y -= 30
+    
+    # Linha 4: Referente a
+    c.setFont("Helvetica", 11)
+    tipo_texto = dizimo.tipooferta.designacao if dizimo.tipooferta else "Dízimo/Oferta"
+    c.drawString(margin_left, y, f"referente a {tipo_texto}")
+    y -= 25
+    
+    # Linha 5: Data correspondente
+    data_formatada = dizimo.datacorrespondente.strftime('%d/%m/%Y')
+    c.drawString(margin_left, y, f"do período de {data_formatada}")
+    y -= 40
+    
+    # =============================
+    # MÉTODO DE PAGAMENTO
+    # =============================
+    c.setFont("Helvetica", 10)
+    metodo = ""
+    if dizimo.entradabanco:
+        metodo = "✓ Transferência Bancária"
+    elif dizimo.entradacaixa:
+        metodo = "✓ Pagamento em Caixa"
+    else:
+        metodo = "Forma de pagamento não especificada"
+    
+    c.drawString(margin_left, y, f"Método: {metodo}")
+    y -= 50
+    
+    # =============================
+    # RODAPÉ
+    # =============================
+    # Data de emissão
+    data_emissao = date.today().strftime('%d/%m/%Y')
+    c.setFont("Helvetica", 10)
+    c.drawString(margin_left, y, f"Luanda, {data_emissao}")
+    y -= 60
+    
+    # Linha para assinatura
+    linha_assinatura = margin_left + 200
+    c.line(linha_assinatura, y, margin_right - 50, y)
+    y -= 15
+    c.setFont("Helvetica", 9)
+    c.drawCentredString((linha_assinatura + margin_right - 50) / 2, y, "Assinatura do Responsável")
+    
+    # =============================
+    # NOTA DE RODAPÉ
+    # =============================
+    y = 50
+    c.setFont("Helvetica", 8)
+    c.setFillColorRGB(0.5, 0.5, 0.5)
+    c.drawCentredString(width / 2, y, "Este recibo comprova a entrega do dízimo/oferta à igreja")
+    y -= 12
+    c.drawCentredString(width / 2, y, f"Emitido pelo Sistema TIBL em {data_emissao}")
+    
+    # Salva e retorna o PDF
+    c.save()
+    return response
+
+
 def dizimosofertascreate(request):
     """Create a new tithes/offerings record. Called via dynamic URL pattern."""
     if request.method == 'POST':
@@ -1917,6 +2142,32 @@ def dashboard(request):
         'titulo': 'Dashboard',
     }
     return render(request, 'dashboard.html', context)
+
+
+@login_required
+def visualizar_recibo_dizimo(request, dizimo_id):
+    """
+    Renderiza um recibo HTML para visualização/impressão.
+    URL: /dizimos/recibo/<id>/visualizar/
+    """
+    # Busca o dízimo
+    dizimo = get_object_or_404(Dizimooferta, pk=dizimo_id)
+
+    # Converte valor para extenso
+    valor_extenso = numero_por_extenso(dizimo.valor)
+
+    # Data de emissão
+    data_emissao = date.today()
+
+    context = {
+        'dizimo': dizimo,
+        'valor_extenso': valor_extenso,
+        'data_emissao': data_emissao,
+    }
+
+    return render(request, 'recibo_dizimo.html', context)
+
+
 
 def root_redirect(request):
     return redirect('dashboard')

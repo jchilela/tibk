@@ -79,6 +79,10 @@ urlpatterns = [
     path('relatorios/actividades/pdf/', sitetibl.views.relatorio_actividades_pdf, name='relatorio_actividades_pdf'),
     path('relatorios/inventario_patrimonio/pdf/', sitetibl.views.relatorio_inventario_patrimonio_pdf, name='relatorio_inventario_patrimonio_pdf'),
     path('relatorios/saida_caixa/pdf/', sitetibl.views.relatorio_saida_caixa_pdf, name='relatorio_saida_caixa_pdf'),
+    
+    # Recibo de dízimo individual
+    path('dizimos/recibo/<int:dizimo_id>/visualizar/', sitetibl.views.visualizar_recibo_dizimo, name='visualizar_recibo_dizimo'),
+    path('dizimos/recibo/<int:dizimo_id>/', sitetibl.views.gerar_recibo_dizimo, name='gerar_recibo_dizimo'),
     ]
 
 if settings.DEBUG:
