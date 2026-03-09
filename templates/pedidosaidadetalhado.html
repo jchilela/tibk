@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block PedidoSaidaDetalhado %}
 {% load static %}
 
@@ -12,8 +12,8 @@
         <div style="flex-grow: 1;">
             <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <span
-                    style="font-size: 0.75rem; color: white; background: var(--info); padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700;">Requisição
-                    de Saída</span>
+                    style="font-size: 0.75rem; color: white; background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700;">RequisiÃ§Ã£o
+                    de SaÃ­da</span>
                 <span class="badge"
                     style="background: {% if x.status_de_aprovacao.designacao == 'Aprovado' %}#dcfce7; color: #166534;{% elif x.status_de_aprovacao.designacao == 'Pendente' %}#fef9c3; color: #854d0e;{% else %}#fee2e2; color: #991b1b;{% endif %} padding: 4px 12px; border-radius: 20px; font-weight: 700;">
                     {{ x.status_de_aprovacao.designacao }}
@@ -41,7 +41,7 @@
         <!-- General Info -->
         <div class="modern-card">
             <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-file-alt mr-2"></i> Detalhes da Requisição
+                <i class="fas fa-file-alt mr-2"></i> Detalhes da RequisiÃ§Ã£o
             </h3>
 
             <div class="detail-row"
@@ -58,7 +58,7 @@
 
             <div class="detail-row"
                 style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
-                <span style="color: var(--text-muted); font-weight: 500;">Tipificação de Custo</span>
+                <span style="color: var(--text-muted); font-weight: 500;">TipificaÃ§Ã£o de Custo</span>
                 <span style="font-weight: 600;">{{ x.tipificacao_custo.designacao }}</span>
             </div>
 
@@ -74,7 +74,7 @@
                     de Custo</label>
                 <div
                     style="background: rgba(0,0,0,0.02); padding: 1rem; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.6; border: 1px solid rgba(0,0,0,0.05);">
-                    {{ x.justificativa_custo|default:"Sem justificação detalhada." }}
+                    {{ x.justificativa_custo|default:"Sem justificaÃ§Ã£o detalhada." }}
                 </div>
             </div>
         </div>
@@ -83,7 +83,7 @@
         <div style="display: flex; flex-direction: column; gap: 2rem;">
             <div class="modern-card" style="position: relative; overflow: hidden;">
                 <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                    <i class="fas fa-check-double mr-2"></i> Workflow de Aprovação
+                    <i class="fas fa-check-double mr-2"></i> Workflow de AprovaÃ§Ã£o
                 </h3>
 
                 <div
@@ -94,7 +94,7 @@
                             <i class="fas fa-user-check"></i>
                         </div>
                         <div>
-                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Aprovador Responsável</p>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Aprovador ResponsÃ¡vel</p>
                             <p style="font-weight: 700; color: var(--text-main); margin: 0;">{{ x.aprovador.nome }} {{
                                 x.aprovador.apelido }}</p>
                         </div>
@@ -131,11 +131,11 @@
                 </div>
             </div>
 
-            <div class="modern-card" style="background: var(--info); color: white; text-align: center;">
-                <p style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.5rem;">Requerente da Saída</p>
+            <div class="modern-card" style="background: var(--primary-light); color: white; color: white; text-align: center;">
+                <p style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.5rem;">Requerente da SaÃ­da</p>
                 <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--accent);">{{ x.requerente }}</h4>
                 <div style="width: 40px; height: 2px; background: var(--accent); margin: 1rem auto;"></div>
-                <p style="font-size: 0.75rem; opacity: 0.7;">Identificação Ref: #REQ-{{ x.id }}</p>
+                <p style="font-size: 0.75rem; opacity: 0.7;">IdentificaÃ§Ã£o Ref: #REQ-{{ x.id }}</p>
             </div>
         </div>
     </div>

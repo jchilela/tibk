@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Dizimosofertas %}
 
 <div class="list-container">
@@ -14,7 +14,7 @@
                 <input type="text" name="apelidov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">MÃªs</label>
                 <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">------------</option>
                     {% if listameses %}
@@ -43,8 +43,8 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Dízimos e Ofertas</h2>
-        <a href="/tibl/dizimosofertas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">DÃ­zimos e Ofertas</h2>
+        <a href="/tibl/dizimosofertas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
             <i class="fas fa-plus"></i> Registrar Entrada
         </a>
     </div>
@@ -54,10 +54,10 @@
         <table class="modern-table">
             <thead>
                 <tr>
-                    <th>Doador (Irmão)</th>
-                    <th style="text-align: center;">Período</th>
+                    <th>Doador (IrmÃ£o)</th>
+                    <th style="text-align: center;">PerÃ­odo</th>
                     <th style="text-align: center;">Valor</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -65,7 +65,7 @@
                 <tr>
                     <td>
                         <div style="font-weight: 600;">{{ x.irmao }}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Contribuição Registada</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">ContribuiÃ§Ã£o Registada</div>
                     </td>
                     <td style="text-align: center; color: var(--text-muted);">
                         <i class="fas fa-calendar-alt" style="font-size: 0.8rem; margin-right: 0.3rem;"></i> {{ x.datacorrespondente }}
@@ -75,7 +75,7 @@
                         <span style="font-size: 0.75rem; color: var(--text-muted);">{{ x.get_moeda_display }}</span>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-receipt"></i> Detalhes
                         </a>
                     </td>
@@ -97,3 +97,5 @@
 </div>
 
 {% endblock %}
+
+

@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Cestas %}
 
 <div class="list-container">
@@ -6,7 +6,7 @@
         <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-search-plus mr-2"></i> Filtrar Cestas</h3>
         <form action="/tibl/buscacestas" method="GET" style="display: flex; gap: 1rem; align-items: flex-end; justify-content: center;">
             <div style="flex: 1;">
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">MÃªs</label>
                 <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">Qualquer</option>
                     {% if listameses %}
@@ -33,9 +33,9 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Gestão de Cestas Básicas</h2>
-        <a href="/tibl/cestas/criar/" class="bt-primary" style="background-color: var(--accent); color: var(--primary-dark);">
-            <i class="fas fa-plus"></i> Nova Distribuição
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">GestÃ£o de Cestas BÃ¡sicas</h2>
+        <a href="/tibl/cestas/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white;">
+            <i class="fas fa-plus"></i> Nova DistribuiÃ§Ã£o
         </a>
     </div>
 
@@ -44,9 +44,9 @@
         <table class="modern-table" style="max-width: 800px; margin: 0 auto;">
             <thead>
                 <tr>
-                    <th>Código / Identificação</th>
+                    <th>CÃ³digo / IdentificaÃ§Ã£o</th>
                     <th style="text-align: right;">Valor Disponibilizado (Kz)</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,8 +59,8 @@
                         {{ x.valordisponibilizado|floatformat:2 }}
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/cestas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
-                            <i class="fas fa-list-ul"></i> Conteúdo
+                        <a href="/tibl/cestas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-list-ul"></i> ConteÃºdo
                         </a>
                     </td>
                 </tr>
@@ -76,9 +76,11 @@
     <div class="modern-card" style="text-align: center; padding: 4rem; max-width: 600px; margin: 0 auto;">
         <i class="fas fa-shopping-basket" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Cestas Registadas</h3>
-        <p style="color: var(--text-muted);">Não encontramos registos de cestas para o período selecionado.</p>
+        <p style="color: var(--text-muted);">NÃ£o encontramos registos de cestas para o perÃ­odo selecionado.</p>
     </div>
     {% endif %}
 </div>
 
 {% endblock %}
+
+

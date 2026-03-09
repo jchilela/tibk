@@ -1,16 +1,16 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Escalas %}
 
 <div class="list-container">
     <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">Gestão de Escalas
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">GestÃ£o de Escalas
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Organização de membros por actividade e função.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">OrganizaÃ§Ã£o de membros por actividade e funÃ§Ã£o.</p>
         </div>
         <a href="/tibl/escalas/criar/" class="bt-primary"
-            style="background-color: var(--accent); color: var(--primary-dark); padding: 0.8rem 1.5rem;">
+            style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
             <i class="fas fa-calendar-plus"></i> Nova Escala
         </a>
     </div>
@@ -23,7 +23,7 @@
         <div class="modern-card"
             style="border-top: 5px solid var(--primary); padding: 0; display: flex; flex-direction: column; overflow: hidden;">
             <!-- Header do Evento -->
-            <div style="background: var(--info); padding: 1.5rem; text-align: center;">
+            <div style="background: var(--primary-light); color: white; padding: 1.5rem; text-align: center;">
                 <h3 style="margin: 0; color: white; font-size: 1.35rem; line-height: 1.3;">
                     {{ evento.grouper.designacao }}
                 </h3>
@@ -92,9 +92,10 @@
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Escalas Ativas</h3>
-        <p style="color: var(--text-muted);">Não existem escalas de serviço registadas para este período.</p>
+        <p style="color: var(--text-muted);">NÃ£o existem escalas de serviÃ§o registadas para este perÃ­odo.</p>
     </div>
     {% endif %}
 </div>
 
 {% endblock %}
+

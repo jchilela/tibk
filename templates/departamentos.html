@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Departamentos %}
 
 <div class="list-container">
@@ -44,7 +44,7 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Estrutura de Departamentos</h2>
-        <a href="/tibl/departamentos/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+        <a href="/tibl/departamentos/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
             <i class="fas fa-plus"></i> Novo Departamento
         </a>
     </div>
@@ -70,7 +70,7 @@
                         <span style="background: var(--bg-main); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--primary);">{{ x.abreviacao }}</span>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/departamentos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/departamentos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-sitemap"></i> Ver Detalhes
                         </a>
                     </td>
@@ -92,3 +92,5 @@
 </div>
 
 {% endblock %}
+
+

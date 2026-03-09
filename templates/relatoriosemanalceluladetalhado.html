@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block RelatorioSemanalCelulaDetalhado %}
 {% load static %}
 
@@ -12,11 +12,11 @@
         <div style="flex-grow: 1;">
             <div
                 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
-                Relatório Semanal de Célula</div>
+                RelatÃ³rio Semanal de CÃ©lula</div>
             <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{
                 x.nome_celula.designacao|default:x.nome_celula }}</h1>
             <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
-                <i class="fas fa-calendar-alt mr-2" style="color: var(--primary);"></i> Reunião de {{
+                <i class="fas fa-calendar-alt mr-2" style="color: var(--primary);"></i> ReuniÃ£o de {{
                 x.data_reuniao|date:"d/m/Y"|default:x.data_reuniao }}
             </p>
         </div>
@@ -38,7 +38,7 @@
             <div class="modern-card" style="text-align: center; padding: 1.5rem;">
                 <h4
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                    Participação</h4>
+                    ParticipaÃ§Ã£o</h4>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div style="padding: 1rem; background: #f0fdf4; border-radius: 12px;">
                         <span
@@ -54,7 +54,7 @@
                     </div>
                     <div style="padding: 1rem; background: #eff6ff; border-radius: 12px; grid-column: span 2;">
                         <span
-                            style="display: block; font-size: 0.7rem; color: #1e40af; font-weight: 700;">CRIANÇAS</span>
+                            style="display: block; font-size: 0.7rem; color: #1e40af; font-weight: 700;">CRIANÃ‡AS</span>
                         <span style="font-size: 1.5rem; font-weight: 800; color: #3b82f6;">{{
                             x.numero_participantes_criancas }}</span>
                     </div>
@@ -64,20 +64,20 @@
             <div class="modern-card">
                 <h4
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                    Responsáveis</h4>
+                    ResponsÃ¡veis</h4>
                 <div class="detail-row" style="margin-bottom: 1rem;">
                     <label
-                        style="display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">LÍDER</label>
+                        style="display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">LÃDER</label>
                     <span style="font-weight: 600; color: var(--text-main);">{{ x.lider_responsavel }}</span>
                 </div>
                 <div class="detail-row" style="margin-bottom: 1rem;">
                     <label style="display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">LOCAL
-                        REUNIÃO</label>
+                        REUNIÃƒO</label>
                     <span style="font-weight: 600; color: var(--text-main);">{{ x.local_reuniao }}</span>
                 </div>
             </div>
 
-            <div class="modern-card" style="background: var(--info); color: white;">
+            <div class="modern-card" style="background: var(--primary-light); color: white; color: white;">
                 <h4 style="font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin-bottom: 1rem;">
                     Momentos Realizados</h4>
                 <ul style="list-style: none; padding: 0; margin: 0;">
@@ -110,7 +110,7 @@
                     style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border-left: 4px solid var(--primary); font-style: italic; margin-bottom: 2rem;">
                     <h4
                         style="font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem;">
-                        Versículo Chave</h4>
+                        VersÃ­culo Chave</h4>
                     <p style="font-size: 1.1rem; color: var(--text-main); margin: 0;">"{{ x.versiculo_chave }}"</p>
                 </div>
                 <div>
@@ -124,34 +124,34 @@
 
             <div class="modern-card">
                 <h3 style="border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; margin-bottom: 2rem;">
-                    <i class="fas fa-pray mr-2"></i> Vida da Célula
+                    <i class="fas fa-pray mr-2"></i> Vida da CÃ©lula
                 </h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                     <div>
                         <h4
                             style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-hand-holding-heart" style="color: #3b82f6;"></i> Tópicos de Oração
+                            <i class="fas fa-hand-holding-heart" style="color: #3b82f6;"></i> TÃ³picos de OraÃ§Ã£o
                         </h4>
                         <div
                             style="background: rgba(59, 130, 246, 0.05); padding: 1rem; border-radius: 12px; min-height: 100px; font-size: 0.95rem;">
-                            {{ x.topicos_oracao|default:"Não especificado" }}
+                            {{ x.topicos_oracao|default:"NÃ£o especificado" }}
                         </div>
                     </div>
                     <div>
                         <h4
                             style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-bullseye" style="color: #ef4444;"></i> Alvos e Ações
+                            <i class="fas fa-bullseye" style="color: #ef4444;"></i> Alvos e AÃ§Ãµes
                         </h4>
                         <div
                             style="background: rgba(239, 68, 68, 0.05); padding: 1rem; border-radius: 12px; min-height: 100px; font-size: 0.95rem;">
-                            {{ x.alvos_e_accoes_para_proxima_semana|default:"Não especificado" }}
+                            {{ x.alvos_e_accoes_para_proxima_semana|default:"NÃ£o especificado" }}
                         </div>
                     </div>
                 </div>
                 <div style="margin-top: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
                     <h4
                         style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">
-                        Observações e Necessidades</h4>
+                        ObservaÃ§Ãµes e Necessidades</h4>
                     <p style="font-size: 0.95rem; line-height: 1.6;">{{ x.observacoes_e_necessidades|default:"Sem
                         necessidades registadas." }}</p>
                 </div>
@@ -170,7 +170,7 @@
 <div style="text-align: center; margin-top: 2rem;">
     <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-primary"
         style="background: transparent; color: var(--primary); border: 2px solid var(--primary); box-shadow: none;">
-        <i class="fas fa-undo"></i> Voltar à Lista de Relatórios
+        <i class="fas fa-undo"></i> Voltar Ã  Lista de RelatÃ³rios
     </a>
 </div>
 

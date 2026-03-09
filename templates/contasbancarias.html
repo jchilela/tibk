@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Contasbancarias %}
 
 <div class="list-container">
@@ -6,11 +6,11 @@
         <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-search-dollar mr-2"></i> Procurar Contas</h3>
         <form action="/tibl/buscacontasbancarias" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome Proprietário</label>
-                <input type="text" name="nomev" placeholder="Ex: João" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome ProprietÃ¡rio</label>
+                <input type="text" name="nomev" placeholder="Ex: JoÃ£o" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Apelido Proprietário</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Apelido ProprietÃ¡rio</label>
                 <input type="text" name="apelidov" placeholder="Ex: Silva" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
@@ -25,8 +25,8 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Contas Bancárias Registadas</h2>
-        <a href="/tibl/contasbancarias/criar/" class="bt-primary" style="background-color: var(--accent); color: var(--primary-dark);">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Contas BancÃ¡rias Registadas</h2>
+        <a href="/tibl/contasbancarias/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white;">
             <i class="fas fa-plus"></i> Nova Conta
         </a>
     </div>
@@ -36,10 +36,10 @@
         <table class="modern-table">
             <thead>
                 <tr>
-                    <th>Instituição / Banco</th>
-                    <th>Proprietário</th>
-                    <th>Nº Conta / IBAN</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th>InstituiÃ§Ã£o / Banco</th>
+                    <th>ProprietÃ¡rio</th>
+                    <th>NÂº Conta / IBAN</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,7 +64,7 @@
                         <div style="font-size: 0.75rem; color: var(--text-muted);">IBAN: {{ x.iban }}</div>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/contasbancarias/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/contasbancarias/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-eye"></i> Detalhes
                         </a>
                     </td>
@@ -81,9 +81,11 @@
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-university" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhuma Conta Encontrada</h3>
-        <p style="color: var(--text-muted);">Não existem contas bancárias que correspondam aos seus critérios de busca.</p>
+        <p style="color: var(--text-muted);">NÃ£o existem contas bancÃ¡rias que correspondam aos seus critÃ©rios de busca.</p>
     </div>
     {% endif %}
 </div>
 
 {% endblock %}
+
+

@@ -1,15 +1,15 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block RelatorioSemanalCelula %}
 
 <div class="list-container">
     <!-- Header Section -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Relatórios de Células</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão e acompanhamento das atividades semanais das células.</p>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">RelatÃ³rios de CÃ©lulas</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">GestÃ£o e acompanhamento das atividades semanais das cÃ©lulas.</p>
         </div>
         <a href="/tibl/relatoriosemanalcelula/criar/" class="bt-primary">
-            <i class="fas fa-plus"></i> Novo Relatório
+            <i class="fas fa-plus"></i> Novo RelatÃ³rio
         </a>
     </div>
 
@@ -17,12 +17,12 @@
     <div class="modern-card" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);">
         <form action="/tibl/buscarelatoriosemanalcelula" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 1rem; align-items: end;">
             <div class="form-group" style="margin-bottom: 0;">
-                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nome da Célula</label>
-                <input type="text" name="nomev" class="modern-input" placeholder="Ex: Célula Betel..." style="padding: 0.6rem;">
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nome da CÃ©lula</label>
+                <input type="text" name="nomev" class="modern-input" placeholder="Ex: CÃ©lula Betel..." style="padding: 0.6rem;">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Líder</label>
-                <input type="text" name="liderv" class="modern-input" placeholder="Nome do líder..." style="padding: 0.6rem;">
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">LÃ­der</label>
+                <input type="text" name="liderv" class="modern-input" placeholder="Nome do lÃ­der..." style="padding: 0.6rem;">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Local / Tema</label>
@@ -40,9 +40,9 @@
         <table class="modern-table">
             <thead>
                 <tr>
-                    <th>Nome da Célula</th>
-                    <th>Líder Responsável</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th>Nome da CÃ©lula</th>
+                    <th>LÃ­der ResponsÃ¡vel</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -57,8 +57,8 @@
                         <div style="font-weight: 500; color: var(--text-main);">{{ x.lider_responsavel }}</div>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
-                            <i class="fas fa-file-alt"></i> Ver Relatório
+                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-file-alt"></i> Ver RelatÃ³rio
                         </a>
                     </td>
                 </tr>
@@ -73,10 +73,11 @@
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
-        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum relatório registado</h3>
-        <p style="color: var(--text-muted);">Comece criando o primeiro relatório semanal da célula.</p>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum relatÃ³rio registado</h3>
+        <p style="color: var(--text-muted);">Comece criando o primeiro relatÃ³rio semanal da cÃ©lula.</p>
     </div>
     {% endif %}
 </div>
 
 {% endblock %}
+
