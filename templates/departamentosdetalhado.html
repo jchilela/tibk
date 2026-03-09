@@ -47,8 +47,7 @@
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; position: relative; z-index: 1;">
 
             <!-- Liderança Card -->
-            <div style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 2rem; border-radius: var(--radius-lg); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; overflow: hidden;"
-                class="hover-lift">
+            <div style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 2rem; border-radius: var(--radius-lg); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; overflow: hidden;">
                 <div
                     style="position: absolute; top: -10px; right: -10px; opacity: 0.05; font-size: 6rem; color: var(--primary);">
                     <i class="fas fa-crown"></i>
@@ -75,8 +74,7 @@
             </div>
 
             <!-- Identificação Card -->
-            <div style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 2rem; border-radius: var(--radius-lg); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; overflow: hidden;"
-                class="hover-lift">
+            <div style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 2rem; border-radius: var(--radius-lg); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; overflow: hidden;">
                 <div
                     style="position: absolute; top: -10px; right: -10px; opacity: 0.05; font-size: 6rem; color: var(--text-secondary);">
                     <i class="fas fa-fingerprint"></i>
@@ -104,8 +102,7 @@
             </div>
 
             <!-- Observações Card (Full Width) -->
-            <div style="grid-column: 1 / -1; margin-top: 0.5rem; background: linear-gradient(to right, rgba(254, 243, 199, 0.4), rgba(254, 243, 199, 0.1)); border-left: 4px solid #f59e0b; padding: 2rem; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; position: relative; z-index: 1;"
-                class="hover-lift">
+            <div style="grid-column: 1 / -1; margin-top: 0.5rem; background: linear-gradient(to right, rgba(254, 243, 199, 0.4), rgba(254, 243, 199, 0.1)); border-left: 4px solid #f59e0b; padding: 2rem; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; position: relative; z-index: 1;">
                 <h4
                     style="color: #d97706; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; margin-bottom: 1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; font-family: 'Outfit', sans-serif;">
                     <i class="fas fa-sticky-note"></i> Observações Relevantes / Notas
@@ -118,6 +115,107 @@
                         observação ou nota registada para este departamento no momento.</span>
                     {% endif %}
                 </p>
+            </div>
+
+            <div style="grid-column: 1 / -1; margin-top: 1rem; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                    <h4 style="margin: 0; color: var(--text-main); font-family: 'Outfit', sans-serif; font-weight: 700;">
+                        <i class="fas fa-users" style="color: var(--primary);"></i> Membros e Mandatos do Departamento
+                    </h4>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Total: {{ mandatos_departamento|length }}</span>
+                </div>
+
+                {% if mandatos_departamento %}
+                <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Irmão</th>
+                                <th>Cargo</th>
+                                <th>Periodo</th>
+                                <th style="text-align: right;">Acao</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mandato in mandatos_departamento %}
+                            <tr>
+                                <td>
+                                    {{ mandato.irmao.nome }} {{ mandato.irmao.apelido }}
+                                    {% if x.lider_departamento_id == mandato.irmao_id %}
+                                    <span style="margin-left: 0.5rem; background: #dcfce7; color: #166534; padding: 0.1rem 0.4rem; border-radius: 999px; font-size: 0.75rem;">Lider</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ mandato.cargo.designacao }}</td>
+                                <td>
+                                    {% if mandato.inicio %}{{ mandato.inicio|date:"d/m/Y" }}{% else %}-{% endif %}
+                                    -
+                                    {% if mandato.fim %}{{ mandato.fim|date:"d/m/Y" }}{% else %}Em curso{% endif %}
+                                </td>
+                                <td style="text-align: right;">
+                                    {% if pode_gerir_membros %}
+                                    <form method="post" action="" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove_member">
+                                        <input type="hidden" name="mandato_id" value="{{ mandato.id }}">
+                                        <button type="submit" class="bt-danger" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">
+                                            <i class="fas fa-user-minus"></i> Remover
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">Sem permissao</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="padding: 1rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; color: #475569;">
+                    Este departamento ainda nao possui membros com mandato atribuido.
+                </div>
+                {% endif %}
+
+                {% if pode_gerir_membros %}
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                    <h5 style="margin-bottom: 0.8rem; color: var(--text-main);">Adicionar membro ao departamento</h5>
+                    <form method="post" action="" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; align-items: end;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_member">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Irmão</label>
+                            <select name="irmao_id" required style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="">Selecione</option>
+                                {% for irmao in todos_irmaos %}
+                                <option value="{{ irmao.id }}">{{ irmao.nome }} {{ irmao.apelido }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Cargo</label>
+                            <select name="cargo_id" required style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="">Selecione</option>
+                                {% for cargo in todos_cargos %}
+                                <option value="{{ cargo.id }}">{{ cargo.designacao }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Inicio</label>
+                            <input type="date" name="inicio" style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Fim</label>
+                            <input type="date" name="fim" style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                            <small style="display: block; margin-top: 0.3rem; color: var(--text-muted);">Opcional</small>
+                        </div>
+                        <button type="submit" class="bt-primary" style="padding: 0.55rem 1rem;">
+                            <i class="fas fa-user-plus"></i> Adicionar
+                        </button>
+                    </form>
+                    <p style="margin-top: 0.6rem; color: var(--text-muted); font-size: 0.8rem;">Gestao permitida para o lider do departamento e administradores.</p>
+                </div>
+                {% endif %}
             </div>
 
         </div>

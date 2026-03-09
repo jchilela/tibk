@@ -12,6 +12,7 @@ from django import forms
 from django.urls import reverse
 from django.template import loader
 from django.db.models import Sum, Count, F
+from django.db import IntegrityError
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
 from reportlab.lib.pagesizes import A4
@@ -135,7 +136,14 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
              'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
              }
-    if (gestaoescolhida == 'irmaos'):
+    if gestaoescolhida == 'departamentos':
+        resultado = (
+            lista[gestaoescolhida]
+            .all()
+            .annotate(total_integrantes=Count('integrantes', distinct=True))
+            .order_by('designacao')
+        )
+    elif (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].all().order_by('nome','outrosnomes')
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
@@ -311,6 +319,77 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'escalas_da_actividade': escalas_da_actividade,
             'todas_funcoes': todas_funcoes,
             'todos_irmaos': todos_irmaos
+        }
+    elif gestaoescolhida == 'departamentos':
+        mandatos_departamento = (
+            Mandato.objects
+            .select_related('irmao', 'cargo')
+            .filter(departamento_id=identificador)
+            .order_by('cargo__designacao', 'irmao__nome', 'irmao__apelido')
+        )
+        irmao_logado = Irmao.objects.filter(user=request.user).first()
+        lidera_departamento = (
+            irmao_logado is not None and registo.lider_departamento_id == irmao_logado.id
+        )
+        pode_gerir_membros = (
+            lidera_departamento
+            or request.user.has_perm('sitetibl.add_mandato')
+            or request.user.has_perm('sitetibl.delete_mandato')
+        )
+
+        if request.method == 'POST':
+            if not pode_gerir_membros:
+                messages.error(request, 'Apenas o lider do departamento ou um administrador pode gerir membros.')
+                return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
+
+            action = request.POST.get('action', '').strip()
+            if action == 'add_member':
+                irmao_id = request.POST.get('irmao_id', '').strip()
+                cargo_id = request.POST.get('cargo_id', '').strip()
+                inicio = request.POST.get('inicio') or None
+                fim = request.POST.get('fim') or None
+
+                if not irmao_id or not cargo_id:
+                    messages.error(request, 'Selecione um irmao e um cargo para adicionar ao departamento.')
+                else:
+                    mandato_existente = Mandato.objects.filter(
+                        departamento_id=identificador,
+                        irmao_id=irmao_id,
+                        cargo_id=cargo_id,
+                    ).exists()
+                    if mandato_existente:
+                        messages.warning(request, 'Este membro ja possui este cargo neste departamento.')
+                    else:
+                        try:
+                            Mandato.objects.create(
+                                departamento_id=identificador,
+                                irmao_id=irmao_id,
+                                cargo_id=cargo_id,
+                                inicio=inicio,
+                                fim=fim,
+                            )
+                            messages.success(request, 'Membro adicionado ao departamento com sucesso.')
+                        except IntegrityError:
+                            messages.error(request, 'Nao foi possivel adicionar o membro. Verifique os dados informados.')
+
+            elif action == 'remove_member':
+                mandato_id = request.POST.get('mandato_id', '').strip()
+                mandato = Mandato.objects.filter(id=mandato_id, departamento_id=identificador).first()
+                if mandato is None:
+                    messages.error(request, 'Registo de mandato nao encontrado para este departamento.')
+                else:
+                    mandato.delete()
+                    messages.success(request, 'Membro removido do departamento com sucesso.')
+
+            return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'mandatos_departamento': mandatos_departamento,
+            'todos_irmaos': Irmao.objects.order_by('nome', 'apelido'),
+            'todos_cargos': Cargo.objects.order_by('designacao'),
+            'pode_gerir_membros': pode_gerir_membros,
         }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
