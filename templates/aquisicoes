@@ -34,7 +34,7 @@
                         {{ x.data|date:"d/m/Y"|default:x.data }}
                     </td>
                     <td style="text-align: right;">
-                        <a href="{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                        <a href="{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
                             <i class="fas fa-eye"></i> Ver Detalhes
                         </a>
                     </td>

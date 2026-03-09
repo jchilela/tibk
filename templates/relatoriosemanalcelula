@@ -57,7 +57,7 @@
                         <div style="font-weight: 500; color: var(--text-main);">{{ x.lider_responsavel }}</div>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
                             <i class="fas fa-file-alt"></i> Ver Relatório
                         </a>
                     </td>
