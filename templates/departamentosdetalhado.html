@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% block Departamentosdetalhado %}
+{% block content %}
 
 {% if registoachado %}
 <div class="profile-container" style="max-width: 900px; margin: 0 auto; padding-bottom: 3rem;">
@@ -89,7 +89,7 @@
                 <div style="display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1;">
                     <div
                         style="width: 65px; height: 65px; background: white; color: var(--primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 800; border: 2px solid var(--primary-100); box-shadow: 0 4px 10px rgba(0,0,0,0.05); font-family: 'Outfit', sans-serif;">
-                        {{ x.abreviacao|first|upper }}
+                        {% if x.abreviacao %}{{ x.abreviacao|first|upper }}{% else %}-{% endif %}
                     </div>
                     <div>
                         <p

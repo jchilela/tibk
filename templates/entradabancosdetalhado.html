@@ -12,8 +12,7 @@
             <div
                 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
                 Registo de Entrada Bancária</div>
-            <h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">+ {{ x.valor|floatformat:2
-                }} {{ x.moeda }}</h1>
+            <h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">+ {{ x.valor|floatformat:2 }} {{ x.moeda }}</h1>
             <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
                 <i class="fas fa-university mr-2" style="color: var(--primary);"></i> Conta: {{ x.contaaacreditar }}
             </p>
@@ -45,21 +44,19 @@
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                 <span style="color: var(--text-muted); font-weight: 500;">Data / Hora</span>
-                <span style="font-weight: 600;">{{ x.data|date:"d/m/Y"|default:x.data }} às {{ x.hora|default:"--:--"
-                    }}</span>
+                <span style="font-weight: 600;">{{ x.data|date:"d/m/Y"|default:x.data }} às {{ x.hora|time:"H:i"|default:"--:--" }}</span>
             </div>
 
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                 <span style="color: var(--text-muted); font-weight: 500;">Rúbrica</span>
-                <span style="font-weight: 700; color: var(--primary-dark);">{{ x.rubrica.designacao|default:x.rubrica
-                    }}</span>
+                <span style="font-weight: 700; color: var(--primary-dark);">{{ x.rubrica.designacao|default:x.rubrica }}</span>
             </div>
 
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                 <span style="color: var(--text-muted); font-weight: 500;">Canal / Via</span>
-                <span style="font-weight: 600;">{{ x.via|default:"Bancária" }}</span>
+                <span style="font-weight: 600;">{{ x.get_via_display|default:x.via }}</span>
             </div>
 
             <div class="detail-row"
@@ -79,8 +76,7 @@
                 <label
                     style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Conta
                     de Origem</label>
-                <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">{{
-                    x.contaorigem|default:"Não especificada" }}</span>
+                <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">{{ x.contaorigem|default:"Não especificada" }}</span>
                 {% if x.contaorigem %}
                 <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
                     Saldo actual da origem: {{ x.contaorigem.saldo_actual|floatformat:2 }} {{ x.contaorigem.moeda }}
