@@ -391,6 +391,164 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'todos_cargos': Cargo.objects.order_by('designacao'),
             'pode_gerir_membros': pode_gerir_membros,
         }
+    elif gestaoescolhida == 'contasbancarias':
+        entradas_conta = (
+            Entradabanco.objects
+            .select_related('rubrica', 'responsavel', 'contaorigem')
+            .filter(contaaacreditar_id=identificador)
+            .order_by('-data', '-hora')
+        )
+        saidas_conta = (
+            Saidabanco.objects
+            .select_related('rubrica', 'responsavel', 'contaaacreditar')
+            .filter(conta_id=identificador)
+            .order_by('-data', '-hora')
+        )
+        total_entradas = entradas_conta.aggregate(total=Sum('valor')).get('total') or 0
+        total_saidas = saidas_conta.aggregate(total=Sum('valor')).get('total') or 0
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_conta': entradas_conta[:8],
+            'saidas_conta': saidas_conta[:8],
+            'total_entradas_conta': total_entradas,
+            'total_saidas_conta': total_saidas,
+            'saldo_movimento': total_entradas - total_saidas,
+        }
+    elif gestaoescolhida == 'bancos':
+        contas_banco = (
+            Contabancaria.objects
+            .select_related('proprietario', 'instituicao')
+            .filter(banco_id=identificador)
+            .order_by('numeroconta')
+        )
+        entradas_banco = (
+            Entradabanco.objects
+            .select_related('contaaacreditar', 'rubrica')
+            .filter(contaaacreditar__banco_id=identificador)
+            .order_by('-data', '-hora')[:6]
+        )
+        saidas_banco = (
+            Saidabanco.objects
+            .select_related('conta', 'rubrica')
+            .filter(conta__banco_id=identificador)
+            .order_by('-data', '-hora')[:6]
+        )
+        total_contas = contas_banco.count()
+        total_saldo_banco = sum(conta.saldo_actual() for conta in contas_banco)
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'contas_banco': contas_banco,
+            'entradas_banco': entradas_banco,
+            'saidas_banco': saidas_banco,
+            'total_contas_banco': total_contas,
+            'total_saldo_banco': total_saldo_banco,
+        }
+    elif gestaoescolhida == 'entradabancos':
+        conta_destino_id = registo.contaaacreditar_id
+        entradas_relacionadas = Entradabanco.objects.none()
+        saidas_relacionadas = Saidabanco.objects.none()
+        if conta_destino_id:
+            entradas_relacionadas = (
+                Entradabanco.objects
+                .select_related('rubrica')
+                .filter(contaaacreditar_id=conta_destino_id)
+                .exclude(id=identificador)
+                .order_by('-data', '-hora')[:6]
+            )
+            saidas_relacionadas = (
+                Saidabanco.objects
+                .select_related('rubrica')
+                .filter(conta_id=conta_destino_id)
+                .order_by('-data', '-hora')[:6]
+            )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_relacionadas': entradas_relacionadas,
+            'saidas_relacionadas': saidas_relacionadas,
+        }
+    elif gestaoescolhida == 'saidabancos':
+        conta_origem_id = registo.conta_id
+        entradas_relacionadas = Entradabanco.objects.none()
+        saidas_relacionadas = Saidabanco.objects.none()
+        if conta_origem_id:
+            entradas_relacionadas = (
+                Entradabanco.objects
+                .select_related('rubrica')
+                .filter(contaaacreditar_id=conta_origem_id)
+                .order_by('-data', '-hora')[:6]
+            )
+            saidas_relacionadas = (
+                Saidabanco.objects
+                .select_related('rubrica')
+                .filter(conta_id=conta_origem_id)
+                .exclude(id=identificador)
+                .order_by('-data', '-hora')[:6]
+            )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_relacionadas': entradas_relacionadas,
+            'saidas_relacionadas': saidas_relacionadas,
+        }
+    elif gestaoescolhida == 'entradascaixa':
+        entradas_relacionadas = (
+            Entradacaixa.objects
+            .select_related('rubrica', 'responsavel')
+            .filter(rubrica_id=registo.rubrica_id)
+            .exclude(id=identificador)
+            .order_by('-data', '-hora')[:6]
+        )
+        saidas_relacionadas = (
+            Saidacaixa.objects
+            .select_related('rubrica', 'responsavel')
+            .filter(responsavel_id=registo.responsavel_id)
+            .order_by('-data', '-hora')[:6]
+        )
+        total_entradas_rubrica = (
+            Entradacaixa.objects
+            .filter(rubrica_id=registo.rubrica_id)
+            .aggregate(total=Sum('valor'))
+            .get('total') or 0
+        )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_relacionadas': entradas_relacionadas,
+            'saidas_relacionadas': saidas_relacionadas,
+            'total_entradas_rubrica': total_entradas_rubrica,
+        }
+    elif gestaoescolhida == 'saidascaixa':
+        saidas_relacionadas = (
+            Saidacaixa.objects
+            .select_related('rubrica', 'responsavel')
+            .filter(rubrica_id=registo.rubrica_id)
+            .exclude(id=identificador)
+            .order_by('-data', '-hora')[:6]
+        )
+        entradas_relacionadas = (
+            Entradacaixa.objects
+            .select_related('rubrica', 'responsavel')
+            .filter(responsavel_id=registo.responsavel_id)
+            .order_by('-data', '-hora')[:6]
+        )
+        total_saidas_rubrica = (
+            Saidacaixa.objects
+            .filter(rubrica_id=registo.rubrica_id)
+            .aggregate(total=Sum('valor'))
+            .get('total') or 0
+        )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_relacionadas': entradas_relacionadas,
+            'saidas_relacionadas': saidas_relacionadas,
+            'total_saidas_rubrica': total_saidas_rubrica,
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)

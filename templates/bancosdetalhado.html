@@ -71,6 +71,113 @@
         </div>
     </div>
 
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
+        <div class="modern-card" style="border-left: 4px solid var(--primary);">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Contas vinculadas</div>
+            <div style="font-size: 1.7rem; font-weight: 800; color: var(--text-main);">{{ total_contas_banco }}</div>
+        </div>
+        <div class="modern-card" style="border-left: 4px solid #0ea5e9;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Saldo agregado estimado</div>
+            <div style="font-size: 1.7rem; font-weight: 800; color: #0c4a6e;">{{ total_saldo_banco|floatformat:2 }}</div>
+        </div>
+    </div>
+
+    <div class="modern-card" style="margin-top: 1.25rem;">
+        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+            <i class="fas fa-link mr-2"></i> Contas Ligadas ao Banco
+        </h3>
+        {% if contas_banco %}
+        <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>IBAN</th>
+                        <th>Titular</th>
+                        <th style="text-align: right;">Movimentos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for conta in contas_banco %}
+                    <tr>
+                        <td>{{ conta.numeroconta }}</td>
+                        <td style="font-family: 'Courier New', Courier, monospace; font-size: 0.85rem;">{{ conta.iban }}</td>
+                        <td>{{ conta.proprietario|default:conta.instituicao }}</td>
+                        <td style="text-align: right;">
+                            <a href="/tibl/contasbancarias/detalhe/{{ conta.id }}" class="bt-primary" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Ver Conta</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); margin: 0;">Este banco ainda não possui contas registadas.</p>
+        {% endif %}
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
+        <div class="modern-card">
+            <h3 style="margin-bottom: 0.8rem; color: #166534;">
+                <i class="fas fa-arrow-down mr-2"></i> Entradas Recentes
+            </h3>
+            {% if entradas_banco %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Conta</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in entradas_banco %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td>{{ mov.contaaacreditar.numeroconta }}</td>
+                            <td style="font-weight: 700; color: #166534;">+ {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem entradas recentes neste banco.</p>
+            {% endif %}
+        </div>
+
+        <div class="modern-card">
+            <h3 style="margin-bottom: 0.8rem; color: #991b1b;">
+                <i class="fas fa-arrow-up mr-2"></i> Saídas Recentes
+            </h3>
+            {% if saidas_banco %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Conta</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in saidas_banco %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td>{{ mov.conta.numeroconta }}</td>
+                            <td style="font-weight: 700; color: #991b1b;">- {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem saídas recentes neste banco.</p>
+            {% endif %}
+        </div>
+    </div>
+
     {% endfor %}
 </div>
 {% endif %}

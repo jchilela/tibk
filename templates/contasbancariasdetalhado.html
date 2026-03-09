@@ -158,6 +158,87 @@
 
     </div>
 
+    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        <div class="modern-card" style="border-left: 4px solid #16a34a;">
+            <p style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; font-weight: 700;">Entradas nesta conta</p>
+            <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #166534;">{{ total_entradas_conta|floatformat:2 }}</p>
+        </div>
+        <div class="modern-card" style="border-left: 4px solid #ef4444;">
+            <p style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; font-weight: 700;">Saídas desta conta</p>
+            <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #991b1b;">{{ total_saidas_conta|floatformat:2 }}</p>
+        </div>
+        <div class="modern-card" style="border-left: 4px solid var(--primary);">
+            <p style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; font-weight: 700;">Saldo líquido por movimentos</p>
+            <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">{{ saldo_movimento|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1rem;">
+        <div class="modern-card" style="padding: 1.25rem;">
+            <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #166534; font-family: 'Outfit', sans-serif;">
+                <i class="fas fa-arrow-down"></i> Últimas Entradas Bancárias
+            </h4>
+            {% if entradas_conta %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Rúbrica</th>
+                            <th style="text-align: right;">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in entradas_conta %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td style="font-weight: 700; color: #166534;">+ {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td>{{ mov.rubrica.designacao|default:mov.rubrica }}</td>
+                            <td style="text-align: right;"><a href="/tibl/entradabancos/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">Abrir</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem entradas bancárias ligadas a esta conta.</p>
+            {% endif %}
+        </div>
+
+        <div class="modern-card" style="padding: 1.25rem;">
+            <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #991b1b; font-family: 'Outfit', sans-serif;">
+                <i class="fas fa-arrow-up"></i> Últimas Saídas Bancárias
+            </h4>
+            {% if saidas_conta %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Rúbrica</th>
+                            <th style="text-align: right;">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in saidas_conta %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td style="font-weight: 700; color: #991b1b;">- {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td>{{ mov.rubrica.designacao|default:mov.rubrica }}</td>
+                            <td style="text-align: right;"><a href="/tibl/saidabancos/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; background: #ef4444;">Abrir</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem saídas bancárias a partir desta conta.</p>
+            {% endif %}
+        </div>
+    </div>
+
     {% endfor %}
 </div>
 

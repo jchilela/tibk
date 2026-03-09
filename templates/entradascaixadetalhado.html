@@ -86,6 +86,79 @@
         </div>
     </div>
 
+    <div style="margin-top: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        <div class="modern-card" style="border-left: 4px solid var(--primary);">
+            <p style="margin: 0 0 0.2rem 0; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Entradas por esta rúbrica</p>
+            <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">{{ total_entradas_rubrica|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem;">
+        <div class="modern-card">
+            <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #166534;">
+                <i class="fas fa-layer-group mr-2"></i> Outras Entradas da Mesma Rúbrica
+            </h4>
+            {% if entradas_relacionadas %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Responsável</th>
+                            <th>Valor</th>
+                            <th style="text-align: right;">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in entradas_relacionadas %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td>{{ mov.responsavel }}</td>
+                            <td style="font-weight: 700; color: #166534;">+ {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td style="text-align: right;"><a href="/tibl/entradascaixa/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">Abrir</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem outras entradas para esta rúbrica.</p>
+            {% endif %}
+        </div>
+
+        <div class="modern-card">
+            <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #991b1b;">
+                <i class="fas fa-user-clock mr-2"></i> Saídas do Mesmo Responsável
+            </h4>
+            {% if saidas_relacionadas %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Rúbrica</th>
+                            <th>Valor</th>
+                            <th style="text-align: right;">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in saidas_relacionadas %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td>{{ mov.rubrica.designacao|default:mov.rubrica }}</td>
+                            <td style="font-weight: 700; color: #991b1b;">- {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td style="text-align: right;"><a href="/tibl/saidascaixa/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #ef4444;">Abrir</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem saídas recentes deste responsável.</p>
+            {% endif %}
+        </div>
+    </div>
+
     {% endfor %}
 </div>
 {% endif %}
