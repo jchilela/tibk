@@ -28,6 +28,15 @@
                 </select>
             </div>
             <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Via</label>
+                <select name="viav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Qualquer</option>
+                    <option value="1">Depósito</option>
+                    <option value="2">Transferência bancária</option>
+                    <option value="3">Multicaixa</option>
+                </select>
+            </div>
+            <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">MÃªs/Ano</label>
                 <div style="display: flex; gap: 0.5rem;">
                     <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
@@ -62,6 +71,7 @@
                 <tr>
                     <th>Data</th>
                     <th>Conta Creditada</th>
+                    <th>Via</th>
                     <th>Rubrica / DescriÃ§Ã£o</th>
                     <th style="text-align: right;">Montante (Kz)</th>
                     <th style="text-align: right;">AÃ§Ãµes</th>
@@ -75,13 +85,19 @@
                     </td>
                     <td>
                         <div style="font-size: 0.85rem; font-weight: 500;">{{ x.contaaacreditar }}</div>
+                        {% if x.contaaacreditar %}
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Saldo actual: {{ x.contaaacreditar.saldo_actual|floatformat:2 }} {{ x.contaaacreditar.moeda }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ x.get_via_display|default:x.via }}</div>
                     </td>
                     <td>
                         <div style="font-weight: 600; color: var(--primary-dark);">{{ x.rubrica }}</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted);">Ref: {{ x.id }}</div>
                     </td>
                     <td style="text-align: right; color: var(--primary); font-weight: 700;">
-                        + {{ x.montante|floatformat:2 }}
+                        + {{ x.valor|floatformat:2 }}
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/entradabancos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">

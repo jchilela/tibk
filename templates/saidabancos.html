@@ -75,13 +75,16 @@
                     </td>
                     <td>
                         <div style="font-size: 0.85rem; font-weight: 500;">{{ x.conta }}</div>
+                        {% if x.conta %}
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Saldo actual: {{ x.conta.saldo_actual|floatformat:2 }} {{ x.conta.moeda }}</div>
+                        {% endif %}
                     </td>
                     <td>
                         <div style="font-weight: 600; color: #991b1b;">{{ x.aquisicao.rubrica }}</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted);">{{ x.aquisicao.requisicao }}</div>
                     </td>
                     <td style="text-align: right; color: #ef4444; font-weight: 700;">
-                        - {{ x.montante|floatformat:2 }}
+                        - {{ x.valor|floatformat:2 }}
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/saidabancos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">

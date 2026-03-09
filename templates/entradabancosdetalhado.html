@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% block Entradabancosdetalhado %}
+{% block content %}
 
 {% if registoachado %}
 <div class="profile-container" style="max-width: 800px; margin: 0 auto; padding-bottom: 3rem;">
@@ -17,6 +17,11 @@
             <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
                 <i class="fas fa-university mr-2" style="color: var(--primary);"></i> Conta: {{ x.contaaacreditar }}
             </p>
+            {% if x.contaaacreditar %}
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">
+                Saldo actual da conta destino: {{ x.contaaacreditar.saldo_actual|floatformat:2 }} {{ x.contaaacreditar.moeda }}
+            </p>
+            {% endif %}
         </div>
         <div style="display: flex; gap: 0.75rem;">
             <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
@@ -76,6 +81,11 @@
                     de Origem</label>
                 <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">{{
                     x.contaorigem|default:"Não especificada" }}</span>
+                {% if x.contaorigem %}
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
+                    Saldo actual da origem: {{ x.contaorigem.saldo_actual|floatformat:2 }} {{ x.contaorigem.moeda }}
+                </div>
+                {% endif %}
             </div>
 
             <div style="margin-top: 1.5rem;">

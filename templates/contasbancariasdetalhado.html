@@ -1,5 +1,5 @@
 ﻿{% extends 'index.html' %}
-{% block Contasbancariasdetalhado %}
+{% block content %}
 
 {% if registoachado %}
 <div class="profile-container" style="max-width: 900px; margin: 0 auto; padding-bottom: 3rem;">
@@ -37,7 +37,7 @@
 
                 <p
                     style="color: var(--text-secondary); font-weight: 500; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                    <i class="far fa-id-card text-primary"></i> Detalhes da Conta BancÃ¡ria
+                    <i class="far fa-id-card text-primary"></i> Detalhes da Conta Bancaria
                 </p>
             </div>
 
@@ -67,7 +67,7 @@
                     style="width: 32px; height: 32px; background: var(--primary-50); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; color: var(--primary);">
                     <i class="fas fa-piggy-bank"></i>
                 </div>
-                InformaÃ§Ã£o BancÃ¡ria
+                Informacao Bancaria
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 1rem;">
@@ -103,7 +103,7 @@
                 <div style="padding: 1rem; border-bottom: 1px dashed var(--border-color);">
                     <label
                         style="display: block; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">
-                        InstituiÃ§Ã£o
+                        Instituicao
                     </label>
                     <span style="font-weight: 600; color: var(--text-main); font-size: 1.05rem;">{{
                         x.instituicao|default:x.banco }}</span>
@@ -150,7 +150,7 @@
                         style="color: var(--primary); font-size: 1.25rem; margin-top: 0.2rem;"></i>
                     <p
                         style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-weight: 500;">
-                        Esta conta bancÃ¡ria Ã© gerida centralmente e utilizada para movimentaÃ§Ãµes financeiras oficiais
+                        Esta conta bancaria e gerida centralmente e utilizada para movimentacoes financeiras oficiais
                         dentro do ecossistema da Igreja TIBL.
                     </p>
                 </div>
@@ -165,7 +165,7 @@
 <div class="animate-fade-in" style="text-align: center; margin-top: 1rem; margin-bottom: 3rem; animation-delay: 0.3s;">
     <a href="/tibl/gestao/contasbancarias/1" class="bt-secondary"
         style="padding: 0.85rem 2rem; font-weight: 600; border-radius: 100px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
-        <i class="fas fa-arrow-left"></i> Voltar Ã  Lista de Contas
+        <i class="fas fa-arrow-left"></i> Voltar a Lista de Contas
     </a>
 </div>
 
@@ -176,12 +176,12 @@
         style="width: 80px; height: 80px; background: var(--bg-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
         <i class="fas fa-building-columns" style="font-size: 2rem; color: var(--text-muted);"></i>
     </div>
-    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Conta nÃ£o encontrada
+    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Conta nao encontrada
     </h3>
-    <p style="color: var(--text-muted); margin: 0 auto;">O registo bancÃ¡rio que procura nÃ£o existe ou nÃ£o estÃ¡
-        disponÃ­vel.</p>
+    <p style="color: var(--text-muted); margin: 0 auto;">O registo bancario que procura nao existe ou nao esta
+        disponivel.</p>
     <div style="margin-top: 2rem;">
-        <a href="/tibl/gestao/contasbancarias/1" class="bt-primary"><i class="fas fa-arrow-left mr-2"></i> Voltar Ã 
+        <a href="/tibl/gestao/contasbancarias/1" class="bt-primary"><i class="fas fa-arrow-left mr-2"></i> Voltar a
             Lista</a>
     </div>
 </div>

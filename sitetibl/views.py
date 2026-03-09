@@ -257,6 +257,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
             })
 
 @login_required
+@login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
     lista_qs = {
         'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'),
@@ -279,7 +280,13 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
         'escalas': Escala.objects.select_related('irmao', 'actividade', 'funcao'),
     }
-    registoachado = lista_qs[gestaoescolhida].filter(id=identificador)
+    queryset = lista_qs.get(gestaoescolhida)
+    if queryset is None:
+        return redirect('index')
+
+    # Avoid rendering blank detail pages when an invalid id is requested.
+    registo = get_object_or_404(queryset, id=identificador)
+    registoachado = [registo]
     ficheirodetalhado = gestaoescolhida + 'detalhado.html'
     if gestaoescolhida == 'cestas':
         detalhecestas = ComposicaoCesta.objects.filter(cesta = identificador)
@@ -662,16 +669,19 @@ def encontraSaidasbanco(request):
 def encontraEntradasbanco(request):
     contabancariav = int(request.GET['contabancariav'])
     rubricav = int(request.GET['rubricav'])
+    viav = request.GET.get('viav', '0')
     mesv= request.GET['mesv']
     anov= request.GET['anov']
     pagina= request.GET['pagina']
-    kwargs= {'contaaacreditar':contabancariav, 'rubrica':rubricav, 'data__month':mesv, 'data__year':anov}
+    kwargs= {'contaaacreditar':contabancariav, 'rubrica':rubricav, 'via':viav, 'data__month':mesv, 'data__year':anov}
     if (mesv == '0'):
         del kwargs['data__month']
     if (anov == '0'):
         del kwargs['data__year']
     if (rubricav == 0):
         del kwargs['rubrica']
+    if (viav == '0'):
+        del kwargs['via']
     if (contabancariav == 0):
         del kwargs['contaaacreditar']
     resultado = Entradabanco.objects.filter(**kwargs)

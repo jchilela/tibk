@@ -22,6 +22,7 @@
                 <tr>
                     <th>Data</th>
                     <th>Conta / Banco</th>
+                    <th>Via</th>
                     <th>Rubrica de Entrada</th>
                     <th style="text-align: right;">Valor</th>
                     <th style="text-align: right;">AÃ§Ãµes</th>
@@ -38,6 +39,12 @@
                             x.contaaacreditar.numeroconta|default:x.contaaacreditar }}</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted);">{{
                             x.contaaacreditar.banco.abreviacao|default:x.contaaacreditar.banco }}</div>
+                        {% if x.contaaacreditar %}
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Saldo actual: {{ x.contaaacreditar.saldo_actual|floatformat:2 }} {{ x.contaaacreditar.moeda }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ x.get_via_display|default:x.via }}</div>
                     </td>
                     <td>
                         <div style="font-weight: 500; color: var(--primary-dark);">{{
