@@ -1,16 +1,16 @@
 {% extends 'index.html' %}
-{% block Entradascaixa %}
+{% block Saidascaixa %}
 
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-        <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-coins mr-2"></i> Filtros de Entrada (Caixa)</h3>
-        <form action="/tibl/buscaentradascaixa" method="GET" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: flex-end;">
+        <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-wallet mr-2"></i> Filtros de Saída (Caixa)</h3>
+        <form action="/tibl/buscasaidascaixa" method="GET" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: flex-end;">
             <div style="grid-column: 1 / -1;">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Rubrica</label>
                 <select name="rubricav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">Qualquer Rubrica</option>
-                    {% if listarubricasentrada %}
-                        {% for x in listarubricasentrada %}
+                    {% if listarubricassaida %}
+                        {% for x in listarubricassaida %}
                             <option value="{{ x.id }}">{{ x.designacao }}</option>
                         {% endfor %}
                     {% endif %}
@@ -32,16 +32,16 @@
                 <input type="number" name="anov" value="2025" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="grid-column: 1 / -1; justify-content: center; padding: 0.75rem;">
-                <i class="fas fa-search"></i> Pesquisar Fluxo de Caixa
+            <button type="submit" class="bt-primary" style="grid-column: 1 / -1; justify-content: center; padding: 0.75rem; background: #ef4444;">
+                <i class="fas fa-search"></i> Pesquisar Despesas
             </button>
         </form>
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Entradas em Caixa (Numerário)</h2>
-        <a href="/tibl/entradascaixa/criar/" class="bt-primary" style="background: var(--primary); color: white;">
-            <i class="fas fa-plus"></i> Nova Entrada
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Saídas de Caixa (Despesas)</h2>
+        <a href="/tibl/saidascaixa/criar/" class="bt-primary" style="background: #ef4444; color: white;">
+            <i class="fas fa-minus-circle"></i> Registar Despesa
         </a>
     </div>
 
@@ -51,7 +51,7 @@
             <thead>
                 <tr>
                     <th>Data</th>
-                    <th>Rubrica de Entrada</th>
+                    <th>Rubrica / Aquisição</th>
                     <th style="text-align: right;">Montante (Kz)</th>
                     <th style="text-align: right;">Ações</th>
                 </tr>
@@ -63,14 +63,14 @@
                         <div style="font-weight: 600;">{{ x.data|date:"d/m/Y"|default:x.data }}</div>
                     </td>
                     <td>
-                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.rubrica }}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Referência: #C-{{ x.id }}</div>
+                        <div style="font-weight: 600; color: #991b1b;">{{ x.aquisicao.rubrica }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Ref: {{ x.aquisicao.requisicao }}</div>
                     </td>
-                    <td style="text-align: right; color: var(--primary); font-weight: 700;">
-                        + {{ x.montante|floatformat:2 }}
+                    <td style="text-align: right; color: #ef4444; font-weight: 700;">
+                        - {{ x.montante|floatformat:2 }}
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/entradascaixa/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/saidascaixa/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
                             <i class="fas fa-info"></i>
                         </a>
                     </td>
@@ -81,13 +81,13 @@
     </div>
     
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
-        <i class="fas fa-piggy-bank" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
-        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Entradas de Caixa</h3>
-        <p style="color: var(--text-muted);">Não existem registos de entrada de numerário para este período.</p>
+        <i class="fas fa-money-bill-wave" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Saídas de Caixa</h3>
+        <p style="color: var(--text-muted);">Não encontramos registos de despesas em numerário.</p>
     </div>
     {% endif %}
 </div>

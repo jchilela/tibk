@@ -45,7 +45,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') 
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1')
 
 #ALLOWED_HOSTS = ['www.x0e1.ao','www.tibl.ao','localhost','127.0.0.1','178.157.82.149']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')

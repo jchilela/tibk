@@ -104,16 +104,6 @@ PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':
 MOEDA = {'AKZ':'Kwanza','USD':'USA Dólar','EU':'Euro','R':'Reais','RAN':'ZA Rands','NAMD':'Dólar Namibiano', 'LB':'Libra Inglesa'}
 MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'Junho','7':'Julho','8':'Agosto','9':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'}
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
-listafuncoes = Funcao.objects.values('id','designacao')
-listaactividades = Listaactividades.objects.values('id','designacao')
-listacargos = Cargo.objects.values('id','designacao')
-listadepartamentos = Departamento.objects.values('id','designacao')
-listaprofissoes = Profissao.objects.values('id','designacao')
-listarubricasentrada = Rubricaentrada.objects.values('id', 'designacao')
-listarubricassaida = Rubricasaida.objects.values('id', 'designacao')
-#listacontasigreja = Contabancaria.objects.values('id', 'numeroconta','instituicao').filter( instituicao = 1 )
-listacontasigreja = Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id = 1)
-tipoajuda = Tipoajuda.objects.values('id','designacao')
 
 def comeco(request):
     return render(request, 'index.html')
@@ -122,6 +112,7 @@ def index(request):
     template = loader.get_template('index.html')
     return HttpResponse(template.render({}, request))
 
+@login_required
 def mostraGestao(request,gestaoescolhida,pagina):
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'funcao'), 
              'mandatos': Mandato.objects.select_related('irmao', 'departamento', 'cargo'), 
@@ -151,19 +142,20 @@ def mostraGestao(request,gestaoescolhida,pagina):
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     if (gestaoescolhida == 'ajudas') or (gestaoescolhida == 'cestas') or (gestaoescolhida == 'actividades'):
-        context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : tipoajuda, 'listafuncoes' : listafuncoes, 'listaactividades' : listaactividades}
+        context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao')}
     elif gestaoescolhida == 'departamentos':
-        context = { 'bb':paginaresultado, 'listadepartamentos' : listadepartamentos, 'listacargos' : listacargos}
+        context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'listacargos' : Cargo.objects.values('id','designacao')}
     elif (gestaoescolhida == 'entradascaixa') or (gestaoescolhida == 'saidascaixa') or (gestaoescolhida == 'entradabancos') or (gestaoescolhida == 'saidabancos'):
-        context = { 'bb':paginaresultado, 'listarubricasentrada' : listarubricasentrada, 'listarubricassaida' : listarubricassaida, 'listameses' : MESES, 'listacontasigreja' : listacontasigreja }
+        context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
     else:
-        context = { 'bb':paginaresultado, 'listaprofissoes' : listaprofissoes, 'listameses' : MESES }
+        context = { 'bb':paginaresultado, 'listaprofissoes' : Profissao.objects.values('id','designacao'), 'listameses' : MESES }
 
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
-    return render(request, gestaoescolhida, context)
+    return render(request, gestaoescolhida + '.html', context)
 
 
+@login_required
 def mostraActualizacao(request, gestaoescolhida, id):
     lista = {'escalas' : Escala, 
              'mandatos': Mandato, 
@@ -264,6 +256,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                 'formulario': formulario
             })
 
+@login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
     lista_qs = {
         'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'),
@@ -316,6 +309,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
 
+@login_required
 def mostraEliminacao(request, gestaoescolhida, id):
     lista = {'irmaos':Irmao, 
              'ajudas':Ajuda, 
@@ -358,6 +352,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
         'gestao': gestaoescolhida
     })
 
+@login_required
 def mostraCriacao(request, gestaoescolhida):
     listaformularios = {'escalas' : EscalaForm, 
                         'mandatos': MandatoForm, 
@@ -406,6 +401,7 @@ def mostraCriacao(request, gestaoescolhida):
 
     return render(request, 'formulario_criacao.html', {'formulario': formulario})
 
+@login_required
 def encontraIrmao(request):
     nomev = request.GET.get('nomev', '').strip()
     apelidov = request.GET.get('apelidov', '').strip()
@@ -428,6 +424,7 @@ def encontraIrmao(request):
 
     return render(request,'irmaosfiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
 
+@login_required
 def encontraRelatorioSemanalCelula(request):
     nomev = request.GET['nomev']
     liderv = request.GET['liderv']
@@ -447,6 +444,7 @@ def encontraRelatorioSemanalCelula(request):
 
     return render(request,'relatoriosemanalcelulafiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
 
+@login_required
 def encontraPedidoSaida(request):
     nomev = request.GET['projectov']
     liderv = request.GET['montantev']
@@ -465,6 +463,7 @@ def encontraPedidoSaida(request):
 
     return render(request,'pedidosaidafiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
 
+@login_required
 def encontraContasbancarias(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
@@ -473,6 +472,7 @@ def encontraContasbancarias(request):
     resultado = Contabancaria.objects.filter(**kwargs)
     return render(request,'contasbancariasfiltradas.html', {'bb': resultado })
 
+@login_required
 def encontraAjudas(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
@@ -495,6 +495,7 @@ def encontraAjudas(request):
     cc = request.META['QUERY_STRING']
     return render(request,'ajudasfiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraCestas(request):
     mesv= request.GET['mesv']
     anov= request.GET['anov']
@@ -512,6 +513,7 @@ def encontraCestas(request):
     cc = request.META['QUERY_STRING']
     return render(request,'cestasfiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraActividades(request):
     nomev = request.GET.get('nomev', '').strip()
     apelidov = request.GET.get('apelidov', '').strip()
@@ -549,6 +551,7 @@ def encontraActividades(request):
     cc = request.META['QUERY_STRING']
     return render(request,'actividadesfiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraDepartamentos(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
@@ -569,6 +572,7 @@ def encontraDepartamentos(request):
     return render(request,'departamentosfiltrados.html', {'bb':paginaresultado})
 
 
+@login_required
 def encontraDizimosofertas(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
@@ -588,6 +592,7 @@ def encontraDizimosofertas(request):
     cc = request.META['QUERY_STRING']
     return render(request,'dizimosofertasfiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraSaidascaixa(request):
     rubricav = int(request.GET['rubricav'])
     mesv= request.GET['mesv']
@@ -608,6 +613,7 @@ def encontraSaidascaixa(request):
     cc = request.META['QUERY_STRING']
     return render(request,'saidascaixafiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraEntradascaixa(request):
     rubricav = int(request.GET['rubricav'])
     mesv= request.GET['mesv']
@@ -628,6 +634,7 @@ def encontraEntradascaixa(request):
     cc = request.META['QUERY_STRING']
     return render(request,'entradascaixafiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraSaidasbanco(request):
     contabancariav = int(request.GET['contabancariav'])
     rubricav = int(request.GET['rubricav'])
@@ -651,6 +658,7 @@ def encontraSaidasbanco(request):
     cc = request.META['QUERY_STRING']
     return render(request,'saidasbancofiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraEntradasbanco(request):
     contabancariav = int(request.GET['contabancariav'])
     rubricav = int(request.GET['rubricav'])
@@ -675,6 +683,7 @@ def encontraEntradasbanco(request):
     return render(request,'entradasbancofiltradas.html', {'bb':paginaresultado})
 
 
+@login_required
 def encontraOrcamentoDepartamento(request):
     departamentov = request.GET['departamentov']
     orcamentov = request.GET['orcamentov']
@@ -694,6 +703,7 @@ def encontraOrcamentoDepartamento(request):
     return render(request,'orcamentodepartamentofiltrados.html', {'bb':paginaresultado})
 
 
+@login_required
 def encontraInventarioPatrimonio(request):
     nomev = request.GET['nomev']
     descricaov = request.GET['descricaov']
@@ -712,6 +722,7 @@ def encontraInventarioPatrimonio(request):
     cc = request.META['QUERY_STRING']
     return render(request,'inventariopatrimoniofiltrados.html', {'bb':paginaresultado})
 
+@login_required
 def encontraConteudoEnsino(request):
     autorv = request.GET['autorv']
     titulov = request.GET['titulov']
@@ -731,6 +742,7 @@ def encontraConteudoEnsino(request):
     return render(request,'conteudoensinofiltrados.html', {'bb':paginaresultado})
 
 
+@login_required
 def encontraEnvioMensagem(request):
     mensagemv = request.GET['mensagemv']
     quemenviou = request.GET['quemenviou']
@@ -749,6 +761,7 @@ def encontraEnvioMensagem(request):
     cc = request.META['QUERY_STRING']
     return render(request,'enviomensagemfiltrados.html', {'bb':paginaresultado})
 
+@login_required
 def encontraBancos(request):
     designacao = request.GET['designacao']
     abreviatura = request.GET['abreviatura']
@@ -767,6 +780,7 @@ def encontraBancos(request):
     cc = request.META['QUERY_STRING']
     return render(request,'bancosfiltrados.html', {'bb':paginaresultado})
 
+@login_required
 def encontraEscalas(request):
     actividade = request.GET['actividade']
     funcao = request.GET['funcao']
@@ -810,6 +824,7 @@ class EscalasPorActividadeView(APIView):
 
 #VIEWS PARA OS DASHBOARDS
 
+@login_required
 def dashboardIrmaos(request):
     ano = now().year
 
@@ -840,6 +855,7 @@ def dashboardIrmaos(request):
         "data": data
     })
 
+@login_required
 def dashboardOrcamentoDepartamento(request):
     ano = now().year
 
@@ -863,6 +879,7 @@ def dashboardOrcamentoDepartamento(request):
         "data": data
     })
 
+@login_required
 def dashboardPedidosSaidaSemana(request):
     ano = now().year
 
@@ -899,6 +916,7 @@ def dashboardPedidosSaidaSemana(request):
     })
 
 
+@login_required
 def dashboardConteudoEnsinoMensal(request):
     ano = now().year
 
@@ -932,6 +950,7 @@ def dashboardConteudoEnsinoMensal(request):
         "total": total_geral
     })
 
+@login_required
 def dashboardDizimoOferta(request):
     ano = now().year
 
@@ -971,6 +990,7 @@ def dashboardDizimoOferta(request):
 
 
 
+@login_required
 def dashboardCrescimentoMembros(request):
     ano = now().year
 
@@ -1017,6 +1037,7 @@ def pagina_relatorios(request):
     return render(request, 'relatorios/template_relatorio.html')
 
 
+@login_required
 def relatorio_irmaos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_irmaos.pdf"'
@@ -1093,6 +1114,7 @@ def relatorio_irmaos_pdf(request):
     return response
 
 
+@login_required
 def relatorio_dizimos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_dizimos_ofertas.pdf"'
@@ -1182,6 +1204,7 @@ def relatorio_dizimos_pdf(request):
     return response
 
 
+@login_required
 def relatorio_departamentos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_departamentos.pdf"'
@@ -1247,6 +1270,7 @@ def relatorio_departamentos_pdf(request):
     return response
 
 
+@login_required
 def relatorio_escalas_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_escalas.pdf"'
@@ -1333,6 +1357,7 @@ def relatorio_escalas_pdf(request):
     return response
 
 
+@login_required
 def relatorio_actividades_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_actividades.pdf"'
@@ -1434,6 +1459,7 @@ def relatorio_actividades_pdf(request):
     return response
 
 
+@login_required
 def relatorio_inventario_patrimonio_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_inventario_patrimonio.pdf"'
@@ -1533,6 +1559,7 @@ def relatorio_inventario_patrimonio_pdf(request):
 
 
 
+@login_required
 def relatorio_saida_caixa_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_saida_caixa.pdf"'
