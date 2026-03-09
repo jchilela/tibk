@@ -75,7 +75,7 @@
                         <span style="font-size: 0.75rem; color: var(--text-muted);">{{ x.get_moeda_display }}</span>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/dizimosofertas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
                             <i class="fas fa-receipt"></i> Detalhes
                         </a>
                     </td>

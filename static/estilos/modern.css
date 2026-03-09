@@ -141,60 +141,6 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* --- DARK THEME BUTTON FIXES (Avoid black on black & flat white) --- */
-[data-theme="dark"] button,
-[data-theme="dark"] input[type="submit"],
-[data-theme="dark"] input[type="button"] {
-    color: #ffffff;
-    background: var(--primary);
-    border: 1px solid var(--primary-light);
-}
-
-[data-theme="dark"] .bt-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: #ffffff !important;
-}
-
-[data-theme="dark"] .bt-secondary {
-    background: #1e293b !important;
-    border: 1px solid #475569 !important;
-    color: #e2e8f0 !important;
-}
-
-[data-theme="dark"] .bt-secondary:hover {
-    background: #334155 !important;
-    color: #ffffff !important;
-}
-
-[data-theme="dark"] .bt-danger {
-    background: linear-gradient(135deg, #b91c1c, #991b1b) !important;
-    color: #ffffff !important;
-}
-
-[data-theme="dark"] .bt-cancel {
-    background: transparent !important;
-    border-color: #475569 !important;
-    color: #cbd5e1 !important;
-}
-
-[data-theme="dark"] .bt-cancel:hover {
-    background: #1e293b !important;
-    border-color: #94a3b8 !important;
-    color: #ffffff !important;
-}
-
-[data-theme="dark"] .bt-icon {
-    background: #1e293b !important;
-    border-color: #475569 !important;
-    color: #cbd5e1 !important;
-}
-
-[data-theme="dark"] .bt-icon:hover {
-    background: #334155 !important;
-    color: #ffffff !important;
-    border-color: var(--primary-light) !important;
-}
-
 /* =========================================================================
    1.2 ANIMATIONS & PREMIUM EFFECTS
    ========================================================================= */

@@ -70,7 +70,7 @@
                         + {{ x.montante|floatformat:2 }}
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/entradascaixa/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/entradascaixa/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
                             <i class="fas fa-info"></i>
                         </a>
                     </td>

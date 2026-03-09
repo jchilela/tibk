@@ -53,7 +53,7 @@
                         <div style="font-weight: 500; color: var(--primary-dark);">{{ x.quemenviou.nome|default:x.quemenviou }}</div>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/enviomensagem/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/enviomensagem/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
                             <i class="fas fa-envelope-open-text"></i> Ler Mais
                         </a>
                     </td>

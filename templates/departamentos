@@ -70,7 +70,7 @@
                         <span style="background: var(--bg-main); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--primary);">{{ x.abreviacao }}</span>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/departamentos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/departamentos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
                             <i class="fas fa-sitemap"></i> Ver Detalhes
                         </a>
                     </td>
