@@ -1,0 +1,35 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block content %}
+<div style="display:flex; justify-content:center; align-items:center; min-height:60vh; padding: 2rem;">
+    <div class="confirm-dialog">
+        <div class="dialog-icon" style="color: #f59e0b;">
+            <i class="fas fa-pause-circle"></i>
+        </div>
+        <h2>Confirmar Inativação</h2>
+        <p>Tem a certeza que deseja inativar esta conta bancária?</p>
+        <p style="font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 0.5rem;">{{ registo.numeroconta }}</p>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Instituição: {{ registo.banco.designacao }}</p>
+
+        <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                <i class="fas fa-info-circle" style="color: #f59e0b; margin-right: 0.5rem;"></i>
+                A conta será inativada e não aparecerá nas listagens, mas os dados serão preservados.
+            </p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="dialog-actions">
+                <a href="javascript:history.back()" class="bt-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="bt-primary" style="background-color: #f59e0b;">
+                    <i class="fas fa-pause-circle"></i> Sim, Inativar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

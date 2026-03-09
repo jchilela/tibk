@@ -1,4 +1,4 @@
-#!/usr/bi/python
+ #!/usr/bi/python
 # -*- encoding: utf-8 -*-
 
 from django.db import models
@@ -194,6 +194,7 @@ class Banco(models.Model):
          pass
 
 class Contabancaria(models.Model):
+     is_active = models.BooleanField(default=True)
      banco = models.ForeignKey(Banco, on_delete = models.CASCADE)
      numeroconta = models.CharField('Número da conta', max_length =100, unique = True)
      iban = models.CharField('IBAN', max_length =100, unique = True)
