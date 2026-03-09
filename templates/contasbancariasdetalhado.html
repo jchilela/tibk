@@ -1,5 +1,5 @@
-{% extends 'index.html' %}
-{% block Contasbancariasdetalhado %}
+﻿{% extends 'index.html' %}
+{% block content %}
 
 {% if registoachado %}
 <div class="profile-container" style="max-width: 900px; margin: 0 auto; padding-bottom: 3rem;">
@@ -37,7 +37,7 @@
 
                 <p
                     style="color: var(--text-secondary); font-weight: 500; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                    <i class="far fa-id-card text-primary"></i> Detalhes da Conta Bancária
+                    <i class="far fa-id-card text-primary"></i> Detalhes da Conta Bancaria
                 </p>
             </div>
 
@@ -59,7 +59,7 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
 
         <!-- Banking Info -->
-        <div class="modern-card animate-fade-in-up hover-lift"
+        <div class="modern-card animate-fade-in-up"
             style="animation-delay: 0.1s; border-top: 4px solid var(--primary-light);">
             <h3
                 style="border-bottom: 1px dashed var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--text-main);">
@@ -67,7 +67,7 @@
                     style="width: 32px; height: 32px; background: var(--primary-50); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; color: var(--primary);">
                     <i class="fas fa-piggy-bank"></i>
                 </div>
-                Informação Bancária
+                Informacao Bancaria
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 1rem;">
@@ -103,16 +103,15 @@
                 <div style="padding: 1rem; border-bottom: 1px dashed var(--border-color);">
                     <label
                         style="display: block; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">
-                        Instituição
+                        Instituicao
                     </label>
-                    <span style="font-weight: 600; color: var(--text-main); font-size: 1.05rem;">{{
-                        x.instituicao|default:x.banco }}</span>
+                    <span style="font-weight: 600; color: var(--text-main); font-size: 1.05rem;">{{ x.instituicao|default:x.banco }}</span>
                 </div>
             </div>
         </div>
 
         <!-- Ownership Info -->
-        <div class="modern-card animate-fade-in-up hover-lift"
+        <div class="modern-card animate-fade-in-up"
             style="animation-delay: 0.2s; border-top: 4px solid var(--info);">
             <h3
                 style="border-bottom: 1px dashed var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--text-main);">
@@ -134,7 +133,7 @@
 
                     <div style="display: flex; align-items: center; gap: 1.25rem;">
                         <div
-                            style="width: 50px; height: 50px; background: var(--info); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                            style="width: 50px; height: 50px; background: var(--primary-light); color: white; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
                             <i class="fas fa-user-check"></i>
                         </div>
                         <span
@@ -150,7 +149,7 @@
                         style="color: var(--primary); font-size: 1.25rem; margin-top: 0.2rem;"></i>
                     <p
                         style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; line-height: 1.5; font-weight: 500;">
-                        Esta conta bancária é gerida centralmente e utilizada para movimentações financeiras oficiais
+                        Esta conta bancaria e gerida centralmente e utilizada para movimentacoes financeiras oficiais
                         dentro do ecossistema da Igreja TIBL.
                     </p>
                 </div>
@@ -159,13 +158,94 @@
 
     </div>
 
+    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        <div class="modern-card" style="border-left: 4px solid #16a34a;">
+            <p style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; font-weight: 700;">Entradas nesta conta</p>
+            <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #166534;">{{ total_entradas_conta|floatformat:2 }}</p>
+        </div>
+        <div class="modern-card" style="border-left: 4px solid #ef4444;">
+            <p style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; font-weight: 700;">Saídas desta conta</p>
+            <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #991b1b;">{{ total_saidas_conta|floatformat:2 }}</p>
+        </div>
+        <div class="modern-card" style="border-left: 4px solid var(--primary);">
+            <p style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; font-weight: 700;">Saldo líquido por movimentos</p>
+            <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">{{ saldo_movimento|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1rem;">
+        <div class="modern-card" style="padding: 1.25rem;">
+            <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #166534; font-family: 'Outfit', sans-serif;">
+                <i class="fas fa-arrow-down"></i> Últimas Entradas Bancárias
+            </h4>
+            {% if entradas_conta %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Rúbrica</th>
+                            <th style="text-align: right;">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in entradas_conta %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td style="font-weight: 700; color: #166534;">+ {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td>{{ mov.rubrica.designacao|default:mov.rubrica }}</td>
+                            <td style="text-align: right;"><a href="/tibl/entradabancos/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">Abrir</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem entradas bancárias ligadas a esta conta.</p>
+            {% endif %}
+        </div>
+
+        <div class="modern-card" style="padding: 1.25rem;">
+            <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #991b1b; font-family: 'Outfit', sans-serif;">
+                <i class="fas fa-arrow-up"></i> Últimas Saídas Bancárias
+            </h4>
+            {% if saidas_conta %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Rúbrica</th>
+                            <th style="text-align: right;">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in saidas_conta %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td style="font-weight: 700; color: #991b1b;">- {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td>{{ mov.rubrica.designacao|default:mov.rubrica }}</td>
+                            <td style="text-align: right;"><a href="/tibl/saidabancos/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; background: #ef4444;">Abrir</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem saídas bancárias a partir desta conta.</p>
+            {% endif %}
+        </div>
+    </div>
+
     {% endfor %}
 </div>
 
 <div class="animate-fade-in" style="text-align: center; margin-top: 1rem; margin-bottom: 3rem; animation-delay: 0.3s;">
     <a href="/tibl/gestao/contasbancarias/1" class="bt-secondary"
         style="padding: 0.85rem 2rem; font-weight: 600; border-radius: 100px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
-        <i class="fas fa-arrow-left"></i> Voltar à Lista de Contas
+        <i class="fas fa-arrow-left"></i> Voltar a Lista de Contas
     </a>
 </div>
 
@@ -176,12 +256,12 @@
         style="width: 80px; height: 80px; background: var(--bg-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
         <i class="fas fa-building-columns" style="font-size: 2rem; color: var(--text-muted);"></i>
     </div>
-    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Conta não encontrada
+    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Conta nao encontrada
     </h3>
-    <p style="color: var(--text-muted); margin: 0 auto;">O registo bancário que procura não existe ou não está
-        disponível.</p>
+    <p style="color: var(--text-muted); margin: 0 auto;">O registo bancario que procura nao existe ou nao esta
+        disponivel.</p>
     <div style="margin-top: 2rem;">
-        <a href="/tibl/gestao/contasbancarias/1" class="bt-primary"><i class="fas fa-arrow-left mr-2"></i> Voltar à
+        <a href="/tibl/gestao/contasbancarias/1" class="bt-primary"><i class="fas fa-arrow-left mr-2"></i> Voltar a
             Lista</a>
     </div>
 </div>

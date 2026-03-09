@@ -1,17 +1,17 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Departamentos %}
 
 <div class="list-container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
             <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Estrutura
-                Hierárquica Encontrada</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Registos de cargos e departamentos compatíveis com a
+                HierÃ¡rquica Encontrada</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Registos de cargos e departamentos compatÃ­veis com a
                 sua busca.</p>
         </div>
         <a href="/tibl/gestao/departamentos/1" class="bt-primary"
             style="background-color: var(--info); color: white;">
-            <i class="fas fa-undo"></i> Voltar à Estrutura
+            <i class="fas fa-undo"></i> Voltar Ã  Estrutura
         </a>
     </div>
 
@@ -21,9 +21,9 @@
             <thead>
                 <tr>
                     <th>Departamento</th>
-                    <th>Cargo / Função</th>
-                    <th>Irmão Responsável</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th>Cargo / FunÃ§Ã£o</th>
+                    <th>IrmÃ£o ResponsÃ¡vel</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,7 +35,7 @@
                     </td>
                     <td>
                         <span class="badge"
-                            style="background: var(--primary-light); color: var(--primary-dark); padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">
+                            style="background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">
                             {{ x.cargo__designacao }}
                         </span>
                     </td>
@@ -44,7 +44,7 @@
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/departamentos/detalhe/{{ x.departamento_id }}" class="bt-primary"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-sitemap"></i> Ver
                         </a>
                     </td>
@@ -55,13 +55,13 @@
     </div>
 
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-users-slash" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum cargo encontrado</h3>
-        <p style="color: var(--text-muted);">A sua pesquisa não retornou atribuições de cargos para os critérios
+        <p style="color: var(--text-muted);">A sua pesquisa nÃ£o retornou atribuiÃ§Ãµes de cargos para os critÃ©rios
             informados.</p>
     </div>
     {% endif %}

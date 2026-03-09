@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% block InventarioPatrimonioDetalhado %}
+{% block content %}
 {% load static %}
 
 {% if registoachado %}
@@ -68,8 +68,7 @@
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                 <span style="color: var(--text-muted);">Estado de Conservação</span>
-                <span style="font-weight: 600; color: {% if x.estado == 'Bom' %}#10b981{% else %}#f59e0b{% endif %};">{{
-                    x.estado }}</span>
+                <span style="font-weight: 600; color: {% if x.estado == 'Bom' %}#10b981{% else %}#f59e0b{% endif %};">{{ x.estado }}</span>
             </div>
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">

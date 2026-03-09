@@ -1,9 +1,9 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Saidascaixa %}
 
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-        <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-wallet mr-2"></i> Filtros de Saída (Caixa)</h3>
+        <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-wallet mr-2"></i> Filtros de Saída(Caixa)</h3>
         <form action="/tibl/buscasaidascaixa" method="GET" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: flex-end;">
             <div style="grid-column: 1 / -1;">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Rubrica</label>
@@ -39,7 +39,7 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Saídas de Caixa (Despesas)</h2>
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">SaÃ­das de Caixa (Despesas)</h2>
         <a href="/tibl/saidascaixa/criar/" class="bt-primary" style="background: #ef4444; color: white;">
             <i class="fas fa-minus-circle"></i> Registar Despesa
         </a>
@@ -53,7 +53,7 @@
                     <th>Data</th>
                     <th>Rubrica / Aquisição</th>
                     <th style="text-align: right;">Montante (Kz)</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th style="text-align: right;">Acções</th>
                 </tr>
             </thead>
             <tbody>
@@ -70,7 +70,7 @@
                         - {{ x.montante|floatformat:2 }}
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/saidascaixa/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/saidascaixa/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-info"></i>
                         </a>
                     </td>
@@ -81,15 +81,16 @@
     </div>
     
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-money-bill-wave" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
-        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Saídas de Caixa</h3>
-        <p style="color: var(--text-muted);">Não encontramos registos de despesas em numerário.</p>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem SaÃ­das de Caixa</h3>
+        <p style="color: var(--text-muted);">NÃ£o encontramos registos de despesas em numerÃ¡rio.</p>
     </div>
     {% endif %}
 </div>
 
 {% endblock %}
+

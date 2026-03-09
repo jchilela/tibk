@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block EnvioMensagem %}
 
 <div class="list-container">
@@ -6,7 +6,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
             <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Envio de Mensagens</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Histórico e gestão de comunicações enviadas.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">HistÃ³rico e gestÃ£o de comunicaÃ§Ãµes enviadas.</p>
         </div>
         <a href="/tibl/enviomensagem/criar/" class="bt-primary">
             <i class="fas fa-paper-plane"></i> Nova Mensagem
@@ -17,7 +17,7 @@
     <div class="modern-card" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);">
         <form action="/tibl/buscaenviomensagem" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto; gap: 1rem; align-items: end;">
             <div class="form-group" style="margin-bottom: 0;">
-                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Conteúdo da Mensagem</label>
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">ConteÃºdo da Mensagem</label>
                 <input type="text" name="mensagemv" class="modern-input" placeholder="Palavras-chave..." style="padding: 0.6rem;">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
@@ -38,7 +38,7 @@
                 <tr>
                     <th>Mensagem (Preview)</th>
                     <th>Remetente</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,7 +53,7 @@
                         <div style="font-weight: 500; color: var(--primary-dark);">{{ x.quemenviou.nome|default:x.quemenviou }}</div>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/enviomensagem/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/enviomensagem/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-envelope-open-text"></i> Ler Mais
                         </a>
                     </td>
@@ -64,15 +64,16 @@
     </div>
     
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-mail-bulk" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhuma mensagem encontrada</h3>
-        <p style="color: var(--text-muted);">Inicie uma nova comunicação com os membros.</p>
+        <p style="color: var(--text-muted);">Inicie uma nova comunicaÃ§Ã£o com os membros.</p>
     </div>
     {% endif %}
 </div>
 
 {% endblock %}
+

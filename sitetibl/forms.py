@@ -275,6 +275,19 @@ class EntradacaixaForm(ModelForm):
         return valor
 
 class SaidabancoForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Show real-time balance in account dropdowns for safer bank operations.
+        if 'conta' in self.fields:
+            self.fields['conta'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+        if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+
     class Meta:
         model = Saidabanco
         fields = '__all__'
@@ -286,6 +299,19 @@ class SaidabancoForm(ModelForm):
 
 
 class EntradabancoForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Show real-time balance in account dropdowns for safer bank operations.
+        if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+        if 'contaorigem' in self.fields:
+            self.fields['contaorigem'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+
     class Meta:
         model = Entradabanco
         fields = '__all__'

@@ -19,6 +19,8 @@ from dotenv import load_dotenv
 try:
     import pymysql
     pymysql.install_as_MySQLdb()
+    # Patch PyMySQL version to satisfy Django's requirement
+    pymysql.version_info = (2, 2, 1, "final", 0)
 except ImportError:
     pass
 
@@ -43,7 +45,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') 
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1')
 
 #ALLOWED_HOSTS = ['www.x0e1.ao','www.tibl.ao','localhost','127.0.0.1','178.157.82.149']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')

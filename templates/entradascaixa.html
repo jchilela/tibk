@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Entradascaixa %}
 
 <div class="list-container">
@@ -53,7 +53,7 @@
                     <th>Data</th>
                     <th>Rubrica de Entrada</th>
                     <th style="text-align: right;">Montante (Kz)</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th style="text-align: right;">Acções</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,13 +64,13 @@
                     </td>
                     <td>
                         <div style="font-weight: 600; color: var(--primary-dark);">{{ x.rubrica }}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Referência: #C-{{ x.id }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">ReferÃªncia: #C-{{ x.id }}</div>
                     </td>
                     <td style="text-align: right; color: var(--primary); font-weight: 700;">
                         + {{ x.montante|floatformat:2 }}
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/entradascaixa/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/entradascaixa/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-info"></i>
                         </a>
                     </td>
@@ -81,15 +81,16 @@
     </div>
     
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-piggy-bank" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Entradas de Caixa</h3>
-        <p style="color: var(--text-muted);">Não existem registos de entrada de numerário para este período.</p>
+        <p style="color: var(--text-muted);">NÃ£o existem registos de entrada de numerÃ¡rio para este perÃ­odo.</p>
     </div>
     {% endif %}
 </div>
 
 {% endblock %}
+

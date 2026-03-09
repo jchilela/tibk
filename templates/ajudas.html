@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Ajudas %}
 
 <div class="list-container">
@@ -37,9 +37,13 @@
                     </select>
                     <select name="anov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                         <option value="0">Ano</option>
-                        {% for year in "2020,2021,2022,2023,2024,2025,2026"|split:"," %}
-                            <option value="{{ year }}">{{ year }}</option>
-                        {% endfor %}
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
                     </select>
                 </div>
             </div>
@@ -52,7 +56,7 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Registos de Apoios Sociais</h2>
-        <a href="/tibl/ajudas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+        <a href="/tibl/ajudas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
             <i class="fas fa-plus"></i> Novo Apoio
         </a>
     </div>
@@ -62,10 +66,10 @@
         <table class="modern-table">
             <thead>
                 <tr>
-                    <th>Beneficiário</th>
+                    <th>BeneficiÃ¡rio</th>
                     <th style="text-align: center;">Tipo de Ajuda</th>
                     <th style="text-align: center;">Data</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -76,7 +80,7 @@
                         <div style="font-size: 0.75rem; color: var(--text-muted);">Membro Registado</div>
                     </td>
                     <td style="text-align: center;">
-                        <span class="badge badge-info" style="background: var(--primary-light); color: var(--primary-dark); padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 600;">
+                        <span class="badge badge-info" style="background: var(--primary-light); color: white; padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 600;">
                             {{ x.ajuda }}
                         </span>
                     </td>
@@ -84,7 +88,7 @@
                         {{ x.data|date:"d/m/Y"|default:x.data }}
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/ajudas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/ajudas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-eye"></i> Ver
                         </a>
                     </td>
@@ -95,7 +99,7 @@
     </div>
     
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 3rem;">
@@ -106,3 +110,5 @@
 </div>
 
 {% endblock %}
+
+

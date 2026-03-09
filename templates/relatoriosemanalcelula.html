@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block RelatorioSemanalCelula %}
 
 <div class="list-container">
@@ -57,7 +57,7 @@
                         <div style="font-weight: 500; color: var(--text-main);">{{ x.lider_responsavel }}</div>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-file-alt"></i> Ver Relatório
                         </a>
                     </td>
@@ -68,7 +68,7 @@
     </div>
     
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
@@ -80,3 +80,4 @@
 </div>
 
 {% endblock %}
+

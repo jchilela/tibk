@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% block Saidascaixadetalhado %}
+{% block content %}
 
 {% if registoachado %}
 <div class="profile-container"
@@ -31,8 +31,7 @@
 
                 <h1
                     style="font-size: clamp(2rem, 4vw, 3rem); color: #991b1b; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: -1px;">
-                    - {{ x.valor|floatformat:2 }} <span style="font-size: 1.5rem; color: #f87171;">{{
-                        x.moeda|default:"Kz" }}</span>
+                    - {{ x.valor|floatformat:2 }} <span style="font-size: 1.5rem; color: #f87171;">{{ x.moeda|default:"Kz" }}</span>
                 </h1>
 
                 <p
@@ -76,8 +75,7 @@
                         <label
                             style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">Hora
                             de Saída</label>
-                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{
-                            x.hora|default:"--:--" }}</span>
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{ x.hora|time:"H:i"|default:"--:--" }}</span>
                     </div>
                 </div>
 
@@ -88,8 +86,7 @@
                     <div>
                         <label
                             style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">Responsável</label>
-                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{ x.responsavel
-                            }}</span>
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{ x.responsavel }}</span>
                     </div>
                 </div>
             </div>
@@ -104,8 +101,7 @@
                         <label
                             style="display: block; font-size: 0.7rem; color: #e11d48; text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">Rúbrica
                             / Destino</label>
-                        <span style="font-weight: 800; color: #991b1b; font-size: 1rem;">{{
-                            x.rubrica.designacao|default:x.rubrica }}</span>
+                        <span style="font-weight: 800; color: #991b1b; font-size: 1rem;">{{ x.rubrica.designacao|default:x.rubrica }}</span>
                     </div>
                 </div>
 
@@ -116,8 +112,7 @@
                     <div>
                         <label
                             style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">Beneficiário</label>
-                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{
-                            x.beneficiario|default:"---" }}</span>
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{ x.beneficiario|default:"---" }}</span>
                     </div>
                 </div>
             </div>
@@ -131,6 +126,79 @@
                 style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-lg); font-size: 0.95rem; min-height: 100px; border: 1px solid #e2e8f0; line-height: 1.6; color: var(--text-secondary);">
                 {{ x.observacao|default:"Nenhuma observação registada para esta saída de caixa." }}
             </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        <div class="modern-card" style="border-left: 4px solid #ef4444;">
+            <p style="margin: 0 0 0.2rem 0; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Saídas por esta rúbrica</p>
+            <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #991b1b;">{{ total_saidas_rubrica|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem;">
+        <div class="modern-card">
+            <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #166534;">
+                <i class="fas fa-user-clock mr-2"></i> Entradas do Mesmo Responsável
+            </h4>
+            {% if entradas_relacionadas %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Rúbrica</th>
+                            <th>Valor</th>
+                            <th style="text-align: right;">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in entradas_relacionadas %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td>{{ mov.rubrica.designacao|default:mov.rubrica }}</td>
+                            <td style="font-weight: 700; color: #166534;">+ {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td style="text-align: right;"><a href="/tibl/entradascaixa/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">Abrir</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem entradas recentes deste responsável.</p>
+            {% endif %}
+        </div>
+
+        <div class="modern-card">
+            <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #991b1b;">
+                <i class="fas fa-layer-group mr-2"></i> Outras Saídas da Mesma Rúbrica
+            </h4>
+            {% if saidas_relacionadas %}
+            <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Responsável</th>
+                            <th>Valor</th>
+                            <th style="text-align: right;">Ver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in saidas_relacionadas %}
+                        <tr>
+                            <td>{{ mov.data|date:"d/m/Y" }}</td>
+                            <td>{{ mov.responsavel }}</td>
+                            <td style="font-weight: 700; color: #991b1b;">- {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td style="text-align: right;"><a href="/tibl/saidascaixa/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #ef4444;">Abrir</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin: 0;">Sem outras saídas para esta rúbrica.</p>
+            {% endif %}
         </div>
     </div>
 

@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Departamentos %}
 
 <div class="list-container">
@@ -44,7 +44,7 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Estrutura de Departamentos</h2>
-        <a href="/tibl/departamentos/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--accent); color: var(--primary-dark);">
+        <a href="/tibl/departamentos/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
             <i class="fas fa-plus"></i> Novo Departamento
         </a>
     </div>
@@ -55,7 +55,9 @@
             <thead>
                 <tr>
                     <th>Designação do Departamento</th>
+                    <th>Lider</th>
                     <th style="text-align: center;">Abreviação</th>
+                    <th style="text-align: center;">Membros</th>
                     <th style="text-align: right;">Ações</th>
                 </tr>
             </thead>
@@ -66,11 +68,21 @@
                         <div style="font-weight: 600; color: var(--primary-dark);">{{ x.designacao }}</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted);">Unidade Administrativa</div>
                     </td>
+                    <td>
+                        {% if x.lider_departamento %}
+                        <div style="font-weight: 500;">{{ x.lider_departamento.nome }} {{ x.lider_departamento.apelido }}</div>
+                        {% else %}
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Nao definido</div>
+                        {% endif %}
+                    </td>
                     <td style="text-align: center;">
                         <span style="background: var(--bg-main); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--primary);">{{ x.abreviacao }}</span>
                     </td>
+                    <td style="text-align: center;">
+                        <span style="background: #f1f5f9; color: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem;">{{ x.total_integrantes|default:"0" }}</span>
+                    </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/departamentos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                        <a href="/tibl/departamentos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-sitemap"></i> Ver Detalhes
                         </a>
                     </td>
@@ -81,7 +93,7 @@
     </div>
     
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 3rem;">
@@ -92,3 +104,5 @@
 </div>
 
 {% endblock %}
+
+

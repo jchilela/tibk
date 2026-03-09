@@ -1,17 +1,17 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block OrcamentoDepartamentoFiltrados %}
 
 <div class="list-container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Orçamentos
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">OrÃ§amentos
                 Encontrados</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Lista de dotações orçamentais compatíveis com a sua
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Lista de dotaÃ§Ãµes orÃ§amentais compatÃ­veis com a sua
                 busca.</p>
         </div>
         <a href="/tibl/gestao/orcamentodepartamento/1" class="bt-primary"
             style="background-color: var(--info); color: white;">
-            <i class="fas fa-undo"></i> Voltar à Lista
+            <i class="fas fa-undo"></i> Voltar Ã  Lista
         </a>
     </div>
 
@@ -22,8 +22,8 @@
                 <tr>
                     <th>Departamento / Sigla</th>
                     <th style="text-align: center;">Ano Fiscal</th>
-                    <th style="text-align: right;">Orçamento (Kz)</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th style="text-align: right;">OrÃ§amento (Kz)</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,7 +44,7 @@
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/orcamentodepartamento/detalhe/{{ x.id }}" class="bt-primary"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--info);">
+                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-chart-bar"></i> Analisar
                         </a>
                     </td>
@@ -55,13 +55,13 @@
     </div>
 
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-calculator" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Pesquisa sem resultados</h3>
-        <p style="color: var(--text-muted);">Não encontramos orçamentos departamentais para os critérios informados.</p>
+        <p style="color: var(--text-muted);">NÃ£o encontramos orÃ§amentos departamentais para os critÃ©rios informados.</p>
     </div>
     {% endif %}
 </div>

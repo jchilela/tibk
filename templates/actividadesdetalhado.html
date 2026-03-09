@@ -202,7 +202,7 @@
 
         <div style="padding: 1.5rem; overflow-y: auto;">
             {% for x in registoachado %}
-            <form action="{% url 'escalar_em_massa' x.id %}" method="POST" id="form-escala-massa">
+            <form action="{% url 'sitetibl:escalar_em_massa' x.id %}" method="POST" id="form-escala-massa">
                 {% csrf_token %}
                 {% endfor %}
                 <div style="margin-bottom: 1.5rem;">
