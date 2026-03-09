@@ -25,10 +25,10 @@
                 </select>
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">MÃªs/Ano</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
                 <div style="display: flex; gap: 0.5rem;">
                     <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-                        <option value="0">MÃªs</option>
+                        <option value="0">Mês</option>
                         {% if listameses %}
                             {% for x, y in listameses.items %}
                                 <option value="{{ x }}">{{ y }}</option>
@@ -37,9 +37,13 @@
                     </select>
                     <select name="anov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                         <option value="0">Ano</option>
-                        {% for year in "2020,2021,2022,2023,2024,2025,2026"|split:"," %}
-                            <option value="{{ year }}">{{ year }}</option>
-                        {% endfor %}
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
                     </select>
                 </div>
             </div>

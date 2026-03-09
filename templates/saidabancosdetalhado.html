@@ -12,8 +12,7 @@
             <div
                 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
                 Registo de Saída Bancária</div>
-            <h1 style="font-size: 2rem; color: #991b1b; margin-bottom: 0.25rem;">- {{ x.valor|floatformat:2 }} {{
-                x.moeda }}</h1>
+            <h1 style="font-size: 2rem; color: #991b1b; margin-bottom: 0.25rem;">- {{ x.valor|floatformat:2 }} {{ x.moeda }}</h1>
             <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
                 <i class="fas fa-university mr-2" style="color: #ef4444;"></i> Da Conta: {{ x.conta }}
             </p>
@@ -45,8 +44,7 @@
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                 <span style="color: var(--text-muted); font-weight: 500;">Data / Hora</span>
-                <span style="font-weight: 600;">{{ x.data|date:"d/m/Y"|default:x.data }} às {{ x.hora|default:"--:--"
-                    }}</span>
+                <span style="font-weight: 600;">{{ x.data|date:"d/m/Y"|default:x.data }} às {{ x.hora|time:"H:i"|default:"--:--" }}</span>
             </div>
 
             <div class="detail-row"
@@ -78,8 +76,7 @@
                 <label
                     style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Conta
                     Creditada (Destino)</label>
-                <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">{{
-                    x.contaaacreditar|default:"Não especificada" }}</span>
+                <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">{{ x.contaaacreditar|default:"Não especificada" }}</span>
                 {% if x.contaaacreditar %}
                 <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
                     Saldo actual da conta destino: {{ x.contaaacreditar.saldo_actual|floatformat:2 }} {{ x.contaaacreditar.moeda }}

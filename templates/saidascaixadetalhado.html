@@ -31,8 +31,7 @@
 
                 <h1
                     style="font-size: clamp(2rem, 4vw, 3rem); color: #991b1b; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: -1px;">
-                    - {{ x.valor|floatformat:2 }} <span style="font-size: 1.5rem; color: #f87171;">{{
-                        x.moeda|default:"Kz" }}</span>
+                    - {{ x.valor|floatformat:2 }} <span style="font-size: 1.5rem; color: #f87171;">{{ x.moeda|default:"Kz" }}</span>
                 </h1>
 
                 <p
@@ -76,8 +75,7 @@
                         <label
                             style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">Hora
                             de Saída</label>
-                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{
-                            x.hora|default:"--:--" }}</span>
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{ x.hora|time:"H:i"|default:"--:--" }}</span>
                     </div>
                 </div>
 
@@ -88,8 +86,7 @@
                     <div>
                         <label
                             style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">Responsável</label>
-                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{ x.responsavel
-                            }}</span>
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{ x.responsavel }}</span>
                     </div>
                 </div>
             </div>
@@ -104,8 +101,7 @@
                         <label
                             style="display: block; font-size: 0.7rem; color: #e11d48; text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">Rúbrica
                             / Destino</label>
-                        <span style="font-weight: 800; color: #991b1b; font-size: 1rem;">{{
-                            x.rubrica.designacao|default:x.rubrica }}</span>
+                        <span style="font-weight: 800; color: #991b1b; font-size: 1rem;">{{ x.rubrica.designacao|default:x.rubrica }}</span>
                     </div>
                 </div>
 
@@ -116,8 +112,7 @@
                     <div>
                         <label
                             style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.5px;">Beneficiário</label>
-                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{
-                            x.beneficiario|default:"---" }}</span>
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 1rem;">{{ x.beneficiario|default:"---" }}</span>
                     </div>
                 </div>
             </div>

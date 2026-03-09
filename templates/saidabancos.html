@@ -3,7 +3,7 @@
 
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem;">
-        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de SaÃ­da (Banco)</h3>
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Saída(Banco)</h3>
         <form action="/tibl/buscasaidasbanco" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Conta Origem</label>
@@ -28,10 +28,10 @@
                 </select>
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">MÃªs/Ano</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
                 <div style="display: flex; gap: 0.5rem;">
                     <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-                        <option value="0">MÃªs</option>
+                        <option value="0">Mês</option>
                         {% if listameses %}
                             {% for x, y in listameses.items %}
                                 <option value="{{ x }}">{{ y }}</option>
@@ -49,7 +49,7 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Fluxo de SaÃ­da - Bancos</h2>
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Fluxo de Saída- Bancos</h2>
         <a href="/tibl/saidabancos/criar/" class="bt-primary" style="background-color: #ef4444; color: white;">
             <i class="fas fa-minus-circle"></i> Nova SaÃ­da
         </a>
@@ -62,9 +62,9 @@
                 <tr>
                     <th>Data</th>
                     <th>Conta Origem</th>
-                    <th>Rubrica / AquisiÃ§Ã£o</th>
+                    <th>Rubrica / Aquisição</th>
                     <th style="text-align: right;">Montante (Kz)</th>
-                    <th style="text-align: right;">AÃ§Ãµes</th>
+                    <th style="text-align: right;">Acções</th>
                 </tr>
             </thead>
             <tbody>
@@ -103,8 +103,8 @@
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-file-invoice-dollar" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
-        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem SaÃ­das BancÃ¡rias</h3>
-        <p style="color: var(--text-muted);">NÃ£o encontramos registos de saÃ­das bancÃ¡rias para a sua pesquisa.</p>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Saídas Bancárias</h3>
+        <p style="color: var(--text-muted);">Não encontramos registos de saídas bancárias para a sua pesquisa.</p>
     </div>
     {% endif %}
 </div>

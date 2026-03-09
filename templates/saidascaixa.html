@@ -3,7 +3,7 @@
 
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-        <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-wallet mr-2"></i> Filtros de SaÃ­da (Caixa)</h3>
+        <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-wallet mr-2"></i> Filtros de Saída(Caixa)</h3>
         <form action="/tibl/buscasaidascaixa" method="GET" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: flex-end;">
             <div style="grid-column: 1 / -1;">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Rubrica</label>
@@ -17,9 +17,9 @@
                 </select>
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">MÃªs</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês</label>
                 <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-                    <option value="0">MÃªs</option>
+                    <option value="0">Mês</option>
                     {% if listameses %}
                         {% for x, y in listameses.items %}
                             <option value="{{ x }}">{{ y }}</option>
@@ -51,9 +51,9 @@
             <thead>
                 <tr>
                     <th>Data</th>
-                    <th>Rubrica / AquisiÃ§Ã£o</th>
+                    <th>Rubrica / Aquisição</th>
                     <th style="text-align: right;">Montante (Kz)</th>
-                    <th style="text-align: right;">AÃ§Ãµes</th>
+                    <th style="text-align: right;">Acções</th>
                 </tr>
             </thead>
             <tbody>

@@ -19,8 +19,7 @@
                     {{ x.status_de_aprovacao.designacao }}
                 </span>
             </div>
-            <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{
-                x.montante|floatformat:2 }} {{ x.moeda.designacao }}</h1>
+            <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.montante|floatformat:2 }} {{ x.moeda.designacao }}</h1>
             <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
                 <i class="fas fa-project-diagram mr-2" style="color: var(--primary);"></i> Projecto: {{ x.projecto }}
             </p>
@@ -95,8 +94,7 @@
                         </div>
                         <div>
                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Aprovador ResponsÃ¡vel</p>
-                            <p style="font-weight: 700; color: var(--text-main); margin: 0;">{{ x.aprovador.nome }} {{
-                                x.aprovador.apelido }}</p>
+                            <p style="font-weight: 700; color: var(--text-main); margin: 0;">{{ x.aprovador.nome }} {{ x.aprovador.apelido }}</p>
                         </div>
                     </div>
                     <div
