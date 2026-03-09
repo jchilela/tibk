@@ -19,6 +19,8 @@ from dotenv import load_dotenv
 try:
     import pymysql
     pymysql.install_as_MySQLdb()
+    # Patch PyMySQL version to satisfy Django's requirement
+    pymysql.version_info = (2, 2, 1, "final", 0)
 except ImportError:
     pass
 
