@@ -47,6 +47,19 @@
                     style="padding: 0.75rem 1.5rem; font-weight: 600;">
                     <i class="fas fa-edit mr-2"></i> Editar Conta
                 </a>
+                {% if x.is_active %}
+                <a href="/tibl/contasbancarias/inativar/{{ x.id }}/" class="bt-primary"
+                    style="padding: 0.75rem 1.5rem; font-weight: 600; background: #b91c1c; color: white;"
+                    onclick="return confirm('Confirma a inativação desta conta bancária?');">
+                    <i class="fas fa-user-slash mr-2"></i> Inativar Conta
+                </a>
+                {% else %}
+                <a href="/tibl/contasbancarias/reativar/{{ x.id }}/" class="bt-primary"
+                    style="padding: 0.75rem 1.5rem; font-weight: 600; background: #166534; color: white;"
+                    onclick="return confirm('Confirma a reativação desta conta bancária?');">
+                    <i class="fas fa-user-check mr-2"></i> Reativar Conta
+                </a>
+                {% endif %}
                 <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-danger"
                     style="padding: 0.75rem 1.5rem; font-weight: 600;">
                     <i class="fas fa-trash-alt mr-2"></i> Eliminar

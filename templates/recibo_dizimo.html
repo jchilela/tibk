@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo #{{ dizimo.id|stringformat:"06d" }} - {{ dizimo.irmao.nome }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .recibo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 60px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        .recibo-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #548c2f;
+        }
+
+        .recibo-logo {
+            margin-bottom: 20px;
+        }
+
+        .recibo-logo img {
+            max-width: 120px;
+            height: auto;
+        }
+
+        .recibo-titulo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .recibo-igreja {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .recibo-info {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .recibo-numero {
+            text-align: right;
+            font-size: 14px;
+            font-weight: bold;
+            color: #548c2f;
+            margin-bottom: 30px;
+        }
+
+        .recibo-corpo {
+            line-height: 2;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        .recibo-linha {
+            margin-bottom: 15px;
+        }
+
+        .recibo-destaque {
+            font-size: 18px;
+            font-weight: bold;
+            color: #548c2f;
+            margin: 10px 0;
+        }
+
+        .recibo-extenso {
+            font-style: italic;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .recibo-metodo {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 6px;
+            border-left: 4px solid #548c2f;
+            margin: 30px 0;
+            font-size: 13px;
+        }
+
+        .recibo-metodo i {
+            color: #548c2f;
+            margin-right: 8px;
+        }
+
+        .recibo-rodape {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid #ddd;
+        }
+
+        .recibo-data {
+            margin-bottom: 60px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .recibo-assinatura {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .linha-assinatura {
+            width: 400px;
+            margin: 0 auto 10px;
+            border-top: 2px solid #333;
+        }
+
+        .texto-assinatura {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .recibo-nota {
+            font-size: 10px;
+            color: #999;
+            text-align: center;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .acoes-botoes {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-imprimir {
+            background-color: #548c2f;
+            color: white;
+        }
+
+        .btn-imprimir:hover {
+            background-color: #456e25;
+            box-shadow: 0 4px 12px rgba(84, 140, 47, 0.3);
+        }
+
+        .btn-pdf {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-pdf:hover {
+            background-color: #c82333;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-voltar {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-voltar:hover {
+            background-color: #5a6268;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        /* Estilos para impressão */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+
+            .recibo-container {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 40px;
+                max-width: 100%;
+            }
+
+            .acoes-botoes {
+                display: none;
+            }
+
+            .recibo-header {
+                border-bottom: 2px solid #548c2f;
+            }
+
+            @page {
+                margin: 1cm;
+            }
+        }
+
+        /* Info adicional badge */
+        .info-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .recibo-detalhes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #fafafa;
+            border-radius: 6px;
+        }
+
+        .detalhe-item {
+            font-size: 12px;
+        }
+
+        .detalhe-label {
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .detalhe-valor {
+            color: #333;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Botões de ação (não aparecem na impressão) -->
+    <div class="acoes-botoes">
+        <button class="btn btn-imprimir" onclick="window.print()">
+            <i class="fas fa-print"></i>Imprimir Recibo
+        </button>
+        <a href="{% url 'gerar_recibo_dizimo' dizimo.id %}" class="btn btn-pdf">
+            <i class="fas fa-file-pdf"></i>Baixar PDF
+        </a>
+        <a href="javascript:history.back()" class="btn btn-voltar">
+            <i class="fas fa-arrow-left"></i>Voltar
+        </a>
+    </div>
+
+    <!-- Container do recibo -->
+    <div class="recibo-container">
+        <!-- Cabeçalho -->
+        <div class="recibo-header">
+            <div class="recibo-logo">
+                <img src="/static/fotos/2022/cba.png" alt="Logo da Igreja" onerror="this.style.display='none'">
+            </div>
+            <div class="recibo-titulo">RECIBO</div>
+            <div class="recibo-igreja">TABERNÁCULO BÍBLICO DA RESTAURAÇÃO - IGREJA CENTRAL</div>
+            <div class="recibo-info">NIF: ___________  |  Luanda, Angola</div>
+        </div>
+
+        <!-- Número do recibo -->
+        <div class="recibo-numero">
+            Nº: {{ dizimo.id|stringformat:"06d" }}
+        </div>
+
+        <!-- Corpo do recibo -->
+        <div class="recibo-corpo">
+            <div class="recibo-linha">
+                Recebi de <strong>{{ dizimo.irmao.nome }} {{ dizimo.irmao.apelido }} {{ dizimo.irmao.outrosnomes }}</strong>
+            </div>
+            
+            <div class="recibo-linha">
+                a quantia de
+            </div>
+            
+            <div class="recibo-destaque">
+                {{ dizimo.valor|floatformat:2 }} {{ dizimo.moeda }}
+            </div>
+            
+            <div class="recibo-extenso">
+                ({{ valor_extenso }})
+            </div>
+            
+            <div class="recibo-linha">
+                referente a <strong>{{ dizimo.tipooferta.designacao }}</strong>
+            </div>
+            
+            <div class="recibo-linha">
+                do período de <strong>{{ dizimo.datacorrespondente|date:"d/m/Y" }}</strong>
+            </div>
+        </div>
+
+        <!-- Detalhes adicionais -->
+        <div class="recibo-detalhes">
+            <div class="detalhe-item">
+                <div class="detalhe-label">TIPO DE OFERTA</div>
+                <div class="detalhe-valor">{{ dizimo.tipooferta.designacao }}</div>
+            </div>
+            <div class="detalhe-item">
+                <div class="detalhe-label">DATA CORRESPONDENTE</div>
+                <div class="detalhe-valor">{{ dizimo.datacorrespondente|date:"d/m/Y" }}</div>
+            </div>
+            <div class="detalhe-item">
+                <div class="detalhe-label">MOEDA</div>
+                <div class="detalhe-valor">{{ dizimo.moeda }}</div>
+            </div>
+            <div class="detalhe-item">
+                <div class="detalhe-label">DATA DE REGISTRO</div>
+                <div class="detalhe-valor">{{ dizimo.dataregisto|date:"d/m/Y" }}</div>
+            </div>
+        </div>
+
+        <!-- Método de pagamento -->
+        <div class="recibo-metodo">
+            {% if dizimo.entradabanco %}
+                <i class="fas fa-university"></i>
+                <strong>Método:</strong> Transferência Bancária
+                {% if dizimo.entradabanco.banco %}
+                    - {{ dizimo.entradabanco.banco.designacao }}
+                {% endif %}
+            {% elif dizimo.entradacaixa %}
+                <i class="fas fa-money-bill-wave"></i>
+                <strong>Método:</strong> Pagamento em Caixa
+            {% else %}
+                <i class="fas fa-info-circle"></i>
+                <strong>Método:</strong> Forma de pagamento não especificada
+            {% endif %}
+        </div>
+
+        <!-- Rodapé -->
+        <div class="recibo-rodape">
+            <div class="recibo-data">
+                Luanda, {{ data_emissao|date:"d/m/Y" }}
+            </div>
+
+            <div class="recibo-assinatura">
+                <div class="linha-assinatura"></div>
+                <div class="texto-assinatura">Assinatura do Responsável</div>
+            </div>
+
+            <div class="recibo-nota">
+                Este recibo comprova a entrega do dízimo/oferta à igreja<br>
+                Emitido pelo Sistema TIBL em {{ data_emissao|date:"d/m/Y" }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Font Awesome (para os ícones) -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>

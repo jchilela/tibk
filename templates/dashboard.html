@@ -7,32 +7,22 @@
 <div style="padding: 0.5rem 0;">
 
   <!-- Welcome Header -->
-  <div class="modern-card premium-gradient animate-fade-in"
-    style="margin-bottom: 2rem; border: none; padding: 2.5rem; border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg);">
-    <div
-      style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; position: relative; z-index: 1;">
+  <div class="modern-card animate-fade-in dashboard-header-card">
+    <div class="dashboard-header-main">
       <div>
-        <h1
-          style="color: white; font-size: clamp(1.6rem, 5vw, 2.5rem); margin-bottom: 0.6rem; letter-spacing: -1px; font-family: 'Outfit', sans-serif;">
-          Olá, {{ user.first_name|default:user.username }}! ✨
+        <h1 class="dashboard-header-title">
+          Olá,
+          {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}
         </h1>
-        <div style="display: flex; gap: 1.25rem; align-items: center;">
-          <p style="opacity: 0.9; font-size: 1.05rem; margin: 0; font-weight: 400; max-width: 500px;">
-            Sua visão geral da comunidade TIBL está pronta. Veja o que mudou hoje.
-          </p>
-          <button onclick="window.location.reload()" class="bt-primary"
-            style="padding: 0.6rem 1.25rem; font-size: 0.8rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(4px); box-shadow: none;">
-            <i class="fas fa-sync-alt"></i> Atualizar
-          </button>
-        </div>
+        <p class="dashboard-header-subtitle">Resumo rápido do dia na comunidade TIBL.</p>
       </div>
-      <div
-        style="text-align: right; background: rgba(0,0,0,0.1); padding: 1rem 1.5rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.1);"
-        id="clock-container">
-        <div id="current-date"
-          style="font-weight: 500; font-size: 0.85rem; opacity: 0.8; color: white; margin-bottom: 0.2rem;"></div>
-        <div id="current-time"
-          style="font-family: 'Inter', monospace; font-size: 1.75rem; font-weight: 700; color: white; letter-spacing: 1px;">
+      <div class="dashboard-header-actions">
+        <button onclick="window.location.reload()" class="bt-primary dashboard-refresh-btn">
+          <i class="fas fa-sync-alt"></i> Atualizar
+        </button>
+        <div class="dashboard-clock" id="clock-container">
+          <div id="current-date" class="dashboard-clock-date"></div>
+          <div id="current-time" class="dashboard-clock-time"></div>
         </div>
       </div>
     </div>
@@ -146,6 +136,76 @@
 </div>
 
 <style>
+  .dashboard-header-card {
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #dbe3ec;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+    background: #ffffff;
+  }
+
+  .dashboard-header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-header-title {
+    margin: 0;
+    font-size: clamp(1.1rem, 3vw, 1.45rem);
+    line-height: 1.2;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.3px;
+    color: #0f172a;
+  }
+
+  .dashboard-header-subtitle {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.92rem;
+    color: #334155;
+    font-weight: 500;
+  }
+
+  .dashboard-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-refresh-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+    box-shadow: none;
+  }
+
+  .dashboard-clock {
+    text-align: right;
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    min-width: 190px;
+  }
+
+  .dashboard-clock-date {
+    font-size: 0.75rem;
+    color: #475569;
+    margin-bottom: 0.1rem;
+    font-weight: 600;
+  }
+
+  .dashboard-clock-time {
+    font-family: 'Inter', monospace;
+    font-size: 1.15rem;
+    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
   .stat-card-v2 {
     display: flex;
     align-items: center;
@@ -180,7 +240,7 @@
   .stat-label {
     display: block;
     font-size: 0.78rem;
-    color: var(--text-muted);
+    color: #334155;
     font-weight: 600;
     margin-bottom: 0.2rem;
     text-transform: uppercase;
@@ -229,6 +289,20 @@
   }
 
   @media (max-width: 600px) {
+    .dashboard-header-card {
+      padding: 0.85rem 1rem;
+    }
+
+    .dashboard-clock {
+      min-width: auto;
+      width: 100%;
+      text-align: left;
+    }
+
+    .dashboard-header-actions {
+      width: 100%;
+    }
+
     .stat-card-v2 {
       gap: 0.875rem;
     }

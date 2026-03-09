@@ -31,11 +31,6 @@ from django.http import JsonResponse
 from django.utils.timezone import now
 from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
-from django.shortcuts import redirect    
-
-from django.shortcuts import render
-from .models import Contabancaria
-from .filters import ContabancariaFilter
 from django.shortcuts import redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -104,86 +99,12 @@ from sitetibl.forms import OrcamentoDepartamentoForm
 from sitetibl.forms import InventarioPatrimonioForm
 from sitetibl.forms import ConteudoEnsinoForm
 from sitetibl.forms import EnvioMensagemForm
-from django.shortcuts import render, redirect
-#from .forms import ContabancariaForm  
-from django.contrib import messages
-
-from django.db.models import Q
-from django.views.generic import ListView
-from .models import Contabancaria 
 
 PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kuanza Norte','KZS':'Kuanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
 MOEDA = {'AKZ':'Kwanza','USD':'USA Dólar','EU':'Euro','R':'Reais','RAN':'ZA Rands','NAMD':'Dólar Namibiano', 'LB':'Libra Inglesa'}
 MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'Junho','7':'Julho','8':'Agosto','9':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'}
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
-
-def contabancariacreateview(request):
-    """Create a new bank account. Called via dynamic URL pattern."""
-    if request.method == 'POST':
-        form = ContabancariaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Sucesso! A conta foi registada.')
-            return redirect('index')
-        else:
-            messages.error(request, 'Erro ao gravar. Verifique os dados no formulário.')
-    else:
-        form = ContabancariaForm()
-    
-    return render(request, 'contaBancaria.html', {'form': form})
-
-# legacy function-based filter view kept for compatibility
-# but new class-based view should be preferred.
-
-def listaContasFiltradas(request): 
-    # prepare base queryset and apply django‑filters
-    contas = Contabancaria.objects.filter(is_active=True)
-    contaFilter = ContabancariaFilter(request.GET, queryset=contas)
-
-    # if the form was submitted it will still include empty values (e.g. ''),
-    # so we only consider the filter active when at least one non-empty
-    # parameter is present (we also ignore the pagination key).
-    cleaned = {k: v for k, v in request.GET.items() if v and k != 'pagina'}
-    if cleaned:
-        resultados = contaFilter.qs
-    else:
-        resultados = None
-
-    return render(
-        request,
-        'contasbancariasfiltradas.html',
-        {
-            'filter': contaFilter,
-            'bb': resultados,            # same name used by other list views
-        }
-    ) 
-
-
-class ContaBancariaFilterListView(ListView):
-    """Generic list view that applies :class:`ContabancariaFilter`.
-
-    The template must expect ``bb`` for the paginated queryset and
-    ``filter`` for rendering the form.  Pagination is enabled at 20
-    items per page to match the previous implementation.
-    """
-
-    model = Contabancaria
-    template_name = 'contasbancariasfiltradas.html'
-    context_object_name = 'bb'
-    paginate_by = 20
-
-    def get_queryset(self):
-        base_qs = super().get_queryset().filter(is_active=True)
-        self.filter = ContabancariaFilter(self.request.GET, queryset=base_qs)
-        return self.filter.qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['filter'] = getattr(self, 'filter', None)
-        return context
-
-    
 
 def comeco(request):
     return render(request, 'index.html')
@@ -222,6 +143,26 @@ def mostraGestao(request,gestaoescolhida,pagina):
             .annotate(total_integrantes=Count('integrantes', distinct=True))
             .order_by('designacao')
         )
+    elif gestaoescolhida == 'contasbancarias':
+        nomev = request.GET.get('nomev', '').strip()
+        apelidov = request.GET.get('apelidov', '').strip()
+        bancov = request.GET.get('bancov', '').strip()
+        numerocontav = request.GET.get('numerocontav', '').strip()
+        ibanv = request.GET.get('ibanv', '').strip()
+        moedav = request.GET.get('moedav', '').strip()
+
+        kwargs = {
+            'is_active': True,
+            'proprietario__nome__icontains': nomev,
+            'proprietario__apelido__icontains': apelidov,
+            'banco__designacao__icontains': bancov,
+            'numeroconta__icontains': numerocontav,
+            'iban__icontains': ibanv,
+        }
+        if moedav:
+            kwargs['moeda'] = moedav
+
+        resultado = lista[gestaoescolhida].filter(**kwargs).order_by('id')
     elif (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].all().order_by('nome','outrosnomes')
     else:
@@ -232,6 +173,17 @@ def mostraGestao(request,gestaoescolhida,pagina):
         context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao')}
     elif gestaoescolhida == 'departamentos':
         context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'listacargos' : Cargo.objects.values('id','designacao')}
+    elif gestaoescolhida == 'contasbancarias':
+        context = {
+            'bb': paginaresultado,
+            'listamoedas': MOEDA.items(),
+            'filtro_nomev': request.GET.get('nomev', ''),
+            'filtro_apelidov': request.GET.get('apelidov', ''),
+            'filtro_bancov': request.GET.get('bancov', ''),
+            'filtro_numerocontav': request.GET.get('numerocontav', ''),
+            'filtro_ibanv': request.GET.get('ibanv', ''),
+            'filtro_moedav': request.GET.get('moedav', ''),
+        }
     elif (gestaoescolhida == 'entradascaixa') or (gestaoescolhida == 'saidascaixa') or (gestaoescolhida == 'entradabancos') or (gestaoescolhida == 'saidabancos'):
         context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
     else:
@@ -788,24 +740,79 @@ def encontraPedidoSaida(request):
 
 @login_required
 def encontraContasbancarias(request):
-    nomev = request.GET.get('nomev', '')
-    apelidov = request.GET.get('apelidov', '')
-    bancov = request.GET.get('bancov', '')
-    pagina = request.GET.get('pagina', 1)
-
+    nomev = request.GET.get('nomev', '').strip()
+    apelidov = request.GET.get('apelidov', '').strip()
+    bancov = request.GET.get('bancov', '').strip()
     kwargs = {
         'proprietario__nome__icontains': nomev,
         'proprietario__apelido__icontains': apelidov,
         'banco__designacao__icontains': bancov,
         'is_active': True,
     }
-    resultado = Contabancaria.objects.filter(**kwargs).order_by('id')
+    resultado = Contabancaria.objects.filter(**kwargs)
+    return render(request,'contasbancariasfiltradas.html', {'bb': resultado })
 
-    # paginar os resultados manualmente para dar suporte ao template
+
+@login_required
+def inativaContabancaria(request, id):
+    if not request.user.has_perm('sitetibl.change_contabancaria'):
+        messages.error(request, 'Acesso negado para inativar conta bancária.')
+        return redirect('index')
+
+    conta = get_object_or_404(Contabancaria, id=id)
+    conta.is_active = False
+    conta.save(update_fields=['is_active'])
+    messages.success(request, f'Conta {conta.numeroconta} inativada com sucesso.')
+    return redirect(f'/tibl/contasbancarias/detalhe/{id}/')
+
+
+@login_required
+def reativaContabancaria(request, id):
+    if not request.user.has_perm('sitetibl.change_contabancaria'):
+        messages.error(request, 'Acesso negado para reativar conta bancária.')
+        return redirect('index')
+
+    conta = get_object_or_404(Contabancaria, id=id)
+    conta.is_active = True
+    conta.save(update_fields=['is_active'])
+    messages.success(request, f'Conta {conta.numeroconta} reativada com sucesso.')
+    return redirect(f'/tibl/contasbancarias/detalhe/{id}/')
+
+
+@login_required
+def contasbancariasinativas(request):
+    pagina = request.GET.get('pagina', 1)
+    resultado = Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao').filter(is_active=False).order_by('id')
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
+    return render(request, 'contasbancariasinativas.html', {
+        'bb': paginaresultado,
+        'total_inativas': resultado.count(),
+    })
 
-    return render(request, 'contasbancariasfiltradas.html', {'bb': paginaresultado})
+
+@login_required
+def relatoriodizimosmembro(request):
+    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
+    return redirect('pagina_relatorios')
+
+
+@login_required
+def relatorioofertasportipo(request):
+    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
+    return redirect('pagina_relatorios')
+
+
+@login_required
+def visualizar_recibo_dizimo(request, dizimo_id):
+    messages.warning(request, f'Recibo de dízimo #{dizimo_id} não está disponível nesta branch.')
+    return redirect('index')
+
+
+@login_required
+def gerar_recibo_dizimo(request, dizimo_id):
+    messages.warning(request, f'Geração de recibo de dízimo #{dizimo_id} não está disponível nesta branch.')
+    return redirect('index')
 
 @login_required
 def encontraAjudas(request):
