@@ -39,4 +39,13 @@ urlpatterns = [
     # Escalas por actividade (API)
     path('actividade/<int:actividade_id>/escalas/', views.EscalasPorActividadeView.as_view(), name='escalas_por_actividade'),
     path('actividade/<int:actividade_id>/escalar-massa/', views.escalar_em_massa, name='escalar_em_massa'),
+
+    # Rotas legadas preservadas para compatibilidade entre branches
+    path('contasbancarias/inativar/<int:id>/', views.inativaContabancaria, name='inativaContabancaria'),
+    path('contasbancarias/reativar/<int:id>/', views.reativaContabancaria, name='reativaContabancaria'),
+    path('contasbancarias/inativas/', views.contasbancariasinativas, name='contasbancariasinativas'),
+    path('relatoriodizimosmembro/', views.relatoriodizimosmembro, name='relatoriodizimosmembro'),
+    path('relatorioofertasportipo/', views.relatorioofertasportipo, name='relatorioofertasportipo'),
+    path('dizimos/recibo/<int:dizimo_id>/visualizar/', views.visualizar_recibo_dizimo, name='visualizar_recibo_dizimo'),
+    path('dizimos/recibo/<int:dizimo_id>/', views.gerar_recibo_dizimo, name='gerar_recibo_dizimo'),
 ]

@@ -143,6 +143,26 @@ def mostraGestao(request,gestaoescolhida,pagina):
             .annotate(total_integrantes=Count('integrantes', distinct=True))
             .order_by('designacao')
         )
+    elif gestaoescolhida == 'contasbancarias':
+        nomev = request.GET.get('nomev', '').strip()
+        apelidov = request.GET.get('apelidov', '').strip()
+        bancov = request.GET.get('bancov', '').strip()
+        numerocontav = request.GET.get('numerocontav', '').strip()
+        ibanv = request.GET.get('ibanv', '').strip()
+        moedav = request.GET.get('moedav', '').strip()
+
+        kwargs = {
+            'is_active': True,
+            'proprietario__nome__icontains': nomev,
+            'proprietario__apelido__icontains': apelidov,
+            'banco__designacao__icontains': bancov,
+            'numeroconta__icontains': numerocontav,
+            'iban__icontains': ibanv,
+        }
+        if moedav:
+            kwargs['moeda'] = moedav
+
+        resultado = lista[gestaoescolhida].filter(**kwargs).order_by('id')
     elif (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].all().order_by('nome','outrosnomes')
     else:
@@ -153,6 +173,17 @@ def mostraGestao(request,gestaoescolhida,pagina):
         context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao')}
     elif gestaoescolhida == 'departamentos':
         context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'listacargos' : Cargo.objects.values('id','designacao')}
+    elif gestaoescolhida == 'contasbancarias':
+        context = {
+            'bb': paginaresultado,
+            'listamoedas': MOEDA.items(),
+            'filtro_nomev': request.GET.get('nomev', ''),
+            'filtro_apelidov': request.GET.get('apelidov', ''),
+            'filtro_bancov': request.GET.get('bancov', ''),
+            'filtro_numerocontav': request.GET.get('numerocontav', ''),
+            'filtro_ibanv': request.GET.get('ibanv', ''),
+            'filtro_moedav': request.GET.get('moedav', ''),
+        }
     elif (gestaoescolhida == 'entradascaixa') or (gestaoescolhida == 'saidascaixa') or (gestaoescolhida == 'entradabancos') or (gestaoescolhida == 'saidabancos'):
         context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
     else:
@@ -709,12 +740,79 @@ def encontraPedidoSaida(request):
 
 @login_required
 def encontraContasbancarias(request):
-    nomev = request.GET['nomev']
-    apelidov = request.GET['apelidov']
-    bancov = request.GET['bancov']
-    kwargs= {'proprietario__nome__icontains':nomev, 'proprietario__apelido__icontains' : apelidov, 'banco__designacao__icontains' : bancov }
+    nomev = request.GET.get('nomev', '').strip()
+    apelidov = request.GET.get('apelidov', '').strip()
+    bancov = request.GET.get('bancov', '').strip()
+    kwargs = {
+        'proprietario__nome__icontains': nomev,
+        'proprietario__apelido__icontains': apelidov,
+        'banco__designacao__icontains': bancov,
+        'is_active': True,
+    }
     resultado = Contabancaria.objects.filter(**kwargs)
     return render(request,'contasbancariasfiltradas.html', {'bb': resultado })
+
+
+@login_required
+def inativaContabancaria(request, id):
+    if not request.user.has_perm('sitetibl.change_contabancaria'):
+        messages.error(request, 'Acesso negado para inativar conta bancária.')
+        return redirect('index')
+
+    conta = get_object_or_404(Contabancaria, id=id)
+    conta.is_active = False
+    conta.save(update_fields=['is_active'])
+    messages.success(request, f'Conta {conta.numeroconta} inativada com sucesso.')
+    return redirect(f'/tibl/contasbancarias/detalhe/{id}/')
+
+
+@login_required
+def reativaContabancaria(request, id):
+    if not request.user.has_perm('sitetibl.change_contabancaria'):
+        messages.error(request, 'Acesso negado para reativar conta bancária.')
+        return redirect('index')
+
+    conta = get_object_or_404(Contabancaria, id=id)
+    conta.is_active = True
+    conta.save(update_fields=['is_active'])
+    messages.success(request, f'Conta {conta.numeroconta} reativada com sucesso.')
+    return redirect(f'/tibl/contasbancarias/detalhe/{id}/')
+
+
+@login_required
+def contasbancariasinativas(request):
+    pagina = request.GET.get('pagina', 1)
+    resultado = Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao').filter(is_active=False).order_by('id')
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    return render(request, 'contasbancariasinativas.html', {
+        'bb': paginaresultado,
+        'total_inativas': resultado.count(),
+    })
+
+
+@login_required
+def relatoriodizimosmembro(request):
+    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
+    return redirect('pagina_relatorios')
+
+
+@login_required
+def relatorioofertasportipo(request):
+    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
+    return redirect('pagina_relatorios')
+
+
+@login_required
+def visualizar_recibo_dizimo(request, dizimo_id):
+    messages.warning(request, f'Recibo de dízimo #{dizimo_id} não está disponível nesta branch.')
+    return redirect('index')
+
+
+@login_required
+def gerar_recibo_dizimo(request, dizimo_id):
+    messages.warning(request, f'Geração de recibo de dízimo #{dizimo_id} não está disponível nesta branch.')
+    return redirect('index')
 
 @login_required
 def encontraAjudas(request):
