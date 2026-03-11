@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block EnvioMensagemFiltrados %}
 
 <div class="list-container">
@@ -6,12 +6,12 @@
         <div>
             <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Mensagens
                 Encontradas</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Resultados da pesquisa no histórico de comunicações.
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Resultados da pesquisa no histÃ³rico de comunicaÃ§Ãµes.
             </p>
         </div>
         <a href="/tibl/gestao/enviomensagem/1" class="bt-primary"
-            style="background-color: var(--bg-sidebar); color: white;">
-            <i class="fas fa-undo"></i> Voltar à Lista
+            style="background-color: var(--info); color: white;">
+            <i class="fas fa-undo"></i> Voltar Ã  Lista
         </a>
     </div>
 
@@ -20,9 +20,9 @@
         <table class="modern-table">
             <thead>
                 <tr>
-                    <th>Conteúdo da Mensagem</th>
+                    <th>ConteÃºdo da Mensagem</th>
                     <th>Remetente</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,7 +40,7 @@
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/enviomensagem/detalhe/{{ x.id }}" class="bt-primary"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
+                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                             <i class="fas fa-envelope-open"></i> Ver
                         </a>
                     </td>
@@ -51,13 +51,13 @@
     </div>
 
     <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-search" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum registo encontrado</h3>
-        <p style="color: var(--text-muted);">A sua busca nas mensagens não retornou resultados.</p>
+        <p style="color: var(--text-muted);">A sua busca nas mensagens nÃ£o retornou resultados.</p>
     </div>
     {% endif %}
 </div>

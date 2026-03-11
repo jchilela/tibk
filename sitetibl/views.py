@@ -12,6 +12,7 @@ from django import forms
 from django.urls import reverse
 from django.template import loader
 from django.db.models import Sum, Count, F
+from django.db import IntegrityError
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
 from reportlab.lib.pagesizes import A4
@@ -30,11 +31,6 @@ from django.http import JsonResponse
 from django.utils.timezone import now
 from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
-from django.shortcuts import redirect    
-
-from django.shortcuts import render
-from .models import Contabancaria
-from .filters import ContabancariaFilter
 from django.shortcuts import redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -103,96 +99,12 @@ from sitetibl.forms import OrcamentoDepartamentoForm
 from sitetibl.forms import InventarioPatrimonioForm
 from sitetibl.forms import ConteudoEnsinoForm
 from sitetibl.forms import EnvioMensagemForm
-from django.shortcuts import render, redirect
-#from .forms import ContabancariaForm  
-from django.contrib import messages
-
-from django.db.models import Q
-from django.views.generic import ListView
-from .models import Contabancaria 
 
 PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kuanza Norte','KZS':'Kuanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
 MOEDA = {'AKZ':'Kwanza','USD':'USA Dólar','EU':'Euro','R':'Reais','RAN':'ZA Rands','NAMD':'Dólar Namibiano', 'LB':'Libra Inglesa'}
 MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'Junho','7':'Julho','8':'Agosto','9':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'}
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
-listafuncoes = Funcao.objects.values('id','designacao')
-listaactividades = Listaactividades.objects.values('id','designacao')
-listacargos = Cargo.objects.values('id','designacao')
-listadepartamentos = Departamento.objects.values('id','designacao')
-listaprofissoes = Profissao.objects.values('id','designacao')
-listarubricasentrada = Rubricaentrada.objects.values('id', 'designacao')
-listarubricassaida = Rubricasaida.objects.values('id', 'designacao')
-#listacontasigreja = Contabancaria.objects.values('id', 'numeroconta','instituicao').filter( instituicao = 1 )
-listacontasigreja = Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id = 1)
-tipoajuda = Tipoajuda.objects.values('id','designacao')
-
-def contabancariacreateview(request):
-    """Create a new bank account. Called via dynamic URL pattern."""
-    if request.method == 'POST':
-        form = ContabancariaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Sucesso! A conta foi registada.')
-            return redirect('index')
-        else:
-            messages.error(request, 'Erro ao gravar. Verifique os dados no formulário.')
-    else:
-        form = ContabancariaForm()
-    
-    return render(request, 'contaBancaria.html', {'form': form})
-
-# legacy function-based filter view kept for compatibility
-# but new class-based view should be preferred.
-
-def listaContasFiltradas(request): 
-    # prepare base queryset and apply django‑filters
-    contas = Contabancaria.objects.filter(is_active=True)
-    contaFilter = ContabancariaFilter(request.GET, queryset=contas)
-
-    # if the form was submitted it will still include empty values (e.g. ''),
-    # so we only consider the filter active when at least one non-empty
-    # parameter is present (we also ignore the pagination key).
-    cleaned = {k: v for k, v in request.GET.items() if v and k != 'pagina'}
-    if cleaned:
-        resultados = contaFilter.qs
-    else:
-        resultados = None
-
-    return render(
-        request,
-        'contasbancariasfiltradas.html',
-        {
-            'filter': contaFilter,
-            'bb': resultados,            # same name used by other list views
-        }
-    ) 
-
-
-class ContaBancariaFilterListView(ListView):
-    """Generic list view that applies :class:`ContabancariaFilter`.
-
-    The template must expect ``bb`` for the paginated queryset and
-    ``filter`` for rendering the form.  Pagination is enabled at 20
-    items per page to match the previous implementation.
-    """
-
-    model = Contabancaria
-    template_name = 'contasbancariasfiltradas.html'
-    context_object_name = 'bb'
-    paginate_by = 20
-
-    def get_queryset(self):
-        base_qs = super().get_queryset().filter(is_active=True)
-        self.filter = ContabancariaFilter(self.request.GET, queryset=base_qs)
-        return self.filter.qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['filter'] = getattr(self, 'filter', None)
-        return context
-
-    
 
 def comeco(request):
     return render(request, 'index.html')
@@ -201,50 +113,88 @@ def index(request):
     template = loader.get_template('index.html')
     return HttpResponse(template.render({}, request))
 
+@login_required
 def mostraGestao(request,gestaoescolhida,pagina):
-    lista = {'escalas' : Escala, 
-             'mandatos': Mandato, 
-             'irmaos':Irmao, 
-             'ajudas':Ajuda, 
-             'cestas': Cestabasica, 
-             'bancos': Banco, 
-             'contasbancarias' : Contabancaria, 
-             'actividades' : Actividade, 
-             'departamentos' : Departamento,
-             'entradabancos' : Entradabanco, 
-             'saidabancos' : Saidabanco, 
-             'entradascaixa' : Entradacaixa, 
-             'saidascaixa' : Saidacaixa, 
-             'dizimosofertas' : Dizimooferta,
-             'relatoriosemanalcelula' : RelatorioSemanalCelula, 
-             'pedidosaida' : PedidoSaida,
-             'orcamentodepartamento':OrcamentoDepartamento,
-             'inventariopatrimonio': InventarioPatrimonio,
-             'conteudoensino':ConteudoEnsino,
-             'enviomensagem':EnvioMensagem,
+    lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'funcao'), 
+             'mandatos': Mandato.objects.select_related('irmao', 'departamento', 'cargo'), 
+             'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'), 
+             'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'), 
+             'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
+             'bancos': Banco.objects, 
+             'contasbancarias' : Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'), 
+             'actividades' : Actividade.objects.select_related('designacao', 'localactividade'), 
+             'departamentos' : Departamento.objects.select_related('lider_departamento', 'vice_lider_departamento'),
+             'entradabancos' : Entradabanco.objects.select_related('contaaacreditar', 'rubrica', 'responsavel'), 
+             'saidabancos' : Saidabanco.objects.select_related('conta', 'rubrica', 'responsavel'), 
+             'entradascaixa' : Entradacaixa.objects.select_related('responsavel', 'rubrica'), 
+             'saidascaixa' : Saidacaixa.objects.select_related('responsavel', 'rubrica'), 
+             'dizimosofertas' : Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade'),
+             'relatoriosemanalcelula' : RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel'), 
+             'pedidosaida' : PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador'),
+             'orcamentodepartamento': OrcamentoDepartamento.objects.select_related('departamento', 'moeda'),
+             'inventariopatrimonio': InventarioPatrimonio.objects.select_related('categoria_patrimonio', 'responsavel', 'estado'),
+             'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
+             'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
              }
-    if (gestaoescolhida == 'irmaos'):
-        resultado = lista[gestaoescolhida].objects.order_by('nome','outrosnomes')
+    if gestaoescolhida == 'departamentos':
+        resultado = (
+            lista[gestaoescolhida]
+            .all()
+            .annotate(total_integrantes=Count('integrantes', distinct=True))
+            .order_by('designacao')
+        )
     elif gestaoescolhida == 'contasbancarias':
-        resultado = lista[gestaoescolhida].objects.filter(is_active=True).order_by('id')
+        nomev = request.GET.get('nomev', '').strip()
+        apelidov = request.GET.get('apelidov', '').strip()
+        bancov = request.GET.get('bancov', '').strip()
+        numerocontav = request.GET.get('numerocontav', '').strip()
+        ibanv = request.GET.get('ibanv', '').strip()
+        moedav = request.GET.get('moedav', '').strip()
+
+        kwargs = {
+            'is_active': True,
+            'proprietario__nome__icontains': nomev,
+            'proprietario__apelido__icontains': apelidov,
+            'banco__designacao__icontains': bancov,
+            'numeroconta__icontains': numerocontav,
+            'iban__icontains': ibanv,
+        }
+        if moedav:
+            kwargs['moeda'] = moedav
+
+        resultado = lista[gestaoescolhida].filter(**kwargs).order_by('id')
+    elif (gestaoescolhida == 'irmaos'):
+        resultado = lista[gestaoescolhida].all().order_by('nome','outrosnomes')
     else:
-        resultado = lista[gestaoescolhida].objects.order_by('id') 
+        resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     if (gestaoescolhida == 'ajudas') or (gestaoescolhida == 'cestas') or (gestaoescolhida == 'actividades'):
-        context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : tipoajuda, 'listafuncoes' : listafuncoes, 'listaactividades' : listaactividades}
+        context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao')}
     elif gestaoescolhida == 'departamentos':
-        context = { 'bb':paginaresultado, 'listadepartamentos' : listadepartamentos, 'listacargos' : listacargos}
+        context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'listacargos' : Cargo.objects.values('id','designacao')}
+    elif gestaoescolhida == 'contasbancarias':
+        context = {
+            'bb': paginaresultado,
+            'listamoedas': MOEDA.items(),
+            'filtro_nomev': request.GET.get('nomev', ''),
+            'filtro_apelidov': request.GET.get('apelidov', ''),
+            'filtro_bancov': request.GET.get('bancov', ''),
+            'filtro_numerocontav': request.GET.get('numerocontav', ''),
+            'filtro_ibanv': request.GET.get('ibanv', ''),
+            'filtro_moedav': request.GET.get('moedav', ''),
+        }
     elif (gestaoescolhida == 'entradascaixa') or (gestaoescolhida == 'saidascaixa') or (gestaoescolhida == 'entradabancos') or (gestaoescolhida == 'saidabancos'):
-        context = { 'bb':paginaresultado, 'listarubricasentrada' : listarubricasentrada, 'listarubricassaida' : listarubricassaida, 'listameses' : MESES, 'listacontasigreja' : listacontasigreja }
+        context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
     else:
-        context = { 'bb':paginaresultado, 'listaprofissoes' : listaprofissoes, 'listameses' : MESES }
+        context = { 'bb':paginaresultado, 'listaprofissoes' : Profissao.objects.values('id','designacao'), 'listameses' : MESES }
 
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
-    return render(request, gestaoescolhida, context)
+    return render(request, gestaoescolhida + '.html', context)
 
 
+@login_required
 def mostraActualizacao(request, gestaoescolhida, id):
     lista = {'escalas' : Escala, 
              'mandatos': Mandato, 
@@ -345,29 +295,37 @@ def mostraActualizacao(request, gestaoescolhida, id):
                 'formulario': formulario
             })
 
+@login_required
+@login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
-    lista = {'irmaos':Irmao, 
-             'ajudas':Ajuda, 
-             'mandatos':Mandato,
-             'cestas': Cestabasica, 
-             'bancos': Banco, 
-             'contasbancarias' : Contabancaria, 
-             'actividades' : Actividade, 
-             'departamentos' : Departamento, 
-             'entradabancos' : Entradabanco, 
-             'saidabancos' : Saidabanco, 
-             'entradascaixa' : Entradacaixa, 
-             'saidascaixa' : Saidacaixa, 
-             'dizimosofertas' : Dizimooferta,
-             'relatoriosemanalcelula' : RelatorioSemanalCelula,
-             'pedidosaida': PedidoSaida,
-             'orcamentodepartamento': OrcamentoDepartamento,
-             'inventariopatrimonio': InventarioPatrimonio,
-             'conteudoensino':ConteudoEnsino,
-             'enviomensagem':EnvioMensagem,
-             'escalas':Escala,  
-             }
-    registoachado = lista[gestaoescolhida].objects.filter(id = identificador)
+    lista_qs = {
+        'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'),
+        'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'),
+        'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'),
+        'bancos': Banco.objects,
+        'contasbancarias': Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'),
+        'actividades': Actividade.objects.select_related('designacao', 'localactividade'),
+        'departamentos': Departamento.objects.select_related('lider_departamento', 'vice_lider_departamento'),
+        'entradabancos': Entradabanco.objects.select_related('contaaacreditar', 'rubrica', 'responsavel'),
+        'saidabancos': Saidabanco.objects.select_related('conta', 'rubrica', 'responsavel'),
+        'entradascaixa': Entradacaixa.objects.select_related('responsavel', 'rubrica'),
+        'saidascaixa': Saidacaixa.objects.select_related('responsavel', 'rubrica'),
+        'dizimosofertas': Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade'),
+        'relatoriosemanalcelula': RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel'),
+        'pedidosaida': PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador'),
+        'orcamentodepartamento': OrcamentoDepartamento.objects.select_related('departamento', 'moeda'),
+        'inventariopatrimonio': InventarioPatrimonio.objects.select_related('categoria_patrimonio', 'responsavel', 'estado'),
+        'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
+        'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
+        'escalas': Escala.objects.select_related('irmao', 'actividade', 'funcao'),
+    }
+    queryset = lista_qs.get(gestaoescolhida)
+    if queryset is None:
+        return redirect('index')
+
+    # Avoid rendering blank detail pages when an invalid id is requested.
+    registo = get_object_or_404(queryset, id=identificador)
+    registoachado = [registo]
     ficheirodetalhado = gestaoescolhida + 'detalhado.html'
     if gestaoescolhida == 'cestas':
         detalhecestas = ComposicaoCesta.objects.filter(cesta = identificador)
@@ -382,10 +340,251 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             valorgasto = total * totalcestasajuda
             cestasremanescentes = int((a - valorgasto)/total)
             context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida, 'detalhecestas' : subtotal, 'total' : total, 'totalcestasajuda' : totalcestasajuda, 'montantedisponibilizado' : a, 'valorgasto' : valorgasto, 'cestasremanescentes' : cestasremanescentes}
+    elif gestaoescolhida == 'actividades':
+        escalas_da_actividade = Escala.objects.filter(actividade_id=identificador).select_related('irmao', 'funcao').order_by('funcao__designacao')
+        todas_funcoes = Funcao.objects.all().order_by('designacao')
+        todos_irmaos = Irmao.objects.select_related('celula', 'localcongregacao').order_by('nome', 'apelido')
+        context = {
+            'registoachado': registoachado, 
+            'gestaoescolhida': gestaoescolhida, 
+            'escalas_da_actividade': escalas_da_actividade,
+            'todas_funcoes': todas_funcoes,
+            'todos_irmaos': todos_irmaos
+        }
+    elif gestaoescolhida == 'departamentos':
+        mandatos_departamento = (
+            Mandato.objects
+            .select_related('irmao', 'cargo')
+            .filter(departamento_id=identificador)
+            .order_by('cargo__designacao', 'irmao__nome', 'irmao__apelido')
+        )
+        irmao_logado = Irmao.objects.filter(user=request.user).first()
+        lidera_departamento = (
+            irmao_logado is not None and registo.lider_departamento_id == irmao_logado.id
+        )
+        pode_gerir_membros = (
+            lidera_departamento
+            or request.user.has_perm('sitetibl.add_mandato')
+            or request.user.has_perm('sitetibl.delete_mandato')
+        )
+
+        if request.method == 'POST':
+            if not pode_gerir_membros:
+                messages.error(request, 'Apenas o lider do departamento ou um administrador pode gerir membros.')
+                return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
+
+            action = request.POST.get('action', '').strip()
+            if action == 'add_member':
+                irmao_id = request.POST.get('irmao_id', '').strip()
+                cargo_id = request.POST.get('cargo_id', '').strip()
+                inicio = request.POST.get('inicio') or None
+                fim = request.POST.get('fim') or None
+
+                if not irmao_id or not cargo_id:
+                    messages.error(request, 'Selecione um irmao e um cargo para adicionar ao departamento.')
+                else:
+                    mandato_existente = Mandato.objects.filter(
+                        departamento_id=identificador,
+                        irmao_id=irmao_id,
+                        cargo_id=cargo_id,
+                    ).exists()
+                    if mandato_existente:
+                        messages.warning(request, 'Este membro ja possui este cargo neste departamento.')
+                    else:
+                        try:
+                            Mandato.objects.create(
+                                departamento_id=identificador,
+                                irmao_id=irmao_id,
+                                cargo_id=cargo_id,
+                                inicio=inicio,
+                                fim=fim,
+                            )
+                            messages.success(request, 'Membro adicionado ao departamento com sucesso.')
+                        except IntegrityError:
+                            messages.error(request, 'Nao foi possivel adicionar o membro. Verifique os dados informados.')
+
+            elif action == 'remove_member':
+                mandato_id = request.POST.get('mandato_id', '').strip()
+                mandato = Mandato.objects.filter(id=mandato_id, departamento_id=identificador).first()
+                if mandato is None:
+                    messages.error(request, 'Registo de mandato nao encontrado para este departamento.')
+                else:
+                    mandato.delete()
+                    messages.success(request, 'Membro removido do departamento com sucesso.')
+
+            return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'mandatos_departamento': mandatos_departamento,
+            'todos_irmaos': Irmao.objects.order_by('nome', 'apelido'),
+            'todos_cargos': Cargo.objects.order_by('designacao'),
+            'pode_gerir_membros': pode_gerir_membros,
+        }
+    elif gestaoescolhida == 'contasbancarias':
+        entradas_conta = (
+            Entradabanco.objects
+            .select_related('rubrica', 'responsavel', 'contaorigem')
+            .filter(contaaacreditar_id=identificador)
+            .order_by('-data', '-hora')
+        )
+        saidas_conta = (
+            Saidabanco.objects
+            .select_related('rubrica', 'responsavel', 'contaaacreditar')
+            .filter(conta_id=identificador)
+            .order_by('-data', '-hora')
+        )
+        total_entradas = entradas_conta.aggregate(total=Sum('valor')).get('total') or 0
+        total_saidas = saidas_conta.aggregate(total=Sum('valor')).get('total') or 0
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_conta': entradas_conta[:8],
+            'saidas_conta': saidas_conta[:8],
+            'total_entradas_conta': total_entradas,
+            'total_saidas_conta': total_saidas,
+            'saldo_movimento': total_entradas - total_saidas,
+        }
+    elif gestaoescolhida == 'bancos':
+        contas_banco = (
+            Contabancaria.objects
+            .select_related('proprietario', 'instituicao')
+            .filter(banco_id=identificador)
+            .order_by('numeroconta')
+        )
+        entradas_banco = (
+            Entradabanco.objects
+            .select_related('contaaacreditar', 'rubrica')
+            .filter(contaaacreditar__banco_id=identificador)
+            .order_by('-data', '-hora')[:6]
+        )
+        saidas_banco = (
+            Saidabanco.objects
+            .select_related('conta', 'rubrica')
+            .filter(conta__banco_id=identificador)
+            .order_by('-data', '-hora')[:6]
+        )
+        total_contas = contas_banco.count()
+        total_saldo_banco = sum(conta.saldo_actual() for conta in contas_banco)
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'contas_banco': contas_banco,
+            'entradas_banco': entradas_banco,
+            'saidas_banco': saidas_banco,
+            'total_contas_banco': total_contas,
+            'total_saldo_banco': total_saldo_banco,
+        }
+    elif gestaoescolhida == 'entradabancos':
+        conta_destino_id = registo.contaaacreditar_id
+        entradas_relacionadas = Entradabanco.objects.none()
+        saidas_relacionadas = Saidabanco.objects.none()
+        if conta_destino_id:
+            entradas_relacionadas = (
+                Entradabanco.objects
+                .select_related('rubrica')
+                .filter(contaaacreditar_id=conta_destino_id)
+                .exclude(id=identificador)
+                .order_by('-data', '-hora')[:6]
+            )
+            saidas_relacionadas = (
+                Saidabanco.objects
+                .select_related('rubrica')
+                .filter(conta_id=conta_destino_id)
+                .order_by('-data', '-hora')[:6]
+            )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_relacionadas': entradas_relacionadas,
+            'saidas_relacionadas': saidas_relacionadas,
+        }
+    elif gestaoescolhida == 'saidabancos':
+        conta_origem_id = registo.conta_id
+        entradas_relacionadas = Entradabanco.objects.none()
+        saidas_relacionadas = Saidabanco.objects.none()
+        if conta_origem_id:
+            entradas_relacionadas = (
+                Entradabanco.objects
+                .select_related('rubrica')
+                .filter(contaaacreditar_id=conta_origem_id)
+                .order_by('-data', '-hora')[:6]
+            )
+            saidas_relacionadas = (
+                Saidabanco.objects
+                .select_related('rubrica')
+                .filter(conta_id=conta_origem_id)
+                .exclude(id=identificador)
+                .order_by('-data', '-hora')[:6]
+            )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_relacionadas': entradas_relacionadas,
+            'saidas_relacionadas': saidas_relacionadas,
+        }
+    elif gestaoescolhida == 'entradascaixa':
+        entradas_relacionadas = (
+            Entradacaixa.objects
+            .select_related('rubrica', 'responsavel')
+            .filter(rubrica_id=registo.rubrica_id)
+            .exclude(id=identificador)
+            .order_by('-data', '-hora')[:6]
+        )
+        saidas_relacionadas = (
+            Saidacaixa.objects
+            .select_related('rubrica', 'responsavel')
+            .filter(responsavel_id=registo.responsavel_id)
+            .order_by('-data', '-hora')[:6]
+        )
+        total_entradas_rubrica = (
+            Entradacaixa.objects
+            .filter(rubrica_id=registo.rubrica_id)
+            .aggregate(total=Sum('valor'))
+            .get('total') or 0
+        )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_relacionadas': entradas_relacionadas,
+            'saidas_relacionadas': saidas_relacionadas,
+            'total_entradas_rubrica': total_entradas_rubrica,
+        }
+    elif gestaoescolhida == 'saidascaixa':
+        saidas_relacionadas = (
+            Saidacaixa.objects
+            .select_related('rubrica', 'responsavel')
+            .filter(rubrica_id=registo.rubrica_id)
+            .exclude(id=identificador)
+            .order_by('-data', '-hora')[:6]
+        )
+        entradas_relacionadas = (
+            Entradacaixa.objects
+            .select_related('rubrica', 'responsavel')
+            .filter(responsavel_id=registo.responsavel_id)
+            .order_by('-data', '-hora')[:6]
+        )
+        total_saidas_rubrica = (
+            Saidacaixa.objects
+            .filter(rubrica_id=registo.rubrica_id)
+            .aggregate(total=Sum('valor'))
+            .get('total') or 0
+        )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'entradas_relacionadas': entradas_relacionadas,
+            'saidas_relacionadas': saidas_relacionadas,
+            'total_saidas_rubrica': total_saidas_rubrica,
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
 
+@login_required
 def mostraEliminacao(request, gestaoescolhida, id):
     lista = {'irmaos':Irmao, 
              'ajudas':Ajuda, 
@@ -429,28 +628,6 @@ def mostraEliminacao(request, gestaoescolhida, id):
     })
 
 @login_required
-def inativaContabancaria(request, id):
-    """Inativa uma conta bancária sem deletá-la fisicamente."""
-    conta = get_object_or_404(Contabancaria, id=id)
-    
-    # 🔐 verificação de permissão
-    perm = 'sitetibl.change_contabancaria'
-    if not request.user.has_perm(perm):
-        messages.error(request, 'Acesso negado! Você não tem permissão para inativar contas.')
-        return redirect('index')
-    
-    if request.method == 'POST':
-        conta.is_active = False
-        conta.save()
-        messages.success(request, 'Conta bancária inativada com sucesso.')
-        return redirect('/tibl/gestao/contasbancarias/1')
-    
-    # GET → mostra confirmação
-    return render(request, 'confirmar_inativacao.html', {
-        'registo': conta,
-        'gestao': 'contasbancarias'
-    })
-
 def mostraCriacao(request, gestaoescolhida):
     listaformularios = {'escalas' : EscalaForm, 
                         'mandatos': MandatoForm, 
@@ -499,17 +676,21 @@ def mostraCriacao(request, gestaoescolhida):
 
     return render(request, 'formulario_criacao.html', {'formulario': formulario})
 
+@login_required
 def encontraIrmao(request):
-    nomev = request.GET['nomev']
-    apelidov = request.GET['apelidov']
-    municipiov = request.GET['municipiov']
-    bairrov = request.GET['bairrov']
-    profissaov = int(request.GET['profissaov'])
-    pagina= request.GET['pagina']
+    nomev = request.GET.get('nomev', '').strip()
+    apelidov = request.GET.get('apelidov', '').strip()
+    municipiov = request.GET.get('municipiov', '').strip()
+    bairrov = request.GET.get('bairrov', '').strip()
+    
+    profissaov_str = request.GET.get('profissaov', '0').strip()
+    profissaov = int(profissaov_str) if profissaov_str.isdigit() else 0
+    
+    pagina = request.GET.get('pagina', '1')
     kwargs= {'nome__icontains':nomev, 'apelido__icontains' : apelidov, 'bairro__icontains' : bairrov, 'profissao_id' : profissaov }
     if (profissaov == 0):
         del kwargs['profissao_id']
-    resultado = Irmao.objects.filter(**kwargs)
+    resultado = Irmao.objects.select_related('profissao', 'celula', 'localcongregacao').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -518,6 +699,7 @@ def encontraIrmao(request):
 
     return render(request,'irmaosfiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
 
+@login_required
 def encontraRelatorioSemanalCelula(request):
     nomev = request.GET['nomev']
     liderv = request.GET['liderv']
@@ -528,7 +710,7 @@ def encontraRelatorioSemanalCelula(request):
              'local_reuniao__icontains' : localv, 
              'tema_palavra__icontains' : temav }
     pagina= request.GET['pagina']
-    resultado = RelatorioSemanalCelula.objects.filter(**kwargs)
+    resultado = RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -537,6 +719,7 @@ def encontraRelatorioSemanalCelula(request):
 
     return render(request,'relatoriosemanalcelulafiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
 
+@login_required
 def encontraPedidoSaida(request):
     nomev = request.GET['projectov']
     liderv = request.GET['montantev']
@@ -546,7 +729,7 @@ def encontraPedidoSaida(request):
              'iban__icontains' : localv, 
               }
     pagina= request.GET['pagina']
-    resultado = PedidoSaida.objects.filter(**kwargs)
+    resultado = PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -555,26 +738,83 @@ def encontraPedidoSaida(request):
 
     return render(request,'pedidosaidafiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
 
+@login_required
 def encontraContasbancarias(request):
-    nomev = request.GET.get('nomev', '')
-    apelidov = request.GET.get('apelidov', '')
-    bancov = request.GET.get('bancov', '')
-    pagina = request.GET.get('pagina', 1)
-
+    nomev = request.GET.get('nomev', '').strip()
+    apelidov = request.GET.get('apelidov', '').strip()
+    bancov = request.GET.get('bancov', '').strip()
     kwargs = {
         'proprietario__nome__icontains': nomev,
         'proprietario__apelido__icontains': apelidov,
         'banco__designacao__icontains': bancov,
         'is_active': True,
     }
-    resultado = Contabancaria.objects.filter(**kwargs).order_by('id')
+    resultado = Contabancaria.objects.filter(**kwargs)
+    return render(request,'contasbancariasfiltradas.html', {'bb': resultado })
 
-    # paginar os resultados manualmente para dar suporte ao template
+
+@login_required
+def inativaContabancaria(request, id):
+    if not request.user.has_perm('sitetibl.change_contabancaria'):
+        messages.error(request, 'Acesso negado para inativar conta bancária.')
+        return redirect('index')
+
+    conta = get_object_or_404(Contabancaria, id=id)
+    conta.is_active = False
+    conta.save(update_fields=['is_active'])
+    messages.success(request, f'Conta {conta.numeroconta} inativada com sucesso.')
+    return redirect(f'/tibl/contasbancarias/detalhe/{id}/')
+
+
+@login_required
+def reativaContabancaria(request, id):
+    if not request.user.has_perm('sitetibl.change_contabancaria'):
+        messages.error(request, 'Acesso negado para reativar conta bancária.')
+        return redirect('index')
+
+    conta = get_object_or_404(Contabancaria, id=id)
+    conta.is_active = True
+    conta.save(update_fields=['is_active'])
+    messages.success(request, f'Conta {conta.numeroconta} reativada com sucesso.')
+    return redirect(f'/tibl/contasbancarias/detalhe/{id}/')
+
+
+@login_required
+def contasbancariasinativas(request):
+    pagina = request.GET.get('pagina', 1)
+    resultado = Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao').filter(is_active=False).order_by('id')
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
+    return render(request, 'contasbancariasinativas.html', {
+        'bb': paginaresultado,
+        'total_inativas': resultado.count(),
+    })
 
-    return render(request, 'contasbancariasfiltradas.html', {'bb': paginaresultado})
 
+@login_required
+def relatoriodizimosmembro(request):
+    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
+    return redirect('pagina_relatorios')
+
+
+@login_required
+def relatorioofertasportipo(request):
+    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
+    return redirect('pagina_relatorios')
+
+
+@login_required
+def visualizar_recibo_dizimo(request, dizimo_id):
+    messages.warning(request, f'Recibo de dízimo #{dizimo_id} não está disponível nesta branch.')
+    return redirect('index')
+
+
+@login_required
+def gerar_recibo_dizimo(request, dizimo_id):
+    messages.warning(request, f'Geração de recibo de dízimo #{dizimo_id} não está disponível nesta branch.')
+    return redirect('index')
+
+@login_required
 def encontraAjudas(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
@@ -589,7 +829,7 @@ def encontraAjudas(request):
         del kwargs['data__year']
     if (tipoajudav == 0):
         del kwargs['ajuda_id']
-    resultado = Ajuda.objects.filter(**kwargs)
+    resultado = Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -597,6 +837,7 @@ def encontraAjudas(request):
     cc = request.META['QUERY_STRING']
     return render(request,'ajudasfiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraCestas(request):
     mesv= request.GET['mesv']
     anov= request.GET['anov']
@@ -606,7 +847,7 @@ def encontraCestas(request):
         del kwargs['codigo__month']
     if (anov == '0'):
         del kwargs['codigo__year']
-    resultado = Cestabasica.objects.filter(**kwargs)
+    resultado = Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -614,6 +855,7 @@ def encontraCestas(request):
     cc = request.META['QUERY_STRING']
     return render(request,'cestasfiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraActividades(request):
     nomev = request.GET.get('nomev', '').strip()
     apelidov = request.GET.get('apelidov', '').strip()
@@ -635,15 +877,15 @@ def encontraActividades(request):
         messages.warning(request, "Preencha pelo menos um campo para efectuar a busca.")
         return redirect('/tibl/gestao/actividades/1/')
     
-    if (actividadev == 0):
+    if (actividadev == '0'):
         del kwargs['actividade__designacao']
-    if (funcaov == 0):
+    if (funcaov == '0'):
         del kwargs['funcao_id']
     if (mesv == '0'):
         del kwargs['actividade__data__month']
     if (anov == '0'):
         del kwargs['actividade__data__year']
-    resultado = Escala.objects.values('actividade_id','actividade__designacao','actividade__designacao__designacao','actividade__data','funcao__designacao','irmao__nome','irmao__apelido','actividade__localactividade').filter(**kwargs)
+    resultado = Escala.objects.values('actividade_id','actividade__designacao','actividade__designacao__designacao','actividade__data','funcao__designacao','irmao__nome','irmao__apelido','actividade__localactividade__designacao').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -651,6 +893,7 @@ def encontraActividades(request):
     cc = request.META['QUERY_STRING']
     return render(request,'actividadesfiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraDepartamentos(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
@@ -671,6 +914,7 @@ def encontraDepartamentos(request):
     return render(request,'departamentosfiltrados.html', {'bb':paginaresultado})
 
 
+@login_required
 def encontraDizimosofertas(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
@@ -682,7 +926,7 @@ def encontraDizimosofertas(request):
         del kwargs['datacorrespondente__month']
     if (anov == '0'):
         del kwargs['datacorrespondente__year']
-    resultado = Dizimooferta.objects.filter(**kwargs)
+    resultado = Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -690,6 +934,7 @@ def encontraDizimosofertas(request):
     cc = request.META['QUERY_STRING']
     return render(request,'dizimosofertasfiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraSaidascaixa(request):
     rubricav = int(request.GET['rubricav'])
     mesv= request.GET['mesv']
@@ -710,6 +955,7 @@ def encontraSaidascaixa(request):
     cc = request.META['QUERY_STRING']
     return render(request,'saidascaixafiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraEntradascaixa(request):
     rubricav = int(request.GET['rubricav'])
     mesv= request.GET['mesv']
@@ -730,6 +976,7 @@ def encontraEntradascaixa(request):
     cc = request.META['QUERY_STRING']
     return render(request,'entradascaixafiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraSaidasbanco(request):
     contabancariav = int(request.GET['contabancariav'])
     rubricav = int(request.GET['rubricav'])
@@ -753,19 +1000,23 @@ def encontraSaidasbanco(request):
     cc = request.META['QUERY_STRING']
     return render(request,'saidasbancofiltradas.html', {'bb':paginaresultado})
 
+@login_required
 def encontraEntradasbanco(request):
     contabancariav = int(request.GET['contabancariav'])
     rubricav = int(request.GET['rubricav'])
+    viav = request.GET.get('viav', '0')
     mesv= request.GET['mesv']
     anov= request.GET['anov']
     pagina= request.GET['pagina']
-    kwargs= {'contaaacreditar':contabancariav, 'rubrica':rubricav, 'data__month':mesv, 'data__year':anov}
+    kwargs= {'contaaacreditar':contabancariav, 'rubrica':rubricav, 'via':viav, 'data__month':mesv, 'data__year':anov}
     if (mesv == '0'):
         del kwargs['data__month']
     if (anov == '0'):
         del kwargs['data__year']
     if (rubricav == 0):
         del kwargs['rubrica']
+    if (viav == '0'):
+        del kwargs['via']
     if (contabancariav == 0):
         del kwargs['contaaacreditar']
     resultado = Entradabanco.objects.filter(**kwargs)
@@ -777,6 +1028,7 @@ def encontraEntradasbanco(request):
     return render(request,'entradasbancofiltradas.html', {'bb':paginaresultado})
 
 
+@login_required
 def encontraOrcamentoDepartamento(request):
     departamentov = request.GET['departamentov']
     orcamentov = request.GET['orcamentov']
@@ -796,6 +1048,7 @@ def encontraOrcamentoDepartamento(request):
     return render(request,'orcamentodepartamentofiltrados.html', {'bb':paginaresultado})
 
 
+@login_required
 def encontraInventarioPatrimonio(request):
     nomev = request.GET['nomev']
     descricaov = request.GET['descricaov']
@@ -814,6 +1067,7 @@ def encontraInventarioPatrimonio(request):
     cc = request.META['QUERY_STRING']
     return render(request,'inventariopatrimoniofiltrados.html', {'bb':paginaresultado})
 
+@login_required
 def encontraConteudoEnsino(request):
     autorv = request.GET['autorv']
     titulov = request.GET['titulov']
@@ -833,6 +1087,7 @@ def encontraConteudoEnsino(request):
     return render(request,'conteudoensinofiltrados.html', {'bb':paginaresultado})
 
 
+@login_required
 def encontraEnvioMensagem(request):
     mensagemv = request.GET['mensagemv']
     quemenviou = request.GET['quemenviou']
@@ -851,6 +1106,7 @@ def encontraEnvioMensagem(request):
     cc = request.META['QUERY_STRING']
     return render(request,'enviomensagemfiltrados.html', {'bb':paginaresultado})
 
+@login_required
 def encontraBancos(request):
     designacao = request.GET['designacao']
     abreviatura = request.GET['abreviatura']
@@ -869,6 +1125,7 @@ def encontraBancos(request):
     cc = request.META['QUERY_STRING']
     return render(request,'bancosfiltrados.html', {'bb':paginaresultado})
 
+@login_required
 def encontraEscalas(request):
     actividade = request.GET['actividade']
     funcao = request.GET['funcao']
@@ -912,6 +1169,7 @@ class EscalasPorActividadeView(APIView):
 
 #VIEWS PARA OS DASHBOARDS
 
+@login_required
 def dashboardIrmaos(request):
     ano = now().year
 
@@ -942,6 +1200,7 @@ def dashboardIrmaos(request):
         "data": data
     })
 
+@login_required
 def dashboardOrcamentoDepartamento(request):
     ano = now().year
 
@@ -965,6 +1224,7 @@ def dashboardOrcamentoDepartamento(request):
         "data": data
     })
 
+@login_required
 def dashboardPedidosSaidaSemana(request):
     ano = now().year
 
@@ -1001,6 +1261,7 @@ def dashboardPedidosSaidaSemana(request):
     })
 
 
+@login_required
 def dashboardConteudoEnsinoMensal(request):
     ano = now().year
 
@@ -1034,6 +1295,7 @@ def dashboardConteudoEnsinoMensal(request):
         "total": total_geral
     })
 
+@login_required
 def dashboardDizimoOferta(request):
     ano = now().year
 
@@ -1073,6 +1335,7 @@ def dashboardDizimoOferta(request):
 
 
 
+@login_required
 def dashboardCrescimentoMembros(request):
     ano = now().year
 
@@ -1119,6 +1382,7 @@ def pagina_relatorios(request):
     return render(request, 'relatorios/template_relatorio.html')
 
 
+@login_required
 def relatorio_irmaos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_irmaos.pdf"'
@@ -1195,6 +1459,7 @@ def relatorio_irmaos_pdf(request):
     return response
 
 
+@login_required
 def relatorio_dizimos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_dizimos_ofertas.pdf"'
@@ -1284,6 +1549,7 @@ def relatorio_dizimos_pdf(request):
     return response
 
 
+@login_required
 def relatorio_departamentos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_departamentos.pdf"'
@@ -1349,6 +1615,7 @@ def relatorio_departamentos_pdf(request):
     return response
 
 
+@login_required
 def relatorio_escalas_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_escalas.pdf"'
@@ -1435,6 +1702,7 @@ def relatorio_escalas_pdf(request):
     return response
 
 
+@login_required
 def relatorio_actividades_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_actividades.pdf"'
@@ -1536,6 +1804,7 @@ def relatorio_actividades_pdf(request):
     return response
 
 
+@login_required
 def relatorio_inventario_patrimonio_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_inventario_patrimonio.pdf"'
@@ -1635,6 +1904,7 @@ def relatorio_inventario_patrimonio_pdf(request):
 
 
 
+@login_required
 def relatorio_saida_caixa_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_saida_caixa.pdf"'
@@ -1748,3 +2018,59 @@ def dashboard(request):
 
 def root_redirect(request):
     return redirect('dashboard')
+
+@login_required
+def minhas_escalas(request):
+    import datetime
+    agora = datetime.datetime.now()
+    try:
+        irmao_obj = request.user.irmao
+        escalas = Escala.objects.filter(irmao=irmao_obj, actividade__data__gte=agora.date()).select_related(
+            'actividade', 
+            'actividade__designacao', 
+            'actividade__localactividade', 
+            'funcao'
+        ).order_by('actividade__data', 'actividade__inicio')
+    except:
+        escalas = []
+
+    context = {
+        'escalas': escalas,
+        'titulo': 'As Minhas Escalas'
+    }
+    return render(request, 'minhasescalas.html', context)
+
+@login_required
+def escalar_em_massa(request, actividade_id):
+    if request.method == 'POST':
+        funcao_id = request.POST.get('funcao')
+        irmaos_ids = request.POST.getlist('irmaos') # Multiple select returns list
+        
+        if funcao_id and irmaos_ids:
+            actividade = get_object_or_404(Actividade, id=actividade_id)
+            funcao = get_object_or_404(Funcao, id=funcao_id)
+            
+            novas_escalas = []
+            ids_processados = set()
+            
+            for irmao_id in irmaos_ids:
+                if irmao_id in ids_processados:
+                    continue
+                ids_processados.add(irmao_id)
+                
+                # Evitar que o membro seja escalado duas vezes na mesma Actividade (mesmo que com funções diferentes)
+                if not Escala.objects.filter(actividade=actividade, irmao_id=irmao_id).exists():
+                    novas_escalas.append(Escala(
+                        actividade=actividade,
+                        irmao_id=irmao_id,
+                        funcao=funcao
+                    ))
+            
+            if novas_escalas:
+                Escala.objects.bulk_create(novas_escalas)
+                messages.success(request, f'{len(novas_escalas)} irmãos escalados para {funcao.designacao} com sucesso!')
+            else:
+                messages.info(request, 'As pessoas selecionadas já estavam escaladas para esta actividade.')
+                
+    # Redirect back to the details page regardless of success/failure
+    return redirect(f'/tibl/actividades/detalhe/{actividade_id}/')

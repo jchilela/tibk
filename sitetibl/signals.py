@@ -6,7 +6,7 @@ from django.core.mail import get_connection
 from django.core.mail import EmailMultiAlternatives
 import requests
 
-from .models import EnvioMensagem, Irmao, PedidoSaida
+from .models import EnvioMensagem, Irmao, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa
 
 @receiver(post_save, sender=EnvioMensagem)
 def enviar_email_sms_massivo(sender, instance, created, **kwargs):
@@ -166,3 +166,169 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
 
     
     #     print(telefones_unicos)
+
+
+# =========================================
+# 🔗 AUTO-LINK DIZIMOS COM ENTRADAS BANCARIAS
+# =========================================
+
+def tentar_vincular_dizimo_com_banco(dizimo):
+    """
+    Tenta vincular automaticamente um dízimo com uma entrada bancária.
+    Critérios:
+    - Mesma data
+    - Mesmo valor
+    - Mesma moeda
+    - Ainda não vinculados
+    """
+    if dizimo.entradabanco:
+        # Já vinculado, não faz nada
+        return
+
+    try:
+        # Procura uma entrada bancária que corresponda
+        entrada = Entradabanco.objects.filter(
+            data=dizimo.datacorrespondente,
+            valor=dizimo.valor,
+            moeda=dizimo.moeda,
+            # Entrada ainda não vinculada a outro dízimo
+            dizimooferta__isnull=True
+        ).first()
+
+        if entrada:
+            dizimo.entradabanco = entrada
+            # Salva sem disparar signals novamente (para evitar loop infinito)
+            Dizimooferta.objects.filter(pk=dizimo.pk).update(entradabanco=entrada)
+            print(f"✅ Dízimo ID {dizimo.id} vinculado com Entrada Bancária ID {entrada.id}")
+    except Exception as e:
+        print(f"❌ Erro ao vincular dízimo ID {dizimo.id}: {str(e)}")
+
+
+def tentar_vincular_banco_com_dizimos(entrada):
+    """
+    Tenta vincular automaticamente uma entrada bancária com dízimos.
+    Critérios:
+    - Mesma data
+    - Mesmo valor
+    - Mesma moeda
+    - Ainda não vinculados
+    """
+    try:
+        # Procura dízimos que correspondam
+        dizimos = Dizimooferta.objects.filter(
+            datacorrespondente=entrada.data,
+            valor=entrada.valor,
+            moeda=entrada.moeda,
+            entradabanco__isnull=True
+        )
+
+        for dizimo in dizimos:
+            dizimo.entradabanco = entrada
+            # Salva sem disparar signals
+            Dizimooferta.objects.filter(pk=dizimo.pk).update(entradabanco=entrada)
+            print(f"✅ Entrada Bancária ID {entrada.id} vinculada com Dízimo ID {dizimo.id}")
+    except Exception as e:
+        print(f"❌ Erro ao vincular entrada bancária ID {entrada.id}: {str(e)}")
+
+
+@receiver(post_save, sender=Dizimooferta)
+def auto_vincular_dizimo_com_banco(sender, instance, created, **kwargs):
+    """
+    Signal que dispara quando um dízimo é criado/atualizado.
+    Tenta vincular automaticamente com uma entrada bancária.
+    """
+    if created:
+        tentar_vincular_dizimo_com_banco(instance)
+
+
+@receiver(post_save, sender=Entradabanco)
+def auto_vincular_banco_com_dizimos(sender, instance, created, **kwargs):
+    """
+    Signal que dispara quando uma entrada bancária é criada/atualizada.
+    Tenta vincular automaticamente com dízimos.
+    """
+    if created:
+        tentar_vincular_banco_com_dizimos(instance)
+
+
+# =========================================
+# 🏪 AUTO-LINK DIZIMOS COM ENTRADAS CAIXA
+# =========================================
+
+def tentar_vincular_dizimo_com_caixa(dizimo):
+    """
+    Tenta vincular automaticamente um dízimo com uma entrada de caixa.
+    Critérios:
+    - Mesma data
+    - Mesmo valor
+    - Mesma moeda
+    - Ainda não vinculados
+    """
+    if dizimo.entradacaixa:
+        # Já vinculado, não faz nada
+        return
+
+    try:
+        # Procura uma entrada de caixa que corresponda
+        entrada = Entradacaixa.objects.filter(
+            data=dizimo.datacorrespondente,
+            valor=dizimo.valor,
+            moeda=dizimo.moeda,
+            # Entrada ainda não vinculada a outro dízimo
+            dizimooferta__isnull=True
+        ).first()
+
+        if entrada:
+            dizimo.entradacaixa = entrada
+            # Salva sem disparar signals novamente (para evitar loop infinito)
+            Dizimooferta.objects.filter(pk=dizimo.pk).update(entradacaixa=entrada)
+            print(f"✅ Dízimo ID {dizimo.id} vinculado com Entrada Caixa ID {entrada.id}")
+    except Exception as e:
+        print(f"❌ Erro ao vincular dízimo ID {dizimo.id}: {str(e)}")
+
+
+def tentar_vincular_caixa_com_dizimos(entrada):
+    """
+    Tenta vincular automaticamente uma entrada de caixa com dízimos.
+    Critérios:
+    - Mesma data
+    - Mesmo valor
+    - Mesma moeda
+    - Ainda não vinculados
+    """
+    try:
+        # Procura dízimos que correspondam
+        dizimos = Dizimooferta.objects.filter(
+            datacorrespondente=entrada.data,
+            valor=entrada.valor,
+            moeda=entrada.moeda,
+            entradacaixa__isnull=True
+        )
+
+        for dizimo in dizimos:
+            dizimo.entradacaixa = entrada
+            # Salva sem disparar signals
+            Dizimooferta.objects.filter(pk=dizimo.pk).update(entradacaixa=entrada)
+            print(f"✅ Entrada Caixa ID {entrada.id} vinculada com Dízimo ID {dizimo.id}")
+    except Exception as e:
+        print(f"❌ Erro ao vincular entrada caixa ID {entrada.id}: {str(e)}")
+
+
+@receiver(post_save, sender=Dizimooferta)
+def auto_vincular_dizimo_com_caixa(sender, instance, created, **kwargs):
+    """
+    Signal que dispara quando um dízimo é criado/atualizado.
+    Tenta vincular automaticamente com uma entrada de caixa.
+    """
+    if created:
+        tentar_vincular_dizimo_com_caixa(instance)
+
+
+@receiver(post_save, sender=Entradacaixa)
+def auto_vincular_caixa_com_dizimos(sender, instance, created, **kwargs):
+    """
+    Signal que dispara quando uma entrada de caixa é criada/atualizada.
+    Tenta vincular automaticamente com dízimos.
+    """
+    if created:
+        tentar_vincular_caixa_com_dizimos(instance)

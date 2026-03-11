@@ -8,69 +8,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Sistema de Gestão Integrada - Terceira Igreja Baptista de Luanda">
-    <meta name="theme-color" content="#548c2f">
+    <meta name="theme-color" content="#2e7d32">
     <title>{% block title %}TIB Luanda{% endblock %} | Sistema de Gestão</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&family=Outfit:wght@700&display=swap"
         rel="stylesheet">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- Modern Styles -->
-    <link rel="stylesheet" href="{% static 'estilos/modern.css' %}">
+    <link rel="stylesheet" href="{% static 'estilos/modern.css' %}?v=20260309">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'fotos/2022/cba.png' %}">
 
     {% block extra_css %}{% endblock %}
 </head>
 
 <body>
 
+    <!-- Mobile overlay -->
+    <div id="sidebar-overlay"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; backdrop-filter:blur(2px);"
+        onclick="closeSidebar()"></div>
+
     <div class="modern-layout">
-        {% if user.is_authenticated %}
+        {% if request.user.is_authenticated %}
         <!-- Sidebar -->
         <aside class="modern-sidebar" id="sidebar">
             <div class="logo-container">
-                <div class="logo-icon">
-                    <i class="fas fa-church"></i>
+                <div class="logo-icon" style="background: transparent; box-shadow: none;">
+                    <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL Logo"
+                        style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4));">
                 </div>
-                <div class="logo-text">TIBL System</div>
-                <button id="sidebar-collapse" class="d-none d-lg-flex"
-                    style="background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; margin-left:auto; padding:0.5rem;">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+                <div class="logo-text">TIBL</div>
             </div>
 
             <nav class="sidebar-nav">
-                {% if request.user|has_group:"Administrador" or request.user|has_group:"Financeiro" or request.user|has_group:"Secretaria" or request.user|has_group:"Membros Baptizados" or request.user|has_group:"Membro Geral" %}
                 <a href="{% url 'dashboard' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
                 </a>
 
-                <a href="/tibl/gestao/irmaos/1" class="nav-item {% if '/irmaos/' in request.path %}active{% endif %}">
-                    <i class="fas fa-users fa-fw"></i> Irmãos
+                <a href="{% url 'minhas_escalas' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'minhas_escalas' %}active{% endif %}">
+                    <i class="fas fa-user-clock fa-fw"></i> <span>As Minhas Escalas</span>
+                </a>
+
+                <a href="/tibl/gestao/irmaos/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
+                    <i class="fas fa-users fa-fw"></i> <span>Irmãos</span>
                 </a>
 
                 <a href="/tibl/gestao/actividades/1"
-                    class="nav-item {% if '/actividades/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
                     <i class="fas fa-calendar-check fa-fw"></i> Actividades
                 </a>
 
-                <a href="/tibl/gestao/escalas/1" class="nav-item {% if '/escalas/' in request.path %}active{% endif %}">
+                <a href="/tibl/gestao/escalas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
                     <i class="fas fa-clipboard-list fa-fw"></i> Escalas
                 </a>
 
                 <a href="/tibl/gestao/departamentos/1"
-                    class="nav-item {% if '/departamentos/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'departamentos' %}active{% endif %}">
                     <i class="fas fa-sitemap fa-fw"></i> Departamentos
                 </a>
 
                 <a href="/tibl/gestao/mandatos/1"
-                    class="nav-item {% if '/mandatos/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
                     <i class="fas fa-handshake fa-fw"></i> Mandatos
                 </a>
 
@@ -78,75 +87,75 @@
                 <div class="nav-section-title">Financeiro</div>
 
                 <a href="/tibl/gestao/contasbancarias/1"
-                    class="nav-item {% if '/contasbancarias/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
                     <i class="fas fa-university fa-fw"></i> Contas Bancárias
                 </a>
 
                 <a href="/tibl/gestao/dizimosofertas/1"
-                    class="nav-item {% if '/dizimosofertas/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'dizimosofertas' %}active{% endif %}">
                     <i class="fas fa-hand-holding-heart fa-fw"></i> Dízimos e Ofertas
                 </a>
 
                 <a href="/tibl/gestao/entradabancos/1"
-                    class="nav-item {% if '/entradabancos/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradabancos' %}active{% endif %}">
                     <i class="fas fa-arrow-circle-right fa-fw"></i> Entrada (Banco)
                 </a>
 
                 <a href="/tibl/gestao/saidabancos/1"
-                    class="nav-item {% if '/saidabancos/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidabancos' %}active{% endif %}">
                     <i class="fas fa-arrow-circle-left fa-fw"></i> Saída (Banco)
                 </a>
 
                 <a href="/tibl/gestao/entradascaixa/1"
-                    class="nav-item {% if '/entradascaixa/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradascaixa' %}active{% endif %}">
                     <i class="fas fa-coins fa-fw"></i> Entrada (Caixa)
                 </a>
 
                 <a href="/tibl/gestao/saidascaixa/1"
-                    class="nav-item {% if '/saidascaixa/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
                     <i class="fas fa-money-bill-wave fa-fw"></i> Saída (Caixa)
                 </a>
 
                 <a href="/tibl/gestao/pedidosaida/1"
-                    class="nav-item {% if '/pedidosaida/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
                     <i class="fas fa-file-invoice-dollar fa-fw"></i> Pedidos de Saída
                 </a>
 
                 <a href="/tibl/gestao/orcamentodepartamento/1"
-                    class="nav-item {% if '/orcamentodepartamento/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
                     <i class="fas fa-chart-pie fa-fw"></i> Orçamento Dept.
                 </a>
                 {% endif %}
 
                 <div class="nav-section-title">Social & Comunidade</div>
 
-                <a href="/tibl/gestao/ajudas/1" class="nav-item {% if '/ajudas/' in request.path %}active{% endif %}">
+                <a href="/tibl/gestao/ajudas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'ajudas' %}active{% endif %}">
                     <i class="fas fa-hands-helping fa-fw"></i> Ajudas
                 </a>
 
-                <a href="/tibl/gestao/cestas/1" class="nav-item {% if '/cestas/' in request.path %}active{% endif %}">
+                <a href="/tibl/gestao/cestas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'cestas' %}active{% endif %}">
                     <i class="fas fa-shopping-basket fa-fw"></i> Cestas Básicas
                 </a>
 
                 <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                    class="nav-item {% if '/relatoriosemanalcelula/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
                     <i class="fas fa-book fa-fw"></i> Relatório Células
                 </a>
 
                 <a href="/tibl/gestao/conteudoensino/1"
-                    class="nav-item {% if '/conteudoensino/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
                     <i class="fas fa-graduation-cap fa-fw"></i> Conteúdo Ensino
                 </a>
 
                 <a href="/tibl/gestao/enviomensagem/1"
-                    class="nav-item {% if '/enviomensagem/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'enviomensagem' %}active{% endif %}">
                     <i class="fas fa-envelope fa-fw"></i> Envio Mensagem
                 </a>
 
                 <div class="nav-section-title">Administração</div>
 
                 <a href="/tibl/gestao/inventariopatrimonio/1"
-                    class="nav-item {% if '/inventariopatrimonio/' in request.path %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
                     <i class="fas fa-boxes-stacked fa-fw"></i> Património
                 </a>
 
@@ -160,7 +169,6 @@
                 </a>
                 {% endif %}
 
-                {% endif %}
             </nav>
 
             <div style="padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08);">
@@ -176,36 +184,61 @@
         {% endif %}
 
         <!-- Main Content -->
-        <main class="modern-main {% if not user.is_authenticated %}no-sidebar{% endif %}" id="main-content">
-            {% if user.is_authenticated %}
+        <main class="modern-main {% if not request.user.is_authenticated %}no-sidebar{% endif %}" id="main-content">
+            {% if request.user.is_authenticated %}
             <header class="modern-topbar">
                 <button class="sidebar-toggle" id="sidebar-toggle">
                     <i class="fas fa-bars"></i>
                 </button>
 
-                <div class="topbar-search">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="global-search" placeholder="Pesquisa rápida..." autocomplete="off">
+                <div class="breadcrumb-nav d-none d-md-flex"
+                    style="flex: 1; margin-left: 1.5rem; gap: 0.5rem; align-items: center; font-size: 0.825rem; color: var(--text-muted); font-weight: 500;">
+                    <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">TIBL</a>
+                    <i class="fas fa-chevron-right" style="font-size: 0.65rem; opacity: 0.5;"></i>
+                    <span style="color: var(--text-main); font-weight: 600;">{% if request.resolver_match.kwargs.gestaoescolhida %}{{ request.resolver_match.kwargs.gestaoescolhida|title|replace:"_, " }}{% elif request.resolver_match.url_name %}{{ request.resolver_match.url_name|title|replace:"_, " }}{% endif %}</span>
                 </div>
 
-                <div class="user-info">
-                    <div style="text-align: right;">
+                <div class="topbar-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="global-search" placeholder="Filtrar dados na página..." autocomplete="off">
+                </div>
+
+                <div class="user-info" style="gap: 1.5rem;">
+                    <!-- Table Export -->
+                    <button class="d-none d-md-flex" id="global-export-btn"
+                        style="background:none; border:none; cursor:pointer; color:var(--primary); font-size:1.1rem; display:none;"
+                        title="Exportar Tabela (Excel)">
+                        <i class="fas fa-file-excel"></i>
+                    </button>
+
+                    <!-- Dark Mode Toggle -->
+                    <button id="dark-mode-toggle"
+                        style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:1.1rem;"
+                        title="Modo Noturno">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    <div style="text-align: right; margin-right: 0.5rem;">
                         <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">
-                            {{ user.first_name|default:user.username }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted, #888);">
-                            {% with grupo=user.groups.first %}
-                             {% if grupo %}{{grupo.name}}{% else %}
-                             Usuário{% endif %}
-                            {% endwith %}
+                            {% firstof request.user.first_name request.user.username %}
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                            {% if request.user|has_group:"Administrador" %}Administrador
+                            {% elif request.user|has_group:"Financeiro" %}Financeiro
+                            {% elif request.user|has_group:"Secretaria" %}Secretaria
+                            {% elif request.user|has_group:"Membros Baptizados" %}Membros Baptizados
+                            {% elif request.user|has_group:"Membro Geral" %}Membro Geral
+                            {% elif request.user.is_superuser %}Administrador
+                            {% else %}Usuário{% endif %}
                         </div>
                     </div>
-                    <div class="user-avatar">{{ user.username|first|upper }}</div>
+                    <div class="user-avatar">{{ request.user.username|first|upper }}</div>
                 </div>
             </header>
             {% endif %}
 
             {% if messages %}
-            <div class="messages-container" style="padding: 0 2rem; margin-top: 1rem;">
+            <div class="messages-container" style="padding: 0.75rem 1.25rem 0;">
                 {% for message in messages %}
                 <div
                     class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
@@ -220,7 +253,7 @@
             <div class="content-wrapper">
                 {% block content %}{% endblock %}
 
-                <!-- Compatibility Blocks for all existing templates -->
+                <!-- Compatibility Blocks -->
                 {% block Titulo %}{% endblock %}
                 {% block Irmaos %}{% endblock %}
                 {% block irmaosdetalhe %}{% endblock %}
@@ -283,47 +316,104 @@
     </div>
 
     <!-- Core JS -->
-    <script src="{% static 'js/tibl-core.js' %}"></script>
+    <script src="{% static 'js/tibl-core.js' %}?v=20260309"></script>
 
     <script>
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.style.display = 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            // Sidebar mobile toggle
             const toggle = document.getElementById('sidebar-toggle');
             const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
             if (toggle && sidebar) {
                 toggle.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    sidebar.classList.toggle('open');
+                    const isOpen = sidebar.classList.toggle('open');
+                    if (overlay) overlay.style.display = isOpen ? 'block' : 'none';
                 });
             }
 
-            // Sidebar PC collapse toggle
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+
+            if (sidebar) {
+                sidebar.querySelectorAll('.nav-item').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        if (window.innerWidth < 1024) closeSidebar();
+                    });
+                });
+            }
+
             const collapseBtn = document.getElementById('sidebar-collapse');
             if (collapseBtn && sidebar) {
-                // Restore state
                 if (localStorage.getItem('sidebar-collapsed') === 'true') {
                     sidebar.classList.add('collapsed');
                     const icon = collapseBtn.querySelector('i');
                     if (icon) icon.className = 'fas fa-chevron-right';
                 }
-
                 collapseBtn.addEventListener('click', function () {
                     sidebar.classList.toggle('collapsed');
                     const icon = collapseBtn.querySelector('i');
                     const isCollapsed = sidebar.classList.contains('collapsed');
-
-                    if (icon) {
-                        icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
-                    }
-
+                    if (icon) icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
                     localStorage.setItem('sidebar-collapsed', isCollapsed);
                 });
             }
+
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            if (darkModeToggle) {
+                const currentTheme = localStorage.getItem('tibl-theme');
+                const icon = darkModeToggle.querySelector('i');
+
+                if (currentTheme) {
+                    document.documentElement.setAttribute('data-theme', currentTheme);
+                    if (currentTheme === 'dark') {
+                        icon.classList.replace('fa-moon', 'fa-sun');
+                        icon.style.color = '#f59e0b';
+                    }
+                }
+
+                darkModeToggle.addEventListener('click', function () {
+                    let theme = document.documentElement.getAttribute('data-theme');
+                    if (theme === 'dark') {
+                        document.documentElement.removeAttribute('data-theme');
+                        localStorage.setItem('tibl-theme', 'light');
+                        icon.classList.replace('fa-sun', 'fa-moon');
+                        icon.style.color = 'var(--text-muted)';
+                    } else {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('tibl-theme', 'dark');
+                        icon.classList.replace('fa-moon', 'fa-sun');
+                        icon.style.color = '#f59e0b';
+                    }
+                });
+            }
+
+            setTimeout(function () {
+                const globalExportBtn = document.getElementById('global-export-btn');
+                const hasTable = document.querySelector('.modern-table');
+                if (globalExportBtn && hasTable) {
+                    globalExportBtn.style.display = 'block';
+                    globalExportBtn.addEventListener('click', function () {
+                        const pageTitle = document.title.split('|')[0].trim() || 'TIBL_Export';
+                        const timeStr = new Date().toISOString().slice(0, 10);
+                        if (window.TIBL && window.TIBL.exportTableToCSV) {
+                            window.TIBL.exportTableToCSV('.modern-table', `${pageTitle}_${timeStr}`);
+                        }
+                    });
+                }
+            }, 500);
         });
     </script>
 
     {% block extra_js %}{% endblock %}
-
 </body>
 
 </html>

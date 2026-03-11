@@ -4,142 +4,216 @@
 {% block Irmaodetalhado %}
 
 {% if registoachado %}
-<div class="profile-container" style="max-width: 900px; margin: 0 auto;">
+<div style="max-width: 960px; margin: 0 auto;">
     {% for x in registoachado %}
 
     <!-- Profile Header Card -->
-    <div class="modern-card"
-        style="display: flex; gap: 2.5rem; align-items: center; margin-bottom: 2rem; position: relative; overflow: hidden; background: linear-gradient(135deg, white, #f1f8ed);">
+    <div class="modern-card animate-fade-in-up"
+        style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--bg-main), var(--primary-50)); border-left: 6px solid var(--primary); padding: 2.5rem; position: relative; overflow: hidden;">
+
+        <!-- Decorative background elements -->
         <div
-            style="width: 180px; height: 180px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-md); background: #eee; flex-shrink: 0; border: 4px solid white;">
-            {% if x.foto %}
-            <img src="{{ x.foto.url }}" style="width: 100%; height: 100%; object-fit: cover;">
-            {% else %}
+            style="position: absolute; right: 0; top: 0; width: 150px; height: 150px; background: var(--primary); opacity: 0.05; border-radius: 50%; filter: blur(40px); transform: translate(30%, -30%); pointer-events: none;">
+        </div>
+
+        <div style="display: flex; gap: 2.5rem; align-items: center; flex-wrap: wrap; position: relative; z-index: 1;">
+            <!-- Avatar -->
             <div
-                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-sidebar); color: white; font-size: 4rem;">
-                {{ x.nome|first }}{{ x.apelido|first }}
+                style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; box-shadow: 0 15px 35px -10px rgba(0,0,0,0.15); background: white; flex-shrink: 0; border: 4px solid white;">
+                {% if x.foto %}
+                <img src="{{ x.foto.url }}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                {% else %}
+                <div
+                    style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color:white; font-size:3.5rem; font-family: 'Outfit', sans-serif; font-weight:700;">
+                    {{ x.nome|first }}{{ x.apelido|first }}
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
-        </div>
 
-        <div style="flex-grow: 1;">
-            <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--primary-dark);">{{ x.nome }} {{ x.apelido
-                }}</h1>
-            <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1.5rem;">
-                <i class="fas fa-id-card mr-2"></i> {{ x.outrosnomes|default:"Membro Registado" }}
-            </p>
-
-            <div style="display: flex; gap: 1rem;">
-                <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary">
-                    <i class="fas fa-edit"></i> Editar Perfil
-                </a>
-                <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
-                    style="background-color: #ef4444;">
-                    <i class="fas fa-trash"></i> Eliminar
-                </a>
+            <!-- Name & Actions -->
+            <div style="flex: 1; min-width: 250px;">
+                <h1
+                    style="font-family: 'Outfit', sans-serif; font-size: clamp(1.8rem, 5vw, 2.5rem); margin-bottom: 0.2rem; color: var(--text-main); letter-spacing: -0.5px; line-height: 1.1;">
+                    {{ x.nome }} {{ x.apelido }}
+                </h1>
+                <p
+                    style="font-size: 1.1rem; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem;">
+                    <i class="fas fa-id-badge mr-2"></i>{{ x.outrosnomes|default:"Membro Registado" }}
+                </p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                        style="padding: 0.75rem 1.5rem; font-weight: 600;">
+                        <i class="fas fa-edit mr-2"></i> Editar Perfil
+                    </a>
+                    <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-danger"
+                        style="padding: 0.75rem 1.5rem; font-weight: 600;">
+                        <i class="fas fa-trash-alt mr-2"></i> Eliminar
+                    </a>
+                    <a href="/tibl/gestao/irmaos/1" class="bt-secondary"
+                        style="padding: 0.75rem 1.5rem; font-weight: 600;">
+                        <i class="fas fa-arrow-left mr-2"></i> Voltar à Lista
+                    </a>
+                </div>
             </div>
-        </div>
-
-        <div
-            style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 10rem; transform: rotate(-15deg);">
-            <i class="fas fa-church"></i>
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <!-- Info Cards Grid -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+
         <!-- Personal Info -->
-        <div class="modern-card">
-            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-user-circle mr-2"></i> Dados Pessoais
+        <div class="modern-card animate-fade-in-up"
+            style="animation-delay: 0.1s; border-top: 4px solid var(--primary-light);">
+            <h3
+                style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; color: var(--text-main); font-size: 1.1rem; font-family: 'Outfit', sans-serif;">
+                <i class="fas fa-user-circle mr-2" style="color: var(--primary);"></i> Dados Pessoais
             </h3>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Sexo</span>
-                <span style="font-weight: 600;">{{ x.get_sexo_display }}</span>
-            </div>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Nascimento</span>
-                <span style="font-weight: 600;">{{ x.datanascimento }}</span>
-            </div>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Estado Civil</span>
-                <span style="font-weight: 600;">{{ x.get_estadocivil_display }}</span>
-            </div>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Escolaridade</span>
-                <span style="font-weight: 600;">{{ x.grauescolaridade }}</span>
-            </div>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Profissão</span>
-                <span style="font-weight: 600;">{{ x.profissao }}</span>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for label, value in x.dados_pessoais_items %}
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ label }}</span>
+                    <span style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">{{ value|default:"—" }}</span>
+                </div>
+                {% empty %}
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Sexo</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_sexo_display|default:"—" }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Nascimento</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.datanascimento|default:"—" }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Estado
+                        Civil</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_estadocivil_display|default:"—" }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Escolaridade</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.grauescolaridade|default:"—" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Profissão</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.profissao|default:"—" }}</span>
+                </div>
+                {% endfor %}
             </div>
         </div>
 
         <!-- Contact & Location -->
-        <div class="modern-card">
-            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-address-book mr-2"></i> Contacto e Localização
+        <div class="modern-card animate-fade-in-up"
+            style="animation-delay: 0.2s; border-top: 4px solid var(--primary-light);">
+            <h3
+                style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; color: var(--text-main); font-size: 1.1rem; font-family: 'Outfit', sans-serif;">
+                <i class="fas fa-address-book mr-2" style="color: var(--primary);"></i> Contacto e Localização
             </h3>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Telefone</span>
-                <span style="font-weight: 600;">{{ x.telefone }}</span>
-            </div>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Email</span>
-                <span style="font-weight: 600;">{{ x.email }}</span>
-            </div>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Bairro</span>
-                <span style="font-weight: 600;">{{ x.bairro }}</span>
-            </div>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Município</span>
-                <span style="font-weight: 600;">{{ x.get_municipio_display }}</span>
-            </div>
-            <div class="detail-row"
-                style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted); font-weight: 500;">Local de Trabalho</span>
-                <span style="font-weight: 600;">{{ x.localdetrabalho }}</span>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Telefone</span>
+                    <span
+                        style="background: var(--primary-50); padding: 0.35rem 0.8rem; border-radius: 100px; color: var(--primary-dark); font-weight: 600; font-size: 0.9rem;">
+                        <i class="fas fa-phone-alt mr-2" style="font-size: 0.75rem;"></i>{{ x.telefone|default:"—" }}
+                    </span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Email</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.email|default:"—" }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Bairro</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.bairro|default:"—" }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Município</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_municipio_display|default:"—" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Local
+                        de Trabalho</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.localdetrabalho|default:"—" }}</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- System Timeline / Registration Info -->
-    <div class="modern-card" style="margin-top: 2rem;">
-        <h3 style="margin-bottom: 1rem;"><i class="fas fa-info-circle mr-2"></i> Informações do Sistema</h3>
-        <div style="display: flex; gap: 3rem;">
-            <div>
-                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Criado em</p>
-                <p style="font-weight: 500;">{{ x.data_criacao }}</p>
-            </div>
-            <div>
-                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Última Atualização
+    <!-- System Info Card -->
+    <div class="modern-card animate-fade-in-up"
+        style="animation-delay: 0.3s; background: var(--bg-main); border: 1px solid var(--border-color);">
+        <h3
+            style="margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-secondary); font-family: 'Outfit', sans-serif;">
+            <i class="fas fa-info-circle mr-2" style="color: var(--primary-light);"></i> Informações do Sistema
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div
+                style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <p
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
+                    Criado em</p>
+                <p style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
+                    <i class="far fa-calendar-plus mr-2" style="color: var(--primary-light);"></i>{{ x.data_criacao|date:"d/m/Y H:i"|default:"—" }}
                 </p>
-                <p style="font-weight: 500;">{{ x.data_atualizacao }}</p>
             </div>
-            <div>
-                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Congregação</p>
-                <p style="font-weight: 500;">{{ x.congregacao }}</p>
+            <div
+                style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <p
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
+                    Última Atualização</p>
+                <p style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
+                    <i class="far fa-clock mr-2" style="color: var(--primary-light);"></i>{{ x.data_atualizacao|date:"d/m/Y H:i"|default:"—" }}
+                </p>
+            </div>
+            <div
+                style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <p
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
+                    Congregação</p>
+                <p style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
+                    <i class="fas fa-church mr-2" style="color: var(--primary-light);"></i>{{ x.localcongregacao|default:"—" }}
+                </p>
             </div>
         </div>
     </div>
 
     {% endfor %}
 </div>
-{% endif %}
-
-<div style="text-align: center; margin-top: 3rem;">
-    <a href="/tibl/gestao/irmaos/1" style="color: var(--primary); font-weight: 600; text-decoration: none;">
-        <i class="fas fa-chevron-left"></i> Voltar para a lista
-    </a>
+{% else %}
+<div class="modern-card animate-fade-in"
+    style="text-align: center; padding: 5rem 2rem; border: 2px dashed var(--border-color);">
+    <div
+        style="width: 80px; height: 80px; background: var(--bg-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+        <i class="fas fa-user-slash" style="font-size: 2rem; color: var(--text-muted);"></i>
+    </div>
+    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Registo não
+        encontrado</h3>
+    <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;">O irmão solicitado não existe ou foi
+        recentemente removido do sistema.</p>
+    <div style="margin-top: 2rem;">
+        <a href="/tibl/gestao/irmaos/1" class="bt-primary"><i class="fas fa-arrow-left mr-2"></i> Voltar à Lista</a>
+    </div>
 </div>
+{% endif %}
 
 {% endblock %}

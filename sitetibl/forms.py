@@ -22,6 +22,7 @@ from sitetibl.models import OrcamentoDepartamento
 from sitetibl.models import InventarioPatrimonio
 from sitetibl.models import ConteudoEnsino
 from sitetibl.models import EnvioMensagem
+from sitetibl.models import TipoOferta
 
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django import forms
@@ -213,6 +214,30 @@ class DizimoofertaForm(ModelForm):
             'datacorrespondente': forms.DateInput(attrs={'type': 'date'})
         }
 
+class DizimoForm(ModelForm):
+    class Meta:
+        model = Dizimooferta
+        fields = '__all__'
+        widgets = {
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00', 'step': '0.01'}),
+            'moeda': forms.Select(attrs={'class': 'form-control'}),
+            'tipooferta': forms.Select(attrs={'class': 'form-control'}),
+            'datacorrespondente': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'irmao': forms.Select(attrs={'class': 'form-control'}),
+            'actividade': forms.Select(attrs={'class': 'form-control'}),
+            'dataregisto': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'entradabanco': forms.Select(attrs={'class': 'form-control'}),
+            'entradacaixa': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+class OfertaForm(ModelForm):
+    class Meta:
+        model = TipoOferta
+        fields = '__all__'
+        widgets = {
+            'designacao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Designação da Oferta'}),
+        }
+
 class SaidacaixaForm(ModelForm):
     class Meta:
         model = Saidacaixa
@@ -250,6 +275,19 @@ class EntradacaixaForm(ModelForm):
         return valor
 
 class SaidabancoForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Show real-time balance in account dropdowns for safer bank operations.
+        if 'conta' in self.fields:
+            self.fields['conta'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+        if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+
     class Meta:
         model = Saidabanco
         fields = '__all__'
@@ -261,6 +299,19 @@ class SaidabancoForm(ModelForm):
 
 
 class EntradabancoForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Show real-time balance in account dropdowns for safer bank operations.
+        if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+        if 'contaorigem' in self.fields:
+            self.fields['contaorigem'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+
     class Meta:
         model = Entradabanco
         fields = '__all__'

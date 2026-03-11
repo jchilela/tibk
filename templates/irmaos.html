@@ -1,0 +1,123 @@
+{% extends 'index.html' %}
+{% block Irmaos %}
+
+<div class="list-container">
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 style="margin: 0; font-size: 1rem; color: var(--text-secondary);">
+                <i class="fas fa-filter mr-2" style="color: var(--primary-light);"></i> Filtros de Busca
+            </h3>
+        </div>
+        <form action="/tibl/buscairmao" method="GET" class="filter-grid">
+            <div class="filter-field">
+                <label>Nome</label>
+                <input type="text" name="nomev" placeholder="Pesquisar nome...">
+            </div>
+            <div class="filter-field">
+                <label>Apelido</label>
+                <input type="text" name="apelidov" placeholder="Pesquisar apelido...">
+            </div>
+            <div class="filter-field">
+                <label>Município</label>
+                <select name="municipiov">
+                    <option value="0">Todos</option>
+                    {% if listamunicipios %}
+                        {% for x, y in listamunicipios.items %}
+                            <option value="{{ x }}">{{ y }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div class="filter-field">
+                <label>Profissão</label>
+                <select name="profissaov">
+                    <option value="0">Todas</option>
+                    {% if listaprofissoes %}
+                        {% for x in listaprofissoes %}
+                            <option value="{{ x.id }}">{{ x.designacao }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <div style="display: flex; align-items: flex-end;">
+                <button type="submit" class="bt-primary" style="width: 100%;">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header">
+        <h2><i class="fas fa-users"></i> Lista de Irmãos</h2>
+        <a href="/tibl/irmaos/criar/" class="bt-primary">
+            <i class="fas fa-plus"></i> Novo Irmão
+        </a>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Nome Completo</th>
+                    <th style="text-align: center;">Telefone</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-light), var(--primary-dark)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0;">
+                                {{ x.nome|first }}{{ x.apelido|first }}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-main);">{{ x.nome }} {{ x.outrosnomes }} {{ x.apelido }}</div>
+                                <div style="font-size: 0.72rem; color: var(--text-muted);">Membro Registado</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                        <i class="fas fa-phone-alt" style="font-size: 0.75rem; margin-right: 4px; color: var(--primary-light);"></i> {{ x.telefone|default:"—" }}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/irmaos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i>
+                            <span style="display: none;" class="btn-text"> Detalhes</span>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+        {% include 'paginacao.html' %}
+    </div>
+
+    {% else %}
+    <div class="empty-state modern-card">
+        <i class="fas fa-user-slash"></i>
+        <h3>Nenhum irmão encontrado</h3>
+        <p>Não foram encontrados registos com os filtros aplicados. Tente alterar os critérios de pesquisa.</p>
+        <a href="/tibl/irmaos/criar/" class="bt-primary">
+            <i class="fas fa-plus"></i> Adicionar Irmão
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+@media (min-width: 640px) {
+    .btn-text { display: inline !important; }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,101 @@
+﻿{% extends 'index.html' %}
+{% block Escalas %}
+
+<div class="list-container">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">GestÃ£o de Escalas
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">OrganizaÃ§Ã£o de membros por actividade e funÃ§Ã£o.</p>
+        </div>
+        <a href="/tibl/escalas/criar/" class="bt-primary"
+            style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
+            <i class="fas fa-calendar-plus"></i> Nova Escala
+        </a>
+    </div>
+
+    {% if bb %}
+    {% regroup bb by actividade as escalas_por_actividade %}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+        {% for evento in escalas_por_actividade %}
+        <div class="modern-card"
+            style="border-top: 5px solid var(--primary); padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+            <!-- Header do Evento -->
+            <div style="background: var(--primary-light); color: white; padding: 1.5rem; text-align: center;">
+                <h3 style="margin: 0; color: white; font-size: 1.35rem; line-height: 1.3;">
+                    {{ evento.grouper.designacao }}
+                </h3>
+                <div
+                    style="color: rgba(255,255,255,0.8); font-size: 0.9rem; font-weight: 600; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                    <i class="far fa-calendar-alt"></i>
+                    {{ evento.grouper.data|date:"d M Y"|default:evento.grouper.data }}
+                </div>
+            </div>
+
+            <!-- Lista de Escalas -->
+            <div style="padding: 1.5rem; flex-grow: 1; background: #f8fafc;">
+                <h4
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+                    Equipa Escalada
+                </h4>
+
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem;">
+                    {% for escala in evento.list %}
+                    <li
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border-radius: var(--radius-sm); border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">
+                                {{ escala.irmao.nome }} {{ escala.irmao.apelido }}
+                            </span>
+                            <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">
+                                <i class="fas fa-user-tag" style="opacity: 0.6; margin-right: 0.3rem;"></i>
+                                {{ escala.funcao.designacao }}
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 0.3rem;">
+                            <a href="/tibl/escalas/actualizar/{{ escala.id }}"
+                                style="color: var(--text-muted); padding: 0.4rem; border-radius: 4px; transition: background 0.2s;"
+                                onmouseover="this.style.background='#f1f5f9'"
+                                onmouseout="this.style.background='transparent'">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="/tibl/escalas/eliminar/{{ escala.id }}"
+                                style="color: #ef4444; padding: 0.4rem; border-radius: 4px; transition: background 0.2s;"
+                                onmouseover="this.style.background='#fee2e2'"
+                                onmouseout="this.style.background='transparent'">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Footer -->
+            <div
+                style="padding: 1rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: center; background: white;">
+                <a href="/tibl/actividades/detalhe/{{ evento.grouper.id }}"
+                    style="color: var(--primary); font-size: 0.85rem; font-weight: 600; text-decoration: none;">
+                    Ver Detalhes da Actividade <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Escalas Ativas</h3>
+        <p style="color: var(--text-muted);">NÃ£o existem escalas de serviÃ§o registadas para este perÃ­odo.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

@@ -1,5 +1,5 @@
-{% extends 'index.html' %}
-{% block Cestasdetalhado %}
+﻿{% extends 'index.html' %}
+{% block content %}
 {% load ajudatotal %}
 
 <div class="profile-container" style="max-width: 900px; margin: 0 auto; padding-bottom: 4rem;">
@@ -11,11 +11,10 @@
 		<div style="flex-grow: 1;">
 			<div
 				style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
-				Ficha de Cesta Básica</div>
+				Ficha de Cesta BÃ¡sica</div>
 			<h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.codigo }}</h1>
 			<p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
-				<i class="fas fa-box-open mr-2" style="color: var(--primary);"></i> Valor Disponibilizado: {{
-				x.valordisponibilizado|floatformat:2 }} Kz
+				<i class="fas fa-box-open mr-2" style="color: var(--primary);"></i> Valor Disponibilizado: {{ x.valordisponibilizado|floatformat:2 }} Kz
 			</p>
 		</div>
 		<div style="display: flex; gap: 0.75rem;">
@@ -33,24 +32,24 @@
 	<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
 		<div class="modern-card">
 			<h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-				<i class="fas fa-info-circle mr-2"></i> Informações Gerais
+				<i class="fas fa-info-circle mr-2"></i> InformaÃ§Ãµes Gerais
 			</h3>
 			<div class="detail-row"
 				style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-				<span style="color: var(--text-muted); font-weight: 500;">Data de Disponibilização</span>
+				<span style="color: var(--text-muted); font-weight: 500;">Data de DisponibilizaÃ§Ã£o</span>
 				<span style="font-weight: 600;">{{ x.Datadisponvalor|date:"d/m/Y"|default:x.Datadisponvalor }}</span>
 			</div>
 			<div style="margin-top: 1rem;">
 				<label
-					style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Observação</label>
+					style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">ObservaÃ§Ã£o</label>
 				<div
 					style="background: rgba(0,0,0,0.02); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.9rem; border: 1px solid rgba(0,0,0,0.05);">
-					{{ x.observacao|default:"Sem observações registadas." }}
+					{{ x.observacao|default:"Sem observaÃ§Ãµes registadas." }}
 				</div>
 			</div>
 		</div>
 
-		<div class="modern-card" style="background: var(--bg-sidebar); color: white;">
+		<div class="modern-card" style="background: var(--primary-light); color: white; color: white;">
 			<h3
 				style="border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: var(--accent);">
 				<i class="fas fa-chart-line mr-2"></i> Capacidade e Uso
@@ -58,7 +57,7 @@
 			<div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
 				<div
 					style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: var(--radius-md); text-align: center;">
-					<div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase;">Cestas Já Disponibilizadas
+					<div style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase;">Cestas JÃ¡ Disponibilizadas
 					</div>
 					<div style="font-size: 1.75rem; font-weight: 700; color: var(--accent);">{{ totalcestasajuda }}
 					</div>
@@ -78,7 +77,7 @@
 	{% if detalhecestas %}
 	<div class="modern-card">
 		<h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
-			<i class="fas fa-shopping-basket mr-2"></i> Composição da Cesta
+			<i class="fas fa-shopping-basket mr-2"></i> ComposiÃ§Ã£o da Cesta
 		</h3>
 
 		<div class="modern-table-container">
@@ -87,7 +86,7 @@
 					<tr>
 						<th>Produto</th>
 						<th style="text-align: center;">Quantidade</th>
-						<th style="text-align: right;">P. Unitário (Kz)</th>
+						<th style="text-align: right;">P. UnitÃ¡rio (Kz)</th>
 						<th style="text-align: right;">Subtotal (Kz)</th>
 					</tr>
 				</thead>
@@ -97,15 +96,14 @@
 						<td style="font-weight: 600; color: var(--text-main);">{{ y.produto }}</td>
 						<td style="text-align: center;">{{ y.quantidade }}</td>
 						<td style="text-align: right;">{{ y.precounitario|floatformat:2 }}</td>
-						<td style="text-align: right; font-weight: 700; color: var(--primary);">{{
-							y.subsoma|floatformat:2 }}</td>
+						<td style="text-align: right; font-weight: 700; color: var(--primary);">{{ y.subsoma|floatformat:2 }}</td>
 					</tr>
 					{% endfor %}
 				</tbody>
 				<tfoot>
 					<tr style="background: #f8fafc; font-weight: 800; font-size: 1.1rem;">
 						<td colspan="3" style="text-align: right; border-top: 2px solid var(--primary-light);">TOTAL DA
-							COMPOSIÇÃO:</td>
+							COMPOSIÃ‡ÃƒO:</td>
 						<td
 							style="text-align: right; color: var(--primary-dark); border-top: 2px solid var(--primary-light);">
 							{{ total|floatformat:2 }} Kz</td>
@@ -119,7 +117,7 @@
 	<div style="text-align: center; margin-top: 3rem;">
 		<a href="/tibl/gestao/cestas/1"
 			style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
-			<i class="fas fa-arrow-left"></i> Voltar à Lista de Cestas
+			<i class="fas fa-arrow-left"></i> Voltar Ã  Lista de Cestas
 		</a>
 	</div>
 </div>

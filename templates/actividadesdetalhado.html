@@ -1,8 +1,8 @@
 {% extends 'index.html' %}
-{% block Actividadesdetalhado %}
+{% block actividadesdetalhe %}
 
 {% if registoachado %}
-<div class="profile-container" style="max-width: 900px; margin: 0 auto;">
+<div class="profile-container" style="max-width: 1200px; margin: 0 auto;">
     {% for x in registoachado %}
 
     <!-- Event Banner -->
@@ -26,9 +26,13 @@
                 </div>
             </div>
 
-            <h1 style="font-size: 2.8rem; color: white; margin-bottom: 0.5rem;">{{ x.designacao }}</h1>
-            <p style="font-size: 1.25rem; opacity: 0.9; font-weight: 400;"><i class="fas fa-map-marker-alt"></i> {{
-                x.local }}</p>
+            <h1 style="font-size: 2.8rem; color: white; margin-bottom: 0.5rem;">
+                {{ x.designacao }}
+            </h1>
+            <p style="font-size: 1.25rem; opacity: 0.9; font-weight: 400;">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ x.localactividade|default:"Sede" }}
+            </p>
         </div>
 
         <div style="position: absolute; right: -30px; bottom: -30px; opacity: 0.1; font-size: 15rem;">
@@ -43,10 +47,12 @@
                 <div
                     style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">
                     Data da Actividade</div>
-                <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary);">{{
-                    x.data|date:"d"|default:x.data }}</div>
-                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">{{ x.data|date:"F
-                    Y"|default:"" }}</div>
+                <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary);">
+                    {{ x.data|date:"d"|default:x.data }}
+                </div>
+                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">
+                    {{ x.data|date:"F Y"|default:"" }}
+                </div>
                 <div
                     style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; color: var(--text-muted);">
                     <i class="far fa-clock"></i> {{ x.inicio }} às {{ x.fim }}
@@ -54,8 +60,9 @@
             </div>
 
             <div class="modern-card" style="text-align: center; background: #f0fdf4; border: 1px solid #dcfce7;">
-                <div style="font-size: 2.5rem; color: var(--primary); font-weight: 800;">{{ x.totalpresentes|default:"0"
-                    }}</div>
+                <div style="font-size: 2.5rem; color: var(--primary); font-weight: 800;">
+                    {{ x.totalpresentes|default:"0" }}
+                </div>
                 <div
                     style="font-size: 0.8rem; color: var(--primary-dark); font-weight: 600; text-transform: uppercase;">
                     Participantes</div>
@@ -72,8 +79,9 @@
                 <h4
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
                     Tema Central</h4>
-                <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-dark);">{{ x.tema|default:"Não
-                    especificado" }}</p>
+                <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-dark);">
+                    {{ x.tema|default:"Não especificado" }}
+                </p>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
@@ -81,14 +89,17 @@
                     <h4
                         style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
                         Versos Bíblicos</h4>
-                    <p style="font-size: 0.95rem; font-style: italic;">"{{ x.versosbiblicos|default:"Consultar Bíblia"
-                        }}"</p>
+                    <p style="font-size: 0.95rem; font-style: italic;">
+                        "{{ x.versosbiblicos|default:"Consultar Bíblia" }}"
+                    </p>
                 </div>
                 <div>
                     <h4
                         style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
                         Hinos</h4>
-                    <p style="font-size: 0.95rem;">{{ x.hinos|default:"Selecção de louvor" }}</p>
+                    <p style="font-size: 0.95rem;">
+                        {{ x.hinos|default:"Selecção de louvor" }}
+                    </p>
                 </div>
             </div>
 
@@ -98,9 +109,73 @@
                     Observações / Relatório</h4>
                 <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
                     {{ x.observacao|default:"Nenhuma observação adicional registrada para esta actividade." }}
-                </p>
             </div>
         </div>
+    </div> <!-- /End of 1fr 2fr grid -->
+
+    <!-- Escalas Section -->
+    <div style="margin-top: 3rem;">
+        <div
+            style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; color: var(--text-main);">
+                <i class="fas fa-users-cog mr-2"></i> Pessoas Escaladas
+            </h3>
+            <button type="button" class="bt-primary"
+                onclick="document.getElementById('modal-escalar').style.display = 'flex'"
+                style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-layer-group"></i> Escalar Irmãos
+            </button>
+        </div>
+
+        {% if escalas_da_actividade %}
+        {% regroup escalas_da_actividade by funcao.designacao as escalas_agrupadas %}
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start;">
+            {% for grupo in escalas_agrupadas %}
+            <div class="modern-card" style="border-top: 4px solid var(--primary);">
+                <h4
+                    style="font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+                    <i class="fas fa-user-tag" style="opacity: 0.5; margin-right: 0.5rem;"></i>
+                    {{ grupo.grouper }}
+                </h4>
+                <ul
+                    style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for escala in grupo.list %}
+                    <li
+                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                        <div
+                            style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;">
+                            {{ escala.irmao.nome|first }}{{ escala.irmao.apelido|first }}
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">
+                                {{ escala.irmao.nome }} {{ escala.irmao.apelido }}
+                            </span>
+                            {% if escala.irmao.celula %}
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">
+                                Célula: {{ escala.irmao.celula }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="modern-card"
+            style="text-align: center; padding: 3rem; background: #f8fafc; border: 1px dashed #cbd5e1;">
+            <i class="fas fa-user-clock" style="font-size: 3rem; color: #94a3b8; margin-bottom: 1rem;"></i>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Não existem escalas registadas para esta
+                actividade.</p>
+            <a href="/tibl/escalas/criar/" class="bt-primary"
+                style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary); color: white !important;">
+                <i class="fas fa-plus"></i> Adicionar Escala
+            </a>
+        </div>
+        {% endif %}
     </div>
 
     {% endfor %}
@@ -113,4 +188,124 @@
     </a>
 </div>
 
+<!-- Modal Escala em Massa -->
+<div id="modal-escalar"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 1rem;">
+    <div
+        style="background: white; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+        <div
+            style="padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white;">
+            <h3 style="margin: 0; font-size: 1.25rem;"><i class="fas fa-users-cog mr-2"></i> Escalar Irmãos</h3>
+            <button type="button" onclick="document.getElementById('modal-escalar').style.display = 'none'"
+                style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+        </div>
+
+        <div style="padding: 1.5rem; overflow-y: auto;">
+            {% for x in registoachado %}
+            <form action="{% url 'sitetibl:escalar_em_massa' x.id %}" method="POST" id="form-escala-massa">
+                {% csrf_token %}
+                {% endfor %}
+                <div style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">1.
+                        Selecione a Função</label>
+                    <select name="funcao" required
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 1rem;">
+                        <option value="">-- Escolha uma função --</option>
+                        {% for f in todas_funcoes %}
+                        <option value="{{ f.id }}">{{ f.designacao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="font-weight: 600; color: var(--primary-dark); margin: 0;">2. Selecione os
+                            Irmãos</label>
+                        <input type="text" id="filtro-irmaos" placeholder="Pesquisar Irmão ou Célula..."
+                            style="padding: 0.25rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem;"
+                            onkeyup="filtrarIrmaos()">
+                    </div>
+
+                    <div
+                        style="border: 1px solid #cbd5e1; border-radius: var(--radius-sm); max-height: 300px; overflow-y: auto; padding: 0.5rem; background: #f8fafc;">
+                        <div
+                            style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 0.5rem;">
+                            <label
+                                style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem;">
+                                <input type="checkbox" onchange="toggleAll(this)" style="width: 1rem; height: 1rem;">
+                                Seleccionar Todos
+                            </label>
+                        </div>
+
+                        <div id="lista-irmaos">
+                            {% for irmao in todos_irmaos %}
+                            <label class="irmao-item"
+                                style="display: flex; align-items: center; padding: 0.5rem; cursor: pointer; border-radius: 4px; border-bottom: 1px solid #f1f5f9;">
+                                <input type="checkbox" name="irmaos" value="{{ irmao.id }}"
+                                    style="margin-right: 1rem; width: 1.2rem; height: 1.2rem;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <span class="irmao-nome" style="font-weight: 500;">
+                                        {{ irmao.nome }} {{ irmao.apelido }}
+                                    </span>
+                                    {% if irmao.celula %}
+                                    <span class="irmao-celula" style="font-size: 0.75rem; color: var(--text-muted);">
+                                        Célula: {{ irmao.celula }}
+                                    </span>
+                                    {% else %}
+                                    <span class="irmao-celula" style="display: none;"></span>
+                                    {% endif %}
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;"><i
+                            class="fas fa-info-circle"></i> O sistema ignora automaticamente quem já estiver
+                        escalado para a respectiva função.</p>
+                </div>
+
+                <div
+                    style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
+                    <button type="button" onclick="document.getElementById('modal-escalar').style.display = 'none'"
+                        style="padding: 0.75rem 1.5rem; border: 1px solid #cbd5e1; background: white; color: var(--text-main); border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">Cancelar</button>
+                    <button type="submit"
+                        style="padding: 0.75rem 1.5rem; border: none; background: var(--primary); color: white; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-save"></i> Confirmar Escala
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('input[name="irmaos"]:not(:disabled)');
+        for (let i = 0, n = checkboxes.length; i < n; i++) {
+            if (checkboxes[i].closest('.irmao-item').style.display !== 'none') {
+                checkboxes[i].checked = source.checked;
+            }
+        }
+    }
+
+    function filtrarIrmaos() {
+        const input = document.getElementById("filtro-irmaos");
+        const filter = input.value.toLowerCase();
+        const nodes = document.getElementsByClassName("irmao-item");
+
+        for (let i = 0; i < nodes.length; i++) {
+            const nome = nodes[i].querySelector(".irmao-nome").innerText.toLowerCase();
+            const celulaSpan = nodes[i].querySelector(".irmao-celula");
+            const celula = celulaSpan ? celulaSpan.innerText.toLowerCase() : "";
+
+            if (nome.includes(filter) || celula.includes(filter)) {
+                nodes[i].style.display = "flex";
+            } else {
+                nodes[i].style.display = "none";
+            }
+        }
+    }
+</script>
 {% endblock %}

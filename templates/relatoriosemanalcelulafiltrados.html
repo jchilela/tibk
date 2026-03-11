@@ -1,62 +1,103 @@
 {% extends 'index.html' %}
 {% block RelatorioSemanalCelulaFiltrados %}
 
-<div class="list-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Relatórios de
-                Célula Encontrados</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Registos de atividade semanal compatíveis com a sua
-                busca.</p>
+<div class="list-container" style="animation: fadeInUp 0.4s ease-out; padding-bottom: 3rem;">
+    <!-- Refined Header -->
+    <div
+        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1.5rem; background: white; padding: 2rem; border-radius: var(--radius-xl); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;">
+        <div style="display: flex; gap: 1.5rem; align-items: center;">
+            <div
+                style="width: 54px; height: 54px; background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 8px 16px rgba(46,125,50,0.25);">
+                <i class="fas fa-search"></i>
+            </div>
+            <div>
+                <h2
+                    style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.25rem;">
+                    Resultados da Busca</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; font-weight: 500;">Exibindo os relatórios de
+                    célula compatíveis com os filtros.</p>
+            </div>
         </div>
-        <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-primary"
-            style="background-color: var(--bg-sidebar); color: white;">
-            <i class="fas fa-undo"></i> Voltar à Lista
+        <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-secondary"
+            style="padding: 0.75rem 1.5rem; border-radius: 100px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+            <i class="fas fa-undo mr-2"></i> Limpar Filtros
         </a>
     </div>
 
     {% if bb %}
-    <div class="modern-table-container">
-        <table class="modern-table">
-            <thead>
-                <tr>
-                    <th>Nome da Célula</th>
-                    <th>Líder Responsável</th>
-                    <th style="text-align: right;">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for x in bb %}
-                <tr>
-                    <td>
-                        <div style="font-weight: 600; color: var(--primary-dark);">
-                            <i class="fas fa-users-cog" style="margin-right: 0.5rem; opacity: 0.5;"></i> {{
-                            x.nome_celula }}
-                        </div>
-                    </td>
-                    <td>
-                        <div style="font-weight: 500; color: var(--text-main);">{{ x.lider_responsavel }}</div>
-                    </td>
-                    <td style="text-align: right;">
-                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar);">
-                            <i class="fas fa-file-alt"></i> Ver Detalhes
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="modern-card"
+        style="padding: 0; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
+        <div class="modern-table-container" style="box-shadow: none; border-radius: 0; border: none;">
+            <table class="modern-table" style="min-width: 600px;">
+                <thead>
+                    <tr>
+                        <th
+                            style="padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; color: var(--text-secondary);">
+                            Nome da Célula</th>
+                        <th
+                            style="padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; color: var(--text-secondary);">
+                            Líder Responsável</th>
+                        <th
+                            style="text-align: right; padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; color: var(--text-secondary);">
+                            Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for x in bb %}
+                    <tr style="transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#f8fafc';"
+                        onmouseout="this.style.backgroundColor='transparent';">
+                        <td style="padding: 1.25rem; border-bottom: 1px solid #f1f5f9;">
+                            <div
+                                style="font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 0.75rem; font-size: 1rem;">
+                                <div
+                                    style="width: 32px; height: 32px; border-radius: 8px; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                {{ x.nome_celula }}
+                            </div>
+                        </td>
+                        <td style="padding: 1.25rem; border-bottom: 1px solid #f1f5f9;">
+                            <div
+                                style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-user-circle text-muted" style="font-size: 1.1rem;"></i>
+                                {{ x.lider_responsavel }}
+                            </div>
+                        </td>
+                        <td style="text-align: right; padding: 1.25rem; border-bottom: 1px solid #f1f5f9;">
+                            <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary"
+                                style="padding: 0.5rem 1rem; font-size: 0.85rem; background: white; color: var(--primary); border: 1.5px solid var(--primary-100); box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease;"
+                                onmouseover="this.style.background='var(--primary-50)'; this.style.borderColor='var(--primary-light)';"
+                                onmouseout="this.style.background='white'; this.style.borderColor='var(--primary-100)';">
+                                <i class="fas fa-external-link-alt mr-2"></i> Detalhes
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div style="margin-top: 2rem;">
-        {% include 'paginacao' %}
+    <div
+        style="margin-top: 2rem; background: white; padding: 1.5rem; border-radius: var(--radius-xl); box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;">
+        {% include 'paginacao.html' %}
     </div>
     {% else %}
-    <div class="modern-card" style="text-align: center; padding: 4rem;">
-        <i class="fas fa-search" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
-        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum relatório encontrado</h3>
-        <p style="color: var(--text-muted);">A sua busca não retornou resultados para os filtros aplicados.</p>
+    <div class="modern-card"
+        style="text-align: center; padding: 5rem 2rem; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">
+        <div
+            style="width: 80px; height: 80px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #94a3b8; font-size: 2.5rem;">
+            <i class="fas fa-search-minus"></i>
+        </div>
+        <h3 style="color: var(--text-main); margin-bottom: 0.75rem; font-size: 1.25rem; font-weight: 700;">Nenhum
+            relatório encontrado</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto 2rem;">A pesquisa não
+            retornou resultados para os filtros que aplicou. Tente alterar os critérios de busca.</p>
+
+        <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-primary"
+            style="padding: 0.75rem 2rem; border-radius: 100px;">
+            Ver Todos os Registos
+        </a>
     </div>
     {% endif %}
 </div>

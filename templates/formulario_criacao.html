@@ -148,6 +148,85 @@
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('dynamic-form');
     const submitBtn = document.getElementById('btn-submit');
+    const viaSelect = document.getElementById('id_via');
+    const contaOrigemSelect = document.getElementById('id_contaorigem');
+    const valorInput = document.getElementById('id_valor');
+    const contaDebitoSelect = document.getElementById('id_conta');
+
+    function parseBalanceFromOption(optionText) {
+      if (!optionText) {
+        return null;
+      }
+      const balanceMatch = optionText.match(/Saldo:\s*([\d.,]+)/i);
+      if (!balanceMatch) {
+        return null;
+      }
+      const numeric = balanceMatch[1].replace(/\./g, '').replace(',', '.');
+      const value = parseFloat(numeric);
+      return Number.isNaN(value) ? null : value;
+    }
+
+    function parseInputAmount(raw) {
+      if (!raw) {
+        return null;
+      }
+      const normalized = String(raw).replace(/\./g, '').replace(',', '.');
+      const value = parseFloat(normalized);
+      return Number.isNaN(value) ? null : value;
+    }
+
+    function getOrCreateWarningBox() {
+      let box = document.getElementById('saldo-warning-box');
+      if (!box && valorInput && valorInput.parentElement) {
+        box = document.createElement('div');
+        box.id = 'saldo-warning-box';
+        box.style.marginTop = '0.45rem';
+        box.style.padding = '0.65rem 0.75rem';
+        box.style.border = '1px solid #fca5a5';
+        box.style.background = '#fff1f2';
+        box.style.color = '#9f1239';
+        box.style.borderRadius = '10px';
+        box.style.fontSize = '0.8rem';
+        box.style.display = 'none';
+        valorInput.parentElement.appendChild(box);
+      }
+      return box;
+    }
+
+    function toggleContaOrigemField() {
+      if (!viaSelect || !contaOrigemSelect) {
+        return;
+      }
+      const group = contaOrigemSelect.closest('.form-group');
+      if (!group) {
+        return;
+      }
+      const viaText = (viaSelect.options[viaSelect.selectedIndex] || {}).text || '';
+      const transferSelected = /transfer/i.test(viaText);
+      group.style.display = transferSelected ? '' : 'none';
+      if (!transferSelected) {
+        contaOrigemSelect.value = '';
+      }
+    }
+
+    function updateSaldoWarning() {
+      if (!valorInput || !contaDebitoSelect) {
+        return;
+      }
+      const selectedOption = contaDebitoSelect.options[contaDebitoSelect.selectedIndex];
+      const saldo = parseBalanceFromOption(selectedOption ? selectedOption.text : '');
+      const valor = parseInputAmount(valorInput.value);
+      const warningBox = getOrCreateWarningBox();
+      if (!warningBox) {
+        return;
+      }
+      if (saldo !== null && valor !== null && valor > saldo) {
+        warningBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Valor acima do saldo actual da conta seleccionada. A validação final será feita no servidor.';
+        warningBox.style.display = 'block';
+      } else {
+        warningBox.style.display = 'none';
+      }
+    }
 
     form.addEventListener('submit', function () {
       submitBtn.disabled = true;
@@ -158,6 +237,20 @@
     form.querySelectorAll('input[type="date"]').forEach(input => {
       input.style.cursor = 'pointer';
     });
+
+    toggleContaOrigemField();
+    updateSaldoWarning();
+
+    if (viaSelect) {
+      viaSelect.addEventListener('change', toggleContaOrigemField);
+    }
+    if (valorInput) {
+      valorInput.addEventListener('input', updateSaldoWarning);
+      valorInput.addEventListener('change', updateSaldoWarning);
+    }
+    if (contaDebitoSelect) {
+      contaDebitoSelect.addEventListener('change', updateSaldoWarning);
+    }
   });
 </script>
 
