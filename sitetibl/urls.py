@@ -45,7 +45,9 @@ urlpatterns = [
     path('contasbancarias/reativar/<int:id>/', views.reativaContabancaria, name='reativaContabancaria'),
     path('contasbancarias/inativas/', views.contasbancariasinativas, name='contasbancariasinativas'),
     path('relatoriodizimosmembro/', views.relatoriodizimosmembro, name='relatoriodizimosmembro'),
+    path('relatoriodizimosmembro/pdf/', views.relatoriodizimosmembro_pdf, name='relatoriodizimosmembro_pdf'),
     path('relatorioofertasportipo/', views.relatorioofertasportipo, name='relatorioofertasportipo'),
+    path('relatorioofertasportipo/pdf/', views.relatorioofertasportipo_pdf, name='relatorioofertasportipo_pdf'),
     path('dizimos/recibo/<int:dizimo_id>/visualizar/', views.visualizar_recibo_dizimo, name='visualizar_recibo_dizimo'),
     path('dizimos/recibo/<int:dizimo_id>/', views.gerar_recibo_dizimo, name='gerar_recibo_dizimo'),
 ]

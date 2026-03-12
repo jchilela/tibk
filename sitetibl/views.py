@@ -11,7 +11,7 @@ from datetime import date
 from django import forms
 from django.urls import reverse
 from django.template import loader
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count, F, Q
 from django.db import IntegrityError
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
@@ -20,7 +20,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from django.conf import settings
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, LongTable
 from reportlab.lib import colors
 import os
 from django.contrib.auth.decorators import login_required
@@ -791,16 +791,452 @@ def contasbancariasinativas(request):
     })
 
 
+def _get_relatorio_dizimos_membro_context(params):
+    q = params.get('q', '').strip()
+    mesv = params.get('mesv', '0')
+    anov = params.get('anov', '0')
+    datainicio = params.get('datainicio', '').strip()
+    datafim = params.get('datafim', '').strip()
+
+    filtros = {}
+    if mesv != '0':
+        filtros['datacorrespondente__month'] = mesv
+    if anov != '0':
+        filtros['datacorrespondente__year'] = anov
+    if datainicio:
+        filtros['datacorrespondente__gte'] = datainicio
+    if datafim:
+        filtros['datacorrespondente__lte'] = datafim
+
+    queryset = Dizimooferta.objects.select_related('irmao').filter(**filtros)
+    if q:
+        queryset = queryset.filter(
+            Q(irmao__nome__icontains=q)
+            | Q(irmao__apelido__icontains=q)
+            | Q(irmao__outrosnomes__icontains=q)
+            | Q(irmao__email__icontains=q)
+        )
+
+    agregados = list(
+        queryset.values('irmao_id', 'moeda')
+        .annotate(total_registos=Count('id'), total_valor=Sum('valor'))
+        .order_by('-total_valor')
+    )
+
+    irmaos_ids = [item['irmao_id'] for item in agregados]
+    irmaos_map = {
+        irmao.id: irmao
+        for irmao in Irmao.objects.filter(id__in=irmaos_ids)
+    }
+
+    relatorio = []
+    contribuinte_ids = set()
+    for item in agregados:
+        irmao = irmaos_map.get(item['irmao_id'])
+        if not irmao:
+            continue
+        contribuinte_ids.add(irmao.id)
+        relatorio.append({
+            'irmao': irmao,
+            'total_registos': item['total_registos'],
+            'total_valor': item['total_valor'] or 0,
+            'moeda': item['moeda'],
+        })
+
+    total_contribuintes = len(contribuinte_ids)
+    total_geral = queryset.aggregate(total=Sum('valor'))['total'] or 0
+    moedas_distintas = list(queryset.values_list('moeda', flat=True).distinct())
+    moeda_resumo = moedas_distintas[0] if len(moedas_distintas) == 1 else 'MULTI'
+    media_por_membro = (total_geral / total_contribuintes) if total_contribuintes and len(moedas_distintas) == 1 else None
+
+    return {
+        'relatorio': relatorio,
+        'q': q,
+        'mesv': mesv,
+        'anov': anov,
+        'datainicio': datainicio,
+        'datafim': datafim,
+        'listameses': MESES,
+        'total_contribuintes': total_contribuintes,
+        'total_geral': total_geral,
+        'media_por_membro': media_por_membro,
+        'moeda_resumo': moeda_resumo,
+        'query_string': params.urlencode(),
+    }
+
+
+def _desenhar_rodape_pdf(canvas_obj, doc):
+    canvas_obj.saveState()
+    canvas_obj.setFont('Helvetica', 9)
+    canvas_obj.setFillColor(colors.HexColor('#666666'))
+    canvas_obj.drawRightString(doc.pagesize[0] - 40, 20, f'Pagina {canvas_obj.getPageNumber()}')
+    canvas_obj.restoreState()
+
+
 @login_required
 def relatoriodizimosmembro(request):
-    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
-    return redirect('pagina_relatorios')
+    return render(request, 'relatoriodizimosmembro.html', _get_relatorio_dizimos_membro_context(request.GET))
+
+
+@login_required
+def relatoriodizimosmembro_pdf(request):
+    context = _get_relatorio_dizimos_membro_context(request.GET)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="relatorio_dizimos_por_membro.pdf"'
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40,
+        title="Relatorio de Dizimos por Membro",
+        author="Sistema TIBL"
+    )
+
+    styles = getSampleStyleSheet()
+    header_style = ParagraphStyle(
+        'RelatorioHeaderMembro',
+        parent=styles['Heading2'],
+        alignment=1,
+        textColor=colors.HexColor('#1f3d1f'),
+        spaceAfter=4,
+    )
+    subtitle_style = ParagraphStyle(
+        'RelatorioSubtitleMembro',
+        parent=styles['Normal'],
+        alignment=1,
+        textColor=colors.HexColor('#4f4f4f'),
+        fontSize=9,
+        spaceAfter=6,
+    )
+    meta_style = ParagraphStyle(
+        'RelatorioMetaMembro',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#555555'),
+        leading=12,
+        spaceAfter=4,
+    )
+    elements = []
+
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=80, height=80)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+
+    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(Paragraph("<b>Terceira Igreja Baptista de Luanda</b>", header_style))
+    elements.append(Paragraph("Sistema TIBL | Relatorio Financeiro", subtitle_style))
+    elements.append(Paragraph("<b>Relatorio de Dizimos por Membro</b>", styles['Title']))
+
+    filtros_aplicados = []
+    if context['q']:
+        filtros_aplicados.append(f"Pesquisa: {context['q']}")
+    if context['mesv'] != '0':
+        filtros_aplicados.append(f"Mes: {MESES.get(context['mesv'], context['mesv'])}")
+    if context['anov'] != '0':
+        filtros_aplicados.append(f"Ano: {context['anov']}")
+    if context['datainicio']:
+        filtros_aplicados.append(f"De: {context['datainicio']}")
+    if context['datafim']:
+        filtros_aplicados.append(f"Ate: {context['datafim']}")
+
+    periodo = 'Todos os periodos'
+    if context['datainicio'] and context['datafim']:
+        periodo = f"{context['datainicio']} ate {context['datafim']}"
+    elif context['datainicio']:
+        periodo = f"A partir de {context['datainicio']}"
+    elif context['datafim']:
+        periodo = f"Ate {context['datafim']}"
+    elif context['mesv'] != '0' and context['anov'] != '0':
+        periodo = f"{MESES.get(context['mesv'], context['mesv'])} de {context['anov']}"
+    elif context['mesv'] != '0':
+        periodo = MESES.get(context['mesv'], context['mesv'])
+    elif context['anov'] != '0':
+        periodo = f"Ano de {context['anov']}"
+
+    moeda_label = 'Multimoeda' if context['moeda_resumo'] == 'MULTI' else context['moeda_resumo']
+
+    elements.append(Paragraph(f"<b>Periodo:</b> {periodo}", meta_style))
+    elements.append(Paragraph(f"<b>Emitido em:</b> {date.today().strftime('%d/%m/%Y')}", meta_style))
+    if filtros_aplicados:
+        elements.append(Paragraph(f"<b>Filtros:</b> {' | '.join(filtros_aplicados)}", meta_style))
+    else:
+        elements.append(Paragraph("<b>Filtros:</b> Nenhum filtro adicional aplicado", meta_style))
+
+    resumo = Table([
+        ['Contribuintes', 'Total arrecadado', 'Moeda', 'Media por membro'],
+        [
+            str(context['total_contribuintes']),
+            f"{context['total_geral']:,.2f}",
+            moeda_label,
+            f"{context['media_por_membro']:,.2f}" if context['media_por_membro'] is not None else '--',
+        ],
+    ], colWidths=[100, 130, 90, 110])
+    resumo.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d9ead3')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#1f3d1f')),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f4fbf1')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#a8c79d')),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(resumo)
+    elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+    data = [['Membro', 'Email', 'Moeda', 'Total Contribuido', 'N. Registos']]
+    for item in context['relatorio']:
+        data.append([
+            f"{item['irmao'].nome} {item['irmao'].apelido}",
+            item['irmao'].email or '-',
+            item['moeda'],
+            f"{item['total_valor']:,.2f}",
+            str(item['total_registos'])
+        ])
+
+    if len(data) == 1:
+        data.append(['Nenhum registo encontrado', '-', '-', '-', '-'])
+
+    data.append([
+        'Total Geral',
+        '',
+        moeda_label,
+        f"{context['total_geral']:,.2f}",
+        ''
+    ])
+
+    table = LongTable(data, colWidths=[150, 130, 60, 100, 70], repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#548c2f')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('TOPPADDING', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ('ALIGN', (2, 1), (2, -1), 'CENTER'),
+        ('ALIGN', (3, 1), (4, -1), 'RIGHT'),
+        ('BACKGROUND', (0, 1), (-1, -2), colors.whitesmoke),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f3e0')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+
+    elements.append(table)
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
+
+
+def _get_relatorio_ofertas_por_tipo_context(params):
+    q = params.get('q', '').strip()
+    mes = params.get('mes', '').strip()
+    ano = params.get('ano', '').strip()
+    datainicio = params.get('datainicio', '').strip()
+    datafim = params.get('datafim', '').strip()
+
+    filtros = {}
+    if mes:
+        filtros['datacorrespondente__month'] = mes
+    if ano:
+        filtros['datacorrespondente__year'] = ano
+    if datainicio:
+        filtros['datacorrespondente__gte'] = datainicio
+    if datafim:
+        filtros['datacorrespondente__lte'] = datafim
+
+    queryset = Dizimooferta.objects.select_related('tipooferta', 'irmao').filter(**filtros)
+    if q:
+        queryset = queryset.filter(
+            Q(tipooferta__designacao__icontains=q)
+            | Q(irmao__nome__icontains=q)
+            | Q(irmao__apelido__icontains=q)
+            | Q(irmao__email__icontains=q)
+        )
+
+    reporte = list(
+        queryset.values('tipooferta__designacao', 'moeda')
+        .annotate(total=Sum('valor'), count=Count('id'))
+        .order_by('-total', 'tipooferta__designacao')
+    )
+
+    total_geral = queryset.aggregate(total=Sum('valor'))['total'] or 0
+    moedas_distintas = list(queryset.values_list('moeda', flat=True).distinct())
+    moeda_resumo = moedas_distintas[0] if len(moedas_distintas) == 1 else 'MULTI'
+
+    return {
+        'reporte': reporte,
+        'q': q,
+        'mes': mes,
+        'ano': ano,
+        'datainicio': datainicio,
+        'datafim': datafim,
+        'total_geral': total_geral,
+        'moeda_resumo': moeda_resumo,
+        'query_string': params.urlencode(),
+    }
 
 
 @login_required
 def relatorioofertasportipo(request):
-    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
-    return redirect('pagina_relatorios')
+    return render(request, 'relatorioofertasportipo.html', _get_relatorio_ofertas_por_tipo_context(request.GET))
+
+
+@login_required
+def relatorioofertasportipo_pdf(request):
+    context = _get_relatorio_ofertas_por_tipo_context(request.GET)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="relatorio_ofertas_por_tipo.pdf"'
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40,
+        title="Relatorio de Ofertas por Tipo",
+        author="Sistema TIBL"
+    )
+
+    styles = getSampleStyleSheet()
+    header_style = ParagraphStyle(
+        'RelatorioHeader',
+        parent=styles['Heading2'],
+        alignment=1,
+        textColor=colors.HexColor('#1f3d1f'),
+        spaceAfter=4,
+    )
+    subtitle_style = ParagraphStyle(
+        'RelatorioSubtitle',
+        parent=styles['Normal'],
+        alignment=1,
+        textColor=colors.HexColor('#4f4f4f'),
+        fontSize=9,
+        spaceAfter=6,
+    )
+    meta_style = ParagraphStyle(
+        'RelatorioMeta',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#555555'),
+        leading=12,
+        spaceAfter=4,
+    )
+    elements = []
+
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=80, height=80)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+
+    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(Paragraph("<b>Terceira Igreja Baptista de Luanda</b>", header_style))
+    elements.append(Paragraph("Sistema TIBL | Relatorio Financeiro", subtitle_style))
+    elements.append(Paragraph("<b>Relatorio de Ofertas por Tipo</b>", styles['Title']))
+
+    filtros_aplicados = []
+    if context['q']:
+        filtros_aplicados.append(f"Pesquisa: {context['q']}")
+    if context['mes']:
+        filtros_aplicados.append(f"Mes: {MESES.get(context['mes'], context['mes'])}")
+    if context['ano']:
+        filtros_aplicados.append(f"Ano: {context['ano']}")
+    if context['datainicio']:
+        filtros_aplicados.append(f"De: {context['datainicio']}")
+    if context['datafim']:
+        filtros_aplicados.append(f"Ate: {context['datafim']}")
+    periodo = 'Todos os periodos'
+    if context['datainicio'] and context['datafim']:
+        periodo = f"{context['datainicio']} ate {context['datafim']}"
+    elif context['datainicio']:
+        periodo = f"A partir de {context['datainicio']}"
+    elif context['datafim']:
+        periodo = f"Ate {context['datafim']}"
+    elif context['mes'] and context['ano']:
+        periodo = f"{MESES.get(context['mes'], context['mes'])} de {context['ano']}"
+    elif context['mes']:
+        periodo = MESES.get(context['mes'], context['mes'])
+    elif context['ano']:
+        periodo = f"Ano de {context['ano']}"
+
+    total_registos = sum(row['count'] for row in context['reporte'])
+    moeda_label = 'Multimoeda' if context['moeda_resumo'] == 'MULTI' else context['moeda_resumo']
+
+    elements.append(Paragraph(f"<b>Periodo:</b> {periodo}", meta_style))
+    elements.append(Paragraph(f"<b>Emitido em:</b> {date.today().strftime('%d/%m/%Y')}", meta_style))
+    if filtros_aplicados:
+        elements.append(Paragraph(f"<b>Filtros:</b> {' | '.join(filtros_aplicados)}", meta_style))
+    else:
+        elements.append(Paragraph("<b>Filtros:</b> Nenhum filtro adicional aplicado", meta_style))
+
+    resumo = Table([
+        ['Tipos de oferta', 'Total arrecadado', 'Moeda', 'Registos'],
+        [str(len(context['reporte'])), f"{context['total_geral']:,.2f}", moeda_label, str(total_registos)],
+    ], colWidths=[110, 140, 90, 90])
+    resumo.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d9ead3')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#1f3d1f')),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f4fbf1')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#a8c79d')),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(resumo)
+    elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+    data = [['Tipo de Oferta', 'Moeda', 'Total Arrecadado', 'N. Registos']]
+    for row in context['reporte']:
+        data.append([
+            row['tipooferta__designacao'] or 'Geral',
+            row['moeda'],
+            f"{row['total']:,.2f}",
+            str(row['count'])
+        ])
+
+    if len(data) == 1:
+        data.append(['Nenhum registo encontrado', '-', '-', '-'])
+
+    data.append([
+        'Total Geral',
+        'Multimoeda' if context['moeda_resumo'] == 'MULTI' else context['moeda_resumo'],
+        f"{context['total_geral']:,.2f}",
+        ''
+    ])
+
+    table = LongTable(data, colWidths=[180, 70, 120, 80], repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#548c2f')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('TOPPADDING', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ('ALIGN', (1, 1), (1, -1), 'CENTER'),
+        ('ALIGN', (2, 1), (3, -1), 'RIGHT'),
+        ('BACKGROUND', (0, 1), (-1, -2), colors.whitesmoke),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f3e0')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+
+    elements.append(table)
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
+
+
 
 
 @login_required

@@ -6,7 +6,7 @@
     <div class="modern-card" style="margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Actividades</h3>
         <form action="/tibl/buscaactividades" method="GET"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: flex-end;">
+            style="display: grid; grid-template-columns: 1.15fr 1.15fr 1.45fr auto; gap: 1rem; align-items: flex-end;">
             <div>
                 <label
                     style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
@@ -48,8 +48,8 @@
                 </div>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
-                <i class="fas fa-search"></i> Filtrar
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 1.5rem; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 600; font-size: 0.9rem; color: white; white-space: nowrap;">
+                <i class="fas fa-search"></i><span>Filtrar</span>
             </button>
         </form>
     </div>

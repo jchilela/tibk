@@ -446,6 +446,17 @@ class Dizimooferta(models.Model):
     dataregisto = models.DateField(default = datetime.today)
     entradabanco = models.ForeignKey(Entradabanco, blank = True, null = True, on_delete = models.CASCADE)
     entradacaixa = models.ForeignKey(Entradacaixa, blank = True, null = True, on_delete = models.CASCADE)
+
+    def clean(self):
+        if self.entradabanco and self.entradacaixa:
+            raise ValidationError(
+                "O dízimo/oferta só pode estar vinculado ao banco ou à caixa, nunca aos dois."
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return '%s %s' % (self.irmao, self.datacorrespondente)
     class Admin:
