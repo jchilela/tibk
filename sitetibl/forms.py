@@ -208,7 +208,7 @@ class EscalaForm(ModelForm):
 class DizimoofertaForm(ModelForm):
     class Meta:
         model = Dizimooferta
-        fields = '__all__'
+        exclude = ('entradabanco', 'entradacaixa')
         widgets = {
             'dataregisto': forms.DateInput(attrs={'type': 'date'}),
             'datacorrespondente': forms.DateInput(attrs={'type': 'date'})
@@ -217,7 +217,7 @@ class DizimoofertaForm(ModelForm):
 class DizimoForm(ModelForm):
     class Meta:
         model = Dizimooferta
-        fields = '__all__'
+        exclude = ('entradabanco', 'entradacaixa')
         widgets = {
             'valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00', 'step': '0.01'}),
             'moeda': forms.Select(attrs={'class': 'form-control'}),
@@ -226,8 +226,6 @@ class DizimoForm(ModelForm):
             'irmao': forms.Select(attrs={'class': 'form-control'}),
             'actividade': forms.Select(attrs={'class': 'form-control'}),
             'dataregisto': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'entradabanco': forms.Select(attrs={'class': 'form-control'}),
-            'entradacaixa': forms.Select(attrs={'class': 'form-control'}),
         }
 
 class OfertaForm(ModelForm):

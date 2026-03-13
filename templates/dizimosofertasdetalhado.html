@@ -123,6 +123,57 @@
             </div>
         </div>
 
+        <div style="padding: 0 2.5rem 2.5rem 2.5rem;">
+            <div style="border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(255, 255, 255, 0.96));">
+                <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); background: rgba(16, 185, 129, 0.08);">
+                    <h4 style="margin: 0; font-size: 1rem; color: var(--text-main); font-family: 'Outfit', sans-serif;">
+                        <i class="fas fa-link mr-2" style="color: var(--primary);"></i>Vínculo Financeiro
+                    </h4>
+                </div>
+
+                <div style="padding: 1.25rem;">
+                    {% if x.entradabanco %}
+                    <div style="display: flex; align-items: flex-start; gap: 0.9rem; padding: 1rem 1.1rem; border-radius: 12px; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.14);">
+                        <div style="width: 2.5rem; height: 2.5rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(37, 99, 235, 0.16); color: #1d4ed8; flex-shrink: 0;">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do Vínculo</div>
+                            <div style="font-size: 1.05rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.35rem;">Entrada Bancária</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Registo ID: #{{ x.entradabanco.id }}</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Data: {{ x.entradabanco.data|date:"d/m/Y" }}</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Valor: {{ x.entradabanco.valor|floatformat:2 }} {{ x.entradabanco.moeda }}</div>
+                        </div>
+                    </div>
+                    {% elif x.entradacaixa %}
+                    <div style="display: flex; align-items: flex-start; gap: 0.9rem; padding: 1rem 1.1rem; border-radius: 12px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.16);">
+                        <div style="width: 2.5rem; height: 2.5rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.18); color: #b45309; flex-shrink: 0;">
+                            <i class="fas fa-cash-register"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do Vínculo</div>
+                            <div style="font-size: 1.05rem; font-weight: 700; color: #92400e; margin-bottom: 0.35rem;">Entrada de Caixa</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Registo ID: #{{ x.entradacaixa.id }}</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Data: {{ x.entradacaixa.data|date:"d/m/Y" }}</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Valor: {{ x.entradacaixa.valor|floatformat:2 }} {{ x.entradacaixa.moeda }}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="display: flex; align-items: flex-start; gap: 0.9rem; padding: 1rem 1.1rem; border-radius: 12px; background: rgba(107, 114, 128, 0.08); border: 1px solid rgba(107, 114, 128, 0.14);">
+                        <div style="width: 2.5rem; height: 2.5rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(107, 114, 128, 0.14); color: #4b5563; flex-shrink: 0;">
+                            <i class="fas fa-unlink"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do Vínculo</div>
+                            <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Sem vínculo registado</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Este dízimo/oferta ainda não está associado a uma entrada de banco nem a uma entrada de caixa.</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
         <!-- Bottom Trim -->
         <div
             style="height: 6px; background: linear-gradient(90deg, var(--primary), var(--primary-light)); width: 100%;">

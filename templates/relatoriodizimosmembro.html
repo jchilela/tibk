@@ -7,7 +7,7 @@
         <form action="/tibl/relatoriodizimosmembro/" method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: flex-end;">
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Pesquisar</label>
-                <input type="text" name="q" placeholder="Digite nome, email, tipo de oferta..." style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);" value="{{ q }}">
+                <input type="text" name="q" placeholder="Digite nome ou email do membro..." style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);" value="{{ q }}">
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Mês</label>
@@ -37,9 +37,14 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Relatório de Dízimos por Membro</h2>
-        <a href="/tibl/gestao/dizimosofertas/1/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-dark); color: white;">
-            <i class="fas fa-arrow-left"></i> Voltar
-        </a>
+        <div style="display: flex; gap: 0.8rem;">
+            <a href="/tibl/relatoriodizimosmembro/pdf/{% if query_string %}?{{ query_string }}{% endif %}" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--accent); color: white;">
+                <i class="fas fa-file-pdf"></i> Exportar PDF
+            </a>
+            <a href="/tibl/gestao/dizimosofertas/1/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-dark); color: white;">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
     </div>
 
     {% if relatorio %}
@@ -51,11 +56,11 @@
             </div>
             <div style="padding: 1rem; background: linear-gradient(135deg, var(--accent), #f39c12); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Total de Dízimos</div>
-                <div style="font-size: 2rem; font-weight: 700;">{{ total_geral|floatformat:2 }} AKZ</div>
+                <div style="font-size: 2rem; font-weight: 700;">{{ total_geral|floatformat:2 }} {% if moeda_resumo == 'MULTI' %}(multimoeda){% else %}{{ moeda_resumo }}{% endif %}</div>
             </div>
             <div style="padding: 1rem; background: linear-gradient(135deg, #27ae60, #229954); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Média por Membro</div>
-                <div style="font-size: 2rem; font-weight: 700;">{% if total_contribuintes %}{{ total_geral|add:0|floatformat:2|stringformat:"d" }}{% if total_contribuintes %}{{ total_geral|floatformat:0 }}{% endif %} AKZ{% endif %}</div>
+                <div style="font-size: 2rem; font-weight: 700;">{% if moeda_resumo != 'MULTI' and total_contribuintes %}{{ media_por_membro|floatformat:2 }} {{ moeda_resumo }}{% else %}--{% endif %}</div>
             </div>
         </div>
     </div>
@@ -82,7 +87,7 @@
                     </td>
                     <td style="text-align: right;">
                         <span style="font-weight: 700; color: var(--primary); font-size: 1.1rem;">{{ item.total_valor|floatformat:2 }}</span> 
-                        <span style="font-size: 0.75rem; color: white;">{{ item.moeda }}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ item.moeda }}</span>
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/irmaos/detalhe/{{ item.irmao.id }}/" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--bg-sidebar); color: white;">
@@ -99,15 +104,15 @@
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
             <div>
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Total de Contribuintes</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ total_contribuintes }}</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ total_contribuintes }}</div>
             </div>
             <div>
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Valor Total</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ total_geral|floatformat:2 }}</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ total_geral|floatformat:2 }}</div>
             </div>
             <div>
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Moeda</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: white;">AKZ</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: white;">{% if moeda_resumo == 'MULTI' %}Multimoeda{% else %}{{ moeda_resumo }}{% endif %}</div>
             </div>
             <div style="text-align: right;">
                 <button onclick="window.print()" style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;">
