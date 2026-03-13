@@ -7,7 +7,6 @@ from django.core.management.base import BaseCommand
 from sitetibl.models import (
     Actividade,
     Banco,
-    Cargo,
     Centro_Custo,
     Contabancaria,
     Departamento,
@@ -17,6 +16,8 @@ from sitetibl.models import (
     Irmao,
     Listaactividades,
     Mandato,
+    Municipio,
+    Provincia,
     Rubricaentrada,
     Status_Aprovacao,
     Sitio,
@@ -321,14 +322,19 @@ class Command(BaseCommand):
     def seed_demo_data(self):
         hoje = date.today()
 
+        # Província e Municípios (precisam existir - seed_provincias)
+        luanda = Provincia.objects.filter(codigo='LDA').first()
+        mun_luanda = Municipio.objects.filter(nome='Luanda', provincia=luanda).first() if luanda else None
+        mun_talatona = Municipio.objects.filter(nome='Talatona', provincia=luanda).first() if luanda else None
+
         # Locais
         sede, _ = Sitio.objects.get_or_create(
             designacao='Templo Sede Maculusso',
             defaults={
                 'ruaenumero': 'Rua Comandante Gika, 145',
                 'bairro': 'Maculusso',
-                'municipio': 'Luanda',
-                'provincia': 'LDA',
+                'municipio': mun_luanda,
+                'provincia': luanda,
                 'dataFundacao': date(1987, 5, 17),
                 'tipo': '1',
                 'descricao': 'Templo principal da igreja',
@@ -338,8 +344,8 @@ class Command(BaseCommand):
             designacao='Celula Camama',
             defaults={
                 'bairro': 'Camama',
-                'municipio': 'Talatona',
-                'provincia': 'LDA',
+                'municipio': mun_talatona,
+                'provincia': luanda,
                 'tipo': '2',
                 'descricao': 'Celula de bairro com reuniao semanal',
             },
@@ -348,8 +354,8 @@ class Command(BaseCommand):
             designacao='Celula Patriota',
             defaults={
                 'bairro': 'Patriota',
-                'municipio': 'Talatona',
-                'provincia': 'LDA',
+                'municipio': mun_talatona,
+                'provincia': luanda,
                 'tipo': '2',
                 'descricao': 'Celula de crescimento familiar',
             },
@@ -422,8 +428,8 @@ class Command(BaseCommand):
                     'apelido': membro['apelido'],
                     'sexo': membro['sexo'],
                     'telefone': membro['telefone'],
-                    'municipio': 'LU',
-                    'provincia': 'LDA',
+                    'municipio': mun_luanda,
+                    'provincia': luanda,
                     'celula': membro['celula'],
                     'localcongregacao': sede,
                     'dizimista': membro['dizimista'],
@@ -451,20 +457,21 @@ class Command(BaseCommand):
         dep_fin.vice_lider_departamento = irmaos['paulo.mendes']
         dep_fin.save()
 
-        cargo_lider, _ = Cargo.objects.get_or_create(designacao='Lider', defaults={'descricao': 'Responsavel do departamento'})
-        cargo_tes, _ = Cargo.objects.get_or_create(designacao='Tesoureiro', defaults={'descricao': 'Responsavel financeiro'})
-
         Mandato.objects.get_or_create(
             irmao=irmaos['joao.silva'],
             departamento=dep_louvor,
-            cargo=cargo_lider,
-            inicio=date(2025, 1, 1),
+            defaults={
+                'funcao': 'lider',
+                'inicio': date(2025, 1, 1),
+            },
         )
         Mandato.objects.get_or_create(
             irmao=irmaos['maria.costa'],
             departamento=dep_fin,
-            cargo=cargo_tes,
-            inicio=date(2025, 1, 1),
+            defaults={
+                'funcao': 'tesoureiro',
+                'inicio': date(2025, 1, 1),
+            },
         )
 
         # Actividades

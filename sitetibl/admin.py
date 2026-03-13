@@ -43,6 +43,8 @@ from sitetibl.models import Estado_Patrimonio
 from sitetibl.models import ConteudoEnsino
 from sitetibl.models import EnvioMensagem
 from sitetibl.models import TipoOferta
+from sitetibl.models import Provincia
+from sitetibl.models import Municipio
 from .forms import IrmaoForm
 
 @admin.register(Irmao)
@@ -92,3 +94,22 @@ admin.site.register(Estado_Patrimonio)
 admin.site.register(ConteudoEnsino)
 admin.site.register(EnvioMensagem)
 admin.site.register(TipoOferta)
+
+
+class MunicipioInline(admin.TabularInline):
+    model = Municipio
+    extra = 1
+
+
+@admin.register(Provincia)
+class ProvinciaAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'codigo']
+    search_fields = ['nome']
+    inlines = [MunicipioInline]
+
+
+@admin.register(Municipio)
+class MunicipioAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'provincia']
+    list_filter = ['provincia']
+    search_fields = ['nome']

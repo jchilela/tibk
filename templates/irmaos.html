@@ -23,23 +23,14 @@
                 <label>Município</label>
                 <select name="municipiov">
                     <option value="0">Todos</option>
-                    {% if listamunicipios %}
-                        {% for x, y in listamunicipios.items %}
-                            <option value="{{ x }}">{{ y }}</option>
-                        {% endfor %}
-                    {% endif %}
+                    {% for mun in listamunicipios %}
+                        <option value="{{ mun.id }}">{{ mun.nome }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="filter-field">
                 <label>Profissão</label>
-                <select name="profissaov">
-                    <option value="0">Todas</option>
-                    {% if listaprofissoes %}
-                        {% for x in listaprofissoes %}
-                            <option value="{{ x.id }}">{{ x.designacao }}</option>
-                        {% endfor %}
-                    {% endif %}
-                </select>
+                <input type="text" name="profissaov" placeholder="Pesquisar profissão..." value="">
             </div>
             <input type="hidden" name="pagina" value="1">
             <div style="display: flex; align-items: flex-end;">

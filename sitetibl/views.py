@@ -41,6 +41,7 @@ from rest_framework import status
 # Register your models here.
 #from gestaoinfra.models import Contacto
 from sitetibl.models import Irmao
+from sitetibl.models import Municipio
 from sitetibl.models import TipoOferta
 from sitetibl.models import Ajuda
 from sitetibl.models import Cestabasica
@@ -51,10 +52,8 @@ from sitetibl.models import Departamento
 from sitetibl.models import ComposicaoCesta
 from sitetibl.models import Funcao
 from sitetibl.models import Listaactividades
-from sitetibl.models import Cargo
 from sitetibl.models import Mandato
 from sitetibl.models import Escala
-from sitetibl.models import Profissao
 from sitetibl.models import Rubricaentrada
 from sitetibl.models import Rubricasaida
 from sitetibl.models import Saidacaixa
@@ -109,6 +108,16 @@ TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Cas
 def comeco(request):
     return render(request, 'index.html')
 
+
+@login_required
+def api_municipios(request, provincia_id):
+    """Retorna municípios de uma província em JSON (para cascading dropdown)."""
+    municipios = Municipio.objects.filter(
+        provincia_id=provincia_id
+    ).order_by('nome').values('id', 'nome')
+    return JsonResponse(list(municipios), safe=False)
+
+
 def index(request):
     template = loader.get_template('index.html')
     return HttpResponse(template.render({}, request))
@@ -116,8 +125,8 @@ def index(request):
 @login_required
 def mostraGestao(request,gestaoescolhida,pagina):
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'funcao'), 
-             'mandatos': Mandato.objects.select_related('irmao', 'departamento', 'cargo'), 
-             'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'), 
+             'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
+             'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
              'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'), 
              'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
              'bancos': Banco.objects, 
@@ -172,7 +181,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
     if (gestaoescolhida == 'ajudas') or (gestaoescolhida == 'cestas') or (gestaoescolhida == 'actividades'):
         context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao')}
     elif gestaoescolhida == 'departamentos':
-        context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'listacargos' : Cargo.objects.values('id','designacao')}
+        context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'funcao_choices': Mandato.FUNCAO_CHOICES}
     elif gestaoescolhida == 'contasbancarias':
         context = {
             'bb': paginaresultado,
@@ -186,8 +195,10 @@ def mostraGestao(request,gestaoescolhida,pagina):
         }
     elif (gestaoescolhida == 'entradascaixa') or (gestaoescolhida == 'saidascaixa') or (gestaoescolhida == 'entradabancos') or (gestaoescolhida == 'saidabancos'):
         context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
+    elif gestaoescolhida == 'irmaos':
+        context = { 'bb':paginaresultado, 'listamunicipios': Municipio.objects.select_related('provincia').order_by('provincia__nome', 'nome') }
     else:
-        context = { 'bb':paginaresultado, 'listaprofissoes' : Profissao.objects.values('id','designacao'), 'listameses' : MESES }
+        context = { 'bb':paginaresultado, 'listameses' : MESES }
 
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
@@ -299,7 +310,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
 @login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
     lista_qs = {
-        'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'),
+        'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'),
         'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'),
         'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'),
         'bancos': Banco.objects,
@@ -354,9 +365,9 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
     elif gestaoescolhida == 'departamentos':
         mandatos_departamento = (
             Mandato.objects
-            .select_related('irmao', 'cargo')
+            .select_related('irmao')
             .filter(departamento_id=identificador)
-            .order_by('cargo__designacao', 'irmao__nome', 'irmao__apelido')
+            .order_by('funcao', 'irmao__nome', 'irmao__apelido')
         )
         irmao_logado = Irmao.objects.filter(user=request.user).first()
         lidera_departamento = (
@@ -376,32 +387,30 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             action = request.POST.get('action', '').strip()
             if action == 'add_member':
                 irmao_id = request.POST.get('irmao_id', '').strip()
-                cargo_id = request.POST.get('cargo_id', '').strip()
-                inicio = request.POST.get('inicio') or None
-                fim = request.POST.get('fim') or None
+                funcao = request.POST.get('funcao', 'membro').strip()
+                funcoes_validas = [c[0] for c in Mandato.FUNCAO_CHOICES]
+                if funcao not in funcoes_validas:
+                    funcao = 'membro'
 
-                if not irmao_id or not cargo_id:
-                    messages.error(request, 'Selecione um irmao e um cargo para adicionar ao departamento.')
+                if not irmao_id:
+                    messages.error(request, 'Seleccione um irmão para adicionar ao departamento.')
                 else:
                     mandato_existente = Mandato.objects.filter(
                         departamento_id=identificador,
                         irmao_id=irmao_id,
-                        cargo_id=cargo_id,
                     ).exists()
                     if mandato_existente:
-                        messages.warning(request, 'Este membro ja possui este cargo neste departamento.')
+                        messages.warning(request, 'Este membro já pertence a este departamento.')
                     else:
                         try:
                             Mandato.objects.create(
                                 departamento_id=identificador,
                                 irmao_id=irmao_id,
-                                cargo_id=cargo_id,
-                                inicio=inicio,
-                                fim=fim,
+                                funcao=funcao,
                             )
                             messages.success(request, 'Membro adicionado ao departamento com sucesso.')
                         except IntegrityError:
-                            messages.error(request, 'Nao foi possivel adicionar o membro. Verifique os dados informados.')
+                            messages.error(request, 'Não foi possível adicionar o membro. Verifique os dados informados.')
 
             elif action == 'remove_member':
                 mandato_id = request.POST.get('mandato_id', '').strip()
@@ -419,7 +428,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'gestaoescolhida': gestaoescolhida,
             'mandatos_departamento': mandatos_departamento,
             'todos_irmaos': Irmao.objects.order_by('nome', 'apelido'),
-            'todos_cargos': Cargo.objects.order_by('designacao'),
+            'funcao_choices': Mandato.FUNCAO_CHOICES,
             'pode_gerir_membros': pode_gerir_membros,
         }
     elif gestaoescolhida == 'contasbancarias':
@@ -580,6 +589,18 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'saidas_relacionadas': saidas_relacionadas,
             'total_saidas_rubrica': total_saidas_rubrica,
         }
+    elif gestaoescolhida == 'irmaos':
+        mandatos_irmao = (
+            Mandato.objects
+            .select_related('departamento')
+            .filter(irmao_id=identificador)
+            .order_by('departamento__designacao')
+        )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'mandatos_irmao': mandatos_irmao,
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
@@ -666,7 +687,16 @@ def mostraCriacao(request, gestaoescolhida):
     if request.method == 'POST':
         formulario = form_class(request.POST, request.FILES)
         if formulario.is_valid():
-            formulario.save()
+            obj = formulario.save()
+            # Se for Irmão e o utilizador escolheu departamentos, criar Mandatos
+            if gestaoescolhida == 'irmaos':
+                departamentos = formulario.cleaned_data.get('departamentos')
+                if departamentos:
+                    for dep in departamentos:
+                        Mandato.objects.get_or_create(
+                            irmao=obj, departamento=dep,
+                            defaults={'funcao': 'membro'},
+                        )
             messages.success(request, 'Dados salvos com sucesso!')
             return redirect('index')
         else:
@@ -683,14 +713,15 @@ def encontraIrmao(request):
     municipiov = request.GET.get('municipiov', '').strip()
     bairrov = request.GET.get('bairrov', '').strip()
     
-    profissaov_str = request.GET.get('profissaov', '0').strip()
-    profissaov = int(profissaov_str) if profissaov_str.isdigit() else 0
+    profissaov = request.GET.get('profissaov', '').strip()
     
     pagina = request.GET.get('pagina', '1')
-    kwargs= {'nome__icontains':nomev, 'apelido__icontains' : apelidov, 'bairro__icontains' : bairrov, 'profissao_id' : profissaov }
-    if (profissaov == 0):
-        del kwargs['profissao_id']
-    resultado = Irmao.objects.select_related('profissao', 'celula', 'localcongregacao').filter(**kwargs)
+    kwargs= {'nome__icontains':nomev, 'apelido__icontains' : apelidov, 'bairro__icontains' : bairrov}
+    if profissaov:
+        kwargs['profissao__icontains'] = profissaov
+    if municipiov and municipiov != '0':
+        kwargs['municipio_id'] = municipiov
+    resultado = Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -1334,14 +1365,14 @@ def encontraDepartamentos(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
     departamentov = int(request.GET['departamentov'])
-    cargov = int(request.GET['cargov'])
+    funcaov = request.GET.get('funcaov', '').strip()
     pagina= request.GET['pagina']
-    kwargs= {'irmao__nome__icontains':nomev, 'irmao__apelido__icontains' : apelidov, 'cargo_id' : cargov, 'departamento_id' : departamentov }
+    kwargs= {'irmao__nome__icontains':nomev, 'irmao__apelido__icontains' : apelidov, 'departamento_id' : departamentov }
     if (departamentov == 0):
         del kwargs['departamento_id']
-    if (cargov == 0):
-        del kwargs['cargo_id']
-    resultado = Mandato.objects.values('departamento_id', 'departamento__designacao', 'cargo__designacao', 'irmao__nome', 'irmao__apelido').filter(**kwargs).order_by('departamento__designacao')
+    if funcaov:
+        kwargs['funcao'] = funcaov
+    resultado = Mandato.objects.values('departamento_id', 'departamento__designacao', 'funcao', 'irmao__nome', 'irmao__apelido').filter(**kwargs).order_by('departamento__designacao')
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())

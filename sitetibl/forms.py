@@ -6,6 +6,7 @@ from sitetibl.models import Contabancaria
 from sitetibl.models import Actividade
 from sitetibl.models import Departamento
 from sitetibl.models import Mandato
+from sitetibl.models import Cargo
 from sitetibl.models import Escala
 from sitetibl.models import Saidacaixa
 from sitetibl.models import Saidabanco
@@ -16,6 +17,7 @@ from sitetibl.models import Pagamentoservico
 from sitetibl.models import Gruporubrica
 from sitetibl.models import Servico
 from sitetibl.models import Sitio
+from sitetibl.models import Municipio
 from sitetibl.models import RelatorioSemanalCelula
 from sitetibl.models import PedidoSaida
 from sitetibl.models import OrcamentoDepartamento
@@ -57,19 +59,60 @@ class IrmaoForm(ModelForm):
         ]
     )
 
+    departamentos = forms.ModelMultipleChoiceField(
+        queryset=Departamento.objects.order_by('designacao'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label='Departamentos',
+        help_text='Seleccione um ou mais departamentos (opcional).',
+    )
+
     class Meta:
         model = Irmao
-        fields = '__all__'
+        fields = [
+            # --- Identificação pessoal ---
+            'nome', 'apelido', 'outrosnomes', 'sexo', 'foto',
+            'datanascimento', 'estadocivil',
+            # --- Contactos ---
+            'telefone', 'telefonewhatsapp', 'email',
+            # --- Localização ---
+            'ruaenumero', 'bairro', 'provincia', 'municipio',
+            # --- Vida eclesiástica ---
+            'localcongregacao', 'celula', 'culto', 'batizado', 'dizimista',
+            # --- Profissão e trabalho ---
+            'profissao', 'especialidade', 'grauescolaridade', 'localdetrabalho',
+            # --- Outros ---
+            'observacao',
+        ]
         widgets = {
-            'datanascimento': forms.DateInput(attrs={'type': 'date'})
+            'datanascimento': forms.DateInput(attrs={'type': 'date'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        #filtrar as dropdown para aparecer ou celula ou igreja
+        # Filtrar dropdowns: só células ou só igrejas
         self.fields['celula'].queryset = Sitio.objects.filter(tipo='2')
         self.fields['localcongregacao'].queryset = Sitio.objects.filter(tipo='1')
+
+        # Cascading: município depende da província seleccionada
+        if self.instance and self.instance.pk and self.instance.provincia_id:
+            # Edição: mostrar municípios da província do registo
+            self.fields['municipio'].queryset = Municipio.objects.filter(
+                provincia_id=self.instance.provincia_id
+            )
+        elif 'provincia' in self.data:
+            # POST: filtrar pela província enviada
+            try:
+                provincia_id = int(self.data.get('provincia'))
+                self.fields['municipio'].queryset = Municipio.objects.filter(
+                    provincia_id=provincia_id
+                )
+            except (ValueError, TypeError):
+                self.fields['municipio'].queryset = Municipio.objects.none()
+        else:
+            # Criação: município vazio até escolher província
+            self.fields['municipio'].queryset = Municipio.objects.none()
 
 class AjudaForm(ModelForm):
     class Meta:
@@ -194,7 +237,7 @@ class DepartamentoForm(ModelForm):
 class MandatoForm(ModelForm):
     class Meta:
         model = Mandato
-        fields = '__all__'
+        fields = ['irmao', 'departamento', 'funcao', 'inicio', 'fim']
         widgets = {
             'inicio': forms.DateInput(attrs={'type': 'date'}),
             'fim': forms.DateInput(attrs={'type': 'date'}),

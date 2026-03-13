@@ -1,16 +1,124 @@
 import logging
 
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mass_mail
 from django.template.loader import render_to_string
 from django.core.mail import get_connection
 from django.core.mail import EmailMultiAlternatives
+from django.utils.crypto import get_random_string
 import requests
 
 from .models import EnvioMensagem, Irmao, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa
 
 logger = logging.getLogger(__name__)
+
+
+# =========================================
+# 👤 AUTO-CRIAR USER AO CRIAR IRMÃO
+# =========================================
+
+@receiver(post_save, sender=Irmao)
+def criar_user_para_irmao(sender, instance, created, **kwargs):
+    """
+    Quando um Irmao é guardado sem User associado, cria automaticamente
+    um User Django e envia as credenciais por email ou SMS.
+    """
+    if instance.user is not None:
+        return
+
+    # Gerar username unico: email (parte antes do @) ou nome.apelido
+    if instance.email:
+        base_username = instance.email.split('@')[0].lower().replace(' ', '')
+    else:
+        base_username = f'{instance.nome}.{instance.apelido}'.lower().replace(' ', '')
+    username = base_username
+    counter = 1
+    while User.objects.filter(username=username).exists():
+        username = f'{base_username}{counter}'
+        counter += 1
+
+    # Gerar palavra-passe temporaria segura (12 caracteres)
+    temp_password = get_random_string(length=12)
+
+    user = User.objects.create_user(
+        username=username,
+        email=instance.email or '',
+        password=temp_password,
+        first_name=instance.nome or '',
+        last_name=instance.apelido or '',
+    )
+
+    # Vincular sem disparar o signal novamente
+    Irmao.objects.filter(pk=instance.pk).update(user=user)
+
+    logger.info('User "%s" criado para Irmao ID %s', username, instance.pk)
+
+    # Enviar credenciais: email se disponivel, senao SMS
+    if instance.email:
+        _enviar_credenciais_email(instance, username, temp_password)
+    elif instance.telefone:
+        _enviar_credenciais_sms(instance, username, temp_password)
+    else:
+        logger.warning(
+            'Irmao ID %s sem email nem telefone — credenciais nao enviadas. '
+            'Username: %s', instance.pk, username,
+        )
+
+
+def _enviar_credenciais_email(irmao, username, password):
+    """Envia email de boas-vindas com credenciais de acesso."""
+    try:
+        html_content = render_to_string(
+            'emails/email_boas_vindas.html',
+            {
+                'nome': irmao.nome,
+                'username': username,
+                'password': password,
+            },
+        )
+
+        msg = EmailMultiAlternatives(
+            subject='Bem-vindo ao sistema TIBL — As suas credenciais de acesso',
+            body=f'Olá {irmao.nome}, o seu acesso ao TIBL foi criado. '
+                 f'Utilizador: {username} | Palavra-passe temporária: {password}',
+            from_email=None,  # usa DEFAULT_FROM_EMAIL do settings
+            to=[irmao.email],
+        )
+        msg.attach_alternative(html_content, 'text/html')
+        msg.send()
+        logger.info('Email de boas-vindas enviado para %s', irmao.email)
+    except Exception as e:
+        logger.error('Falha ao enviar email de boas-vindas para %s: %s', irmao.email, e)
+
+
+def _enviar_credenciais_sms(irmao, username, password):
+    """Envia SMS com credenciais de acesso via TelcoSMS."""
+    sms_url = 'https://telcosms.co.ao/send_message'
+    mensagem = (
+        f'TIBL - Bem-vindo {irmao.nome}! '
+        f'Utilizador: {username} | Senha: {password} '
+        f'Altere a senha no primeiro acesso.'
+    )
+    sms_data = {
+        'message': {
+            'api_key_app': 'prdc4b5a87b97d15edf8aa0cb5929',
+            'phone_number': irmao.telefone,
+            'message_body': mensagem,
+        }
+    }
+    try:
+        response = requests.post(sms_url, json=sms_data, timeout=10)
+        if response.status_code == 200:
+            logger.info('SMS de boas-vindas enviado para %s', irmao.telefone)
+        else:
+            logger.error(
+                'Falha ao enviar SMS para %s — status %s: %s',
+                irmao.telefone, response.status_code, response.text,
+            )
+    except requests.exceptions.RequestException as e:
+        logger.error('Erro ao enviar SMS para %s: %s', irmao.telefone, e)
 
 @receiver(post_save, sender=EnvioMensagem)
 def enviar_email_sms_massivo(sender, instance, created, **kwargs):

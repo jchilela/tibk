@@ -25,12 +25,12 @@
                 </select>
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Cargo</label>
-                <select name="cargov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-                    <option value="0">------------</option>
-                    {% if listacargos %}
-                        {% for x in listacargos %}
-                            <option value="{{ x.id }}">{{ x.designacao }}</option>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Função</label>
+                <select name="funcaov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="">------------</option>
+                    {% if funcao_choices %}
+                        {% for value, label in funcao_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
                         {% endfor %}
                     {% endif %}
                 </select>

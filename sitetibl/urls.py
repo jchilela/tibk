@@ -40,6 +40,9 @@ urlpatterns = [
     path('actividade/<int:actividade_id>/escalas/', views.EscalasPorActividadeView.as_view(), name='escalas_por_actividade'),
     path('actividade/<int:actividade_id>/escalar-massa/', views.escalar_em_massa, name='escalar_em_massa'),
 
+    # API: municípios por província (cascading dropdown)
+    path('api/municipios/<int:provincia_id>/', views.api_municipios, name='api_municipios'),
+
     # Rotas legadas preservadas para compatibilidade entre branches
     path('contasbancarias/inativar/<int:id>/', views.inativaContabancaria, name='inativaContabancaria'),
     path('contasbancarias/reativar/<int:id>/', views.reativaContabancaria, name='reativaContabancaria'),

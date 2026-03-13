@@ -11,15 +11,34 @@ from django.db.models.functions import Coalesce
 from django.core.exceptions import ValidationError
 
 # Create your models here.
-PROVINCIAS = (('BNG','Bengo'),('BGL','Benguela'),('BIE','Bié'),('CAB','Cabinda'),('CNE','Cunene'),('HMB','Huambo'),('HLA','Huila'),('KKG','Kuando kubango'),('KZN','Kuanza Norte'),('KZS','Kuanza Sul'),('LDA','Luanda'),('LDN','Lunda Norte'),('LDS','Lunda Sul'),('MLG','Malange'),('MXC','Moxico'),('NMB','Namibe'),('UGE','Uige'),('ZAR','Zaire'))
 MESES = (('1','Janeiro'),('2','Fevereiro'),('3','Março'),('4','Abril'),('5','Maio'),('6','Junho'),('7','Julho'),('8','Agosto'),('9','Setembro'),('10','Outubro'),('9','Novembro'),('10','Dezembro'))
 MOEDA = (('AKZ','Kwanza'),('USD','USA Dólar'),('EU','Euro'),('R','Reais'),('RAN','ZA Rands'),('NAMD','Dólar Namibiano'), ('LB','Libra Inglesa'))
-MUNICIPIOO = (('BE','Belas'),('CZ','Cazenga'),('KK','Kilamba Kiaxi'),('LU','Luanda'),('CA','Cacuaco'),('IC','Icolo e Bengo'),('TT','Talatona'),('VI','Viana'),('QU','Quissama'))
 SEMANA = (('Seg','Segunda'),('Ter','Terça'),('Qua','Quarta'),('Qui','Quinta'),('Sex','Sexta'),('Sab','Sábado'),('Dom','Domingo'))
 ACTIVO = (('sim','Sim'),('nao','Não'),)
 VIA = (('1','Depósito'),('2','Transferência bancária'),('3','Multicaixa'),)
 
 
+
+class Provincia(models.Model):
+     nome = models.CharField(max_length=50, unique=True)
+     codigo = models.CharField(max_length=3, unique=True)
+     class Meta:
+         ordering = ['nome']
+         verbose_name = 'Província'
+         verbose_name_plural = 'Províncias'
+     def __str__(self):
+         return self.nome
+
+class Municipio(models.Model):
+     nome = models.CharField(max_length=100)
+     provincia = models.ForeignKey(Provincia, on_delete=models.CASCADE, related_name='municipios')
+     class Meta:
+         ordering = ['nome']
+         verbose_name = 'Município'
+         verbose_name_plural = 'Municípios'
+         unique_together = ['nome', 'provincia']
+     def __str__(self):
+         return self.nome
 
 class Profissao(models.Model):
     designacao = models.CharField(max_length = 200, unique = True)
@@ -102,8 +121,8 @@ class Sitio(models.Model):
      designacao = models.CharField('Designação', max_length =100, unique = True)
      ruaenumero = models.CharField("Rua e Número", max_length=60, blank=True)
      bairro = models.CharField(max_length=30, blank=True)
-     municipio = models.CharField(max_length=60, blank=True)
-     provincia = models.CharField(max_length=30, choices = PROVINCIAS, default = "LDA")
+     provincia = models.ForeignKey(Provincia, verbose_name="Província", on_delete=models.SET_NULL, null=True, blank=True)
+     municipio = models.ForeignKey(Municipio, verbose_name="Município", on_delete=models.SET_NULL, null=True, blank=True)
      dataFundacao = models.DateField("Data de Fundação",blank=True, null=True, default=None)
      numerodemembros = models.IntegerField(default=0)
      tipo = models.CharField(max_length=3, choices = TIPO)
@@ -125,13 +144,13 @@ class Pessoa(models.Model):
      datanascimento = models.DateField("Data de Nascimento", blank=True, null = True)
      estadocivil = models.CharField("Estado Civil",max_length=30, choices = ESTADO_CIVIL, default = "S")
      grauescolaridade = models.CharField("Grau de Escolaridade",max_length=50, choices = ESCOLARIDADE, blank=True)
-     profissao = models.ForeignKey(Profissao, on_delete = models.CASCADE, null = True, blank=True)
+     profissao = models.CharField("Profissão", max_length=100, blank=True, default="")
      especialidade = models.CharField("Especialidade",max_length=50, blank=True)
      localdetrabalho = models.CharField("Local de Trabalho",max_length=50, blank=True)
      ruaenumero = models.CharField("Rua e Número",max_length=60,blank=True)
      bairro = models.CharField(max_length=50, blank=True)
-     municipio = models.CharField("Município",max_length=50, choices = MUNICIPIOO, blank=True)
-     provincia = models.CharField("Província",max_length=50, choices = PROVINCIAS, default = "LDA")
+     provincia = models.ForeignKey(Provincia, verbose_name="Província", on_delete=models.SET_NULL, null=True, blank=True)
+     municipio = models.ForeignKey(Municipio, verbose_name="Município", on_delete=models.SET_NULL, null=True, blank=True)
      telefone = models.CharField("Telefones",max_length=50, blank=True)
      telefonewhatsapp = models.CharField("Telefone do Whatsapp",max_length=50, blank=True)
      email = models.EmailField( blank=True)
@@ -170,17 +189,25 @@ class Departamento(models.Model):
          pass
 
 class Mandato(models.Model):
+    FUNCAO_CHOICES = [
+        ('membro', 'Membro'),
+        ('lider', 'Líder'),
+        ('vice_lider', 'Vice-Líder'),
+        ('secretario', 'Secretário(a)'),
+        ('tesoureiro', 'Tesoureiro(a)'),
+        ('coordenador', 'Coordenador(a)'),
+    ]
     irmao = models.ForeignKey(Irmao, verbose_name = 'Irmão', on_delete = models.CASCADE)
     departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE)
-    cargo = models.ForeignKey(Cargo, on_delete = models.CASCADE)
+    funcao = models.CharField('Função', max_length=20, choices=FUNCAO_CHOICES, default='membro')
     inicio = models.DateField('Desde', blank = True, null = True)
     fim = models.DateField('Até', blank = True, null = True)
     def __str__(self):
-        return ('%s %s %s') % (self.irmao, self.departamento, self.cargo)
+        return '%s — %s (%s)' % (self.irmao, self.departamento, self.get_funcao_display())
     class Admin:
         pass
     class Meta:
-         unique_together = ('irmao', 'departamento', 'cargo','inicio')
+         unique_together = ('irmao', 'departamento')
 
 class Banco(models.Model):
      designacao = models.CharField('Designação', max_length =100, unique = True)

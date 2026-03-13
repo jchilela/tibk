@@ -22,7 +22,7 @@
                 <tr>
                     <th>Irmão / Membro</th>
                     <th>Departamento</th>
-                    <th>Cargo</th>
+                    <th>Função</th>
                     <th style="text-align: center;">Período</th>
                     <th style="text-align: right;">Acções</th>
                 </tr>
@@ -39,7 +39,7 @@
                     <td>
                         <span class="badge"
                             style="background: rgba(0,0,0,0.05); color: var(--text-main); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">
-                            {{ x.cargo }}
+                            {{ x.get_funcao_display }}
                         </span>
                     </td>
                     <td style="text-align: center;">
