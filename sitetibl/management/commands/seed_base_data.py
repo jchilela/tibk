@@ -169,9 +169,6 @@ class Command(BaseCommand):
         ld_perms |= self._perms_for(app, ['pedidosaida'], ['add', 'view'])
         ld_perms |= self._perms_for(app, [
             'irmao', 'pessoa', 'sitio', 'conteudoensino',
-            'dizimooferta', 'entradabanco', 'saidabanco',
-            'entradacaixa', 'saidacaixa', 'orcamentodepartamento',
-            'inventariopatrimonio', 'cestabasica', 'ajuda',
         ], ['view'])
         ld_grp.permissions.set(ld_perms)
         self.stdout.write(f'Líder de Departamento: {ld_perms.count()} permissoes atribuidas')
@@ -184,7 +181,7 @@ class Command(BaseCommand):
         vld_perms |= self._perms_for(app, ['pedidosaida'], ['add', 'view'])
         vld_perms |= self._perms_for(app, [
             'irmao', 'pessoa', 'sitio', 'departamento', 'conteudoensino',
-            'enviomensagem', 'orcamentodepartamento', 'inventariopatrimonio',
+            'enviomensagem',
         ], ['view'])
         vld_grp.permissions.set(vld_perms)
         self.stdout.write(f'Vice-Líder de Departamento: {vld_perms.count()} permissoes atribuidas')

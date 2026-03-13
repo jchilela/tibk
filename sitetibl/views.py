@@ -173,7 +173,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
 
         resultado = lista[gestaoescolhida].filter(**kwargs).order_by('id')
     elif (gestaoescolhida == 'irmaos'):
-        resultado = lista[gestaoescolhida].all().order_by('nome','outrosnomes')
+        resultado = lista[gestaoescolhida].prefetch_related('mandato_set__departamento').all().order_by('nome','outrosnomes')
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
@@ -2488,22 +2488,31 @@ def root_redirect(request):
 
 @login_required
 def minhas_escalas(request):
-    import datetime
-    agora = datetime.datetime.now()
-    try:
-        irmao_obj = request.user.irmao
-        escalas = Escala.objects.filter(irmao=irmao_obj, actividade__data__gte=agora.date()).select_related(
-            'actividade', 
-            'actividade__designacao', 
-            'actividade__localactividade', 
-            'funcao'
-        ).order_by('actividade__data', 'actividade__inicio')
-    except:
-        escalas = []
+    from datetime import date as dt_date
+    hoje = dt_date.today()
+
+    irmao_obj = Irmao.objects.filter(user=request.user).first()
+    if not irmao_obj:
+        messages.warning(request, 'O seu utilizador não está associado a nenhum perfil de irmão.')
+        return render(request, 'minhasescalas.html', {
+            'escalas_futuras': [],
+            'escalas_passadas': [],
+            'titulo': 'As Minhas Escalas',
+        })
+
+    base_qs = Escala.objects.filter(irmao=irmao_obj).select_related(
+        'actividade',
+        'actividade__designacao',
+        'actividade__localactividade',
+        'funcao',
+    )
+    escalas_futuras = base_qs.filter(actividade__data__gte=hoje).order_by('actividade__data', 'actividade__inicio')
+    escalas_passadas = base_qs.filter(actividade__data__lt=hoje).order_by('-actividade__data', '-actividade__inicio')[:20]
 
     context = {
-        'escalas': escalas,
-        'titulo': 'As Minhas Escalas'
+        'escalas_futuras': escalas_futuras,
+        'escalas_passadas': escalas_passadas,
+        'titulo': 'As Minhas Escalas',
     }
     return render(request, 'minhasescalas.html', context)
 

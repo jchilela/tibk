@@ -69,7 +69,7 @@
                             </div>
                             <div>
                                 <div style="font-weight: 600; color: var(--text-main);">{{ x.nome }} {{ x.outrosnomes }} {{ x.apelido }}</div>
-                                <div style="font-size: 0.72rem; color: var(--text-muted);">Membro Registado</div>
+                                <div style="font-size: 0.72rem; color: var(--text-muted);">{% for m in x.mandato_set.all %}{{ m.departamento.designacao }}{% if not forloop.last %}, {% endif %}{% empty %}Sem departamento{% endfor %}</div>
                             </div>
                         </div>
                     </td>

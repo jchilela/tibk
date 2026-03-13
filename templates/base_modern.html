@@ -83,50 +83,67 @@
                     <i class="fas fa-handshake fa-fw"></i> Mandatos
                 </a>
 
-                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco %}
+                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco or perms.sitetibl.view_pedidosaida %}
                 <div class="nav-section-title">Financeiro</div>
 
+                {% if perms.sitetibl.view_contabancaria %}
                 <a href="/tibl/gestao/contasbancarias/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
                     <i class="fas fa-university fa-fw"></i> Contas Bancárias
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_dizimooferta %}
                 <a href="/tibl/gestao/dizimosofertas/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'dizimosofertas' %}active{% endif %}">
                     <i class="fas fa-hand-holding-heart fa-fw"></i> Dízimos e Ofertas
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_entradabanco %}
                 <a href="/tibl/gestao/entradabancos/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradabancos' %}active{% endif %}">
                     <i class="fas fa-arrow-circle-right fa-fw"></i> Entrada (Banco)
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_saidabanco %}
                 <a href="/tibl/gestao/saidabancos/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidabancos' %}active{% endif %}">
                     <i class="fas fa-arrow-circle-left fa-fw"></i> Saída (Banco)
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_entradacaixa %}
                 <a href="/tibl/gestao/entradascaixa/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradascaixa' %}active{% endif %}">
                     <i class="fas fa-coins fa-fw"></i> Entrada (Caixa)
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_saidacaixa %}
                 <a href="/tibl/gestao/saidascaixa/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
                     <i class="fas fa-money-bill-wave fa-fw"></i> Saída (Caixa)
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_pedidosaida %}
                 <a href="/tibl/gestao/pedidosaida/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
                     <i class="fas fa-file-invoice-dollar fa-fw"></i> Pedidos de Saída
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_orcamentodepartamento %}
                 <a href="/tibl/gestao/orcamentodepartamento/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
                     <i class="fas fa-chart-pie fa-fw"></i> Orçamento Dept.
                 </a>
                 {% endif %}
+                {% endif %}
 
+                {% if request.user.is_superuser %}
                 <div class="nav-section-title">Social & Comunidade</div>
 
                 <a href="/tibl/gestao/ajudas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'ajudas' %}active{% endif %}">
@@ -158,6 +175,7 @@
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
                     <i class="fas fa-boxes-stacked fa-fw"></i> Património
                 </a>
+                {% endif %}
 
                 <a href="{% url 'pagina_relatorios' %}" class="nav-item" target="_blank">
                     <i class="fas fa-file-pdf fa-fw"></i> Relatórios PDF

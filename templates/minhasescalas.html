@@ -1,77 +1,88 @@
 {% extends 'index.html' %}
 {% block content %}
 
-<div class="row" style="margin-bottom: 2rem;">
-    <div class="col-12" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1 style="font-size: 2rem; color: var(--primary-dark); font-weight: 700; margin-bottom: 0.5rem;">As Minhas
-                Escalas</h1>
-            <p style="color: var(--text-muted);">Veja as suas próximas atribuições de serviço.</p>
-        </div>
+<div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1 style="font-size: 2rem; color: var(--primary-dark); font-weight: 700; margin-bottom: 0.5rem;">As Minhas Escalas</h1>
+        <p style="color: var(--text-muted);">Veja as suas atribuições de serviço.</p>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        {% if escalas %}
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-            {% for escala in escalas %}
-            <div class="modern-card"
-                style="border-left: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                        <div
-                            style="background: var(--primary-50); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
-                            <i class="far fa-calendar-alt" style="margin-right: 0.3rem;"></i>
-                            {{ escala.actividade.data|date:"d M Y"|default:escala.actividade.data }}
-                        </div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
-                            {{ escala.actividade.inicio }}
-                        </div>
-                    </div>
+<!-- Próximas escalas -->
+<h3 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">
+    <i class="fas fa-calendar-alt mr-2" style="color: var(--primary);"></i> Próximas Escalas
+</h3>
 
-                    <h3 style="font-size: 1.3rem; color: var(--primary-dark); font-weight: 700; margin-bottom: 0.5rem;">
-                        {{ escala.actividade.designacao }}
-                    </h3>
-
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                        <i class="fas fa-map-marker-alt" style="margin-right: 0.4rem; color: var(--primary);"></i>
-                        {{ escala.actividade.localactividade|default:"Sede" }}
-                    </p>
+{% if escalas_futuras %}
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+    {% for escala in escalas_futuras %}
+    <div class="modern-card" style="border-left: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div style="background: var(--primary-50); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                    <i class="far fa-calendar-alt" style="margin-right: 0.3rem;"></i>
+                    {{ escala.actividade.data|date:"d M Y"|default:escala.actividade.data }}
                 </div>
-
-                <div
-                    style="background: #f8fafc; border-radius: var(--radius-sm); padding: 1rem; border: 1px solid #e2e8f0; margin-top: 1rem;">
-                    <div
-                        style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.3rem;">
-                        A Sua Função
-                    </div>
-                    <div style="font-weight: 600; font-size: 1.05rem; color: var(--primary);">
-                        <i class="fas fa-user-tag" style="margin-right: 0.4rem; opacity: 0.7;"></i>
-                        {{ escala.funcao.designacao }}
-                    </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                    {{ escala.actividade.inicio }}
                 </div>
-
-                <a href="/tibl/actividades/detalhe/{{ escala.actividade.id }}" class="bt-primary"
-                    style="margin-top: 1.5rem; width: 100%; text-align: center; justify-content: center; background: white; color: var(--primary); border: 1px solid var(--primary);">
-                    Ver Detalhes do Evento
-                </a>
             </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="modern-card"
-            style="text-align: center; padding: 4rem 2rem; background: #f8fafc; border: 1px dashed #cbd5e1;">
-            <i class="far fa-calendar-check" style="font-size: 4rem; color: #94a3b8; margin-bottom: 1.5rem;"></i>
-            <h3 style="font-size: 1.5rem; color: var(--primary-dark); margin-bottom: 0.5rem;">Livre de Escalas</h3>
-            <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto;">
-                Não tem nenhuma atribuição de serviço agendada para os próximos dias. Aproveite para descansar ou
-                assista aos cultos!
+            <h3 style="font-size: 1.3rem; color: var(--primary-dark); font-weight: 700; margin-bottom: 0.5rem;">
+                {{ escala.actividade.designacao }}
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                <i class="fas fa-map-marker-alt" style="margin-right: 0.4rem; color: var(--primary);"></i>
+                {{ escala.actividade.localactividade|default:"Sede" }}
             </p>
         </div>
-        {% endif %}
+        <div style="background: #f8fafc; border-radius: var(--radius-sm); padding: 1rem; border: 1px solid #e2e8f0; margin-top: 1rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.3rem;">A Sua Função</div>
+            <div style="font-weight: 600; font-size: 1.05rem; color: var(--primary);">
+                <i class="fas fa-user-tag" style="margin-right: 0.4rem; opacity: 0.7;"></i>
+                {{ escala.funcao.designacao }}
+            </div>
+        </div>
+        <a href="/tibl/actividades/detalhe/{{ escala.actividade.id }}" class="bt-primary" style="margin-top: 1.5rem; width: 100%; text-align: center; justify-content: center; background: white; color: var(--primary); border: 1px solid var(--primary);">
+            Ver Detalhes do Evento
+        </a>
     </div>
+    {% endfor %}
 </div>
+{% else %}
+<div class="modern-card" style="text-align: center; padding: 3rem 2rem; background: #f8fafc; border: 1px dashed #cbd5e1; margin-bottom: 2.5rem;">
+    <i class="far fa-calendar-check" style="font-size: 3rem; color: #94a3b8; margin-bottom: 1rem;"></i>
+    <h3 style="font-size: 1.2rem; color: var(--primary-dark); margin-bottom: 0.5rem;">Sem escalas agendadas</h3>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Não tem nenhuma atribuição de serviço para os próximos dias.</p>
+</div>
+{% endif %}
+
+<!-- Escalas passadas -->
+{% if escalas_passadas %}
+<h3 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">
+    <i class="fas fa-history mr-2" style="color: var(--text-muted);"></i> Histórico Recente
+</h3>
+<div class="modern-table-container" style="margin-bottom: 2rem;">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Actividade</th>
+                <th>Data</th>
+                <th>Local</th>
+                <th>Função</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for escala in escalas_passadas %}
+            <tr style="opacity: 0.75;">
+                <td style="font-weight: 600;">{{ escala.actividade.designacao }}</td>
+                <td>{{ escala.actividade.data|date:"d/m/Y" }}</td>
+                <td>{{ escala.actividade.localactividade|default:"Sede" }}</td>
+                <td><span class="badge" style="background: rgba(0,0,0,0.06); color: var(--text-main); padding: 3px 10px; border-radius: 6px; font-size: 0.8rem;">{{ escala.funcao.designacao }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
 
 {% endblock %}
