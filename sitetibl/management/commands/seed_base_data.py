@@ -1,7 +1,7 @@
 from datetime import date, time, timedelta
 from decimal import Decimal
 
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group, Permission, User
 from django.core.management.base import BaseCommand
 
 from sitetibl.models import (
@@ -80,8 +80,12 @@ class Command(BaseCommand):
     def seed_groups(self):
         group_names = [
             'Administrador',
+            'Pastor',
             'Financeiro',
             'Secretaria',
+            'Líder de Departamento',
+            'Vice-Líder de Departamento',
+            'Líder de Célula',
             'Membros Baptizados',
             'Membro Geral',
         ]
@@ -93,6 +97,136 @@ class Command(BaseCommand):
                 created_count += 1
 
         self.stdout.write(f'Grupos criados: {created_count} | totais verificados: {len(group_names)}')
+
+        self._assign_group_permissions()
+
+    def _assign_group_permissions(self):
+        """Atribui permissoes Django por modelo a cada grupo."""
+        app = 'sitetibl'
+        crud = ['add', 'change', 'delete', 'view']
+
+        # --- Administrador: tudo em sitetibl ---
+        admin_grp = Group.objects.get(name='Administrador')
+        all_perms = Permission.objects.filter(content_type__app_label=app)
+        admin_grp.permissions.set(all_perms)
+        self.stdout.write(f'Administrador: {all_perms.count()} permissoes atribuidas')
+
+        # --- Pastor: supervisao pastoral — ve tudo, CRUD actividades/membros, aprova pedidos ---
+        pastor_grp = Group.objects.get(name='Pastor')
+        pastor_perms = self._perms_for(app, [
+            'pessoa', 'irmao', 'mandato', 'actividade', 'escala',
+            'relatoriosemanalcelula', 'conteudoensino', 'enviomensagem',
+            'anuncio', 'ajuda', 'pedidosaida',
+        ], crud)
+        pastor_perms |= self._perms_for(app, [
+            'departamento',
+        ], ['view', 'change'])
+        pastor_perms |= self._perms_for(app, [
+            'sitio', 'dizimooferta', 'entradabanco', 'saidabanco',
+            'entradacaixa', 'saidacaixa', 'banco', 'contabancaria',
+            'orcamentodepartamento', 'inventariopatrimonio',
+            'cestabasica', 'pagamentoservico',
+        ], ['view'])
+        pastor_grp.permissions.set(pastor_perms)
+        self.stdout.write(f'Pastor: {pastor_perms.count()} permissoes atribuidas')
+
+        # --- Financeiro: CRUD financeiro + view membros/actividades ---
+        fin_grp = Group.objects.get(name='Financeiro')
+        fin_perms = self._perms_for(app, [
+            'dizimooferta', 'entradabanco', 'saidabanco',
+            'entradacaixa', 'saidacaixa', 'contabancaria', 'banco',
+            'pedidosaida', 'orcamentodepartamento', 'pagamentoservico',
+        ], crud)
+        fin_perms |= self._perms_for(app, [
+            'irmao', 'pessoa', 'actividade', 'departamento',
+            'inventariopatrimonio',
+        ], ['view'])
+        fin_grp.permissions.set(fin_perms)
+        self.stdout.write(f'Financeiro: {fin_perms.count()} permissoes atribuidas')
+
+        # --- Secretaria: CRUD membros/actividades/comunicacao + view financeiro ---
+        sec_grp = Group.objects.get(name='Secretaria')
+        sec_perms = self._perms_for(app, [
+            'irmao', 'pessoa', 'actividade', 'escala', 'mandato',
+            'departamento', 'sitio', 'relatoriosemanalcelula',
+            'conteudoensino', 'enviomensagem', 'anuncio',
+            'inventariopatrimonio', 'cestabasica', 'ajuda',
+        ], crud)
+        sec_perms |= self._perms_for(app, [
+            'dizimooferta', 'entradabanco', 'entradacaixa',
+            'pedidosaida',
+        ], ['view'])
+        sec_grp.permissions.set(sec_perms)
+        self.stdout.write(f'Secretaria: {sec_perms.count()} permissoes atribuidas')
+
+        # --- Líder de Departamento: gere o seu dept, escalas, mandatos, cria pedidos ---
+        ld_grp = Group.objects.get(name='Líder de Departamento')
+        ld_perms = self._perms_for(app, [
+            'actividade', 'escala', 'mandato', 'anuncio', 'enviomensagem',
+        ], crud)
+        ld_perms |= self._perms_for(app, ['departamento'], ['view', 'change'])
+        ld_perms |= self._perms_for(app, ['pedidosaida'], ['add', 'view'])
+        ld_perms |= self._perms_for(app, [
+            'irmao', 'pessoa', 'sitio', 'conteudoensino',
+            'dizimooferta', 'entradabanco', 'saidabanco',
+            'entradacaixa', 'saidacaixa', 'orcamentodepartamento',
+            'inventariopatrimonio', 'cestabasica', 'ajuda',
+        ], ['view'])
+        ld_grp.permissions.set(ld_perms)
+        self.stdout.write(f'Líder de Departamento: {ld_perms.count()} permissoes atribuidas')
+
+        # --- Vice-Líder de Departamento: apoia líder, escalas, mandatos, cria pedidos ---
+        vld_grp = Group.objects.get(name='Vice-Líder de Departamento')
+        vld_perms = self._perms_for(app, [
+            'actividade', 'escala', 'mandato', 'anuncio',
+        ], crud)
+        vld_perms |= self._perms_for(app, ['pedidosaida'], ['add', 'view'])
+        vld_perms |= self._perms_for(app, [
+            'irmao', 'pessoa', 'sitio', 'departamento', 'conteudoensino',
+            'enviomensagem', 'orcamentodepartamento', 'inventariopatrimonio',
+        ], ['view'])
+        vld_grp.permissions.set(vld_perms)
+        self.stdout.write(f'Vice-Líder de Departamento: {vld_perms.count()} permissoes atribuidas')
+
+        # --- Líder de Célula: relatorios + view membros da celula ---
+        lc_grp = Group.objects.get(name='Líder de Célula')
+        lc_perms = self._perms_for(app, [
+            'relatoriosemanalcelula',
+        ], ['add', 'change', 'view'])
+        lc_perms |= self._perms_for(app, [
+            'irmao', 'pessoa', 'sitio', 'actividade', 'departamento',
+            'conteudoensino',
+        ], ['view'])
+        lc_grp.permissions.set(lc_perms)
+        self.stdout.write(f'Líder de Célula: {lc_perms.count()} permissoes atribuidas')
+
+        # --- Membros Baptizados: view maioria + add relatorio ---
+        mb_grp = Group.objects.get(name='Membros Baptizados')
+        mb_perms = self._perms_for(app, [
+            'irmao', 'pessoa', 'actividade', 'escala', 'departamento',
+            'mandato', 'conteudoensino', 'sitio', 'anuncio',
+        ], ['view'])
+        mb_perms |= self._perms_for(app, ['relatoriosemanalcelula'], ['add', 'view'])
+        mb_grp.permissions.set(mb_perms)
+        self.stdout.write(f'Membros Baptizados: {mb_perms.count()} permissoes atribuidas')
+
+        # --- Membro Geral: view minima ---
+        mg_grp = Group.objects.get(name='Membro Geral')
+        mg_perms = self._perms_for(app, [
+            'actividade', 'departamento', 'conteudoensino', 'anuncio',
+        ], ['view'])
+        mg_grp.permissions.set(mg_perms)
+        self.stdout.write(f'Membro Geral: {mg_perms.count()} permissoes atribuidas')
+
+    def _perms_for(self, app, models, actions):
+        """Devolve QuerySet de permissoes para combinacao app/modelos/accoes."""
+        codenames = [
+            f'{action}_{model}' for model in models for action in actions
+        ]
+        return Permission.objects.filter(
+            content_type__app_label=app,
+            codename__in=codenames,
+        )
 
     def seed_reference_tables(self):
         moedas = [

@@ -83,7 +83,7 @@
                     <i class="fas fa-handshake fa-fw"></i> Mandatos
                 </a>
 
-                {% if request.user|has_group:'Administrador' or request.user|has_group:'Financeiro' %}
+                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco %}
                 <div class="nav-section-title">Financeiro</div>
 
                 <a href="/tibl/gestao/contasbancarias/1"
@@ -163,7 +163,7 @@
                     <i class="fas fa-file-pdf fa-fw"></i> Relatórios PDF
                 </a>
 
-                {% if request.user|has_group:'Administrador' %}
+                {% if request.user.is_staff %}
                 <a href="/admin/" class="nav-item" target="_blank">
                     <i class="fas fa-cog fa-fw"></i> Admin Django
                 </a>
