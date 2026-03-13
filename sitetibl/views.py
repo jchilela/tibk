@@ -67,6 +67,7 @@ from sitetibl.models import Servico
 from sitetibl.models import Tipoajuda
 from sitetibl.models import RelatorioSemanalCelula
 from sitetibl.models import PedidoSaida
+from sitetibl.models import Anuncio
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
@@ -1842,6 +1843,19 @@ def dashboardCrescimentoMembros(request):
     })
 
 
+@login_required
+def dashboardDepartamentosMembros(request):
+    """Número de membros por departamento — gráfico de barras horizontais."""
+    dados = (
+        Mandato.objects
+        .values('departamento__designacao')
+        .annotate(total=Count('irmao', distinct=True))
+        .order_by('-total')
+    )
+    labels = [d['departamento__designacao'] for d in dados]
+    data = [d['total'] for d in dados]
+    return JsonResponse({"labels": labels, "data": data})
+
 
 #VIEWS QUE GERAM RELATÓRIOS
 @login_required
@@ -1850,6 +1864,7 @@ def pagina_relatorios(request):
 
 
 @login_required
+@permission_required('sitetibl.view_irmao', raise_exception=True)
 def relatorio_irmaos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_irmaos.pdf"'
@@ -1927,6 +1942,7 @@ def relatorio_irmaos_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_dizimooferta', raise_exception=True)
 def relatorio_dizimos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_dizimos_ofertas.pdf"'
@@ -2017,6 +2033,7 @@ def relatorio_dizimos_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_departamento', raise_exception=True)
 def relatorio_departamentos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_departamentos.pdf"'
@@ -2083,6 +2100,7 @@ def relatorio_departamentos_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_escala', raise_exception=True)
 def relatorio_escalas_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_escalas.pdf"'
@@ -2170,6 +2188,7 @@ def relatorio_escalas_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_actividade', raise_exception=True)
 def relatorio_actividades_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_actividades.pdf"'
@@ -2272,6 +2291,7 @@ def relatorio_actividades_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_inventariopatrimonio', raise_exception=True)
 def relatorio_inventario_patrimonio_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_inventario_patrimonio.pdf"'
@@ -2372,6 +2392,7 @@ def relatorio_inventario_patrimonio_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_saidacaixa', raise_exception=True)
 def relatorio_saida_caixa_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_saida_caixa.pdf"'
@@ -2478,8 +2499,104 @@ def relatorio_saida_caixa_pdf(request):
 
 @login_required
 def dashboard(request):
+    from datetime import date as dt_date, timedelta
+    import random
+    hoje = dt_date.today()
+    user = request.user
+
+    # --- Versículo do dia (roda pela data para variar diariamente) ---
+    VERSICULOS = [
+        {'texto': 'Porque eu bem sei os pensamentos que penso de vós, diz o Senhor; pensamentos de paz e não de mal, para vos dar o fim que esperais.', 'ref': 'Jeremias 29:11'},
+        {'texto': 'Tudo posso naquele que me fortalece.', 'ref': 'Filipenses 4:13'},
+        {'texto': 'O Senhor é o meu pastor; nada me faltará.', 'ref': 'Salmos 23:1'},
+        {'texto': 'Confia no Senhor de todo o teu coração e não te estribes no teu próprio entendimento.', 'ref': 'Provérbios 3:5'},
+        {'texto': 'Mas os que esperam no Senhor renovarão as suas forças; subirão com asas como águias; correrão e não se cansarão; caminharão e não se fatigarão.', 'ref': 'Isaías 40:31'},
+        {'texto': 'Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça.', 'ref': 'Isaías 41:10'},
+        {'texto': 'Dá instrução ao sábio, e ele se fará mais sábio; ensina ao justo, e ele crescerá em entendimento.', 'ref': 'Provérbios 9:9'},
+        {'texto': 'O amor é paciente, o amor é bondoso. Não inveja, não se vangloria, não se orgulha.', 'ref': '1 Coríntios 13:4'},
+        {'texto': 'Alegrai-vos sempre no Senhor; outra vez digo: alegrai-vos.', 'ref': 'Filipenses 4:4'},
+        {'texto': 'Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.', 'ref': 'Mateus 11:28'},
+        {'texto': 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigénito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.', 'ref': 'João 3:16'},
+        {'texto': 'E sabemos que todas as coisas contribuem juntamente para o bem daqueles que amam a Deus.', 'ref': 'Romanos 8:28'},
+        {'texto': 'Sê forte e corajoso; não temas, nem te espantes, porque o Senhor, teu Deus, é contigo por onde quer que andares.', 'ref': 'Josué 1:9'},
+        {'texto': 'O Senhor é a minha luz e a minha salvação; a quem temerei? O Senhor é a força da minha vida; de quem me recearei?', 'ref': 'Salmos 27:1'},
+        {'texto': 'Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós.', 'ref': '1 Pedro 5:7'},
+        {'texto': 'Sede fortes e corajosos, não temais, nem vos assusteis por causa deles, pois o Senhor, vosso Deus, é quem vai convosco; não vos deixará, nem vos desamparará.', 'ref': 'Deuteronómio 31:6'},
+        {'texto': 'Eu sou a videira, vós, as varas; quem está em mim, e eu nele, este dá muito fruto, porque sem mim nada podeis fazer.', 'ref': 'João 15:5'},
+        {'texto': 'A tua palavra é lâmpada que ilumina os meus passos e luz que clareia o meu caminho.', 'ref': 'Salmos 119:105'},
+        {'texto': 'Porque onde estiverem dois ou três reunidos em meu nome, aí estou eu no meio deles.', 'ref': 'Mateus 18:20'},
+        {'texto': 'Entrega o teu caminho ao Senhor; confia nele, e ele tudo fará.', 'ref': 'Salmos 37:5'},
+        {'texto': 'Irmãos, não julgo havê-lo alcançado; mas uma coisa faço: esquecendo-me das coisas que ficaram para trás e avançando para as que estão adiante, prossigo para o alvo.', 'ref': 'Filipenses 3:13-14'},
+    ]
+    idx_versiculo = hoje.toordinal() % len(VERSICULOS)
+    versiculo_do_dia = VERSICULOS[idx_versiculo]
+
+    # --- Dados visíveis para TODOS ---
+    anuncios = Anuncio.objects.order_by('-data')[:5]
+
+    proximas_actividades = (
+        Actividade.objects
+        .filter(data__gte=hoje, data__lte=hoje + timedelta(days=14))
+        .select_related('designacao', 'localactividade')
+        .order_by('data', 'inicio')[:6]
+    )
+
+    # Escalas do membro logado + verificação de célula
+    minhas_escalas_list = []
+    irmao_obj = Irmao.objects.filter(user=user).select_related('celula').first()
+    tem_celula = False
+    if irmao_obj:
+        tem_celula = irmao_obj.celula is not None
+        minhas_escalas_list = (
+            Escala.objects
+            .filter(irmao=irmao_obj, actividade__data__gte=hoje)
+            .select_related('actividade__designacao', 'funcao')
+            .order_by('actividade__data')[:5]
+        )
+
+    # Aniversariantes do mês
+    aniversariantes = (
+        Irmao.objects
+        .filter(datanascimento__month=hoje.month)
+        .order_by('datanascimento__day')[:10]
+    )
+
+    # --- Dados financeiros (passados apenas se utilizador tem permissão) ---
+    pedidos_pendentes = None
+    saldos_bancarios = None
+    total_membros = Irmao.objects.count()
+
+    if user.has_perm('sitetibl.view_pedidosaida'):
+        pedidos_pendentes = (
+            PedidoSaida.objects
+            .exclude(status_de_aprovacao__designacao__icontains='aprovad')
+            .select_related('requerente', 'departamento', 'status_de_aprovacao')
+            .order_by('-data_criacao')[:5]
+        )
+
+    if user.has_perm('sitetibl.view_contabancaria'):
+        contas = Contabancaria.objects.filter(is_active=True).select_related('banco')
+        saldos_bancarios = []
+        for c in contas:
+            saldos_bancarios.append({
+                'banco': str(c.banco),
+                'numero': c.numeroconta[-4:] if len(c.numeroconta) >= 4 else c.numeroconta,
+                'moeda': c.moeda,
+                'saldo': c.saldo_actual(),
+            })
+
     context = {
         'titulo': 'Dashboard',
+        'versiculo': versiculo_do_dia,
+        'tem_celula': tem_celula,
+        'tem_perfil': irmao_obj is not None,
+        'anuncios': anuncios,
+        'proximas_actividades': proximas_actividades,
+        'minhas_escalas': minhas_escalas_list,
+        'aniversariantes': aniversariantes,
+        'pedidos_pendentes': pedidos_pendentes,
+        'saldos_bancarios': saldos_bancarios,
+        'total_membros': total_membros,
     }
     return render(request, 'dashboard.html', context)
 
