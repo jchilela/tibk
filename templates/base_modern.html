@@ -238,7 +238,7 @@
                     <span style="color: var(--text-main); font-weight: 600;">{% if request.resolver_match.kwargs.gestaoescolhida %}{{ request.resolver_match.kwargs.gestaoescolhida|title|replace:"_, " }}{% elif request.resolver_match.url_name %}{{ request.resolver_match.url_name|title|replace:"_, " }}{% endif %}</span>
                 </div>
 
-                <div class="user-info" style="gap: 1.5rem;">
+                <div class="user-info" style="gap: 1.5rem; margin-left: auto;">
                     <!-- Table Export -->
                     <button class="d-none d-md-flex" id="global-export-btn"
                         style="background:none; border:none; cursor:pointer; color:var(--primary); font-size:1.1rem; display:none;"
