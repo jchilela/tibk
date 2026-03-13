@@ -7,9 +7,11 @@
             <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">InstituiÃ§Ãµes BancÃ¡rias</h2>
             <p style="color: var(--text-muted); font-size: 0.9rem;">Lista de bancos registados para operaÃ§Ãµes financeiras.</p>
         </div>
+        {% if perms.sitetibl.add_banco %}
         <a href="/tibl/bancos/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white;">
             <i class="fas fa-university"></i> Novo Banco
         </a>
+        {% endif %}
     </div>
 
     {% if bb %}

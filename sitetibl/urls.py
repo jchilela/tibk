@@ -53,4 +53,7 @@ urlpatterns = [
     path('relatorioofertasportipo/pdf/', views.relatorioofertasportipo_pdf, name='relatorioofertasportipo_pdf'),
     path('dizimos/recibo/<int:dizimo_id>/visualizar/', views.visualizar_recibo_dizimo, name='visualizar_recibo_dizimo'),
     path('dizimos/recibo/<int:dizimo_id>/', views.gerar_recibo_dizimo, name='gerar_recibo_dizimo'),
+
+    # Perfil pessoal
+    path('meu-perfil/', views.meu_perfil, name='meu_perfil'),
 ]

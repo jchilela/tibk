@@ -9,10 +9,12 @@
                 Executivos</h2>
             <p style="color: var(--text-muted); font-size: 0.9rem;">Gestao de cargos e departamentos oficiais.</p>
         </div>
+        {% if perms.sitetibl.add_mandato %}
         <a href="/tibl/mandatos/criar/" class="bt-primary"
             style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
             <i class="fas fa-handshake"></i> Novo Mandato
         </a>
+        {% endif %}
     </div>
 
     {% if bb %}
@@ -47,14 +49,18 @@
                     </td>
                     <td style="text-align: right;">
                         <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                            {% if perms.sitetibl.change_mandato %}
                             <a href="/tibl/mandatos/actualizar/{{ x.id }}" class="bt-primary"
                                 style="padding: 0.4rem 0.6rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            {% endif %}
+                            {% if perms.sitetibl.delete_mandato %}
                             <a href="/tibl/mandatos/eliminar/{{ x.id }}" class="bt-primary"
                                 style="padding: 0.4rem 0.6rem; font-size: 0.8rem; background: #ef4444;">
                                 <i class="fas fa-trash"></i>
                             </a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

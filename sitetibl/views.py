@@ -99,6 +99,8 @@ from sitetibl.forms import OrcamentoDepartamentoForm
 from sitetibl.forms import InventarioPatrimonioForm
 from sitetibl.forms import ConteudoEnsinoForm
 from sitetibl.forms import EnvioMensagemForm
+from sitetibl.forms import MeuPerfilForm, MeuPerfilPasswordForm
+from django.contrib.auth import update_session_auth_hash
 
 PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kuanza Norte','KZS':'Kuanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
@@ -1859,12 +1861,48 @@ def dashboardDepartamentosMembros(request):
 
 #VIEWS QUE GERAM RELATÓRIOS
 @login_required
+def meu_perfil(request):
+    """Página de perfil pessoal: actualiza contactos e senha."""
+    try:
+        irmao = request.user.irmao
+    except Irmao.DoesNotExist:
+        irmao = None
+
+    perfil_form = MeuPerfilForm(instance=irmao) if irmao else None
+    senha_form = MeuPerfilPasswordForm(user=request.user)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'perfil' and irmao:
+            perfil_form = MeuPerfilForm(request.POST, request.FILES, instance=irmao)
+            if perfil_form.is_valid():
+                perfil_form.save()
+                messages.success(request, 'Dados de contacto actualizados com sucesso.')
+                return redirect('sitetibl:meu_perfil')
+
+        elif action == 'senha':
+            senha_form = MeuPerfilPasswordForm(user=request.user, data=request.POST)
+            if senha_form.is_valid():
+                senha_form.save()
+                update_session_auth_hash(request, senha_form.user)
+                messages.success(request, 'Senha alterada com sucesso.')
+                return redirect('sitetibl:meu_perfil')
+
+    return render(request, 'meu_perfil.html', {
+        'perfil_form': perfil_form,
+        'senha_form': senha_form,
+        'irmao': irmao,
+    })
+
+
+@login_required
 def pagina_relatorios(request):
     return render(request, 'relatorios/template_relatorio.html')
 
 
 @login_required
-@permission_required('sitetibl.view_irmao', raise_exception=True)
+@permission_required('sitetibl.change_irmao', raise_exception=True)
 def relatorio_irmaos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_irmaos.pdf"'

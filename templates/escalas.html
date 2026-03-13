@@ -9,10 +9,12 @@
             </h2>
             <p style="color: var(--text-muted); font-size: 0.9rem;">OrganizaÃ§Ã£o de membros por actividade e funÃ§Ã£o.</p>
         </div>
+        {% if perms.sitetibl.add_escala %}
         <a href="/tibl/escalas/criar/" class="bt-primary"
             style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
             <i class="fas fa-calendar-plus"></i> Nova Escala
         </a>
+        {% endif %}
     </div>
 
     {% if bb %}
@@ -55,18 +57,22 @@
                             </span>
                         </div>
                         <div style="display: flex; gap: 0.3rem;">
+                            {% if perms.sitetibl.change_escala %}
                             <a href="/tibl/escalas/actualizar/{{ escala.id }}"
                                 style="color: var(--text-muted); padding: 0.4rem; border-radius: 4px; transition: background 0.2s;"
                                 onmouseover="this.style.background='#f1f5f9'"
                                 onmouseout="this.style.background='transparent'">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            {% endif %}
+                            {% if perms.sitetibl.delete_escala %}
                             <a href="/tibl/escalas/eliminar/{{ escala.id }}"
                                 style="color: #ef4444; padding: 0.4rem; border-radius: 4px; transition: background 0.2s;"
                                 onmouseover="this.style.background='#fee2e2'"
                                 onmouseout="this.style.background='transparent'">
                                 <i class="fas fa-trash"></i>
                             </a>
+                            {% endif %}
                         </div>
                     </li>
                     {% endfor %}

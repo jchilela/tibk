@@ -32,14 +32,18 @@
             </div>
 
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                {% if perms.sitetibl.change_departamento %}
                 <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                     style="padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 600; box-shadow: 0 4px 15px rgba(46,125,50,0.2);">
                     <i class="fas fa-edit mr-2"></i> Editar Departamento
                 </a>
+                {% endif %}
+                {% if perms.sitetibl.delete_departamento %}
                 <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-danger"
                     style="padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 600; background: #dc2626;">
                     <i class="fas fa-trash-alt mr-2"></i> Eliminar
                 </a>
+                {% endif %}
             </div>
         </div>
 

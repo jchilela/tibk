@@ -15,14 +15,18 @@
                     <i class="fas fa-church"></i> Evento de Culto / Actividade
                 </span>
                 <div style="display: flex; gap: 0.5rem;">
+                    {% if perms.sitetibl.change_actividade %}
                     <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                         style="background: white; color: var(--primary-dark); padding: 0.5rem 1rem;">
                         <i class="fas fa-edit"></i> Editar
                     </a>
+                    {% endif %}
+                    {% if perms.sitetibl.delete_actividade %}
                     <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
                         style="background: #ef4444; color: white; padding: 0.5rem 1rem;">
                         <i class="fas fa-trash"></i>
                     </a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -120,11 +124,13 @@
             <h3 style="margin: 0; color: var(--text-main);">
                 <i class="fas fa-users-cog mr-2"></i> Pessoas Escaladas
             </h3>
+            {% if perms.sitetibl.add_escala %}
             <button type="button" class="bt-primary"
                 onclick="document.getElementById('modal-escalar').style.display = 'flex'"
                 style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
                 <i class="fas fa-layer-group"></i> Escalar Irmãos
             </button>
+            {% endif %}
         </div>
 
         {% if escalas_da_actividade %}

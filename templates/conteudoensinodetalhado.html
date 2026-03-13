@@ -6,7 +6,7 @@
 <div align="center"><span class="a3">
 <table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
 {% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a></td></td></tr>
+<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'>{% if perms.sitetibl.delete_conteudoensino %}<a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a>{% endif %} {% if perms.sitetibl.change_conteudoensino %}| <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a>{% endif %}</td></td></tr>
 <tr class="fortexto"><td class="a4">Autor:</td><td class="a4">{{ x.autor.nome}}</td></tr>
 <tr class="fortexto"><td class="a4">Titulo:</td><td class="a4">{{ x.titulo }}</td></tr>
 

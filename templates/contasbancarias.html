@@ -50,9 +50,11 @@
             <a href="/tibl/gestao/contasbancarias/1/" class="bt-primary" style="background-color: #6c757d; color: white;">
                 <i class="fas fa-filter-circle-xmark"></i> Limpar Filtros
             </a>
+            {% if perms.sitetibl.add_contabancaria %}
             <a href="/tibl/contasbancarias/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white;">
                 <i class="fas fa-plus"></i> Nova Conta
             </a>
+            {% endif %}
         </div>
     </div>
 

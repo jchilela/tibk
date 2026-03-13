@@ -8,9 +8,11 @@
             <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Relatórios de Células</h2>
             <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão e acompanhamento das atividades semanais das células.</p>
         </div>
+        {% if perms.sitetibl.add_relatoriosemanalcelula %}
         <a href="/tibl/relatoriosemanalcelula/criar/" class="bt-primary">
             <i class="fas fa-plus"></i> Novo Relatório
         </a>
+        {% endif %}
     </div>
 
     <!-- Filter Section (Simplified & Modern) -->

@@ -18,14 +18,18 @@
             </p>
         </div>
         <div style="display: flex; gap: 0.75rem;">
+            {% if perms.sitetibl.change_ajuda %}
             <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                 style="padding: 0.6rem 1rem;">
                 <i class="fas fa-edit"></i> Editar
             </a>
+            {% endif %}
+            {% if perms.sitetibl.delete_ajuda %}
             <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
                 style="background-color: #ef4444; padding: 0.6rem 1rem;">
                 <i class="fas fa-trash"></i> Eliminar
             </a>
+            {% endif %}
         </div>
     </div>
 

@@ -202,16 +202,16 @@ class Command(BaseCommand):
         mb_grp = Group.objects.get(name='Membros Baptizados')
         mb_perms = self._perms_for(app, [
             'irmao', 'pessoa', 'actividade', 'escala', 'departamento',
-            'mandato', 'conteudoensino', 'sitio', 'anuncio',
+            'mandato', 'sitio', 'anuncio',
         ], ['view'])
-        mb_perms |= self._perms_for(app, ['relatoriosemanalcelula'], ['add', 'view'])
+        mb_perms |= self._perms_for(app, ['relatoriosemanalcelula'], ['add'])
         mb_grp.permissions.set(mb_perms)
         self.stdout.write(f'Membros Baptizados: {mb_perms.count()} permissoes atribuidas')
 
         # --- Membro Geral: view minima ---
         mg_grp = Group.objects.get(name='Membro Geral')
         mg_perms = self._perms_for(app, [
-            'actividade', 'departamento', 'conteudoensino', 'anuncio',
+            'actividade', 'departamento', 'anuncio',
         ], ['view'])
         mg_grp.permissions.set(mg_perms)
         self.stdout.write(f'Membro Geral: {mg_perms.count()} permissoes atribuidas')

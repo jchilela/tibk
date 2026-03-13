@@ -51,9 +51,11 @@
             <a href="/tibl/relatorioofertasportipo/" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--accent); color: white;">
                 <i class="fas fa-layer-group"></i> Relatório por Tipo
             </a>
+            {% if perms.sitetibl.add_dizimooferta %}
             <a href="/tibl/dizimosofertas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
                 <i class="fas fa-plus"></i> Registrar Entrada
             </a>
+            {% endif %}
         </div>
     </div>
 

@@ -15,7 +15,7 @@
 </form>
 </table>
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Conteudos de Ensino | <a href="/tibl/conteudoensino/criar/" class = 'aa'>Novo </b></a>]</font>
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Conteudos de Ensino {% if perms.sitetibl.add_conteudoensino %}| <a href="/tibl/conteudoensino/criar/" class = 'aa'>Novo </b></a>{% endif %}]</font>
 </p>
 {% if bb %}
 <table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">

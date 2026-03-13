@@ -16,7 +16,7 @@
 </form>
 </table>
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Orçamento dos Departamentos | <a href="/tibl/orcamentodepartamento/criar/" class = 'aa'>Novo </b></a>]</font>
+<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Orçamento dos Departamentos {% if perms.sitetibl.add_orcamentodepartamento %}| <a href="/tibl/orcamentodepartamento/criar/" class = 'aa'>Novo </b></a>{% endif %}]</font>
 </p>
 {% if bb %}
 <table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">

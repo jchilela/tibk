@@ -32,6 +32,36 @@ from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import re
+from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
+
+
+class MeuPerfilForm(ModelForm):
+    """Campos que o próprio utilizador pode alterar no seu perfil."""
+    class Meta:
+        model = Irmao
+        fields = ['foto', 'telefone', 'telefonewhatsapp', 'email']
+        widgets = {
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 923000000'}),
+            'telefonewhatsapp': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 923000000'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'foto': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+
+class MeuPerfilPasswordForm(DjangoPasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+        self.fields['old_password'].label = 'Senha actual'
+        self.fields['old_password'].help_text = ''
+        self.fields['new_password1'].label = 'Nova senha'
+        self.fields['new_password1'].help_text = (
+            'A senha deve ter pelo menos 8 caracteres. '
+            'Não pode ser apenas números nem semelhante ao nome de utilizador.'
+        )
+        self.fields['new_password2'].label = 'Confirmar nova senha'
+        self.fields['new_password2'].help_text = 'Repita a nova senha para confirmar.'
 
 
 class ContabancariaForm(forms.ModelForm):

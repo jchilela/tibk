@@ -8,9 +8,11 @@
             <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Envio de Mensagens</h2>
             <p style="color: var(--text-muted); font-size: 0.9rem;">HistÃ³rico e gestÃ£o de comunicaÃ§Ãµes enviadas.</p>
         </div>
+        {% if perms.sitetibl.add_enviomensagem %}
         <a href="/tibl/enviomensagem/criar/" class="bt-primary">
             <i class="fas fa-paper-plane"></i> Nova Mensagem
         </a>
+        {% endif %}
     </div>
 
     <!-- Filter Section -->

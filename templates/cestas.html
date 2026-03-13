@@ -34,9 +34,11 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Gestão de Cestas Básicas</h2>
+        {% if perms.sitetibl.add_cesta %}
         <a href="/tibl/cestas/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white;">
             <i class="fas fa-plus"></i> Nova Distribuição
         </a>
+        {% endif %}
     </div>
 
     {% if bb %}
