@@ -782,6 +782,18 @@ python manage.py collectstatic --noinput
 # Criar superusuário
 python manage.py createsuperuser
 
+# Popular configuração essencial: grupos, permissões e províncias/municípios (idempotente)
+python manage.py seed_config_essencial
+
+# Opções disponíveis:
+#   --skip-groups      — não cria/actualiza grupos nem permissões
+#   --skip-provincias  — não executa o seed de províncias/municípios
+python manage.py seed_config_essencial --skip-groups
+python manage.py seed_config_essencial --skip-provincias
+
+# Popular apenas províncias e municípios
+python manage.py seed_provincias
+
 # Iniciar Celery Worker
 celery -A tibl worker --loglevel=info
 
