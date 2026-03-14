@@ -332,11 +332,30 @@ class ActividadesRecorrentesForm(forms.Form):
 
 
 class DepartamentoForm(ModelForm):
+    lider_departamento = forms.ModelChoiceField(
+        queryset=Irmao.objects.order_by('nome', 'apelido'),
+        required=False,
+        label='Líder do Departamento',
+        widget=forms.Select(attrs={'class': 'tomselect'}),
+    )
+    vice_lider_departamento = forms.ModelChoiceField(
+        queryset=Irmao.objects.order_by('nome', 'apelido'),
+        required=False,
+        label='Vice-Líder do Departamento',
+        widget=forms.Select(attrs={'class': 'tomselect'}),
+    )
+
     class Meta:
         model = Departamento
         exclude = ('integrantes',)
 
 class MandatoForm(ModelForm):
+    irmao = forms.ModelChoiceField(
+        queryset=Irmao.objects.order_by('nome', 'apelido'),
+        label='Irmão',
+        widget=forms.Select(attrs={'class': 'tomselect'}),
+    )
+
     class Meta:
         model = Mandato
         fields = ['irmao', 'departamento', 'funcao', 'inicio', 'fim']
