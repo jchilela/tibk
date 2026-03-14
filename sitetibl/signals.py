@@ -1,6 +1,6 @@
 import logging
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.core.mail import send_mass_mail
@@ -191,14 +191,114 @@ def enviar_email_sms_massivo(sender, instance, created, **kwargs):
     #                 print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
 
 
+# =========================================
+# 📬 NOTIFICAÇÃO DE MUDANÇA DE ESTADO — PEDIDOS DE SAÍDA
+# =========================================
+
+ESTADO_CONFIG = {
+    'em_analise': {
+        'titulo': 'Pedido em Análise',
+        'mensagem': 'O seu pedido de saída de caixa está a ser analisado pela equipa financeira.',
+        'estado_display': 'Em Análise',
+        'destino': 'requerente',
+    },
+    'aprovado': {
+        'titulo': 'Pedido Aprovado',
+        'mensagem': 'O seu pedido de saída de caixa foi aprovado e aguarda efectivação do pagamento.',
+        'estado_display': 'Aprovado',
+        'destino': 'requerente',
+    },
+    'rejeitado': {
+        'titulo': 'Pedido Rejeitado',
+        'mensagem': 'O seu pedido de saída de caixa foi rejeitado. Consulte a observação abaixo.',
+        'estado_display': 'Rejeitado',
+        'destino': 'requerente',
+    },
+    'pago': {
+        'titulo': 'Pagamento Efectuado',
+        'mensagem': 'O pagamento referente ao seu pedido de saída de caixa foi efectuado.',
+        'estado_display': 'Pago',
+        'destino': 'requerente_e_lideres',
+    },
+}
+
+
+def notificar_mudanca_estado_pedido(pedido, novo_estado, aprovador_irmao=None):
+    """
+    Envia e-mail de notificação sempre que o estado de um PedidoSaida muda.
+    Chamado directamente a partir da view após cada acção bem-sucedida.
+    """
+    config = ESTADO_CONFIG.get(novo_estado)
+    if not config:
+        return
+
+    from_email = 'noreply@suaigreja.ao'
+    emails_destino = []
+
+    # Requerente
+    if pedido.requerente and pedido.requerente.email:
+        emails_destino.append(pedido.requerente.email)
+
+    # Para 'pago', notificar também líderes do departamento
+    if config['destino'] == 'requerente_e_lideres' and pedido.departamento:
+        dept = pedido.departamento
+        if dept.lider_departamento and dept.lider_departamento.email:
+            if dept.lider_departamento.email not in emails_destino:
+                emails_destino.append(dept.lider_departamento.email)
+        if dept.vice_lider_departamento and dept.vice_lider_departamento.email:
+            if dept.vice_lider_departamento.email not in emails_destino:
+                emails_destino.append(dept.vice_lider_departamento.email)
+
+    if not emails_destino:
+        return
+
+    aprovador_nome = ''
+    if aprovador_irmao:
+        aprovador_nome = f'{aprovador_irmao.nome} {aprovador_irmao.apelido}'
+
+    try:
+        html_content = render_to_string(
+            'emails/email_pedido_saida_estado.html',
+            {
+                'titulo': config['titulo'],
+                'mensagem': config['mensagem'],
+                'novo_estado': novo_estado,
+                'estado_display': config['estado_display'],
+                'projecto': pedido.projecto,
+                'montante': pedido.montante,
+                'moeda': pedido.moeda.abreviatura if pedido.moeda else '',
+                'departamento': pedido.departamento.designacao if pedido.departamento else '',
+                'aprovador': aprovador_nome,
+                'observacao': pedido.observacao_aprovador or '',
+            }
+        )
+
+        connection = get_connection()
+        connection.open()
+        msg = EmailMultiAlternatives(
+            subject=f'{config["titulo"]} — #{pedido.id} {pedido.projecto}',
+            body=config['mensagem'],
+            from_email=from_email,
+            to=emails_destino,
+            connection=connection,
+        )
+        msg.attach_alternative(html_content, 'text/html')
+        msg.send()
+        connection.close()
+    except Exception:
+        logger.exception('Erro ao enviar notificação de mudança de estado do pedido #%s', pedido.id)
+
+
+# =========================================
+# 📬 NOTIFICAÇÃO DE CRIAÇÃO — PEDIDOS DE SAÍDA (FINANCEIRO + LÍDERES)
+# =========================================
+
 @receiver(post_save, sender=PedidoSaida)
 def notificar_lideres_departamento(sender, instance, created, **kwargs):
     if not created:
         return
 
     departamento = instance.departamento
-    if not departamento:
-        return
 
     emails_destino = []
     telefones = []
@@ -206,21 +306,34 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
     subject = 'Pedido de Saída de Caixa - TIBL'
     from_email = 'noreply@suaigreja.ao'
 
-    # Líder
-    if departamento.lider_departamento:
-        lider = departamento.lider_departamento
-        if lider.email:
-            emails_destino.append(lider.email)
-        if getattr(lider, 'telefone', None):
-            telefones.append(lider.telefone)
+    # Líder e Vice-líder do departamento
+    if departamento:
+        if departamento.lider_departamento:
+            lider = departamento.lider_departamento
+            if lider.email:
+                emails_destino.append(lider.email)
+            if getattr(lider, 'telefone', None):
+                telefones.append(lider.telefone)
 
-    # Vice-líder
-    if departamento.vice_lider_departamento:
-        vice = departamento.vice_lider_departamento
-        if vice.email:
-            emails_destino.append(vice.email)
-        if getattr(vice, 'telefone', None):
-            telefones.append(vice.telefone)
+        if departamento.vice_lider_departamento:
+            vice = departamento.vice_lider_departamento
+            if vice.email:
+                emails_destino.append(vice.email)
+            if getattr(vice, 'telefone', None):
+                telefones.append(vice.telefone)
+
+    # Membros do grupo Financeiro
+    try:
+        grupo_financeiro = Group.objects.get(name='Financeiro')
+        for user in grupo_financeiro.user_set.select_related('irmao').all():
+            irmao = getattr(user, 'irmao', None)
+            if irmao:
+                if irmao.email and irmao.email not in emails_destino:
+                    emails_destino.append(irmao.email)
+                if getattr(irmao, 'telefone', None) and irmao.telefone not in telefones:
+                    telefones.append(irmao.telefone)
+    except Group.DoesNotExist:
+        pass
 
     # ---------- EMAIL ----------
     if emails_destino:

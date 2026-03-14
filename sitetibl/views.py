@@ -29,6 +29,7 @@ from django.db.models.functions import TruncMonth
 import json
 from django.http import JsonResponse
 from django.utils.timezone import now
+from .signals import notificar_mudanca_estado_pedido
 from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
@@ -744,6 +745,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 registo.observacao_aprovador = request.POST.get('observacao', '').strip()
                 registo.data_aprovacao = now()
                 registo.save()
+                notificar_mudanca_estado_pedido(registo, 'aprovado', irmao_logado)
                 messages.success(request, 'Pedido aprovado com sucesso.')
 
             elif action == 'rejeitar':
@@ -757,11 +759,13 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     registo.observacao_aprovador = obs
                     registo.data_aprovacao = now()
                     registo.save()
+                    notificar_mudanca_estado_pedido(registo, 'rejeitado', irmao_logado)
                     messages.success(request, 'Pedido rejeitado.')
 
             elif action == 'em_analise':
                 registo.estado = 'em_analise'
                 registo.save(update_fields=['estado', 'data_atualizacao'])
+                notificar_mudanca_estado_pedido(registo, 'em_analise', irmao_logado)
                 messages.info(request, 'Pedido marcado como "Em Análise".')
 
             elif action == 'marcar_pago':
@@ -773,6 +777,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     registo.comprovativo_pagamento = comprovativo
                     registo.data_pagamento = now()
                     registo.save()
+                    notificar_mudanca_estado_pedido(registo, 'pago', irmao_logado)
                     messages.success(request, 'Pagamento registado com sucesso.')
 
             return HttpResponseRedirect(
