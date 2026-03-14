@@ -18,6 +18,25 @@
     </div>
 
     {% if bb %}
+
+    <!-- Filtro por Departamento -->
+    <div class="modern-card" style="margin-bottom: 1.5rem;">
+        <form action="/tibl/buscaescalas/" method="GET" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Departamento</label>
+                <select name="departamentov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Todos os departamentos</option>
+                    {% for d in departamentos %}
+                    <option value="{{ d.id }}" {% if departamentov_sel == d.id|stringformat:"i" %}selected{% endif %}>{{ d.designacao }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="bt-primary" style="padding: 0.6rem 1.5rem; font-size: 0.9rem; color: white; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+        </form>
+    </div>
+
     {% regroup bb by actividade as escalas_por_actividade %}
 
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">

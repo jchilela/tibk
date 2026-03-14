@@ -11,6 +11,7 @@ urlpatterns = [
     path('gestao/<gestaoescolhida>/<int:pagina>/', views.mostraGestao, name='mostra_gestao'),
     path('<gestaoescolhida>/detalhe/<int:identificador>/', views.mostraDetalhe, name='mostra_detalhe'),
     path('<gestaoescolhida>/detalhe/<int:identificador>', views.mostraDetalhe, name='mostra_detalhe_legacy'),
+    path('actividades/recorrentes/', views.criar_actividades_recorrentes, name='criar_actividades_recorrentes'),
     path('<gestaoescolhida>/criar/', views.mostraCriacao, name='mostra_criacao'),
     path('<gestaoescolhida>/actualizar/<int:id>/', views.mostraActualizacao, name='mostra_actualizacao'),
     path('<gestaoescolhida>/eliminar/<int:id>/', views.mostraEliminacao, name='mostra_eliminacao'),

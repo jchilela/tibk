@@ -276,6 +276,8 @@ class Actividade(models.Model):
      participantes = models.ManyToManyField(Irmao, through='Escala', related_name = 'particact')
      totalpresentes = models.IntegerField(default = 2)
      observacao = models.TextField("Observação", blank = True)
+     departamento = models.ForeignKey('Departamento', null=True, blank=True, on_delete=models.SET_NULL, related_name='actividades')
+     criado_por = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='actividades_criadas')
      def __str__(self):
          return '%s %s' % (self.designacao, self.data)
      class Admin:

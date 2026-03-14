@@ -25,9 +25,11 @@ from sitetibl.models import InventarioPatrimonio
 from sitetibl.models import ConteudoEnsino
 from sitetibl.models import EnvioMensagem
 from sitetibl.models import TipoOferta
+from sitetibl.models import Listaactividades
 
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django import forms
+from datetime import date, timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -252,12 +254,82 @@ class ContabancariaForm(ModelForm):
 class ActividadeForm(ModelForm):
     class Meta:
         model = Actividade
-        exclude = ('participantes',)
+        exclude = ('participantes', 'criado_por')
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'inicio': forms.DateInput(attrs={'type': 'time'}),
             'fim': forms.DateInput(attrs={'type': 'time'}),
         }
+
+
+DIAS_SEMANA_CHOICES = [
+    (6, 'Domingo'),
+    (0, 'Segunda-feira'),
+    (1, 'Terça-feira'),
+    (2, 'Quarta-feira'),
+    (3, 'Quinta-feira'),
+    (4, 'Sexta-feira'),
+    (5, 'Sábado'),
+]
+
+
+class ActividadesRecorrentesForm(forms.Form):
+    """Cria múltiplas actividades de uma vez para uma série semanal."""
+    tipo_actividade = forms.ModelChoiceField(
+        queryset=Listaactividades.objects.all().order_by('designacao'),
+        label='Tipo de Actividade',
+        empty_label='Seleccione...',
+    )
+    departamento = forms.ModelChoiceField(
+        queryset=Departamento.objects.all().order_by('designacao'),
+        label='Departamento',
+        required=False,
+        empty_label='Geral (sem departamento)',
+    )
+    localactividade = forms.ModelChoiceField(
+        queryset=Sitio.objects.all().order_by('designacao'),
+        label='Local',
+        required=False,
+        empty_label='Seleccione...',
+    )
+    inicio = forms.TimeField(
+        label='Hora de Início',
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+    )
+    fim = forms.TimeField(
+        label='Hora de Fim',
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+    )
+    data_inicio = forms.DateField(
+        label='Data de Início',
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    data_fim = forms.DateField(
+        label='Data de Fim',
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    dias_semana = forms.MultipleChoiceField(
+        choices=DIAS_SEMANA_CHOICES,
+        label='Dias da Semana',
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        data_inicio = cleaned.get('data_inicio')
+        data_fim = cleaned.get('data_fim')
+        inicio = cleaned.get('inicio')
+        fim = cleaned.get('fim')
+        dias = cleaned.get('dias_semana')
+
+        if data_inicio and data_fim and data_fim < data_inicio:
+            raise forms.ValidationError('A data de fim deve ser igual ou posterior à data de início.')
+        if inicio and fim and fim <= inicio:
+            raise forms.ValidationError('A hora de fim deve ser posterior à hora de início.')
+        if not dias:
+            raise forms.ValidationError('Seleccione pelo menos um dia da semana.')
+        return cleaned
+
 
 class DepartamentoForm(ModelForm):
     class Meta:

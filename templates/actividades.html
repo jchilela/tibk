@@ -58,10 +58,16 @@
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de
             Actividades</h2>
         {% if perms.sitetibl.add_actividade %}
-        <a href="/tibl/actividades/criar/" class="bt-primary"
-            style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
-            <i class="fas fa-plus"></i> Nova Actividade
-        </a>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="/tibl/actividades/recorrentes/"
+                style="padding: 0.5rem 1.25rem; font-size: 0.9rem; background-color: #6366f1; color: white; border-radius: var(--radius-sm); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600;">
+                <i class="fas fa-redo"></i> Série Recorrente
+            </a>
+            <a href="/tibl/actividades/criar/" class="bt-primary"
+                style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
+                <i class="fas fa-plus"></i> Nova Actividade
+            </a>
+        </div>
         {% endif %}
     </div>
 

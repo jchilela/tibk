@@ -100,7 +100,9 @@ from sitetibl.forms import InventarioPatrimonioForm
 from sitetibl.forms import ConteudoEnsinoForm
 from sitetibl.forms import EnvioMensagemForm
 from sitetibl.forms import MeuPerfilForm, MeuPerfilPasswordForm
+from sitetibl.forms import ActividadesRecorrentesForm
 from django.contrib.auth import update_session_auth_hash
+from datetime import timedelta
 
 PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kuanza Norte','KZS':'Kuanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
@@ -265,6 +267,14 @@ def mostraActualizacao(request, gestaoescolhida, id):
 
     registo = get_object_or_404(model, id=id)
 
+    # 🔐 Verificação de propriedade para actividades
+    if gestaoescolhida == 'actividades':
+        papel_elevado = request.user.has_perm('sitetibl.change_mandato')
+        if not papel_elevado:
+            if registo.criado_por is None or registo.criado_por != request.user:
+                messages.error(request, 'Só pode editar actividades que criou.')
+                return redirect('index')
+
     if request.method == 'GET':
         form = listaformularios[gestaoescolhida](instance=registo)
         return render(request, 'formulario_actualizacao.html', {
@@ -281,6 +291,32 @@ def mostraActualizacao(request, gestaoescolhida, id):
 
         if formulario.is_valid():
             obj = formulario.save(commit=False)
+
+            # ⚠️ Verificação de conflito de horário para actividades
+            if gestaoescolhida == 'actividades':
+                data = formulario.cleaned_data['data']
+                inicio = formulario.cleaned_data['inicio']
+                fim = formulario.cleaned_data['fim']
+                conflitos = Actividade.objects.filter(
+                    data=data, inicio__lt=fim, fim__gt=inicio
+                ).exclude(id=registo.id)
+                mesma_data_diferente = Actividade.objects.filter(
+                    data=data
+                ).exclude(id=registo.id).exclude(inicio__lt=fim, fim__gt=inicio)
+                if conflitos.exists():
+                    primeiro = conflitos.first()
+                    messages.error(
+                        request,
+                        f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
+                        f'das {primeiro.inicio} às {primeiro.fim} neste dia com horário sobrepóvel.'
+                    )
+                    return render(request, 'formulario_actualizacao.html', {'formulario': formulario, 'id': id})
+                elif mesma_data_diferente.exists():
+                    messages.warning(
+                        request,
+                        'Já existe outra actividade neste dia com horário diferente. '
+                        'Se for num local diferente, pode prosseguir normalmente.'
+                    )
 
             if gestaoescolhida == 'pedidosaida':
                 # só define aprovador se o estado NÃO for nulo
@@ -640,6 +676,14 @@ def mostraEliminacao(request, gestaoescolhida, id):
 
     registo = get_object_or_404(model, id=id)
 
+    # 🔐 Verificação de propriedade para actividades
+    if gestaoescolhida == 'actividades':
+        papel_elevado = request.user.has_perm('sitetibl.change_mandato')
+        if not papel_elevado:
+            if registo.criado_por is None or registo.criado_por != request.user:
+                messages.error(request, 'Só pode eliminar actividades que criou.')
+                return redirect('index')
+
     if request.method == 'POST':
         registo.delete()
         messages.success(request, 'Eliminação foi bem sucedida')
@@ -690,7 +734,41 @@ def mostraCriacao(request, gestaoescolhida):
     if request.method == 'POST':
         formulario = form_class(request.POST, request.FILES)
         if formulario.is_valid():
-            obj = formulario.save()
+            obj = formulario.save(commit=False)
+
+            # ⚠️ Verificação de conflito de horário para actividades
+            if gestaoescolhida == 'actividades':
+                data = formulario.cleaned_data['data']
+                inicio = formulario.cleaned_data['inicio']
+                fim = formulario.cleaned_data['fim']
+                conflitos = Actividade.objects.filter(
+                    data=data, inicio__lt=fim, fim__gt=inicio
+                )
+                mesma_data_diferente = Actividade.objects.filter(
+                    data=data
+                ).exclude(inicio__lt=fim, fim__gt=inicio)
+                if conflitos.exists():
+                    primeiro = conflitos.first()
+                    messages.error(
+                        request,
+                        f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
+                        f'das {primeiro.inicio} às {primeiro.fim} neste dia com horário sobrepóvel.'
+                    )
+                    return render(request, 'formulario_criacao.html', {'formulario': formulario})
+                elif mesma_data_diferente.exists():
+                    messages.warning(
+                        request,
+                        'Já existe outra actividade neste dia com horário diferente. '
+                        'Se for num local diferente, pode prosseguir normalmente.'
+                    )
+
+            obj.save()
+
+            # 👤 Regista o criador nas actividades
+            if gestaoescolhida == 'actividades':
+                obj.criado_por = request.user
+                obj.save(update_fields=['criado_por'])
+
             # Se for Irmão e o utilizador escolheu departamentos, criar Mandatos
             if gestaoescolhida == 'irmaos':
                 departamentos = formulario.cleaned_data.get('departamentos')
@@ -1597,22 +1675,78 @@ def encontraBancos(request):
 
 @login_required
 def encontraEscalas(request):
-    actividade = request.GET['actividade']
-    funcao = request.GET['funcao']
-    
-    
-    kwargs= {'actividade__designacao__designacao__icontains':actividade, 
-             'funcao__designacao__icontains' : funcao, 
-             
-            }
-    pagina= request.GET['pagina']
-    resultado = Escala.objects.filter(**kwargs)
+    actividade = request.GET.get('actividade', '')
+    funcao = request.GET.get('funcao', '')
+    departamentov = request.GET.get('departamentov', '0')
+
+    kwargs = {
+        'actividade__designacao__designacao__icontains': actividade,
+        'funcao__designacao__icontains': funcao,
+    }
+    if departamentov and departamentov != '0':
+        kwargs['actividade__departamento_id'] = departamentov
+
+    pagina = request.GET.get('pagina', 1)
+    resultado = Escala.objects.filter(**kwargs).select_related(
+        'irmao', 'actividade', 'actividade__departamento', 'funcao'
+    )
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
-    dd = dict(request.GET.lists())
-    del dd['pagina']
-    cc = request.META['QUERY_STRING']
-    return render(request,'escalasfiltrados.html', {'bb':paginaresultado})
+    departamentos = Departamento.objects.all().order_by('designacao')
+    return render(request, 'escalasfiltrados.html', {
+        'bb': paginaresultado,
+        'departamentos': departamentos,
+        'departamentov_sel': departamentov,
+    })
+
+
+@login_required
+def criar_actividades_recorrentes(request):
+    """Cria múltiplas actividades para uma série semanal recorrente."""
+    if not request.user.has_perm('sitetibl.add_actividade'):
+        messages.error(request, 'Acesso negado! Não tem permissão para criar actividades.')
+        return redirect('index')
+
+    if request.method == 'POST':
+        form = ActividadesRecorrentesForm(request.POST)
+        if form.is_valid():
+            tipo = form.cleaned_data['tipo_actividade']
+            departamento = form.cleaned_data.get('departamento')
+            localactividade = form.cleaned_data.get('localactividade')
+            inicio = form.cleaned_data['inicio']
+            fim = form.cleaned_data['fim']
+            data_inicio = form.cleaned_data['data_inicio']
+            data_fim = form.cleaned_data['data_fim']
+            dias_semana = [int(d) for d in form.cleaned_data['dias_semana']]
+
+            current = data_inicio
+            criadas = []
+            while current <= data_fim:
+                if current.weekday() in dias_semana:
+                    a = Actividade.objects.create(
+                        designacao=tipo,
+                        departamento=departamento,
+                        localactividade=localactividade,
+                        inicio=inicio,
+                        fim=fim,
+                        data=current,
+                        criado_por=request.user,
+                    )
+                    criadas.append(a)
+                current += timedelta(days=1)
+
+            if criadas:
+                messages.success(
+                    request,
+                    f'{len(criadas)} actividade{"s" if len(criadas) != 1 else ""} criada{"s" if len(criadas) != 1 else ""} com sucesso.'
+                )
+            else:
+                messages.warning(request, 'Nenhuma actividade criada. Verifique o intervalo de datas e os dias seleccionados.')
+            return redirect('sitetibl:mostra_gestao', gestaoescolhida='actividades', pagina=1)
+    else:
+        form = ActividadesRecorrentesForm()
+
+    return render(request, 'actividades_recorrentes.html', {'form': form})
 
 
 class EscalasPorActividadeView(APIView):

@@ -160,11 +160,13 @@ class Command(BaseCommand):
         sec_grp.permissions.set(sec_perms)
         self.stdout.write(f'Secretaria: {sec_perms.count()} permissoes atribuidas')
 
-        # --- Líder de Departamento: gere o seu dept, escalas, mandatos, cria pedidos ---
+        # --- Líder de Departamento: gere o seu dept, escalas, cria pedidos ---
         ld_grp = Group.objects.get(name='Líder de Departamento')
         ld_perms = self._perms_for(app, [
-            'actividade', 'escala', 'mandato', 'anuncio', 'enviomensagem',
+            'actividade', 'escala', 'anuncio', 'enviomensagem',
         ], crud)
+        # Mandatos: só pode criar e ver, não editar/eliminar
+        ld_perms |= self._perms_for(app, ['mandato'], ['add', 'view'])
         ld_perms |= self._perms_for(app, ['departamento'], ['view', 'change'])
         ld_perms |= self._perms_for(app, ['pedidosaida'], ['add', 'view'])
         ld_perms |= self._perms_for(app, [
@@ -173,11 +175,13 @@ class Command(BaseCommand):
         ld_grp.permissions.set(ld_perms)
         self.stdout.write(f'Líder de Departamento: {ld_perms.count()} permissoes atribuidas')
 
-        # --- Vice-Líder de Departamento: apoia líder, escalas, mandatos, cria pedidos ---
+        # --- Vice-Líder de Departamento: apoia líder, escalas, cria pedidos ---
         vld_grp = Group.objects.get(name='Vice-Líder de Departamento')
         vld_perms = self._perms_for(app, [
-            'actividade', 'escala', 'mandato', 'anuncio',
+            'actividade', 'escala', 'anuncio',
         ], crud)
+        # Mandatos: só pode criar e ver, não editar/eliminar
+        vld_perms |= self._perms_for(app, ['mandato'], ['add', 'view'])
         vld_perms |= self._perms_for(app, ['pedidosaida'], ['add', 'view'])
         vld_perms |= self._perms_for(app, [
             'irmao', 'pessoa', 'sitio', 'departamento', 'conteudoensino',
