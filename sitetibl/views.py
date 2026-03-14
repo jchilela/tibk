@@ -2894,7 +2894,7 @@ def dashboard(request):
         Actividade.objects
         .filter(data__gte=hoje, data__lte=hoje + timedelta(days=14))
         .select_related('designacao', 'localactividade')
-        .order_by('data', 'inicio')[:6]
+        .order_by('data', 'inicio')[:5]
     )
 
     # Escalas do membro logado + verificação de célula
@@ -3033,52 +3033,119 @@ def escalar_em_massa(request, actividade_id):
 def actividades_feed(request):
     """
     Endpoint JSON para o FullCalendar.
-    Devolve actividades-filho (ocorrências expandidas) e actividades simples
-    num intervalo de datas fornecido por ?start=YYYY-MM-DD&end=YYYY-MM-DD.
+    - Actividades simples: devolvidas directamente da BD para o intervalo pedido.
+    - Actividades recorrentes: ocorrências calculadas dinamicamente via rrule.
+      Suporta recorrências sem data de fim — expande até ao limite do intervalo.
     """
     if not request.user.has_perm('sitetibl.view_actividade'):
         return JsonResponse({'error': 'Acesso negado'}, status=403)
 
-    from datetime import date as _date
+    import datetime as _dt
+    from dateutil.rrule import rrule, WEEKLY, DAILY, MONTHLY, MO, TU, WE, TH, FR, SA, SU
+
     start_str = request.GET.get('start', '')
     end_str = request.GET.get('end', '')
     try:
-        start = _date.fromisoformat(start_str[:10])
-        end = _date.fromisoformat(end_str[:10])
+        start = _dt.date.fromisoformat(start_str[:10])
+        end = _dt.date.fromisoformat(end_str[:10])
     except (ValueError, TypeError):
         return JsonResponse({'error': 'Parâmetros start/end inválidos'}, status=400)
 
-    # Mostrar: ocorrências-filho E actividades normais (não-pai recorrentes)
-    qs = (
-        Actividade.objects
-        .select_related('designacao', 'departamento', 'localactividade', 'parent_event')
-        .filter(data__range=(start, end))
-        .filter(
-            Q(parent_event__isnull=False) |
-            Q(is_recorrente=False, parent_event__isnull=True)
-        )
-    )
+    FREQ_MAP = {'WEEKLY': WEEKLY, 'DAILY': DAILY, 'MONTHLY': MONTHLY}
+    WEEKDAY_MAP = {0: MO, 1: TU, 2: WE, 3: TH, 4: FR, 5: SA, 6: SU}
 
     events = []
-    for act in qs:
-        title = str(act.designacao)
-        if act.parent_event_id:
-            title = f'↻ {title}'
+
+    # --- 1. Actividades simples (não recorrentes, sem pai) ---
+    simples = (
+        Actividade.objects
+        .select_related('designacao', 'departamento', 'localactividade')
+        .filter(data__range=(start, end), is_recorrente=False, parent_event__isnull=True)
+    )
+    for act in simples:
         start_iso = f'{act.data}T{act.inicio}' if act.inicio else str(act.data)
         end_iso = f'{act.data}T{act.fim}' if act.fim else str(act.data)
         events.append({
             'id': act.pk,
-            'title': title,
+            'title': str(act.designacao),
             'start': start_iso,
             'end': end_iso,
             'url': f'/tibl/actividades/detalhe/{act.pk}/',
-            'classNames': ['recorrente'] if act.parent_event_id else [],
+            'classNames': [],
             'extendedProps': {
                 'departamento': str(act.departamento) if act.departamento else '',
                 'local': str(act.localactividade) if act.localactividade else '',
-                'recorrente': bool(act.parent_event_id),
+                'recorrente': False,
             },
         })
+
+    # --- 2. Actividades recorrentes — expansão dinâmica via rrule ---
+    # Pais cujo período de recorrência intersecta o intervalo pedido:
+    #   início ≤ fim do intervalo  E  (sem recorrencia_fim  OU  recorrencia_fim ≥ início)
+    parents = (
+        Actividade.objects
+        .select_related('designacao', 'departamento', 'localactividade', 'event__rule')
+        .filter(is_recorrente=True, parent_event__isnull=True)
+        .filter(data__lte=end)
+        .filter(
+            Q(recorrencia_fim__isnull=True) | Q(recorrencia_fim__gte=start)
+        )
+    )
+    for parent in parents:
+        hora_inicio = parent.inicio or _dt.time(0, 0)
+        hora_fim = parent.fim or _dt.time(23, 59)
+        dtstart = _dt.datetime.combine(parent.data, hora_inicio)
+
+        # Limite da expansão: respeitar recorrencia_fim ou usar o fim do intervalo pedido
+        if parent.recorrencia_fim:
+            until = _dt.datetime.combine(parent.recorrencia_fim, hora_fim)
+        else:
+            until = _dt.datetime.combine(end, hora_fim)
+
+        # Frequência via Rule do django-scheduler (por omissão WEEKLY)
+        freq_str = 'WEEKLY'
+        try:
+            if parent.event_id and parent.event and parent.event.rule_id:
+                freq_str = parent.event.rule.frequency
+        except Exception:
+            pass
+        freq = FREQ_MAP.get(freq_str, WEEKLY)
+
+        rrule_kwargs = {'dtstart': dtstart, 'until': until}
+        if freq == WEEKLY and parent.dias_semana:
+            dias = [int(d.strip()) for d in parent.dias_semana.split(',') if d.strip().isdigit()]
+            byweekday = [WEEKDAY_MAP[d] for d in dias if d in WEEKDAY_MAP]
+            if byweekday:
+                rrule_kwargs['byweekday'] = byweekday
+
+        dur = (
+            _dt.datetime.combine(_dt.date.today(), hora_fim)
+            - _dt.datetime.combine(_dt.date.today(), hora_inicio)
+        )
+        if dur.total_seconds() < 0:
+            dur = _dt.timedelta(hours=1)
+
+        for occ_dt in rrule(freq, **rrule_kwargs):
+            occ_date = occ_dt.date()
+            if occ_date < start:
+                continue
+            if occ_date > end:
+                break
+            fim_dt = occ_dt + dur
+            events.append({
+                'id': f'r{parent.pk}_{occ_date.isoformat()}',
+                'title': f'\u21bb {parent.designacao}',
+                'start': occ_dt.strftime('%Y-%m-%dT%H:%M:%S'),
+                'end': fim_dt.strftime('%Y-%m-%dT%H:%M:%S'),
+                'url': f'/tibl/actividades/detalhe/{parent.pk}/',
+                'classNames': ['recorrente'],
+                'extendedProps': {
+                    'departamento': str(parent.departamento) if parent.departamento else '',
+                    'local': str(parent.localactividade) if parent.localactividade else '',
+                    'recorrente': True,
+                },
+            })
+
     return JsonResponse(events, safe=False)
 
 

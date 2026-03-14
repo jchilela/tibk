@@ -645,8 +645,6 @@ def expandir_ocorrencias_recorrentes(sender, instance, **kwargs):
     # Só processar actividades-pai recorrentes com Event atribuído
     if not instance.is_recorrente or not instance.event_id or instance.parent_event_id:
         return
-    if not instance.recorrencia_fim:
-        return
 
     freq_map = _get_freq_map()
     event = instance.event
@@ -656,7 +654,11 @@ def expandir_ocorrencias_recorrentes(sender, instance, **kwargs):
     hora_inicio = instance.inicio or datetime.time(0, 0)
     hora_fim = instance.fim or datetime.time(23, 59)
     dtstart = datetime.datetime.combine(instance.data, hora_inicio)
-    until = datetime.datetime.combine(instance.recorrencia_fim, hora_fim)
+    # Sem data de fim: expandir 2 anos a partir da data de início
+    if instance.recorrencia_fim:
+        until = datetime.datetime.combine(instance.recorrencia_fim, hora_fim)
+    else:
+        until = dtstart + datetime.timedelta(days=730)
 
     rrule_kwargs = {'dtstart': dtstart, 'until': until}
     if freq == freq_map['WEEKLY'] and instance.dias_semana:

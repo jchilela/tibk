@@ -365,7 +365,7 @@ class ActividadeForm(ModelForm):
         instance.dias_semana = ','.join(sorted(dias))
 
         # Criar / actualizar evento no django-scheduler se recorrente
-        if instance.is_recorrente and instance.recorrencia_fim:
+        if instance.is_recorrente:
             nome = instance.designacao.designacao
             frequencia = self.cleaned_data.get('frequencia') or 'WEEKLY'
             # Params: byweekday apenas faz sentido para WEEKLY com dias seleccionados
@@ -392,10 +392,15 @@ class ActividadeForm(ModelForm):
             data_inicio = instance.data
             hora_inicio = instance.inicio or datetime.time(0, 0)
             hora_fim = instance.fim or datetime.time(23, 59)
-            recorrencia_fim = instance.recorrencia_fim
             start_dt = datetime.datetime.combine(data_inicio, hora_inicio)
             end_dt = datetime.datetime.combine(data_inicio, hora_fim)
-            end_recurring = datetime.datetime.combine(recorrencia_fim, datetime.time(23, 59))
+            # end_recurring_period: respeitar recorrencia_fim ou usar horizonte de 10 anos
+            if instance.recorrencia_fim:
+                end_recurring = datetime.datetime.combine(instance.recorrencia_fim, datetime.time(23, 59))
+            else:
+                end_recurring = datetime.datetime.combine(
+                    data_inicio + datetime.timedelta(days=3650), datetime.time(23, 59)
+                )
             calendar = Calendar.objects.get(slug='tibl')
             if instance.event:
                 ev = instance.event
