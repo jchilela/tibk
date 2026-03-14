@@ -68,6 +68,7 @@ from sitetibl.models import Servico
 from sitetibl.models import Tipoajuda
 from sitetibl.models import RelatorioSemanalCelula
 from sitetibl.models import PedidoSaida
+from sitetibl.models import Status_Aprovacao
 from sitetibl.models import Anuncio
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
@@ -108,6 +109,23 @@ from datetime import timedelta
 PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kuanza Norte','KZS':'Kuanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
 MOEDA = {'AKZ':'Kwanza','USD':'USA Dólar','EU':'Euro','R':'Reais','RAN':'ZA Rands','NAMD':'Dólar Namibiano', 'LB':'Libra Inglesa'}
+
+
+def _sincronizar_status_legado_pedidosaida(pedido):
+    """Mantém o FK legado status_de_aprovacao coerente com o novo campo estado."""
+    mapa = {
+        'pendente': 'Em analise',
+        'em_analise': 'Em analise',
+        'aprovado': 'Aprovado',
+        'rejeitado': 'Rejeitado',
+    }
+    designacao = mapa.get(pedido.estado)
+    if not designacao:
+        return
+
+    status = Status_Aprovacao.objects.filter(designacao__iexact=designacao).first()
+    if status and pedido.status_de_aprovacao_id != status.id:
+        pedido.status_de_aprovacao = status
 MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'Junho','7':'Julho','8':'Agosto','9':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'}
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
 
@@ -744,6 +762,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 registo.aprovador = irmao_logado
                 registo.observacao_aprovador = request.POST.get('observacao', '').strip()
                 registo.data_aprovacao = now()
+                _sincronizar_status_legado_pedidosaida(registo)
                 registo.save()
                 notificar_mudanca_estado_pedido(registo, 'aprovado', irmao_logado)
                 messages.success(request, 'Pedido aprovado com sucesso.')
@@ -758,13 +777,15 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     registo.aprovador = irmao_logado
                     registo.observacao_aprovador = obs
                     registo.data_aprovacao = now()
+                    _sincronizar_status_legado_pedidosaida(registo)
                     registo.save()
                     notificar_mudanca_estado_pedido(registo, 'rejeitado', irmao_logado)
                     messages.success(request, 'Pedido rejeitado.')
 
             elif action == 'em_analise':
                 registo.estado = 'em_analise'
-                registo.save(update_fields=['estado', 'data_atualizacao'])
+                _sincronizar_status_legado_pedidosaida(registo)
+                registo.save(update_fields=['estado', 'status_de_aprovacao', 'data_atualizacao'])
                 notificar_mudanca_estado_pedido(registo, 'em_analise', irmao_logado)
                 messages.info(request, 'Pedido marcado como "Em Análise".')
 
@@ -2912,7 +2933,7 @@ def dashboard(request):
     if user.has_perm('sitetibl.view_pedidosaida'):
         pedidos_pendentes = (
             PedidoSaida.objects
-            .exclude(status_de_aprovacao__designacao__icontains='aprovad')
+            .exclude(estado__in=['aprovado', 'rejeitado'])
             .select_related('requerente', 'departamento', 'status_de_aprovacao')
             .order_by('-data_criacao')[:5]
         )

@@ -207,8 +207,8 @@
             <i class="fas fa-receipt"></i>
           </div>
           <div class="dash-list-body">
-            <strong>{{ p.descricao|truncatewords:12 }}</strong>
-            <span class="dash-list-meta">{{ p.montante|floatformat:0 }} Kz · {% if p.departamento %}{{ p.departamento }}{% endif %} · {{ p.status_de_aprovacao }}</span>
+            <strong>{{ p.projecto|truncatewords:12 }}</strong>
+            <span class="dash-list-meta">{{ p.montante|floatformat:0 }} Kz · {% if p.departamento %}{{ p.departamento }}{% endif %} · {{ p.get_estado_display }}</span>
           </div>
         </div>
         {% endfor %}
