@@ -1,0 +1,183 @@
+<div style="max-width: 860px; margin: 0 auto; padding-bottom: 4rem;">
+  <div class="modern-card" style="padding: 2rem 2.25rem;">
+
+    <div style="margin-bottom: 2rem; border-bottom: 2px solid var(--primary-light); padding-bottom: 1.25rem;">
+      <h2 style="font-size: 1.6rem; color: var(--primary-dark); margin-bottom: 0.25rem;">
+        <i class="fas fa-calendar-plus" style="color: var(--primary); margin-right: 0.5rem;"></i>
+        {% if is_update %}Editar Actividade{% else %}Nova Actividade{% endif %}
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.92rem;">Preencha os dados abaixo para {% if is_update %}actualizar a{% else %}registar uma nova{% endif %} actividade.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="form-actividade">
+      {% csrf_token %}
+      {% for hidden in formulario.hidden_fields %}{{ hidden }}{% endfor %}
+
+      {% if formulario.non_field_errors %}
+      <div style="background:#fee2e2; border:1px solid #ef4444; border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
+        {% for e in formulario.non_field_errors %}
+        <p style="color:#991b1b; font-size:0.88rem; margin:0;"><i class="fas fa-exclamation-circle"></i> {{ e }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {# ── Secção 1: Dados Básicos ─────────────────────────────── #}
+      <div class="form-section-card">
+        <div class="form-section-title"><i class="fas fa-info-circle"></i> Dados Básicos</div>
+
+        {# Designação — linha inteira #}
+        <div class="form-group {% if formulario.designacao.errors %}has-error{% endif %}" style="margin-bottom:1.1rem;">
+          <label for="{{ formulario.designacao.id_for_label }}">
+            {{ formulario.designacao.label }} <span class="required-star">*</span>
+          </label>
+          {{ formulario.designacao }}
+          {% for e in formulario.designacao.errors %}<p class="error-msg"><i class="fas fa-info-circle"></i> {{ e }}</p>{% endfor %}
+        </div>
+
+        {# Data / Início / Fim — 3 colunas #}
+        <div class="form-grid-3" style="margin-bottom:1.1rem;">
+          <div class="form-group {% if formulario.data.errors %}has-error{% endif %}">
+            <label for="{{ formulario.data.id_for_label }}">{{ formulario.data.label }} <span class="required-star">*</span></label>
+            {{ formulario.data }}
+            {% for e in formulario.data.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+          </div>
+          <div class="form-group {% if formulario.inicio.errors %}has-error{% endif %}">
+            <label for="{{ formulario.inicio.id_for_label }}">{{ formulario.inicio.label }} <span class="required-star">*</span></label>
+            {{ formulario.inicio }}
+            {% for e in formulario.inicio.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+          </div>
+          <div class="form-group {% if formulario.fim.errors %}has-error{% endif %}">
+            <label for="{{ formulario.fim.id_for_label }}">{{ formulario.fim.label }} <span class="required-star">*</span></label>
+            {{ formulario.fim }}
+            {% for e in formulario.fim.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+          </div>
+        </div>
+
+        {# Departamento / Local — 2 colunas #}
+        <div class="form-grid-2">
+          <div class="form-group {% if formulario.departamento.errors %}has-error{% endif %}">
+            <label for="{{ formulario.departamento.id_for_label }}">{{ formulario.departamento.label }}</label>
+            {{ formulario.departamento }}
+            {% for e in formulario.departamento.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+          </div>
+          <div class="form-group {% if formulario.localactividade.errors %}has-error{% endif %}">
+            <label for="{{ formulario.localactividade.id_for_label }}">{{ formulario.localactividade.label }}</label>
+            {{ formulario.localactividade }}
+            {% for e in formulario.localactividade.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {# ── Secção 2: Conteúdo ──────────────────────────────────── #}
+      <div class="form-section-card">
+        <div class="form-section-title"><i class="fas fa-book-open"></i> Conteúdo (opcional)</div>
+
+        <div class="form-group {% if formulario.tema.errors %}has-error{% endif %}" style="margin-bottom:1.1rem;">
+          <label for="{{ formulario.tema.id_for_label }}">{{ formulario.tema.label }}</label>
+          {{ formulario.tema }}
+          {% for e in formulario.tema.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="form-grid-2" style="margin-bottom:1.1rem;">
+          <div class="form-group {% if formulario.versosbiblicos.errors %}has-error{% endif %}">
+            <label for="{{ formulario.versosbiblicos.id_for_label }}">{{ formulario.versosbiblicos.label }}</label>
+            {{ formulario.versosbiblicos }}
+            {% for e in formulario.versosbiblicos.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+          </div>
+          <div class="form-group {% if formulario.hinos.errors %}has-error{% endif %}">
+            <label for="{{ formulario.hinos.id_for_label }}">{{ formulario.hinos.label }}</label>
+            {{ formulario.hinos }}
+            {% for e in formulario.hinos.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group {% if formulario.totalpresentes.errors %}has-error{% endif %}" style="max-width:160px;">
+          <label for="{{ formulario.totalpresentes.id_for_label }}">{{ formulario.totalpresentes.label }}</label>
+          {{ formulario.totalpresentes }}
+          {% for e in formulario.totalpresentes.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+
+      {# ── Secção 3: Recorrência ───────────────────────────────── #}
+      <div class="form-section-card">
+        <div class="form-section-title"><i class="fas fa-sync-alt"></i> Recorrência</div>
+
+        <label class="recorrencia-toggle" for="{{ formulario.is_recorrente.id_for_label }}">
+          <span style="font-weight:600; font-size:0.95rem; color:var(--text-main);">
+            Esta actividade repete-se regularmente?
+          </span>
+          {{ formulario.is_recorrente }}
+        </label>
+
+        <div id="recorrencia-detalhes" style="display:none;">
+
+          <div class="form-grid-2" style="margin-bottom:1.1rem;">
+            <div class="form-group {% if formulario.frequencia.errors %}has-error{% endif %}">
+              <label for="{{ formulario.frequencia.id_for_label }}">{{ formulario.frequencia.label }}</label>
+              {{ formulario.frequencia }}
+              {% for e in formulario.frequencia.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="form-group {% if formulario.recorrencia_fim.errors %}has-error{% endif %}">
+              <label for="{{ formulario.recorrencia_fim.id_for_label }}">{{ formulario.recorrencia_fim.label }}</label>
+              {{ formulario.recorrencia_fim }}
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">
+                <i class="fas fa-info-circle"></i> Deixe em branco para recorrência sem data de fim.
+              </p>
+              {% for e in formulario.recorrencia_fim.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+            </div>
+          </div>
+
+          {# Dias da semana — só visível quando frequência = WEEKLY #}
+          <div id="dias-semana-section" class="form-group {% if formulario.dias_semana.errors %}has-error{% endif %}">
+            <label>{{ formulario.dias_semana.label }}</label>
+            <div class="dias-semana-grid">
+              {% for subwidget in formulario.dias_semana %}
+              <label class="dia-btn">
+                {{ subwidget.tag }}
+                <span>{{ subwidget.choice_label }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            {% for e in formulario.dias_semana.errors %}<p class="error-msg">{{ e }}</p>{% endfor %}
+          </div>
+
+        </div>{# /recorrencia-detalhes #}
+      </div>
+
+      {# ── Acções ──────────────────────────────────────────────── #}
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;">
+        <button type="button" onclick="window.history.back()" class="bt-primary"
+          style="background:#f1f5f9; color:var(--text-main); box-shadow:none;">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <button type="submit" class="bt-primary">
+          <i class="fas fa-check-circle"></i> {% if is_update %}Guardar Alterações{% else %}Criar Actividade{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  var toggle = document.getElementById('{{ formulario.is_recorrente.id_for_label }}');
+  var detalhes = document.getElementById('recorrencia-detalhes');
+  var freqSelect = document.getElementById('{{ formulario.frequencia.id_for_label }}');
+  var diasSection = document.getElementById('dias-semana-section');
+
+  function updateRecorrencia() {
+    detalhes.style.display = toggle.checked ? '' : 'none';
+  }
+  function updateDias() {
+    if (!freqSelect) return;
+    diasSection.style.display = freqSelect.value === 'WEEKLY' ? '' : 'none';
+  }
+
+  toggle.addEventListener('change', updateRecorrencia);
+  if (freqSelect) freqSelect.addEventListener('change', updateDias);
+
+  // estado inicial (importante ao editar)
+  updateRecorrencia();
+  updateDias();
+})();
+</script>

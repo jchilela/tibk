@@ -337,9 +337,11 @@ def mostraActualizacao(request, gestaoescolhida, id):
 
     if request.method == 'GET':
         form = listaformularios[gestaoescolhida](instance=registo)
-        return render(request, 'formulario_actualizacao.html', {
+        tmpl = 'actividades_form.html' if gestaoescolhida == 'actividades' else 'formulario_actualizacao.html'
+        return render(request, tmpl, {
             'formulario': form,
-            'id': id
+            'id': id,
+            'is_update': True,
         })
 
     elif request.method == 'POST':
@@ -370,7 +372,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
                         f'das {primeiro.inicio} às {primeiro.fim} neste dia com horário sobrepóvel.'
                     )
-                    return render(request, 'formulario_actualizacao.html', {'formulario': formulario, 'id': id})
+                    return render(request, 'actividades_form.html', {'formulario': formulario, 'id': id, 'is_update': True})
                 elif mesma_data_diferente.exists():
                     messages.warning(
                         request,
@@ -384,8 +386,11 @@ def mostraActualizacao(request, gestaoescolhida, id):
 
         else:
             messages.error(request, 'Foram encontrados erros ao preencher o formulário.')
-            return render(request, 'formulario_actualizacao.html', {
-                'formulario': formulario
+            tmpl = 'actividades_form.html' if gestaoescolhida == 'actividades' else 'formulario_actualizacao.html'
+            return render(request, tmpl, {
+                'formulario': formulario,
+                'id': id,
+                'is_update': True,
             })
 
 @login_required
@@ -931,7 +936,7 @@ def mostraCriacao(request, gestaoescolhida):
                         f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
                         f'das {primeiro.inicio} às {primeiro.fim} neste dia com horário sobrepóvel.'
                     )
-                    return render(request, 'formulario_criacao.html', {'formulario': formulario})
+                    return render(request, 'actividades_form.html', {'formulario': formulario, 'is_update': False})
                 elif mesma_data_diferente.exists():
                     messages.warning(
                         request,
@@ -971,7 +976,8 @@ def mostraCriacao(request, gestaoescolhida):
     else:
         formulario = form_class()
 
-    return render(request, 'formulario_criacao.html', {'formulario': formulario})
+    tmpl = 'actividades_form.html' if gestaoescolhida == 'actividades' else 'formulario_criacao.html'
+    return render(request, tmpl, {'formulario': formulario, 'is_update': False})
 
 @login_required
 def encontraIrmao(request):

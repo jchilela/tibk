@@ -401,7 +401,7 @@ class ActividadeForm(ModelForm):
                 end_recurring = datetime.datetime.combine(
                     data_inicio + datetime.timedelta(days=3650), datetime.time(23, 59)
                 )
-            calendar = Calendar.objects.get(slug='tibl')
+            calendar, _ = Calendar.objects.get_or_create(slug='tibl', defaults={'name': 'TIBL'})
             if instance.event:
                 ev = instance.event
                 ev.title = instance.designacao.designacao
