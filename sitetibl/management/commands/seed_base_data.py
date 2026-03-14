@@ -30,7 +30,10 @@ from sitetibl.models import (
 
 
 class Command(BaseCommand):
-    help = 'Popula dados base (grupos, tabelas de referencia e superutilizador opcional).'
+    help = (
+        'Popula dados base (grupos, tabelas de referencia e superutilizador opcional). '
+        'Dados demo de irmaos so sao criados com --with-demo.'
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -57,9 +60,9 @@ class Command(BaseCommand):
             help='Nao cria/atualiza o superutilizador.',
         )
         parser.add_argument(
-            '--skip-demo',
+            '--with-demo',
             action='store_true',
-            help='Nao cria dados operacionais de demonstracao.',
+            help='Cria/atualiza dados operacionais de demonstracao (inclui irmaos demo).',
         )
 
     def handle(self, *args, **options):
@@ -73,7 +76,7 @@ class Command(BaseCommand):
                 password=options['admin_password'],
             )
 
-        if not options['skip_demo']:
+        if options['with_demo']:
             self.seed_demo_data()
 
         self.stdout.write(self.style.SUCCESS('Seed concluido com sucesso.'))
