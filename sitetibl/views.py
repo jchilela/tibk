@@ -162,7 +162,7 @@ def index(request):
 
 @login_required
 def mostraGestao(request,gestaoescolhida,pagina):
-    lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'funcao'), 
+    lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'actividade__departamento', 'funcao', 'funcao__departamento'), 
              'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
              'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
              'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'), 
@@ -218,6 +218,13 @@ def mostraGestao(request,gestaoescolhida,pagina):
         if estado_filtro:
             qs = qs.filter(estado=estado_filtro)
         resultado = qs.order_by('-data_criacao')
+    elif gestaoescolhida == 'escalas':
+        resultado = lista[gestaoescolhida].all().order_by(
+            'actividade__departamento__designacao',
+            'actividade__data',
+            'actividade__id',
+            'funcao__designacao',
+        )
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
@@ -253,6 +260,12 @@ def mostraGestao(request,gestaoescolhida,pagina):
             'estado_choices': PedidoSaida.ESTADO_CHOICES,
             'contagem_por_estado': contagens,
             'total_pedidos': sum(contagens.values()),
+        }
+    elif gestaoescolhida == 'escalas':
+        context = {
+            'bb': paginaresultado,
+            'departamentos': Departamento.objects.order_by('designacao'),
+            'departamentov_sel': request.GET.get('departamentov', ''),
         }
     else:
         context = { 'bb':paginaresultado, 'listameses' : MESES }
@@ -439,15 +452,28 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             cestasremanescentes = int((a - valorgasto)/total)
             context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida, 'detalhecestas' : subtotal, 'total' : total, 'totalcestasajuda' : totalcestasajuda, 'montantedisponibilizado' : a, 'valorgasto' : valorgasto, 'cestasremanescentes' : cestasremanescentes}
     elif gestaoescolhida == 'actividades':
-        escalas_da_actividade = Escala.objects.filter(actividade_id=identificador).select_related('irmao', 'funcao').order_by('funcao__designacao')
-        todas_funcoes = Funcao.objects.all().order_by('designacao')
+        escalas_da_actividade = (
+            Escala.objects
+            .filter(actividade_id=identificador)
+            .select_related('irmao', 'irmao__celula', 'funcao', 'funcao__departamento')
+            .order_by('funcao__departamento__designacao', 'funcao__designacao', 'irmao__nome')
+        )
+        todas_funcoes = Funcao.objects.select_related('departamento').order_by('departamento__designacao', 'designacao')
         todos_irmaos = Irmao.objects.select_related('celula', 'localcongregacao').order_by('nome', 'apelido')
+        departamentos = Departamento.objects.order_by('designacao')
+        # mapa irmao_id → [departamento_id, …] para filtro JS no modal
+        from collections import defaultdict
+        _irmao_depts = defaultdict(list)
+        for m in Mandato.objects.values('irmao_id', 'departamento_id'):
+            _irmao_depts[m['irmao_id']].append(m['departamento_id'])
         context = {
-            'registoachado': registoachado, 
-            'gestaoescolhida': gestaoescolhida, 
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
             'escalas_da_actividade': escalas_da_actividade,
             'todas_funcoes': todas_funcoes,
-            'todos_irmaos': todos_irmaos
+            'todos_irmaos': todos_irmaos,
+            'departamentos': departamentos,
+            'irmao_depts_json': json.dumps({str(k): v for k, v in _irmao_depts.items()}),
         }
     elif gestaoescolhida == 'departamentos':
         mandatos_departamento = (
@@ -977,6 +1003,21 @@ def mostraCriacao(request, gestaoescolhida):
         formulario = form_class()
 
     tmpl = 'actividades_form.html' if gestaoescolhida == 'actividades' else 'formulario_criacao.html'
+    if gestaoescolhida == 'escalas':
+        from collections import defaultdict
+        todos_irmaos_esc = Irmao.objects.select_related('celula').order_by('nome', 'apelido')
+        todas_funcoes_esc = Funcao.objects.select_related('departamento').order_by('departamento__designacao', 'designacao')
+        departamentos_esc = Departamento.objects.order_by('designacao')
+        _irmao_depts = defaultdict(list)
+        for m in Mandato.objects.values('irmao_id', 'departamento_id'):
+            _irmao_depts[m['irmao_id']].append(m['departamento_id'])
+        return render(request, 'escalas_form.html', {
+            'formulario': formulario,
+            'todos_irmaos': todos_irmaos_esc,
+            'todas_funcoes': todas_funcoes_esc,
+            'departamentos': departamentos_esc,
+            'irmao_depts_json': json.dumps({str(k): v for k, v in _irmao_depts.items()}),
+        })
     return render(request, tmpl, {'formulario': formulario, 'is_update': False})
 
 @login_required

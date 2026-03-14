@@ -8,6 +8,7 @@ from sitetibl.models import Departamento
 from sitetibl.models import Mandato
 from sitetibl.models import Cargo
 from sitetibl.models import Escala
+from sitetibl.models import Funcao
 from sitetibl.models import Saidacaixa
 from sitetibl.models import Saidabanco
 from sitetibl.models import Entradacaixa
@@ -532,7 +533,25 @@ class MandatoForm(ModelForm):
 class EscalaForm(ModelForm):
     class Meta:
         model = Escala
-        fields = '__all__'
+        fields = ('irmao', 'actividade', 'funcao')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['irmao'].label = 'Irmão'
+        self.fields['irmao'].queryset = (
+            Irmao.objects.select_related('celula').order_by('nome', 'apelido')
+        )
+        self.fields['actividade'].label = 'Actividade'
+        self.fields['actividade'].queryset = (
+            Actividade.objects.select_related('designacao', 'departamento')
+            .order_by('data', 'designacao__designacao')
+        )
+        self.fields['funcao'].label = 'Função'
+        self.fields['funcao'].required = False
+        self.fields['funcao'].queryset = (
+            Funcao.objects.select_related('departamento')
+            .order_by('departamento__designacao', 'designacao')
+        )
 
 class DizimoofertaForm(ModelForm):
     class Meta:

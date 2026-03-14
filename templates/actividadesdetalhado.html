@@ -134,41 +134,47 @@
         </div>
 
         {% if escalas_da_actividade %}
-        {% regroup escalas_da_actividade by funcao.designacao as escalas_agrupadas %}
+        {% regroup escalas_da_actividade by funcao.departamento.designacao as escalas_por_dept %}
 
-        <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start;">
-            {% for grupo in escalas_agrupadas %}
-            <div class="modern-card" style="border-top: 4px solid var(--primary);">
-                <h4
-                    style="font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9;">
-                    <i class="fas fa-user-tag" style="opacity: 0.5; margin-right: 0.5rem;"></i>
-                    {{ grupo.grouper }}
-                </h4>
-                <ul
-                    style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
-                    {% for escala in grupo.list %}
-                    <li
-                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
-                        <div
-                            style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;">
-                            {{ escala.irmao.nome|first }}{{ escala.irmao.apelido|first }}
-                        </div>
-                        <div style="display: flex; flex-direction: column;">
-                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">
-                                {{ escala.irmao.nome }} {{ escala.irmao.apelido }}
-                            </span>
-                            {% if escala.irmao.celula %}
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">
-                                Célula: {{ escala.irmao.celula }}
-                            </span>
-                            {% endif %}
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; align-items: start;">
+        {% for dept_grp in escalas_por_dept %}
+        <div class="modern-card" style="padding: 0; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); overflow: hidden;">
+            <!-- Cabeçalho departamento -->
+            <div style="background: var(--primary); padding: 0.6rem 1rem;">
+                <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: white;">
+                    <i class="fas fa-sitemap" style="margin-right: 0.4rem;"></i>
+                    {% if dept_grp.grouper %}{{ dept_grp.grouper }}{% else %}Sem Departamento{% endif %}
+                </span>
             </div>
+
+            {% regroup dept_grp.list by funcao.designacao as escalas_agrupadas %}
+
+            <div style="padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            {% for grupo in escalas_agrupadas %}
+                <div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.4rem; padding-bottom: 0.25rem; border-bottom: 1px solid #f1f5f9;">
+                        <i class="fas fa-user-tag" style="opacity: 0.5; margin-right: 0.3rem;"></i>{{ grupo.grouper }}
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.3rem;">
+                        {% for escala in grupo.list %}
+                        <li style="display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; flex-shrink: 0;">
+                                {{ escala.irmao.nome|first }}{{ escala.irmao.apelido|first }}
+                            </div>
+                            <div>
+                                <span style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ escala.irmao.nome }} {{ escala.irmao.apelido }}</span>
+                                {% if escala.irmao.celula %}
+                                <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Célula: {{ escala.irmao.celula }}</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
         </div>
         {% else %}
         <div class="modern-card"
@@ -213,13 +219,27 @@
                 {% endfor %}
                 <div style="margin-bottom: 1.5rem;">
                     <label
+                        style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">0.
+                        Filtrar por Departamento <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(opcional)</span></label>
+                    <select id="modal-filtro-dept"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 1rem;"
+                        onchange="filtrarPorDept(this.value)">
+                        <option value="">-- Todos os Departamentos --</option>
+                        {% for d in departamentos %}
+                        <option value="{{ d.id }}">{{ d.designacao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label
                         style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">1.
                         Selecione a Função</label>
-                    <select name="funcao" required
+                    <select name="funcao" id="modal-select-funcao" required
                         style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 1rem;">
                         <option value="">-- Escolha uma função --</option>
                         {% for f in todas_funcoes %}
-                        <option value="{{ f.id }}">{{ f.designacao }}</option>
+                        <option value="{{ f.id }}" data-dept="{{ f.departamento.id|default:'' }}">{% if f.departamento %}{{ f.departamento.designacao }} — {% endif %}{{ f.designacao }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -248,6 +268,7 @@
                         <div id="lista-irmaos">
                             {% for irmao in todos_irmaos %}
                             <label class="irmao-item"
+                                data-id="{{ irmao.id }}"
                                 style="display: flex; align-items: center; padding: 0.5rem; cursor: pointer; border-radius: 4px; border-bottom: 1px solid #f1f5f9;">
                                 <input type="checkbox" name="irmaos" value="{{ irmao.id }}"
                                     style="margin-right: 1rem; width: 1.2rem; height: 1.2rem;">
@@ -287,6 +308,32 @@
 </div>
 
 <script>
+    const IRMAO_DEPTS = {{ irmao_depts_json|safe }};
+
+    function filtrarPorDept(deptId) {
+        const nodes = document.getElementsByClassName("irmao-item");
+        const funcaoOpts = document.querySelectorAll('#modal-select-funcao option[data-dept]');
+        const txtFiltro = (document.getElementById("filtro-irmaos").value || '').toLowerCase();
+
+        // Filtra irmãos
+        for (let i = 0; i < nodes.length; i++) {
+            const iid = nodes[i].dataset.id;
+            const depts = IRMAO_DEPTS[iid] || [];
+            const deptOk = !deptId || depts.map(String).includes(String(deptId));
+            const nome = nodes[i].querySelector(".irmao-nome").innerText.toLowerCase();
+            const celulaSpan = nodes[i].querySelector(".irmao-celula");
+            const celula = celulaSpan ? celulaSpan.innerText.toLowerCase() : "";
+            const txtOk = !txtFiltro || nome.includes(txtFiltro) || celula.includes(txtFiltro);
+            nodes[i].style.display = (deptOk && txtOk) ? "flex" : "none";
+        }
+
+        // Filtra funções
+        funcaoOpts.forEach(opt => {
+            const optDept = opt.dataset.dept;
+            opt.style.display = (!deptId || optDept === String(deptId)) ? '' : 'none';
+        });
+    }
+
     function toggleAll(source) {
         const checkboxes = document.querySelectorAll('input[name="irmaos"]:not(:disabled)');
         for (let i = 0, n = checkboxes.length; i < n; i++) {
@@ -297,21 +344,8 @@
     }
 
     function filtrarIrmaos() {
-        const input = document.getElementById("filtro-irmaos");
-        const filter = input.value.toLowerCase();
-        const nodes = document.getElementsByClassName("irmao-item");
-
-        for (let i = 0; i < nodes.length; i++) {
-            const nome = nodes[i].querySelector(".irmao-nome").innerText.toLowerCase();
-            const celulaSpan = nodes[i].querySelector(".irmao-celula");
-            const celula = celulaSpan ? celulaSpan.innerText.toLowerCase() : "";
-
-            if (nome.includes(filter) || celula.includes(filter)) {
-                nodes[i].style.display = "flex";
-            } else {
-                nodes[i].style.display = "none";
-            }
-        }
+        const deptId = document.getElementById("modal-filtro-dept").value;
+        filtrarPorDept(deptId);
     }
 </script>
 {% endblock %}
