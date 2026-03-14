@@ -167,7 +167,8 @@ class Command(BaseCommand):
         ], crud)
         # Mandatos: só pode criar e ver, não editar/eliminar
         ld_perms |= self._perms_for(app, ['mandato'], ['add', 'view'])
-        ld_perms |= self._perms_for(app, ['departamento'], ['view', 'change'])
+        ld_perms |= self._perms_for(app, ['departamento'], ['view'])
+        ld_perms |= self._perms_for(app, ['funcao'], crud)
         ld_perms |= self._perms_for(app, ['pedidosaida'], ['add', 'view'])
         ld_perms |= self._perms_for(app, [
             'irmao', 'pessoa', 'sitio', 'conteudoensino',
@@ -187,6 +188,7 @@ class Command(BaseCommand):
             'irmao', 'pessoa', 'sitio', 'departamento', 'conteudoensino',
             'enviomensagem',
         ], ['view'])
+        vld_perms |= self._perms_for(app, ['funcao'], ['add', 'view'])
         vld_grp.permissions.set(vld_perms)
         self.stdout.write(f'Vice-Líder de Departamento: {vld_perms.count()} permissoes atribuidas')
 

@@ -43,6 +43,7 @@ urlpatterns = [
 
     # API: municípios por província (cascading dropdown)
     path('api/municipios/<int:provincia_id>/', views.api_municipios, name='api_municipios'),
+    path('api/funcoes-actividade/<int:actividade_id>/', views.api_funcoes_por_actividade, name='api_funcoes_actividade'),
 
     # Rotas legadas preservadas para compatibilidade entre branches
     path('contasbancarias/inativar/<int:id>/', views.inativaContabancaria, name='inativaContabancaria'),

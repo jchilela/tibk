@@ -89,6 +89,7 @@ class Tipo_Moeda(models.Model):
 class Funcao(models.Model):
      designacao = models.CharField(max_length=50, unique = True )
      descricao = models.TextField("Descrição", blank=True)
+     departamento = models.ForeignKey('Departamento', null=True, blank=True, on_delete=models.SET_NULL, related_name='funcoes')
      def __str__(self):
          return '%s' % self.designacao
      class Admin:

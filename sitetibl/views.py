@@ -123,6 +123,20 @@ def api_municipios(request, provincia_id):
     return JsonResponse(list(municipios), safe=False)
 
 
+@login_required
+def api_funcoes_por_actividade(request, actividade_id):
+    """Retorna funções relevantes para o departamento da actividade + genéricas."""
+    actividade = get_object_or_404(Actividade, id=actividade_id)
+    if actividade.departamento_id:
+        funcoes = Funcao.objects.filter(
+            Q(departamento_id=actividade.departamento_id) | Q(departamento__isnull=True)
+        ).order_by('designacao')
+    else:
+        funcoes = Funcao.objects.all().order_by('designacao')
+    data = [{'id': f.id, 'designacao': f.designacao} for f in funcoes]
+    return JsonResponse(data, safe=False)
+
+
 def index(request):
     template = loader.get_template('index.html')
     return HttpResponse(template.render({}, request))
@@ -271,8 +285,16 @@ def mostraActualizacao(request, gestaoescolhida, id):
     if gestaoescolhida == 'actividades':
         papel_elevado = request.user.has_perm('sitetibl.change_mandato')
         if not papel_elevado:
-            if registo.criado_por is None or registo.criado_por != request.user:
-                messages.error(request, 'Só pode editar actividades que criou.')
+            pode_editar = (registo.criado_por is not None and registo.criado_por == request.user)
+            if not pode_editar and registo.departamento_id:
+                irmao_logado = Irmao.objects.filter(user=request.user).first()
+                if irmao_logado:
+                    pode_editar = Departamento.objects.filter(
+                        Q(lider_departamento=irmao_logado) | Q(vice_lider_departamento=irmao_logado),
+                        id=registo.departamento_id,
+                    ).exists()
+            if not pode_editar:
+                messages.error(request, 'Só pode editar actividades que criou ou do seu departamento.')
                 return redirect('index')
 
     if request.method == 'GET':
@@ -410,13 +432,14 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         )
         irmao_logado = Irmao.objects.filter(user=request.user).first()
         lidera_departamento = (
-            irmao_logado is not None and registo.lider_departamento_id == irmao_logado.id
+            irmao_logado is not None
+            and (registo.lider_departamento_id == irmao_logado.id
+                 or registo.vice_lider_departamento_id == irmao_logado.id)
         )
-        pode_gerir_membros = (
-            lidera_departamento
-            or request.user.has_perm('sitetibl.add_mandato')
-            or request.user.has_perm('sitetibl.delete_mandato')
-        )
+        # Papéis elevados (Pastor/Secretaria/Admin) gerem qualquer dept;
+        # LD/VLD só gere o departamento onde é líder ou vice-líder.
+        papel_elevado_dept = request.user.has_perm('sitetibl.change_mandato')
+        pode_gerir_membros = lidera_departamento or papel_elevado_dept
 
         if request.method == 'POST':
             if not pode_gerir_membros:
@@ -460,7 +483,40 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     mandato.delete()
                     messages.success(request, 'Membro removido do departamento com sucesso.')
 
+            elif action == 'add_funcao':
+                if not (lidera_departamento or request.user.has_perm('sitetibl.add_funcao')):
+                    messages.error(request, 'Sem permissão para adicionar funções.')
+                else:
+                    nome_funcao = request.POST.get('nome_funcao', '').strip()
+                    if not nome_funcao:
+                        messages.error(request, 'O nome da função não pode estar vazio.')
+                    elif Funcao.objects.filter(designacao=nome_funcao, departamento_id=identificador).exists():
+                        messages.warning(request, 'Esta função já existe neste departamento.')
+                    else:
+                        Funcao.objects.create(designacao=nome_funcao, departamento_id=identificador)
+                        messages.success(request, f'Função "{nome_funcao}" adicionada ao departamento.')
+
+            elif action == 'remove_funcao':
+                if not (lidera_departamento or request.user.has_perm('sitetibl.delete_funcao')):
+                    messages.error(request, 'Sem permissão para remover funções.')
+                else:
+                    funcao_id = request.POST.get('funcao_id', '').strip()
+                    func = Funcao.objects.filter(id=funcao_id, departamento_id=identificador).first()
+                    if func is None:
+                        messages.error(request, 'Função não encontrada neste departamento.')
+                    elif Escala.objects.filter(funcao=func).exists():
+                        messages.warning(request, f'Não é possível remover "{func.designacao}" porque já está em uso em escalas.')
+                    else:
+                        func.delete()
+                        messages.success(request, 'Função removida do departamento.')
+
             return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
+
+        funcoes_departamento = Funcao.objects.filter(departamento_id=identificador).order_by('designacao')
+        pode_gerir_funcoes = (
+            lidera_departamento
+            or request.user.has_perm('sitetibl.add_funcao')
+        )
 
         context = {
             'registoachado': registoachado,
@@ -469,6 +525,8 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'todos_irmaos': Irmao.objects.order_by('nome', 'apelido'),
             'funcao_choices': Mandato.FUNCAO_CHOICES,
             'pode_gerir_membros': pode_gerir_membros,
+            'funcoes_departamento': funcoes_departamento,
+            'pode_gerir_funcoes': pode_gerir_funcoes,
         }
     elif gestaoescolhida == 'contasbancarias':
         entradas_conta = (
@@ -680,8 +738,16 @@ def mostraEliminacao(request, gestaoescolhida, id):
     if gestaoescolhida == 'actividades':
         papel_elevado = request.user.has_perm('sitetibl.change_mandato')
         if not papel_elevado:
-            if registo.criado_por is None or registo.criado_por != request.user:
-                messages.error(request, 'Só pode eliminar actividades que criou.')
+            pode_eliminar = (registo.criado_por is not None and registo.criado_por == request.user)
+            if not pode_eliminar and registo.departamento_id:
+                irmao_logado = Irmao.objects.filter(user=request.user).first()
+                if irmao_logado:
+                    pode_eliminar = Departamento.objects.filter(
+                        Q(lider_departamento=irmao_logado) | Q(vice_lider_departamento=irmao_logado),
+                        id=registo.departamento_id,
+                    ).exists()
+            if not pode_eliminar:
+                messages.error(request, 'Só pode eliminar actividades que criou ou do seu departamento.')
                 return redirect('index')
 
     if request.method == 'POST':

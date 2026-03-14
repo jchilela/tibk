@@ -272,6 +272,35 @@
           });
       });
     }
+    // ── Cascading: Actividade → Função (para escalas) ──
+    const actividadeSelect = document.getElementById('id_actividade');
+    const funcaoSelect = document.getElementById('id_funcao');
+    if (actividadeSelect && funcaoSelect) {
+      // Guardar valor actual da função para re-seleccionar após refresh
+      const funcaoActualVal = funcaoSelect.value;
+      actividadeSelect.addEventListener('change', function () {
+        const actId = this.value;
+        if (!actId) {
+          // Sem actividade seleccionada: mostrar todas as opções originais
+          return;
+        }
+        fetch('/tibl/api/funcoes-actividade/' + actId + '/')
+          .then(r => r.json())
+          .then(data => {
+            const selectedVal = funcaoSelect.value;
+            funcaoSelect.innerHTML = '<option value="">---------</option>';
+            if (data.length > 0) {
+              data.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.designacao;
+                if (String(f.id) === String(selectedVal)) opt.selected = true;
+                funcaoSelect.appendChild(opt);
+              });
+            }
+          });
+      });
+    }
   });
 </script>
 
