@@ -3,82 +3,79 @@
 {% load static %}
 
 {% if registoachado %}
-<div class="profile-container" style="max-width: 800px; margin: 0 auto; padding-bottom: 3rem;">
+<div class="profile-container" style="max-width: 850px; margin: 0 auto; padding-bottom: 3rem;">
     {% for x in registoachado %}
 
-    <!-- Budget Header Card -->
-    <div class="modern-card"
-        style="margin-bottom: 2rem; border-left: 6px solid var(--primary); background: linear-gradient(135deg, white, #f1f8ed); display: flex; justify-content: space-between; align-items: center;">
-        <div style="flex-grow: 1;">
-            <div
-                style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
-                Orçamento Departamental</div>
-            <h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.orcamento|floatformat:2 }} {{ x.moeda.designacao }}</h1>
-            <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
-                <i class="fas fa-sitemap mr-2" style="color: var(--primary);"></i> {{ x.departamento.designacao }}
-            </p>
-        </div>
-        <div style="display: flex; gap: 0.75rem;">
-            {% if perms.sitetibl.change_orcamentodepartamento %}
-            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
-                style="padding: 0.6rem 1rem;">
-                <i class="fas fa-edit"></i> Editar
-            </a>
-            {% endif %}
-            {% if perms.sitetibl.delete_orcamentodepartamento %}
-            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
-                style="background-color: #ef4444; padding: 0.6rem 1rem;">
-                <i class="fas fa-trash"></i> Eliminar
-            </a>
-            {% endif %}
+    <!-- Header -->
+    <div class="modern-card" style="margin-bottom: 2rem; border-left: 6px solid var(--primary); background: linear-gradient(135deg, white, #f1f8ed);">
+        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+            <div style="flex-grow: 1;">
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.5px;">Orçamento Departamental</div>
+                <h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.orcamento|floatformat:2 }} {% if x.moeda %}{{ x.moeda.designacao }}{% endif %}</h1>
+                <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500; margin-top: 0.5rem;">
+                    <i class="fas fa-sitemap" style="color: var(--primary); margin-right: 0.5rem;"></i>{% if x.departamento %}{{ x.departamento.designacao }}{% else %}&mdash;{% endif %}
+                </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% if perms.sitetibl.change_orcamentodepartamento %}
+                <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                {% endif %}
+                {% if perms.sitetibl.delete_orcamentodepartamento %}
+                <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary" style="background-color: #ef4444; padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    <i class="fas fa-trash"></i> Eliminar
+                </a>
+                {% endif %}
+                <a href="/tibl/gestao/orcamentodepartamento/1" class="bt-primary" style="background-color: #64748b; padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Budget Details -->
+    <!-- Detalhes -->
     <div class="modern-card" style="position: relative; overflow: hidden;">
-        <div
-            style="position: absolute; right: -20px; bottom: -20px; opacity: 0.05; font-size: 10rem; transform: rotate(-10deg); pointer-events: none;">
+        <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.04; font-size: 10rem; transform: rotate(-10deg); pointer-events: none;">
             <i class="fas fa-chart-pie"></i>
         </div>
 
-        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
-            <i class="fas fa-info-circle mr-2"></i> Planeamento Financeiro
+        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem; font-size: 1rem;">
+            <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>Planeamento Financeiro
         </h3>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; position: relative; z-index: 1;">
-            <div class="detail-section">
-                <div class="detail-row"
-                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
-                    <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Ano
-                        Fiscal</label>
+            <div>
+                <div style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Departamento</label>
+                    <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary-dark);">{% if x.departamento %}{{ x.departamento.designacao }}{% else %}&mdash;{% endif %}</span>
+                </div>
+                <div style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Ano Fiscal</label>
                     <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">{{ x.ano }}</span>
                 </div>
-                <div class="detail-row"
-                    style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
-                    <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Moeda
-                        de Base</label>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.moeda.designacao }}</span>
+                <div style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <label style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Moeda</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{% if x.moeda %}{{ x.moeda.designacao }}{% else %}&mdash;{% endif %}</span>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Última Actualização</label>
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">{{ x.data_atualizacao|date:"d/m/Y H:i" }}</span>
                 </div>
             </div>
 
-            <div class="detail-section" style="display: flex; align-items: center; justify-content: center;">
-                <div
-                    style="background: var(--primary-light); padding: 2rem; border-radius: 50%; width: 150px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 4px solid white; box-shadow: var(--shadow-sm);">
-                    <div style="font-size: 0.7rem; color: white; text-transform: uppercase; font-weight: 800;">Dotação
-                    </div>
-                    <div style="font-size: 1.25rem; font-weight: 800; color: white;">{{ x.ano }}</div>
-                    <div style="font-size: 0.6rem; color: white; opacity: 0.8;">DISPONÍVEL</div>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <div style="background: var(--primary-light); padding: 2rem; border-radius: 50%; width: 160px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div style="font-size: 0.65rem; color: white; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Dotação</div>
+                    <div style="font-size: 1.2rem; font-weight: 800; color: white; margin: 0.25rem 0;">{{ x.orcamento|floatformat:0 }}</div>
+                    <div style="font-size: 0.55rem; color: white; opacity: 0.85; text-transform: uppercase;">{% if x.moeda %}{{ x.moeda.designacao }}{% endif %} &middot; {{ x.ano }}</div>
                 </div>
             </div>
         </div>
 
-        <div
-            style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
+        <div style="margin-top: 2rem; padding: 1.25rem; background: #f8fafc; border-radius: 8px; border-left: 4px solid var(--primary);">
             <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">
-                <i class="fas fa-shield-alt mr-2"></i> Este orçamento define o limite de gastos autorizados para o
-                departamento de {{ x.departamento.designacao }} durante o ano de {{ x.ano }}.
+                <i class="fas fa-shield-alt" style="margin-right: 0.5rem;"></i>Este orçamento define o limite de gastos autorizados para o departamento{% if x.departamento %} de {{ x.departamento.designacao }}{% endif %} durante o ano de {{ x.ano }}.
             </p>
         </div>
     </div>
@@ -86,12 +83,5 @@
     {% endfor %}
 </div>
 {% endif %}
-
-<div style="text-align: center; margin-top: 2rem;">
-    <a href="/tibl/gestao/orcamentodepartamento/1" class="bt-primary"
-        style="background: transparent; color: var(--primary); border: 2px solid var(--primary); box-shadow: none;">
-        <i class="fas fa-chevron-left"></i> Voltar aos Orçamentos
-    </a>
-</div>
 
 {% endblock %}
