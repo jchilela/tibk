@@ -1,0 +1,62 @@
+name: Deploy para Produção
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  build-and-deploy:
+    name: Build, Push e Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout do código
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Login no Docker Hub
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 3. Build e Push da imagem (com duas tags: versão e latest)
+      - name: Build e Push da imagem Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            tiblbaptista/projecto_tibl:${{ github.sha }}
+            tiblbaptista/projecto_tibl:latest
+
+      # 4. Deploy no servidor via SSH
+      - name: Deploy no servidor
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+
+            cd /home/projectotibl/tibk/
+
+            # Actualizar código
+            git pull origin production
+
+            # Fazer pull da imagem mais recente
+            docker pull tiblbaptista/projecto_tibl:latest
+
+            # Parar e remover containers actuais do serviço web
+            docker compose stop web
+            docker compose rm -f web
+
+            # Subir com a nova imagem
+            docker compose up -d
+
+            # Remover imagens antigas não referenciadas (liberta espaço)
+            docker image prune -f
