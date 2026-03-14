@@ -10,7 +10,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.utils.crypto import get_random_string
 import requests
 
-from .models import Departamento, EnvioMensagem, Irmao, Mandato, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa, Actividade
+from .models import Departamento, EnvioMensagem, Escala, Irmao, Mandato, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa, Actividade
 
 logger = logging.getLogger(__name__)
 
@@ -394,7 +394,53 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
 
 
 # =========================================
-# 🔗 AUTO-LINK DIZIMOS COM ENTRADAS BANCARIAS
+# � NOTIFICAÇÃO IMEDIATA AO SER ESCALADO
+# =========================================
+
+@receiver(post_save, sender=Escala)
+def notificar_irmao_escalado(sender, instance, created, **kwargs):
+    """
+    Envia email de confirmação ao irmão imediatamente quando é adicionado a uma escala.
+    """
+    if not created:
+        return
+
+    irmao = instance.irmao
+    actividade = instance.actividade
+
+    if not irmao or not irmao.email:
+        logger.info('Escala ID %s: irmão sem email — notificação ignorada.', instance.pk)
+        return
+
+    try:
+        data_fmt = actividade.data.strftime('%d/%m/%Y') if actividade.data else '—'
+        context = {
+            'nome': irmao.nome,
+            'apelido': irmao.apelido,
+            'actividade': str(actividade.designacao),
+            'data': data_fmt,
+            'hora': actividade.inicio if actividade.inicio else '',
+            'local': str(actividade.localactividade) if actividade.localactividade else '',
+            'funcao': str(instance.funcao) if instance.funcao else 'Sem função específica',
+            'departamento': str(actividade.departamento) if actividade.departamento else '',
+        }
+        html_content = render_to_string('emails/confirmacao_escala.html', context)
+        from django.utils.html import strip_tags
+        msg = EmailMultiAlternatives(
+            subject=f'Confirmação de Escala — {context["actividade"]} ({data_fmt})',
+            body=strip_tags(html_content),
+            from_email=None,  # usa DEFAULT_FROM_EMAIL
+            to=[irmao.email],
+        )
+        msg.attach_alternative(html_content, 'text/html')
+        msg.send()
+        logger.info('Notificação de escala enviada para %s (Escala ID %s)', irmao.email, instance.pk)
+    except Exception:
+        logger.exception('Erro ao enviar notificação de escala ID %s', instance.pk)
+
+
+# =========================================
+# �🔗 AUTO-LINK DIZIMOS COM ENTRADAS BANCARIAS
 # =========================================
 # Sentido: Entradabanco salva → vincula automaticamente Dizimooferta correspondente
 
