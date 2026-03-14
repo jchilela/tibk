@@ -252,6 +252,12 @@ class ContabancariaForm(ModelForm):
         return iban
 
 class ActividadeForm(ModelForm):
+    designacao = forms.CharField(
+        label='Designação',
+        max_length=200,
+        widget=forms.TextInput(attrs={'placeholder': 'Nome da actividade...'}),
+    )
+
     class Meta:
         model = Actividade
         exclude = ('participantes', 'criado_por')
@@ -260,6 +266,44 @@ class ActividadeForm(ModelForm):
             'inicio': forms.DateInput(attrs={'type': 'time'}),
             'fim': forms.DateInput(attrs={'type': 'time'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pré-preencher com o valor actual ao editar
+        if self.instance and self.instance.pk and self.instance.designacao_id:
+            self.initial['designacao'] = self.instance.designacao.designacao
+
+        # Labels legíveis
+        self.fields['inicio'].label = 'Hora de Início'
+        self.fields['fim'].label = 'Hora de Fim'
+        self.fields['data'].label = 'Data'
+        self.fields['tema'].label = 'Tema'
+        self.fields['localactividade'].label = 'Local'
+        self.fields['versosbiblicos'].label = 'Versos Bíblicos'
+        self.fields['hinos'].label = 'Hinos'
+        self.fields['totalpresentes'].label = 'Total de Presentes'
+        self.fields['departamento'].label = 'Departamento'
+
+        # Campos opcionais
+        self.fields['totalpresentes'].required = False
+        self.fields['totalpresentes'].initial = 0
+        self.fields['tema'].required = False
+        self.fields['versosbiblicos'].required = False
+        self.fields['hinos'].required = False
+        self.fields['localactividade'].required = False
+        self.fields['departamento'].required = False
+
+    def save(self, commit=True):
+        nome = self.cleaned_data['designacao'].strip()
+        lista_obj, _ = Listaactividades.objects.get_or_create(designacao=nome)
+        instance = super().save(commit=False)
+        instance.designacao = lista_obj
+        if instance.totalpresentes is None:
+            instance.totalpresentes = 0
+        if commit:
+            instance.save()
+            self._save_m2m()
+        return instance
 
 
 DIAS_SEMANA_CHOICES = [
@@ -275,10 +319,10 @@ DIAS_SEMANA_CHOICES = [
 
 class ActividadesRecorrentesForm(forms.Form):
     """Cria múltiplas actividades de uma vez para uma série semanal."""
-    tipo_actividade = forms.ModelChoiceField(
-        queryset=Listaactividades.objects.all().order_by('designacao'),
-        label='Tipo de Actividade',
-        empty_label='Seleccione...',
+    nome_actividade = forms.CharField(
+        label='Designação da Actividade',
+        max_length=200,
+        widget=forms.TextInput(attrs={'placeholder': 'Ex.: Culto de Oracao, Estudo Bíblico...'}),
     )
     departamento = forms.ModelChoiceField(
         queryset=Departamento.objects.all().order_by('designacao'),

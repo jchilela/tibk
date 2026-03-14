@@ -1901,7 +1901,8 @@ def criar_actividades_recorrentes(request):
     if request.method == 'POST':
         form = ActividadesRecorrentesForm(request.POST)
         if form.is_valid():
-            tipo = form.cleaned_data['tipo_actividade']
+            tipo_nome = form.cleaned_data['nome_actividade'].strip()
+            tipo, _ = Listaactividades.objects.get_or_create(designacao=tipo_nome)
             departamento = form.cleaned_data.get('departamento')
             localactividade = form.cleaned_data.get('localactividade')
             inicio = form.cleaned_data['inicio']

@@ -42,15 +42,10 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem;">
                 <div>
-                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.tipo_actividade.label }}</label>
-                    <select name="tipo_actividade" style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
-                        <option value="">Seleccione...</option>
-                        {% for obj in form.fields.tipo_actividade.queryset %}
-                        <option value="{{ obj.pk }}" {% if form.tipo_actividade.value == obj.pk|stringformat:"i" %}selected{% endif %}>{{ obj }}</option>
-                        {% endfor %}
-                    </select>
-                    {% if form.tipo_actividade.errors %}
-                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ form.tipo_actividade.errors.0 }}</p>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.nome_actividade.label }}</label>
+                    <input type="text" name="nome_actividade" value="{{ form.nome_actividade.value|default:'' }}" placeholder="Ex.: Culto de Oração, Estudo Bíblico..." style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem; box-sizing: border-box;">
+                    {% if form.nome_actividade.errors %}
+                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ form.nome_actividade.errors.0 }}</p>
                     {% endif %}
                 </div>
                 <div>
