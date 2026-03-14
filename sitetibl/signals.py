@@ -1,7 +1,7 @@
 import logging
 
 from django.contrib.auth.models import Group, User
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.core.mail import send_mass_mail
 from django.template.loader import render_to_string
@@ -481,7 +481,7 @@ def auto_vincular_caixa_com_dizimos(sender, instance, created, **kwargs):
 def limpar_lider_ao_apagar_mandato(sender, instance, **kwargs):
     """
     Quando um Mandato é apagado, se era líder ou vice-líder,
-    limpa o FK correspondente no Departamento.
+    limpa o FK correspondente no Departamento e sincroniza grupos.
     """
     if instance.funcao == 'lider':
         Departamento.objects.filter(
@@ -493,3 +493,123 @@ def limpar_lider_ao_apagar_mandato(sender, instance, **kwargs):
             pk=instance.departamento_id,
             vice_lider_departamento=instance.irmao,
         ).update(vice_lider_departamento=None)
+    try:
+        irmao = Irmao.objects.select_related('user').get(pk=instance.irmao_id)
+        _sincronizar_grupos_lideranca(irmao)
+    except Irmao.DoesNotExist:
+        pass
+
+
+# =========================================
+# 👥 SINCRONIZAÇÃO DE GRUPOS DE LIDERANÇA
+# =========================================
+
+_GRUPO_LIDER = 'Líder de Departamento'
+_GRUPO_VICE_LIDER = 'Vice-Líder de Departamento'
+
+
+def _sincronizar_grupos_lideranca(irmao):
+    """
+    Garante que os grupos 'Líder de Departamento' e 'Vice-Líder de Departamento'
+    reflectem o estado actual das FKs em Departamento para este irmão.
+    Chamada sempre que lider_departamento ou vice_lider_departamento mudam,
+    quer via edição de Departamento quer via criação/edição/eliminação de Mandato.
+    """
+    if not irmao or not irmao.user_id:
+        return
+    try:
+        user = irmao.user
+    except Exception:
+        return
+
+    try:
+        grupo_lider = Group.objects.get(name=_GRUPO_LIDER)
+        grupo_vice = Group.objects.get(name=_GRUPO_VICE_LIDER)
+    except Group.DoesNotExist:
+        logger.warning('Grupos de liderança não encontrados — execute seed_config_essencial')
+        return
+
+    e_lider = Departamento.objects.filter(lider_departamento=irmao).exists()
+    e_vice = Departamento.objects.filter(vice_lider_departamento=irmao).exists()
+
+    if e_lider:
+        user.groups.add(grupo_lider)
+    else:
+        user.groups.remove(grupo_lider)
+
+    if e_vice:
+        user.groups.add(grupo_vice)
+    else:
+        user.groups.remove(grupo_vice)
+
+
+# Signal: Departamento pre_save — captura valores anteriores
+@receiver(pre_save, sender=Departamento)
+def departamento_pre_save_lideranca(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old = Departamento.objects.get(pk=instance.pk)
+            instance._old_lider_id = old.lider_departamento_id
+            instance._old_vice_lider_id = old.vice_lider_departamento_id
+        except Departamento.DoesNotExist:
+            instance._old_lider_id = None
+            instance._old_vice_lider_id = None
+    else:
+        instance._old_lider_id = None
+        instance._old_vice_lider_id = None
+
+
+# Signal: Departamento post_save — sincroniza grupos para lider/vice afectados
+@receiver(post_save, sender=Departamento)
+def departamento_post_save_lideranca(sender, instance, **kwargs):
+    ids_afectados = set(filter(None, [
+        getattr(instance, '_old_lider_id', None),
+        getattr(instance, '_old_vice_lider_id', None),
+        instance.lider_departamento_id,
+        instance.vice_lider_departamento_id,
+    ]))
+    for irmao_id in ids_afectados:
+        try:
+            irmao = Irmao.objects.select_related('user').get(pk=irmao_id)
+            _sincronizar_grupos_lideranca(irmao)
+        except Irmao.DoesNotExist:
+            pass
+
+
+# Signal: Mandato pre_save — captura estado anterior do mandato e do departamento
+@receiver(pre_save, sender=Mandato)
+def mandato_pre_save_lideranca(sender, instance, **kwargs):
+    # Captura quem é actualmente lider/vice no departamento antes do .update()
+    try:
+        dept = Departamento.objects.get(pk=instance.departamento_id)
+        instance._dept_lider_id = dept.lider_departamento_id
+        instance._dept_vice_id = dept.vice_lider_departamento_id
+    except Departamento.DoesNotExist:
+        instance._dept_lider_id = None
+        instance._dept_vice_id = None
+    # Captura funcao anterior se for edição
+    if instance.pk:
+        try:
+            old = Mandato.objects.get(pk=instance.pk)
+            instance._old_irmao_id = old.irmao_id
+        except Mandato.DoesNotExist:
+            instance._old_irmao_id = None
+    else:
+        instance._old_irmao_id = None
+
+
+# Signal: Mandato post_save — sincroniza grupos para todos os irmaos afectados
+@receiver(post_save, sender=Mandato)
+def mandato_post_save_lideranca(sender, instance, **kwargs):
+    ids_afectados = set(filter(None, [
+        instance.irmao_id,
+        getattr(instance, '_old_irmao_id', None),
+        getattr(instance, '_dept_lider_id', None),
+        getattr(instance, '_dept_vice_id', None),
+    ]))
+    for irmao_id in ids_afectados:
+        try:
+            irmao = Irmao.objects.select_related('user').get(pk=irmao_id)
+            _sincronizar_grupos_lideranca(irmao)
+        except Irmao.DoesNotExist:
+            pass
