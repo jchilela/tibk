@@ -28,6 +28,9 @@ urlpatterns = [
     # App sitetibl
     path('tibl/', include('sitetibl.urls')),
 
+    # django-scheduler (iCal + JSON feeds)
+    path('schedule/', include('schedule.urls')),
+
     # Root redirect
     path('', sitetibl.views.root_redirect, name='index'),
 

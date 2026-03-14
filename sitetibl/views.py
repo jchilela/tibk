@@ -169,7 +169,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
              'bancos': Banco.objects, 
              'contasbancarias' : Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'), 
-             'actividades' : Actividade.objects.select_related('designacao', 'localactividade'), 
+             'actividades' : Actividade.objects.select_related('designacao', 'localactividade').filter(parent_event__isnull=True), 
              'departamentos' : Departamento.objects.select_related('lider_departamento', 'vice_lider_departamento'),
              'entradabancos' : Entradabanco.objects.select_related('contaaacreditar', 'rubrica', 'responsavel'), 
              'saidabancos' : Saidabanco.objects.select_related('conta', 'rubrica', 'responsavel'), 
@@ -3023,3 +3023,74 @@ def escalar_em_massa(request, actividade_id):
                 
     # Redirect back to the details page regardless of success/failure
     return redirect(f'/tibl/actividades/detalhe/{actividade_id}/')
+
+
+# ---------------------------------------------------------------------------
+# FullCalendar JSON feed — actividades
+# ---------------------------------------------------------------------------
+
+@login_required
+def actividades_feed(request):
+    """
+    Endpoint JSON para o FullCalendar.
+    Devolve actividades-filho (ocorrências expandidas) e actividades simples
+    num intervalo de datas fornecido por ?start=YYYY-MM-DD&end=YYYY-MM-DD.
+    """
+    if not request.user.has_perm('sitetibl.view_actividade'):
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    from datetime import date as _date
+    start_str = request.GET.get('start', '')
+    end_str = request.GET.get('end', '')
+    try:
+        start = _date.fromisoformat(start_str[:10])
+        end = _date.fromisoformat(end_str[:10])
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Parâmetros start/end inválidos'}, status=400)
+
+    # Mostrar: ocorrências-filho E actividades normais (não-pai recorrentes)
+    qs = (
+        Actividade.objects
+        .select_related('designacao', 'departamento', 'localactividade', 'parent_event')
+        .filter(data__range=(start, end))
+        .filter(
+            Q(parent_event__isnull=False) |
+            Q(is_recorrente=False, parent_event__isnull=True)
+        )
+    )
+
+    events = []
+    for act in qs:
+        title = str(act.designacao)
+        if act.parent_event_id:
+            title = f'↻ {title}'
+        start_iso = f'{act.data}T{act.inicio}' if act.inicio else str(act.data)
+        end_iso = f'{act.data}T{act.fim}' if act.fim else str(act.data)
+        events.append({
+            'id': act.pk,
+            'title': title,
+            'start': start_iso,
+            'end': end_iso,
+            'url': f'/tibl/actividades/detalhe/{act.pk}/',
+            'classNames': ['recorrente'] if act.parent_event_id else [],
+            'extendedProps': {
+                'departamento': str(act.departamento) if act.departamento else '',
+                'local': str(act.localactividade) if act.localactividade else '',
+                'recorrente': bool(act.parent_event_id),
+            },
+        })
+    return JsonResponse(events, safe=False)
+
+
+# ---------------------------------------------------------------------------
+# Vista de calendário — actividades
+# ---------------------------------------------------------------------------
+
+@login_required
+def actividades_calendario(request):
+    """Vista de calendário visual (FullCalendar v6)."""
+    if not request.user.has_perm('sitetibl.view_actividade'):
+        messages.error(request, 'Não tem permissão para ver o calendário de actividades.')
+        return redirect('sitetibl:comeco')
+    feed_url = '/tibl/api/actividades/feed/'
+    return render(request, 'actividades_calendario.html', {'feed_url': feed_url})

@@ -10,7 +10,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.utils.crypto import get_random_string
 import requests
 
-from .models import Departamento, EnvioMensagem, Irmao, Mandato, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa
+from .models import Departamento, EnvioMensagem, Irmao, Mandato, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa, Actividade
 
 logger = logging.getLogger(__name__)
 
@@ -613,3 +613,84 @@ def mandato_post_save_lideranca(sender, instance, **kwargs):
             _sincronizar_grupos_lideranca(irmao)
         except Irmao.DoesNotExist:
             pass
+
+
+# ---------------------------------------------------------------------------
+# Expansão de ocorrências de actividades recorrentes
+# ---------------------------------------------------------------------------
+
+_FREQ_MAP = None  # importado lazily para evitar import circular ao arrancar
+
+
+def _get_freq_map():
+    global _FREQ_MAP
+    if _FREQ_MAP is None:
+        from dateutil.rrule import WEEKLY, DAILY, MONTHLY
+        _FREQ_MAP = {'WEEKLY': WEEKLY, 'DAILY': DAILY, 'MONTHLY': MONTHLY}
+    return _FREQ_MAP
+
+
+@receiver(post_save, sender=Actividade)
+def expandir_ocorrencias_recorrentes(sender, instance, **kwargs):
+    """
+    Quando se grava uma actividade-pai recorrente com Event configurado,
+    elimina ocorrências-filho existentes e recria-as com base na rrule.
+    bulk_create não dispara post_save, pelo que não há recursão.
+    """
+    import datetime
+    from dateutil.rrule import rrule, MO, TU, WE, TH, FR, SA, SU
+
+    WEEKDAY_MAP = {0: MO, 1: TU, 2: WE, 3: TH, 4: FR, 5: SA, 6: SU}
+
+    # Só processar actividades-pai recorrentes com Event atribuído
+    if not instance.is_recorrente or not instance.event_id or instance.parent_event_id:
+        return
+    if not instance.recorrencia_fim:
+        return
+
+    freq_map = _get_freq_map()
+    event = instance.event
+    freq_str = event.rule.frequency if event.rule_id else 'WEEKLY'
+    freq = freq_map.get(freq_str, freq_map['WEEKLY'])
+
+    hora_inicio = instance.inicio or datetime.time(0, 0)
+    hora_fim = instance.fim or datetime.time(23, 59)
+    dtstart = datetime.datetime.combine(instance.data, hora_inicio)
+    until = datetime.datetime.combine(instance.recorrencia_fim, hora_fim)
+
+    rrule_kwargs = {'dtstart': dtstart, 'until': until}
+    if freq == freq_map['WEEKLY'] and instance.dias_semana:
+        dias = [int(d.strip()) for d in instance.dias_semana.split(',') if d.strip().isdigit()]
+        byweekday = [WEEKDAY_MAP[d] for d in dias if d in WEEKDAY_MAP]
+        if byweekday:
+            rrule_kwargs['byweekday'] = byweekday
+
+    dates = list(rrule(freq, **rrule_kwargs))
+
+    # Eliminar ocorrências existentes
+    Actividade.objects.filter(parent_event=instance).delete()
+
+    # Criar novas ocorrências-filho
+    dur = (datetime.datetime.combine(instance.data, hora_fim)
+           - datetime.datetime.combine(instance.data, hora_inicio))
+    children = []
+    for dt in dates:
+        fim_dt = dt + dur
+        children.append(Actividade(
+            designacao=instance.designacao,
+            inicio=dt.time(),
+            fim=fim_dt.time(),
+            data=dt.date(),
+            tema=instance.tema,
+            localactividade=instance.localactividade,
+            versosbiblicos=instance.versosbiblicos,
+            hinos=instance.hinos,
+            totalpresentes=0,
+            observacao='',
+            departamento=instance.departamento,
+            criado_por=instance.criado_por,
+            is_recorrente=False,
+            parent_event=instance,
+        ))
+    if children:
+        Actividade.objects.bulk_create(children)

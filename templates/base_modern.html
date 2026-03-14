@@ -67,8 +67,8 @@
                 {% endif %}
 
                 {% if perms.sitetibl.view_actividade %}
-                <a href="/tibl/gestao/actividades/1"
-                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
+                <a href="/tibl/actividades/calendario/"
+                    class="nav-item {% if 'actividades' in request.path %}active{% endif %}">
                     <i class="fas fa-calendar-check fa-fw"></i> Actividades
                 </a>
                 {% endif %}

@@ -312,6 +312,16 @@ class Actividade(models.Model):
      recorrencia_fim = models.DateField('Recorrência até', null=True, blank=True)
      dias_semana = models.CharField('Dias da semana', max_length=20, blank=True,
                                     help_text='Números separados por vírgula (0=Segunda … 6=Domingo)')
+     # Ligação ao django-scheduler (motor de recorrência — só nas actividades-pai)
+     event = models.OneToOneField(
+         'schedule.Event', null=True, blank=True, on_delete=models.SET_NULL,
+         related_name='actividade', verbose_name='Evento (scheduler)',
+     )
+     # Actividades-filho (ocorrências expandidas) apontam para a actividade-pai
+     parent_event = models.ForeignKey(
+         'self', null=True, blank=True, on_delete=models.CASCADE,
+         related_name='ocorrencias', verbose_name='Série pai',
+     )
 
      def get_dias_semana_display(self):
          if not self.dias_semana:

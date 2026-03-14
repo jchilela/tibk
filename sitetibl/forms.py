@@ -28,6 +28,8 @@ from sitetibl.models import TipoOferta
 from sitetibl.models import Listaactividades
 
 from django.forms import ModelForm , CheckboxSelectMultiple
+from django.utils import timezone as tz
+from schedule.models import Calendar, Rule, Event as ScheduleEvent
 from django import forms
 from datetime import date, timedelta
 from django.core.validators import RegexValidator
@@ -271,10 +273,20 @@ class ActividadeForm(ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple,
     )
+    frequencia = forms.ChoiceField(
+        choices=[
+            ('WEEKLY', 'Semanal'),
+            ('DAILY', 'Diária'),
+            ('MONTHLY', 'Mensal'),
+        ],
+        label='Frequência',
+        required=False,
+        initial='WEEKLY',
+    )
 
     class Meta:
         model = Actividade
-        exclude = ('participantes', 'criado_por')
+        exclude = ('participantes', 'criado_por', 'event', 'parent_event', 'designacao')
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'inicio': forms.DateInput(attrs={'type': 'time'}),
@@ -291,6 +303,9 @@ class ActividadeForm(ModelForm):
         # Pré-preencher os dias ao editar
         if self.instance and self.instance.pk and self.instance.dias_semana:
             self.initial['dias_semana'] = self.instance.dias_semana.split(',')
+        # Pré-preencher frequência pelo evento existente
+        if self.instance and self.instance.pk and self.instance.event_id:
+            self.initial['frequencia'] = self.instance.event.rule.frequency if self.instance.event.rule else 'WEEKLY'
 
         # Labels legíveis
         self.fields['inicio'].label = 'Hora de Início'
@@ -304,6 +319,7 @@ class ActividadeForm(ModelForm):
         self.fields['departamento'].label = 'Departamento'
         self.fields['is_recorrente'].label = 'É Recorrente?'
         self.fields['recorrencia_fim'].label = 'Recorrência até'
+        self.fields['frequencia'].label = 'Frequência'
 
         # Campos opcionais
         self.fields['totalpresentes'].required = False
@@ -316,7 +332,20 @@ class ActividadeForm(ModelForm):
         self.fields['is_recorrente'].required = False
         self.fields['recorrencia_fim'].required = False
 
-    def save(self, commit=True):
+    def clean(self):
+        import datetime
+        cleaned = super().clean()
+        data = cleaned.get('data')
+        recorrencia_fim = cleaned.get('recorrencia_fim')
+        is_recorrente = cleaned.get('is_recorrente')
+        if data and data < datetime.date.today():
+            self.add_error('data', 'Não é possível criar actividades com data no passado.')
+        if is_recorrente and recorrencia_fim:
+            if data and recorrencia_fim <= data:
+                self.add_error('recorrencia_fim', 'A data de fim da recorrência deve ser posterior à data da actividade.')
+        return cleaned
+
+        import datetime
         nome = self.cleaned_data['designacao'].strip()
         lista_obj, _ = Listaactividades.objects.get_or_create(designacao=nome)
         instance = super().save(commit=False)
@@ -326,6 +355,59 @@ class ActividadeForm(ModelForm):
         # Guardar dias da semana como string separada por vírgula
         dias = self.cleaned_data.get('dias_semana') or []
         instance.dias_semana = ','.join(sorted(dias))
+
+        # Criar / actualizar evento no django-scheduler se recorrente
+        if instance.is_recorrente and instance.recorrencia_fim:
+            frequencia = self.cleaned_data.get('frequencia') or 'WEEKLY'
+            designacao_nome = self.cleaned_data['designacao'].strip()
+            # Params: byweekday apenas faz sentido para WEEKLY com dias seleccionados
+            rule_params = ''
+            if frequencia == 'WEEKLY' and dias:
+                rule_params = 'byweekday:' + ','.join(sorted(dias))
+            rule_name = f'{designacao_nome} ({frequencia})'
+            # Reutilizar ou criar Rule
+            if instance.event and instance.event.rule:
+                rule = instance.event.rule
+                rule.frequency = frequencia
+                rule.params = rule_params
+                rule.name = rule_name
+                rule.description = rule_name
+                rule.save()
+            else:
+                rule = Rule.objects.create(
+                    name=rule_name,
+                    description=rule_name,
+                    frequency=frequencia,
+                    params=rule_params,
+                )
+            # Combinar data + horas para DateTimeField do django-scheduler
+            data_inicio = instance.data
+            hora_inicio = instance.inicio or datetime.time(0, 0)
+            hora_fim = instance.fim or datetime.time(23, 59)
+            recorrencia_fim = instance.recorrencia_fim
+            start_dt = datetime.datetime.combine(data_inicio, hora_inicio)
+            end_dt = datetime.datetime.combine(data_inicio, hora_fim)
+            end_recurring = datetime.datetime.combine(recorrencia_fim, datetime.time(23, 59))
+            calendar = Calendar.objects.get(slug='tibl')
+            if instance.event:
+                ev = instance.event
+                ev.title = designacao_nome
+                ev.start = start_dt
+                ev.end = end_dt
+                ev.rule = rule
+                ev.end_recurring_period = end_recurring
+                ev.save()
+            else:
+                ev = ScheduleEvent.objects.create(
+                    title=designacao_nome,
+                    start=start_dt,
+                    end=end_dt,
+                    rule=rule,
+                    end_recurring_period=end_recurring,
+                    calendar=calendar,
+                )
+            instance.event = ev
+
         if commit:
             instance.save()
             self._save_m2m()

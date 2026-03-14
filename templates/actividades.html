@@ -57,12 +57,20 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de
             Actividades</h2>
-        {% if perms.sitetibl.add_actividade %}
-        <a href="/tibl/actividades/criar/" class="bt-primary"
-            style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
-            <i class="fas fa-plus"></i> Nova Actividade
-        </a>
-        {% endif %}
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+            {% if perms.sitetibl.view_actividade %}
+            <a href="{% url 'sitetibl:actividades_calendario' %}" class="bt-secondary"
+                style="padding: 0.5rem 1.2rem; font-size: 0.9rem;">
+                <i class="fas fa-calendar-alt"></i> Calendário
+            </a>
+            {% endif %}
+            {% if perms.sitetibl.add_actividade %}
+            <a href="/tibl/actividades/criar/" class="bt-primary"
+                style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
+                <i class="fas fa-plus"></i> Nova Actividade
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     {% if bb %}

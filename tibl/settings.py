@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'django_filters',
     'crispy_forms',
     'crispy_bootstrap4',
+    'schedule',
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
