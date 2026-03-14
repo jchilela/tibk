@@ -242,7 +242,6 @@ def mostraGestao(request,gestaoescolhida,pagina):
     elif gestaoescolhida == 'irmaos':
         context = { 'bb':paginaresultado, 'listamunicipios': Municipio.objects.select_related('provincia').order_by('provincia__nome', 'nome') }
     elif gestaoescolhida == 'pedidosaida':
-        from django.db.models import Count
         contagens = dict(
             PedidoSaida.objects.values_list('estado')
             .annotate(c=Count('id'))
