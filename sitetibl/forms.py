@@ -544,6 +544,7 @@ class EscalaForm(ModelForm):
         self.fields['actividade'].label = 'Actividade'
         self.fields['actividade'].queryset = (
             Actividade.objects.select_related('designacao', 'departamento')
+            .filter(parent_event__isnull=True)
             .order_by('data', 'designacao__designacao')
         )
         self.fields['funcao'].label = 'Função'

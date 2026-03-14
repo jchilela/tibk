@@ -996,6 +996,9 @@ def mostraCriacao(request, gestaoescolhida):
                             defaults={'funcao': 'membro'},
                         )
             messages.success(request, 'Dados salvos com sucesso!')
+            # Após criar uma escala, redirecionar para o detalhe da actividade
+            if gestaoescolhida == 'escalas' and hasattr(obj, 'actividade_id') and obj.actividade_id:
+                return redirect(f'/tibl/actividades/detalhe/{obj.actividade_id}/')
             return redirect('index')
         else:
             messages.error(request, 'Foram encontrados erros ao preencher o formulário')
