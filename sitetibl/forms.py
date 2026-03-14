@@ -286,7 +286,7 @@ class ActividadeForm(ModelForm):
 
     class Meta:
         model = Actividade
-        exclude = ('participantes', 'criado_por', 'event', 'parent_event', 'designacao')
+        exclude = ('participantes', 'criado_por', 'event', 'parent_event')
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'inicio': forms.DateInput(attrs={'type': 'time'}),
@@ -332,6 +332,15 @@ class ActividadeForm(ModelForm):
         self.fields['is_recorrente'].required = False
         self.fields['recorrencia_fim'].required = False
 
+    def clean_designacao(self):
+        """Converte a string para instância Listaactividades durante a validação,
+        antes de _post_clean() tentar atribuí-la ao campo FK do modelo."""
+        nome = self.cleaned_data.get('designacao', '').strip()
+        if not nome:
+            raise forms.ValidationError('Este campo é obrigatório.')
+        lista_obj, _ = Listaactividades.objects.get_or_create(designacao=nome)
+        return lista_obj
+
     def clean(self):
         import datetime
         cleaned = super().clean()
@@ -345,11 +354,10 @@ class ActividadeForm(ModelForm):
                 self.add_error('recorrencia_fim', 'A data de fim da recorrência deve ser posterior à data da actividade.')
         return cleaned
 
+    def save(self, commit=True):
         import datetime
-        nome = self.cleaned_data['designacao'].strip()
-        lista_obj, _ = Listaactividades.objects.get_or_create(designacao=nome)
+        # clean_designacao() já devolveu um Listaactividades, super().save() atribui-o correctamente
         instance = super().save(commit=False)
-        instance.designacao = lista_obj
         if instance.totalpresentes is None:
             instance.totalpresentes = 0
         # Guardar dias da semana como string separada por vírgula
@@ -358,13 +366,13 @@ class ActividadeForm(ModelForm):
 
         # Criar / actualizar evento no django-scheduler se recorrente
         if instance.is_recorrente and instance.recorrencia_fim:
+            nome = instance.designacao.designacao
             frequencia = self.cleaned_data.get('frequencia') or 'WEEKLY'
-            designacao_nome = self.cleaned_data['designacao'].strip()
             # Params: byweekday apenas faz sentido para WEEKLY com dias seleccionados
             rule_params = ''
             if frequencia == 'WEEKLY' and dias:
                 rule_params = 'byweekday:' + ','.join(sorted(dias))
-            rule_name = f'{designacao_nome} ({frequencia})'
+            rule_name = f'{nome} ({frequencia})'
             # Reutilizar ou criar Rule
             if instance.event and instance.event.rule:
                 rule = instance.event.rule
@@ -391,7 +399,7 @@ class ActividadeForm(ModelForm):
             calendar = Calendar.objects.get(slug='tibl')
             if instance.event:
                 ev = instance.event
-                ev.title = designacao_nome
+                ev.title = instance.designacao.designacao
                 ev.start = start_dt
                 ev.end = end_dt
                 ev.rule = rule
@@ -399,7 +407,7 @@ class ActividadeForm(ModelForm):
                 ev.save()
             else:
                 ev = ScheduleEvent.objects.create(
-                    title=designacao_nome,
+                    title=instance.designacao.designacao,
                     start=start_dt,
                     end=end_dt,
                     rule=rule,
