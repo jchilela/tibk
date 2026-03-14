@@ -257,6 +257,20 @@ class ActividadeForm(ModelForm):
         max_length=200,
         widget=forms.TextInput(attrs={'placeholder': 'Nome da actividade...'}),
     )
+    dias_semana = forms.MultipleChoiceField(
+        choices=[
+            ('6', 'Domingo'),
+            ('0', 'Segunda-feira'),
+            ('1', 'Terça-feira'),
+            ('2', 'Quarta-feira'),
+            ('3', 'Quinta-feira'),
+            ('4', 'Sexta-feira'),
+            ('5', 'Sábado'),
+        ],
+        label='Dias da Semana',
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     class Meta:
         model = Actividade
@@ -265,6 +279,8 @@ class ActividadeForm(ModelForm):
             'data': forms.DateInput(attrs={'type': 'date'}),
             'inicio': forms.DateInput(attrs={'type': 'time'}),
             'fim': forms.DateInput(attrs={'type': 'time'}),
+            'recorrencia_fim': forms.DateInput(attrs={'type': 'date'}),
+            'is_recorrente': forms.CheckboxInput,
         }
 
     def __init__(self, *args, **kwargs):
@@ -272,6 +288,9 @@ class ActividadeForm(ModelForm):
         # Pré-preencher com o valor actual ao editar
         if self.instance and self.instance.pk and self.instance.designacao_id:
             self.initial['designacao'] = self.instance.designacao.designacao
+        # Pré-preencher os dias ao editar
+        if self.instance and self.instance.pk and self.instance.dias_semana:
+            self.initial['dias_semana'] = self.instance.dias_semana.split(',')
 
         # Labels legíveis
         self.fields['inicio'].label = 'Hora de Início'
@@ -283,6 +302,8 @@ class ActividadeForm(ModelForm):
         self.fields['hinos'].label = 'Hinos'
         self.fields['totalpresentes'].label = 'Total de Presentes'
         self.fields['departamento'].label = 'Departamento'
+        self.fields['is_recorrente'].label = 'É Recorrente?'
+        self.fields['recorrencia_fim'].label = 'Recorrência até'
 
         # Campos opcionais
         self.fields['totalpresentes'].required = False
@@ -292,6 +313,8 @@ class ActividadeForm(ModelForm):
         self.fields['hinos'].required = False
         self.fields['localactividade'].required = False
         self.fields['departamento'].required = False
+        self.fields['is_recorrente'].required = False
+        self.fields['recorrencia_fim'].required = False
 
     def save(self, commit=True):
         nome = self.cleaned_data['designacao'].strip()
@@ -300,6 +323,9 @@ class ActividadeForm(ModelForm):
         instance.designacao = lista_obj
         if instance.totalpresentes is None:
             instance.totalpresentes = 0
+        # Guardar dias da semana como string separada por vírgula
+        dias = self.cleaned_data.get('dias_semana') or []
+        instance.dias_semana = ','.join(sorted(dias))
         if commit:
             instance.save()
             self._save_m2m()

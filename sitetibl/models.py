@@ -290,6 +290,11 @@ class Listaactividades(models.Model):
         pass
 
 class Actividade(models.Model):
+     DIAS_SEMANA_NOMES = {
+         '0': 'Segunda-feira', '1': 'Terça-feira', '2': 'Quarta-feira',
+         '3': 'Quinta-feira', '4': 'Sexta-feira', '5': 'Sábado', '6': 'Domingo',
+     }
+
      designacao = models.ForeignKey(Listaactividades, on_delete = models.CASCADE )
      inicio = models.TimeField(max_length=10)
      fim = models.TimeField(max_length=60)
@@ -303,6 +308,18 @@ class Actividade(models.Model):
      observacao = models.TextField("Observação", blank = True)
      departamento = models.ForeignKey('Departamento', null=True, blank=True, on_delete=models.SET_NULL, related_name='actividades')
      criado_por = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='actividades_criadas')
+     is_recorrente = models.BooleanField('É recorrente', default=False)
+     recorrencia_fim = models.DateField('Recorrência até', null=True, blank=True)
+     dias_semana = models.CharField('Dias da semana', max_length=20, blank=True,
+                                    help_text='Números separados por vírgula (0=Segunda … 6=Domingo)')
+
+     def get_dias_semana_display(self):
+         if not self.dias_semana:
+             return ''
+         return ', '.join(
+             self.DIAS_SEMANA_NOMES.get(d.strip(), d.strip())
+             for d in self.dias_semana.split(',')
+         )
      def __str__(self):
          return '%s %s' % (self.designacao, self.data)
      class Admin:

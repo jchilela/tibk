@@ -1910,30 +1910,22 @@ def criar_actividades_recorrentes(request):
             data_inicio = form.cleaned_data['data_inicio']
             data_fim = form.cleaned_data['data_fim']
             dias_semana = [int(d) for d in form.cleaned_data['dias_semana']]
+            dias_semana_str = ','.join(str(d) for d in sorted(dias_semana))
 
-            current = data_inicio
-            criadas = []
-            while current <= data_fim:
-                if current.weekday() in dias_semana:
-                    a = Actividade.objects.create(
-                        designacao=tipo,
-                        departamento=departamento,
-                        localactividade=localactividade,
-                        inicio=inicio,
-                        fim=fim,
-                        data=current,
-                        criado_por=request.user,
-                    )
-                    criadas.append(a)
-                current += timedelta(days=1)
+            Actividade.objects.create(
+                designacao=tipo,
+                departamento=departamento,
+                localactividade=localactividade,
+                inicio=inicio,
+                fim=fim,
+                data=data_inicio,
+                is_recorrente=True,
+                recorrencia_fim=data_fim,
+                dias_semana=dias_semana_str,
+                criado_por=request.user,
+            )
 
-            if criadas:
-                messages.success(
-                    request,
-                    f'{len(criadas)} actividade{"s" if len(criadas) != 1 else ""} criada{"s" if len(criadas) != 1 else ""} com sucesso.'
-                )
-            else:
-                messages.warning(request, 'Nenhuma actividade criada. Verifique o intervalo de datas e os dias seleccionados.')
+            messages.success(request, f'Série recorrente "{tipo_nome}" criada com sucesso.')
             return redirect('sitetibl:mostra_gestao', gestaoescolhida='actividades', pagina=1)
     else:
         form = ActividadesRecorrentesForm()
