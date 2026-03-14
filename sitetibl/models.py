@@ -603,8 +603,20 @@ class RelatorioSemanalCelula(models.Model):
     
 
 class PedidoSaida(models.Model):
+    ESTADO_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('em_analise', 'Em Análise'),
+        ('aprovado', 'Aprovado'),
+        ('rejeitado', 'Rejeitado'),
+    ]
+    PAGAMENTO_CHOICES = [
+        ('nao_aplicavel', 'Não Aplicável'),
+        ('aguardando', 'Aguardando Pagamento'),
+        ('pago', 'Pago'),
+    ]
+
     departamento = models.ForeignKey(Departamento, null=True, blank=True, on_delete=models.CASCADE)
-    projecto = models.CharField(max_length=100)
+    projecto = models.CharField('Projecto / Finalidade', max_length=100)
     montante = models.FloatField()
     moeda = models.ForeignKey(Tipo_Moeda, null=True, blank=True, on_delete=models.CASCADE)
     centro_custo = models.ForeignKey(Centro_Custo, null=True, blank=True, on_delete=models.CASCADE)
@@ -612,9 +624,18 @@ class PedidoSaida(models.Model):
     tipificacao_custo = models.ForeignKey(Tipificacao_Custo, null=True, blank=True, on_delete=models.CASCADE)
     iban = models.CharField(max_length=50)
     justificativa_custo = models.TextField()
-    documento_justificativo = models.FileField(upload_to='', blank=True,) 
+    documento_justificativo = models.FileField(upload_to='pedidos/', blank=True)
+    # Aprovação
     status_de_aprovacao = models.ForeignKey(Status_Aprovacao, null=True, blank=True, on_delete=models.CASCADE)
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_CHOICES, default='pendente')
     aprovador = models.ForeignKey(Irmao, blank=True, null=True, default=None, on_delete = models.CASCADE, related_name='aprovador')
+    observacao_aprovador = models.TextField('Observação do Aprovador', blank=True)
+    data_aprovacao = models.DateTimeField('Data de Aprovação', null=True, blank=True)
+    # Efectivação / Pagamento
+    estado_pagamento = models.CharField('Estado de Pagamento', max_length=20, choices=PAGAMENTO_CHOICES, default='nao_aplicavel')
+    comprovativo_pagamento = models.FileField('Comprovativo de Pagamento', upload_to='comprovativos/', blank=True)
+    data_pagamento = models.DateTimeField('Data de Pagamento', null=True, blank=True)
+    # Timestamps
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
     def __str__(self):

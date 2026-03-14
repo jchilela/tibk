@@ -193,6 +193,12 @@ def mostraGestao(request,gestaoescolhida,pagina):
         resultado = lista[gestaoescolhida].filter(**kwargs).order_by('id')
     elif (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].prefetch_related('mandato_set__departamento').all().order_by('nome','outrosnomes')
+    elif gestaoescolhida == 'pedidosaida':
+        qs = lista[gestaoescolhida].all()
+        estado_filtro = request.GET.get('estado', '').strip()
+        if estado_filtro:
+            qs = qs.filter(estado=estado_filtro)
+        resultado = qs.order_by('-data_criacao')
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
@@ -216,6 +222,20 @@ def mostraGestao(request,gestaoescolhida,pagina):
         context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
     elif gestaoescolhida == 'irmaos':
         context = { 'bb':paginaresultado, 'listamunicipios': Municipio.objects.select_related('provincia').order_by('provincia__nome', 'nome') }
+    elif gestaoescolhida == 'pedidosaida':
+        from django.db.models import Count
+        contagens = dict(
+            PedidoSaida.objects.values_list('estado')
+            .annotate(c=Count('id'))
+            .values_list('estado', 'c')
+        )
+        context = {
+            'bb': paginaresultado,
+            'estado_filtro': request.GET.get('estado', ''),
+            'estado_choices': PedidoSaida.ESTADO_CHOICES,
+            'contagem_por_estado': contagens,
+            'total_pedidos': sum(contagens.values()),
+        }
     else:
         context = { 'bb':paginaresultado, 'listameses' : MESES }
 
@@ -339,23 +359,6 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'Já existe outra actividade neste dia com horário diferente. '
                         'Se for num local diferente, pode prosseguir normalmente.'
                     )
-
-            if gestaoescolhida == 'pedidosaida':
-                # só define aprovador se o estado NÃO for nulo
-                if obj.status_de_aprovacao is not None:
-                    try:
-                        obj.aprovador = Irmao.objects.get(user=request.user)
-                    except Irmao.DoesNotExist:
-                        messages.error(
-                            request,
-                            'O utilizador logado não está associado a nenhum Irmão.'
-                        )
-                        return render(request, 'formulario_actualizacao.html', {
-                            'formulario': formulario
-                        })
-                else:
-                    # se o estado for null, garante que o aprovador também fica null
-                    obj.aprovador = None
 
             obj.save()
             messages.success(request, 'Actualização foi bem sucedida')
@@ -727,6 +730,60 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'gestaoescolhida': gestaoescolhida,
             'mandatos_irmao': mandatos_irmao,
         }
+    elif gestaoescolhida == 'pedidosaida':
+        pode_aprovar = request.user.has_perm('sitetibl.change_pedidosaida')
+
+        if request.method == 'POST' and pode_aprovar:
+            action = request.POST.get('action', '').strip()
+            irmao_logado = Irmao.objects.filter(user=request.user).first()
+
+            if action == 'aprovar':
+                registo.estado = 'aprovado'
+                registo.estado_pagamento = 'aguardando'
+                registo.aprovador = irmao_logado
+                registo.observacao_aprovador = request.POST.get('observacao', '').strip()
+                registo.data_aprovacao = now()
+                registo.save()
+                messages.success(request, 'Pedido aprovado com sucesso.')
+
+            elif action == 'rejeitar':
+                obs = request.POST.get('observacao', '').strip()
+                if not obs:
+                    messages.error(request, 'É obrigatório indicar o motivo da rejeição.')
+                else:
+                    registo.estado = 'rejeitado'
+                    registo.estado_pagamento = 'nao_aplicavel'
+                    registo.aprovador = irmao_logado
+                    registo.observacao_aprovador = obs
+                    registo.data_aprovacao = now()
+                    registo.save()
+                    messages.success(request, 'Pedido rejeitado.')
+
+            elif action == 'em_analise':
+                registo.estado = 'em_analise'
+                registo.save(update_fields=['estado', 'data_atualizacao'])
+                messages.info(request, 'Pedido marcado como "Em Análise".')
+
+            elif action == 'marcar_pago':
+                comprovativo = request.FILES.get('comprovativo')
+                if not comprovativo:
+                    messages.error(request, 'Anexe o comprovativo de pagamento.')
+                else:
+                    registo.estado_pagamento = 'pago'
+                    registo.comprovativo_pagamento = comprovativo
+                    registo.data_pagamento = now()
+                    registo.save()
+                    messages.success(request, 'Pagamento registado com sucesso.')
+
+            return HttpResponseRedirect(
+                reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+            )
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'pode_aprovar': pode_aprovar,
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
@@ -863,6 +920,15 @@ def mostraCriacao(request, gestaoescolhida):
             if gestaoescolhida == 'actividades':
                 obj.criado_por = request.user
                 obj.save(update_fields=['criado_por'])
+
+            # 📋 Pedido de Saída: definir requerente e estado inicial
+            if gestaoescolhida == 'pedidosaida':
+                irmao_req = Irmao.objects.filter(user=request.user).first()
+                if irmao_req:
+                    obj.requerente = irmao_req
+                obj.estado = 'pendente'
+                obj.estado_pagamento = 'nao_aplicavel'
+                obj.save(update_fields=['requerente', 'estado', 'estado_pagamento'])
 
             # Se for Irmão e o utilizador escolheu departamentos, criar Mandatos
             if gestaoescolhida == 'irmaos':

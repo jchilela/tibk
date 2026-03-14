@@ -495,14 +495,20 @@ class  RelatorioSemanalCelulaForm(ModelForm):
 class PedidoSaidaForm(ModelForm):
     class Meta:
         model = PedidoSaida
-        fields = '__all__'
-        exclude = ['status_de_aprovacao', 'aprovador']
+        fields = [
+            'departamento', 'projecto', 'montante', 'moeda',
+            'centro_custo', 'tipificacao_custo', 'iban',
+            'justificativa_custo', 'documento_justificativo',
+        ]
 
 class PedidoSaidaUpdateForm(ModelForm):
     class Meta:
         model = PedidoSaida
-        fields = '__all__'
-        exclude = ['aprovador']
+        fields = [
+            'departamento', 'projecto', 'montante', 'moeda',
+            'centro_custo', 'tipificacao_custo', 'iban',
+            'justificativa_custo', 'documento_justificativo',
+        ]
 
 class OrcamentoDepartamentoForm(ModelForm):
     class Meta:
