@@ -14,8 +14,8 @@
     padding: 1.5rem;
   }
   .fc-event.recorrente {
-    background-color: #7c3aed !important;
-    border-color: #5b21b6 !important;
+    /* cores geridas directamente no JSON feed — override residual */
+    font-weight: 500;
   }
   .fc-toolbar-title {
     font-family: 'Inter', sans-serif;
@@ -58,8 +58,8 @@
   </div>
 
   <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center; font-size: 0.85rem; color: #555;">
-    <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--primary,#1b4d3e);margin-right:4px;"></span>Actividade normal</span>
-    <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#7c3aed;margin-right:4px;"></span>Ocorrência recorrente</span>
+    <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#1b4d3e;margin-right:4px;"></span>Actividade normal</span>
+    <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#0369a1;margin-right:4px;"></span>Ocorrência recorrente</span>
   </div>
 
   <div id="calendar-wrapper">

@@ -3071,6 +3071,9 @@ def actividades_feed(request):
             'start': start_iso,
             'end': end_iso,
             'url': f'/tibl/actividades/detalhe/{act.pk}/',
+            'backgroundColor': '#1b4d3e',
+            'borderColor': '#163d31',
+            'textColor': '#ffffff',
             'classNames': [],
             'extendedProps': {
                 'departamento': str(act.departamento) if act.departamento else '',
@@ -3138,6 +3141,9 @@ def actividades_feed(request):
                 'start': occ_dt.strftime('%Y-%m-%dT%H:%M:%S'),
                 'end': fim_dt.strftime('%Y-%m-%dT%H:%M:%S'),
                 'url': f'/tibl/actividades/detalhe/{parent.pk}/',
+                'backgroundColor': '#0369a1',
+                'borderColor': '#075985',
+                'textColor': '#ffffff',
                 'classNames': ['recorrente'],
                 'extendedProps': {
                     'departamento': str(parent.departamento) if parent.departamento else '',
