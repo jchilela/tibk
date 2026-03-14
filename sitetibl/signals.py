@@ -1,7 +1,7 @@
 import logging
 
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.core.mail import send_mass_mail
 from django.template.loader import render_to_string
@@ -10,7 +10,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.utils.crypto import get_random_string
 import requests
 
-from .models import EnvioMensagem, Irmao, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa
+from .models import Departamento, EnvioMensagem, Irmao, Mandato, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa
 
 logger = logging.getLogger(__name__)
 
@@ -358,3 +358,25 @@ def auto_vincular_caixa_com_dizimos(sender, instance, created, **kwargs):
     Procura dízimos/ofertas com mesma data, valor e moeda e vincula automaticamente.
     """
     tentar_vincular_caixa_com_dizimos(instance)
+
+
+# =========================================
+# 🔄 SINCRONIZAR DEPARTAMENTO AO APAGAR MANDATO
+# =========================================
+
+@receiver(post_delete, sender=Mandato)
+def limpar_lider_ao_apagar_mandato(sender, instance, **kwargs):
+    """
+    Quando um Mandato é apagado, se era líder ou vice-líder,
+    limpa o FK correspondente no Departamento.
+    """
+    if instance.funcao == 'lider':
+        Departamento.objects.filter(
+            pk=instance.departamento_id,
+            lider_departamento=instance.irmao,
+        ).update(lider_departamento=None)
+    elif instance.funcao == 'vice_lider':
+        Departamento.objects.filter(
+            pk=instance.departamento_id,
+            vice_lider_departamento=instance.irmao,
+        ).update(vice_lider_departamento=None)

@@ -460,9 +460,33 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     mandato_existente = Mandato.objects.filter(
                         departamento_id=identificador,
                         irmao_id=irmao_id,
-                    ).exists()
+                    ).first()
+
+                    # Funções exclusivas: só pode haver um por departamento
+                    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
+                    if funcao in FUNCOES_EXCLUSIVAS:
+                        ocupante = Mandato.objects.filter(
+                            departamento_id=identificador,
+                            funcao=funcao,
+                        ).select_related('irmao').first()
+                        if ocupante and str(ocupante.irmao_id) != irmao_id:
+                            nome_anterior = f'{ocupante.irmao.nome} {ocupante.irmao.apelido}'
+                            ocupante.funcao = 'membro'
+                            ocupante.save(update_fields=['funcao'])
+                            funcao_display = dict(Mandato.FUNCAO_CHOICES).get(funcao, funcao)
+                            messages.warning(
+                                request,
+                                f'{nome_anterior} deixou de ser {funcao_display} e voltou a ser Membro.'
+                            )
+
                     if mandato_existente:
-                        messages.warning(request, 'Este membro já pertence a este departamento.')
+                        # Membro já existe — actualizar a função
+                        if mandato_existente.funcao != funcao:
+                            mandato_existente.funcao = funcao
+                            mandato_existente.save(update_fields=['funcao'])
+                            messages.success(request, 'Função do membro actualizada com sucesso.')
+                        else:
+                            messages.warning(request, 'Este membro já pertence a este departamento com essa função.')
                     else:
                         try:
                             Mandato.objects.create(
@@ -480,6 +504,11 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 if mandato is None:
                     messages.error(request, 'Registo de mandato nao encontrado para este departamento.')
                 else:
+                    # Limpar FK do Departamento se removendo lider/vice_lider
+                    if mandato.funcao == 'lider':
+                        Departamento.objects.filter(pk=identificador, lider_departamento=mandato.irmao).update(lider_departamento=None)
+                    elif mandato.funcao == 'vice_lider':
+                        Departamento.objects.filter(pk=identificador, vice_lider_departamento=mandato.irmao).update(vice_lider_departamento=None)
                     mandato.delete()
                     messages.success(request, 'Membro removido do departamento com sucesso.')
 
@@ -1520,6 +1549,11 @@ def encontraDepartamentos(request):
     if funcaov:
         kwargs['funcao'] = funcaov
     resultado = Mandato.objects.values('departamento_id', 'departamento__designacao', 'funcao', 'irmao__nome', 'irmao__apelido').filter(**kwargs).order_by('departamento__designacao')
+    # Mapear valor bruto do cargo para etiqueta legível
+    cargo_map = dict(Mandato.FUNCAO_CHOICES)
+    resultado = list(resultado)
+    for r in resultado:
+        r['cargo_display'] = cargo_map.get(r['funcao'], r['funcao'])
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())

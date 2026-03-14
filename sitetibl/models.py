@@ -198,13 +198,37 @@ class Mandato(models.Model):
         ('tesoureiro', 'Tesoureiro(a)'),
         ('coordenador', 'Coordenador(a)'),
     ]
+    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
+
     irmao = models.ForeignKey(Irmao, verbose_name = 'Irmão', on_delete = models.CASCADE)
     departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE)
-    funcao = models.CharField('Função', max_length=20, choices=FUNCAO_CHOICES, default='membro')
+    funcao = models.CharField('Cargo', max_length=20, choices=FUNCAO_CHOICES, default='membro')
     inicio = models.DateField('Desde', blank = True, null = True)
     fim = models.DateField('Até', blank = True, null = True)
     def __str__(self):
         return '%s — %s (%s)' % (self.irmao, self.departamento, self.get_funcao_display())
+
+    def save(self, *args, **kwargs):
+        if self.funcao in self.FUNCOES_EXCLUSIVAS:
+            qs = Mandato.objects.filter(
+                departamento=self.departamento, funcao=self.funcao,
+            )
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                qs.update(funcao='membro')
+        super().save(*args, **kwargs)
+
+        # Sincronizar FK do Departamento com mandato lider/vice_lider
+        if self.funcao == 'lider':
+            Departamento.objects.filter(pk=self.departamento_id).update(lider_departamento=self.irmao)
+        elif self.funcao == 'vice_lider':
+            Departamento.objects.filter(pk=self.departamento_id).update(vice_lider_departamento=self.irmao)
+        else:
+            # Se deixou de ser líder/vice, limpar FK correspondente
+            Departamento.objects.filter(pk=self.departamento_id, lider_departamento=self.irmao).update(lider_departamento=None)
+            Departamento.objects.filter(pk=self.departamento_id, vice_lider_departamento=self.irmao).update(vice_lider_departamento=None)
+
     class Admin:
         pass
     class Meta:

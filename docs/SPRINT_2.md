@@ -170,3 +170,161 @@ URL: `actividades/recorrentes/`
 - [ ] Criar no mesmo dia, horário diferente → aviso mas guarda
 - [ ] Formulário recorrente: Domingo + Quarta, 3 semanas → 6 actividades criadas
 - [ ] Filtrar escalas por departamento → mostra apenas as desse dept
+
+---
+
+## 8. Restrições de Líder de Departamento (LD/VLD)
+
+### 8.1 Gestão de Membros Restrita ao Próprio Departamento
+
+**Ficheiro:** `sitetibl/views.py` (`mostraDetalhe` — `departamentos`)
+
+- `pode_gerir_membros` agora exige: ser líder/vice do departamento **ou** ter `change_mandato` (papel elevado).
+- LD/VLD de outro departamento não consegue adicionar/remover membros.
+- Verificação usa `Departamento.lider_departamento_id` e `vice_lider_departamento_id`.
+
+### 8.2 Propriedade de Actividades por Departamento
+
+**Ficheiro:** `sitetibl/views.py` (`mostraActualizacao`, `mostraEliminacao`)
+
+LD/VLD pode editar/eliminar actividades se:
+1. `criado_por == request.user`, **ou**
+2. Lidera o departamento associado à actividade (via `Departamento.lider_departamento`/`vice_lider_departamento`).
+
+### 8.3 Departamento Não Editável pelo LD
+
+**Ficheiro:** `sitetibl/management/commands/seed_base_data.py`
+
+- LD perdeu `change_departamento` → só pode `view_departamento`.
+- Impede que LD altere o nome/descrição do departamento; só gere membros e funções.
+
+### 8.4 Cargos Exclusivos nos Mandatos
+
+**Ficheiro:** `sitetibl/models.py` (`Mandato.save()`)
+
+Funções exclusivas (apenas 1 por departamento): `lider`, `vice_lider`, `secretario`, `tesoureiro`, `coordenador`.
+
+Ao atribuir um cargo exclusivo já ocupado:
+- O ocupante anterior é automaticamente rebaixado a **Membro**.
+- Mensagem de aviso: *"Fulano deixou de ser Líder e voltou a ser Membro."*
+
+---
+
+## 9. Funções de Escalas por Departamento
+
+### 9.1 Modelo `Funcao` — Campo `departamento`
+
+**Ficheiro:** `sitetibl/models.py`, `sitetibl/migrations/0083_funcao_departamento.py`
+
+```python
+departamento = ForeignKey('Departamento', null=True, blank=True, on_delete=SET_NULL, related_name='funcoes')
+```
+- `departamento=None` → função genérica (disponível para todos).
+- `departamento=X` → função específica desse departamento.
+
+### 9.2 Gestão de Funções no Detalhe do Departamento
+
+**Ficheiro:** `sitetibl/views.py` (`mostraDetalhe` — `departamentos`), `templates/departamentosdetalhado.html`
+
+Secção "Funções do Departamento" com:
+- Lista de funções em chips/pills com botão remover.
+- Protecção: não remove funções em uso por escalas.
+- Formulário inline para adicionar novas funções.
+- Permissão: LD/VLD do departamento ou quem tenha `add_funcao`.
+
+### 9.3 API Cascading: Actividade → Função
+
+**Ficheiros:** `sitetibl/views.py` (`api_funcoes_por_actividade`), `sitetibl/urls.py`, `templates/formulario_criacao.html`
+
+Endpoint: `GET /tibl/api/funcoes-actividade/<id>/`
+- Retorna funções do departamento da actividade **+** funções genéricas.
+- Dropdown de função no formulário de criação de escalas actualiza-se via AJAX ao seleccionar actividade.
+
+### 9.4 Permissões de Funções no Seeder
+
+**Ficheiro:** `sitetibl/management/commands/seed_base_data.py`
+
+| Grupo | Permissões `funcao` |
+|---|---|
+| Líder de Departamento | `add`, `change`, `delete`, `view` |
+| Vice-Líder de Departamento | `add`, `view` |
+
+---
+
+## 10. Clarificação Terminológica: Cargo vs Função
+
+### Problema
+O termo "Função" era usado para dois conceitos distintos, causando confusão na UI:
+
+| Antes | Contexto | Exemplo |
+|---|---|---|
+| Função (Mandato) | Papel organizativo no departamento | Líder, Vice-Líder, Membro |
+| Função (Funcao) | Papel nas escalas/actividades | Pregador, Louvor, Som |
+
+### Solução
+
+| Conceito | Termo na UI | Modelo | Exemplo |
+|---|---|---|---|
+| Papel no departamento | **Cargo** | `Mandato.funcao` | Líder, Vice-Líder, Secretário, Membro |
+| Papel nas escalas | **Função** | `Funcao` (modelo) | Pregador, Louvor, Técnico de Som |
+
+**Ficheiros alterados:**
+- `sitetibl/models.py` — verbose_name `'Função'` → `'Cargo'`
+- `templates/departamentosdetalhado.html` — cabeçalho tabela e label → "Cargo"
+- `templates/departamentos.html` — filtro de pesquisa → "Cargo"
+- `templates/mandatos.html` — cabeçalho tabela → "Cargo"
+- `templates/mandatosdetalhado.html` — detalhe → "Cargo"
+- `templates/departamentosfiltrados.html` — cabeçalho → "Cargo" + correcção exibição (valor bruto → `cargo_display`)
+
+---
+
+## 11. Sincronização de Liderança (Mandato ↔ Departamento)
+
+### Problema
+`Departamento.lider_departamento` (FK) e `Mandato.funcao='lider'` podiam apontar para pessoas diferentes, levando a inconsistências entre a listagem de departamentos e os mandatos.
+
+### Solução — Mandato como fonte única de verdade
+
+| Mecanismo | Ficheiro | Descrição |
+|---|---|---|
+| `Mandato.save()` | `sitetibl/models.py` | Ao gravar mandato com cargo `lider`/`vice_lider`, actualiza o FK do Departamento. Ao alterar para outro cargo, limpa o FK. |
+| `post_delete` signal | `sitetibl/signals.py` | Ao apagar mandato de líder/vice, limpa o FK correspondente. |
+| Comando `sync_lideranca` | `sitetibl/management/commands/sync_lideranca.py` | Comando de manutenção: `python manage.py sync_lideranca` — percorre todos os departamentos e corrige FKs com base nos mandatos existentes. |
+
+---
+
+## Grupos de Permissão (estado final actualizado)
+
+| Grupo | Total Perms |
+|---|---|
+| Administrador | 176 (todas) |
+| Pastor | 58 |
+| Secretaria | 60 |
+| Financeiro | 45 |
+| Líder de Departamento | 29 |
+| Vice-Líder de Departamento | 24 |
+| Líder de Célula | 9 |
+| Membros Baptizados | 9 |
+| Membro Geral | 3 |
+
+---
+
+## Verificação (Checklist actualizado)
+
+- [ ] `seed_base_data` → LD sem `change_departamento`, com `funcao` crud
+- [ ] LD tenta editar mandato alheio → bloqueado por perm
+- [ ] URL directa `/mandatos/actualizar/1/` como LD → "Acesso negado"
+- [ ] LD edita actividade que não criou e não é do seu dept → bloqueado
+- [ ] LD edita actividade do seu departamento → permitido
+- [ ] Criar actividade com horário sobreponível → erro imediato
+- [ ] Criar no mesmo dia, horário diferente → aviso mas guarda
+- [ ] Formulário recorrente: Domingo + Quarta, 3 semanas → 6 actividades criadas
+- [ ] Filtrar escalas por departamento → mostra apenas as desse dept
+- [ ] LD adiciona membro noutro departamento → bloqueado
+- [ ] Atribuir cargo "Líder" a novo membro → antigo líder rebaixado a Membro
+- [ ] Adicionar função ao departamento → aparece nas chips
+- [ ] Remover função em uso por escala → aviso e bloqueio
+- [ ] Criar escala: seleccionar actividade → dropdown funções filtra por dept
+- [ ] Templates mostram "Cargo" (mandato) e "Função" (escalas) sem confusão
+- [ ] Mandatos Executivos e Departamentos mostram mesmo líder
+- [ ] `python manage.py sync_lideranca` → corrige inconsistências

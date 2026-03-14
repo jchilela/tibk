@@ -135,7 +135,7 @@
                         <thead>
                             <tr>
                                 <th>Irmão</th>
-                                <th>Função</th>
+                                <th>Cargo</th>
                                 <th>Periodo</th>
                                 <th style="text-align: right;">Acção</th>
                             </tr>
@@ -196,7 +196,7 @@
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Função</label>
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Cargo</label>
                             <select name="funcao" style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px;">
                                 {% for value, label in funcao_choices %}
                                 <option value="{{ value }}"{% if value == "membro" %} selected{% endif %}>{{ label }}</option>
