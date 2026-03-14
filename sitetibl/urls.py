@@ -11,6 +11,7 @@ urlpatterns = [
     path('gestao/<gestaoescolhida>/<int:pagina>/', views.mostraGestao, name='mostra_gestao'),
     path('<gestaoescolhida>/detalhe/<int:identificador>/', views.mostraDetalhe, name='mostra_detalhe'),
     path('<gestaoescolhida>/detalhe/<int:identificador>', views.mostraDetalhe, name='mostra_detalhe_legacy'),
+    path('actividades/recorrentes/', views.criar_actividades_recorrentes, name='criar_actividades_recorrentes'),
     path('<gestaoescolhida>/criar/', views.mostraCriacao, name='mostra_criacao'),
     path('<gestaoescolhida>/actualizar/<int:id>/', views.mostraActualizacao, name='mostra_actualizacao'),
     path('<gestaoescolhida>/eliminar/<int:id>/', views.mostraEliminacao, name='mostra_eliminacao'),
@@ -40,12 +41,21 @@ urlpatterns = [
     path('actividade/<int:actividade_id>/escalas/', views.EscalasPorActividadeView.as_view(), name='escalas_por_actividade'),
     path('actividade/<int:actividade_id>/escalar-massa/', views.escalar_em_massa, name='escalar_em_massa'),
 
+    # API: municípios por província (cascading dropdown)
+    path('api/municipios/<int:provincia_id>/', views.api_municipios, name='api_municipios'),
+    path('api/funcoes-actividade/<int:actividade_id>/', views.api_funcoes_por_actividade, name='api_funcoes_actividade'),
+
     # Rotas legadas preservadas para compatibilidade entre branches
     path('contasbancarias/inativar/<int:id>/', views.inativaContabancaria, name='inativaContabancaria'),
     path('contasbancarias/reativar/<int:id>/', views.reativaContabancaria, name='reativaContabancaria'),
     path('contasbancarias/inativas/', views.contasbancariasinativas, name='contasbancariasinativas'),
     path('relatoriodizimosmembro/', views.relatoriodizimosmembro, name='relatoriodizimosmembro'),
+    path('relatoriodizimosmembro/pdf/', views.relatoriodizimosmembro_pdf, name='relatoriodizimosmembro_pdf'),
     path('relatorioofertasportipo/', views.relatorioofertasportipo, name='relatorioofertasportipo'),
+    path('relatorioofertasportipo/pdf/', views.relatorioofertasportipo_pdf, name='relatorioofertasportipo_pdf'),
     path('dizimos/recibo/<int:dizimo_id>/visualizar/', views.visualizar_recibo_dizimo, name='visualizar_recibo_dizimo'),
     path('dizimos/recibo/<int:dizimo_id>/', views.gerar_recibo_dizimo, name='gerar_recibo_dizimo'),
+
+    # Perfil pessoal
+    path('meu-perfil/', views.meu_perfil, name='meu_perfil'),
 ]

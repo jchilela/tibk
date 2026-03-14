@@ -11,15 +11,34 @@ from django.db.models.functions import Coalesce
 from django.core.exceptions import ValidationError
 
 # Create your models here.
-PROVINCIAS = (('BNG','Bengo'),('BGL','Benguela'),('BIE','Bié'),('CAB','Cabinda'),('CNE','Cunene'),('HMB','Huambo'),('HLA','Huila'),('KKG','Kuando kubango'),('KZN','Kuanza Norte'),('KZS','Kuanza Sul'),('LDA','Luanda'),('LDN','Lunda Norte'),('LDS','Lunda Sul'),('MLG','Malange'),('MXC','Moxico'),('NMB','Namibe'),('UGE','Uige'),('ZAR','Zaire'))
 MESES = (('1','Janeiro'),('2','Fevereiro'),('3','Março'),('4','Abril'),('5','Maio'),('6','Junho'),('7','Julho'),('8','Agosto'),('9','Setembro'),('10','Outubro'),('9','Novembro'),('10','Dezembro'))
 MOEDA = (('AKZ','Kwanza'),('USD','USA Dólar'),('EU','Euro'),('R','Reais'),('RAN','ZA Rands'),('NAMD','Dólar Namibiano'), ('LB','Libra Inglesa'))
-MUNICIPIOO = (('BE','Belas'),('CZ','Cazenga'),('KK','Kilamba Kiaxi'),('LU','Luanda'),('CA','Cacuaco'),('IC','Icolo e Bengo'),('TT','Talatona'),('VI','Viana'),('QU','Quissama'))
 SEMANA = (('Seg','Segunda'),('Ter','Terça'),('Qua','Quarta'),('Qui','Quinta'),('Sex','Sexta'),('Sab','Sábado'),('Dom','Domingo'))
 ACTIVO = (('sim','Sim'),('nao','Não'),)
 VIA = (('1','Depósito'),('2','Transferência bancária'),('3','Multicaixa'),)
 
 
+
+class Provincia(models.Model):
+     nome = models.CharField(max_length=50, unique=True)
+     codigo = models.CharField(max_length=3, unique=True)
+     class Meta:
+         ordering = ['nome']
+         verbose_name = 'Província'
+         verbose_name_plural = 'Províncias'
+     def __str__(self):
+         return self.nome
+
+class Municipio(models.Model):
+     nome = models.CharField(max_length=100)
+     provincia = models.ForeignKey(Provincia, on_delete=models.CASCADE, related_name='municipios')
+     class Meta:
+         ordering = ['nome']
+         verbose_name = 'Município'
+         verbose_name_plural = 'Municípios'
+         unique_together = ['nome', 'provincia']
+     def __str__(self):
+         return self.nome
 
 class Profissao(models.Model):
     designacao = models.CharField(max_length = 200, unique = True)
@@ -70,6 +89,7 @@ class Tipo_Moeda(models.Model):
 class Funcao(models.Model):
      designacao = models.CharField(max_length=50, unique = True )
      descricao = models.TextField("Descrição", blank=True)
+     departamento = models.ForeignKey('Departamento', null=True, blank=True, on_delete=models.SET_NULL, related_name='funcoes')
      def __str__(self):
          return '%s' % self.designacao
      class Admin:
@@ -102,8 +122,8 @@ class Sitio(models.Model):
      designacao = models.CharField('Designação', max_length =100, unique = True)
      ruaenumero = models.CharField("Rua e Número", max_length=60, blank=True)
      bairro = models.CharField(max_length=30, blank=True)
-     municipio = models.CharField(max_length=60, blank=True)
-     provincia = models.CharField(max_length=30, choices = PROVINCIAS, default = "LDA")
+     provincia = models.ForeignKey(Provincia, verbose_name="Província", on_delete=models.SET_NULL, null=True, blank=True)
+     municipio = models.ForeignKey(Municipio, verbose_name="Município", on_delete=models.SET_NULL, null=True, blank=True)
      dataFundacao = models.DateField("Data de Fundação",blank=True, null=True, default=None)
      numerodemembros = models.IntegerField(default=0)
      tipo = models.CharField(max_length=3, choices = TIPO)
@@ -125,13 +145,13 @@ class Pessoa(models.Model):
      datanascimento = models.DateField("Data de Nascimento", blank=True, null = True)
      estadocivil = models.CharField("Estado Civil",max_length=30, choices = ESTADO_CIVIL, default = "S")
      grauescolaridade = models.CharField("Grau de Escolaridade",max_length=50, choices = ESCOLARIDADE, blank=True)
-     profissao = models.ForeignKey(Profissao, on_delete = models.CASCADE, null = True, blank=True)
+     profissao = models.CharField("Profissão", max_length=100, blank=True, default="")
      especialidade = models.CharField("Especialidade",max_length=50, blank=True)
      localdetrabalho = models.CharField("Local de Trabalho",max_length=50, blank=True)
      ruaenumero = models.CharField("Rua e Número",max_length=60,blank=True)
      bairro = models.CharField(max_length=50, blank=True)
-     municipio = models.CharField("Município",max_length=50, choices = MUNICIPIOO, blank=True)
-     provincia = models.CharField("Província",max_length=50, choices = PROVINCIAS, default = "LDA")
+     provincia = models.ForeignKey(Provincia, verbose_name="Província", on_delete=models.SET_NULL, null=True, blank=True)
+     municipio = models.ForeignKey(Municipio, verbose_name="Município", on_delete=models.SET_NULL, null=True, blank=True)
      telefone = models.CharField("Telefones",max_length=50, blank=True)
      telefonewhatsapp = models.CharField("Telefone do Whatsapp",max_length=50, blank=True)
      email = models.EmailField( blank=True)
@@ -170,17 +190,49 @@ class Departamento(models.Model):
          pass
 
 class Mandato(models.Model):
+    FUNCAO_CHOICES = [
+        ('membro', 'Membro'),
+        ('lider', 'Líder'),
+        ('vice_lider', 'Vice-Líder'),
+        ('secretario', 'Secretário(a)'),
+        ('tesoureiro', 'Tesoureiro(a)'),
+        ('coordenador', 'Coordenador(a)'),
+    ]
+    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
+
     irmao = models.ForeignKey(Irmao, verbose_name = 'Irmão', on_delete = models.CASCADE)
     departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE)
-    cargo = models.ForeignKey(Cargo, on_delete = models.CASCADE)
+    funcao = models.CharField('Cargo', max_length=20, choices=FUNCAO_CHOICES, default='membro')
     inicio = models.DateField('Desde', blank = True, null = True)
     fim = models.DateField('Até', blank = True, null = True)
     def __str__(self):
-        return ('%s %s %s') % (self.irmao, self.departamento, self.cargo)
+        return '%s — %s (%s)' % (self.irmao, self.departamento, self.get_funcao_display())
+
+    def save(self, *args, **kwargs):
+        if self.funcao in self.FUNCOES_EXCLUSIVAS:
+            qs = Mandato.objects.filter(
+                departamento=self.departamento, funcao=self.funcao,
+            )
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                qs.update(funcao='membro')
+        super().save(*args, **kwargs)
+
+        # Sincronizar FK do Departamento com mandato lider/vice_lider
+        if self.funcao == 'lider':
+            Departamento.objects.filter(pk=self.departamento_id).update(lider_departamento=self.irmao)
+        elif self.funcao == 'vice_lider':
+            Departamento.objects.filter(pk=self.departamento_id).update(vice_lider_departamento=self.irmao)
+        else:
+            # Se deixou de ser líder/vice, limpar FK correspondente
+            Departamento.objects.filter(pk=self.departamento_id, lider_departamento=self.irmao).update(lider_departamento=None)
+            Departamento.objects.filter(pk=self.departamento_id, vice_lider_departamento=self.irmao).update(vice_lider_departamento=None)
+
     class Admin:
         pass
     class Meta:
-         unique_together = ('irmao', 'departamento', 'cargo','inicio')
+         unique_together = ('irmao', 'departamento')
 
 class Banco(models.Model):
      designacao = models.CharField('Designação', max_length =100, unique = True)
@@ -249,6 +301,8 @@ class Actividade(models.Model):
      participantes = models.ManyToManyField(Irmao, through='Escala', related_name = 'particact')
      totalpresentes = models.IntegerField(default = 2)
      observacao = models.TextField("Observação", blank = True)
+     departamento = models.ForeignKey('Departamento', null=True, blank=True, on_delete=models.SET_NULL, related_name='actividades')
+     criado_por = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='actividades_criadas')
      def __str__(self):
          return '%s %s' % (self.designacao, self.data)
      class Admin:
@@ -446,6 +500,17 @@ class Dizimooferta(models.Model):
     dataregisto = models.DateField(default = datetime.today)
     entradabanco = models.ForeignKey(Entradabanco, blank = True, null = True, on_delete = models.CASCADE)
     entradacaixa = models.ForeignKey(Entradacaixa, blank = True, null = True, on_delete = models.CASCADE)
+
+    def clean(self):
+        if self.entradabanco and self.entradacaixa:
+            raise ValidationError(
+                "O dízimo/oferta só pode estar vinculado ao banco ou à caixa, nunca aos dois."
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return '%s %s' % (self.irmao, self.datacorrespondente)
     class Admin:
@@ -538,8 +603,20 @@ class RelatorioSemanalCelula(models.Model):
     
 
 class PedidoSaida(models.Model):
+    ESTADO_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('em_analise', 'Em Análise'),
+        ('aprovado', 'Aprovado'),
+        ('rejeitado', 'Rejeitado'),
+    ]
+    PAGAMENTO_CHOICES = [
+        ('nao_aplicavel', 'Não Aplicável'),
+        ('aguardando', 'Aguardando Pagamento'),
+        ('pago', 'Pago'),
+    ]
+
     departamento = models.ForeignKey(Departamento, null=True, blank=True, on_delete=models.CASCADE)
-    projecto = models.CharField(max_length=100)
+    projecto = models.CharField('Projecto / Finalidade', max_length=100)
     montante = models.FloatField()
     moeda = models.ForeignKey(Tipo_Moeda, null=True, blank=True, on_delete=models.CASCADE)
     centro_custo = models.ForeignKey(Centro_Custo, null=True, blank=True, on_delete=models.CASCADE)
@@ -547,9 +624,18 @@ class PedidoSaida(models.Model):
     tipificacao_custo = models.ForeignKey(Tipificacao_Custo, null=True, blank=True, on_delete=models.CASCADE)
     iban = models.CharField(max_length=50)
     justificativa_custo = models.TextField()
-    documento_justificativo = models.FileField(upload_to='', blank=True,) 
+    documento_justificativo = models.FileField(upload_to='pedidos/', blank=True)
+    # Aprovação
     status_de_aprovacao = models.ForeignKey(Status_Aprovacao, null=True, blank=True, on_delete=models.CASCADE)
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_CHOICES, default='pendente')
     aprovador = models.ForeignKey(Irmao, blank=True, null=True, default=None, on_delete = models.CASCADE, related_name='aprovador')
+    observacao_aprovador = models.TextField('Observação do Aprovador', blank=True)
+    data_aprovacao = models.DateTimeField('Data de Aprovação', null=True, blank=True)
+    # Efectivação / Pagamento
+    estado_pagamento = models.CharField('Estado de Pagamento', max_length=20, choices=PAGAMENTO_CHOICES, default='nao_aplicavel')
+    comprovativo_pagamento = models.FileField('Comprovativo de Pagamento', upload_to='comprovativos/', blank=True)
+    data_pagamento = models.DateTimeField('Data de Pagamento', null=True, blank=True)
+    # Timestamps
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
     def __str__(self):

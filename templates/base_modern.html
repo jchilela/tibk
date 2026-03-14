@@ -60,110 +60,150 @@
                     <i class="fas fa-user-clock fa-fw"></i> <span>As Minhas Escalas</span>
                 </a>
 
+                {% if perms.sitetibl.view_irmao %}
                 <a href="/tibl/gestao/irmaos/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
                     <i class="fas fa-users fa-fw"></i> <span>Irmãos</span>
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_actividade %}
                 <a href="/tibl/gestao/actividades/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'actividades' %}active{% endif %}">
                     <i class="fas fa-calendar-check fa-fw"></i> Actividades
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_escala %}
                 <a href="/tibl/gestao/escalas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
                     <i class="fas fa-clipboard-list fa-fw"></i> Escalas
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_departamento %}
                 <a href="/tibl/gestao/departamentos/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'departamentos' %}active{% endif %}">
                     <i class="fas fa-sitemap fa-fw"></i> Departamentos
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_mandato %}
                 <a href="/tibl/gestao/mandatos/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
                     <i class="fas fa-handshake fa-fw"></i> Mandatos
                 </a>
+                {% endif %}
 
-                {% if request.user|has_group:'Administrador' or request.user|has_group:'Financeiro' %}
+                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco or perms.sitetibl.view_pedidosaida %}
                 <div class="nav-section-title">Financeiro</div>
 
+                {% if perms.sitetibl.view_contabancaria %}
                 <a href="/tibl/gestao/contasbancarias/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
                     <i class="fas fa-university fa-fw"></i> Contas Bancárias
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_dizimooferta %}
                 <a href="/tibl/gestao/dizimosofertas/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'dizimosofertas' %}active{% endif %}">
                     <i class="fas fa-hand-holding-heart fa-fw"></i> Dízimos e Ofertas
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_entradabanco %}
                 <a href="/tibl/gestao/entradabancos/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradabancos' %}active{% endif %}">
                     <i class="fas fa-arrow-circle-right fa-fw"></i> Entrada (Banco)
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_saidabanco %}
                 <a href="/tibl/gestao/saidabancos/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidabancos' %}active{% endif %}">
                     <i class="fas fa-arrow-circle-left fa-fw"></i> Saída (Banco)
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_entradacaixa %}
                 <a href="/tibl/gestao/entradascaixa/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradascaixa' %}active{% endif %}">
                     <i class="fas fa-coins fa-fw"></i> Entrada (Caixa)
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_saidacaixa %}
                 <a href="/tibl/gestao/saidascaixa/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
                     <i class="fas fa-money-bill-wave fa-fw"></i> Saída (Caixa)
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_pedidosaida %}
                 <a href="/tibl/gestao/pedidosaida/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
                     <i class="fas fa-file-invoice-dollar fa-fw"></i> Pedidos de Saída
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_orcamentodepartamento %}
                 <a href="/tibl/gestao/orcamentodepartamento/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
                     <i class="fas fa-chart-pie fa-fw"></i> Orçamento Dept.
                 </a>
                 {% endif %}
+                {% endif %}
 
+                {% if perms.sitetibl.view_ajuda or perms.sitetibl.view_cesta or perms.sitetibl.view_relatoriosemanalcelula or perms.sitetibl.view_conteudoensino or perms.sitetibl.view_enviomensagem %}
                 <div class="nav-section-title">Social & Comunidade</div>
 
+                {% if perms.sitetibl.view_ajuda %}
                 <a href="/tibl/gestao/ajudas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'ajudas' %}active{% endif %}">
                     <i class="fas fa-hands-helping fa-fw"></i> Ajudas
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_cesta %}
                 <a href="/tibl/gestao/cestas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'cestas' %}active{% endif %}">
                     <i class="fas fa-shopping-basket fa-fw"></i> Cestas Básicas
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_relatoriosemanalcelula %}
                 <a href="/tibl/gestao/relatoriosemanalcelula/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
                     <i class="fas fa-book fa-fw"></i> Relatório Células
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_conteudoensino %}
                 <a href="/tibl/gestao/conteudoensino/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
                     <i class="fas fa-graduation-cap fa-fw"></i> Conteúdo Ensino
                 </a>
+                {% endif %}
 
+                {% if perms.sitetibl.view_enviomensagem %}
                 <a href="/tibl/gestao/enviomensagem/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'enviomensagem' %}active{% endif %}">
                     <i class="fas fa-envelope fa-fw"></i> Envio Mensagem
                 </a>
+                {% endif %}
+                {% endif %}
 
+                {% if perms.sitetibl.view_inventariopatrimonio %}
                 <div class="nav-section-title">Administração</div>
 
                 <a href="/tibl/gestao/inventariopatrimonio/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
                     <i class="fas fa-boxes-stacked fa-fw"></i> Património
                 </a>
+                {% endif %}
 
                 <a href="{% url 'pagina_relatorios' %}" class="nav-item" target="_blank">
                     <i class="fas fa-file-pdf fa-fw"></i> Relatórios PDF
                 </a>
 
-                {% if request.user|has_group:'Administrador' %}
+                {% if request.user.is_staff %}
                 <a href="/admin/" class="nav-item" target="_blank">
                     <i class="fas fa-cog fa-fw"></i> Admin Django
                 </a>
@@ -198,12 +238,7 @@
                     <span style="color: var(--text-main); font-weight: 600;">{% if request.resolver_match.kwargs.gestaoescolhida %}{{ request.resolver_match.kwargs.gestaoescolhida|title|replace:"_, " }}{% elif request.resolver_match.url_name %}{{ request.resolver_match.url_name|title|replace:"_, " }}{% endif %}</span>
                 </div>
 
-                <div class="topbar-search">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="global-search" placeholder="Filtrar dados na página..." autocomplete="off">
-                </div>
-
-                <div class="user-info" style="gap: 1.5rem;">
+                <div class="user-info" style="gap: 1.5rem; margin-left: auto;">
                     <!-- Table Export -->
                     <button class="d-none d-md-flex" id="global-export-btn"
                         style="background:none; border:none; cursor:pointer; color:var(--primary); font-size:1.1rem; display:none;"
@@ -232,7 +267,10 @@
                             {% else %}Usuário{% endif %}
                         </div>
                     </div>
-                    <div class="user-avatar">{{ request.user.username|first|upper }}</div>
+                    <a href="{% url 'sitetibl:meu_perfil' %}" title="O meu perfil"
+                        style="text-decoration: none;">
+                        <div class="user-avatar">{{ request.user.username|first|upper }}</div>
+                    </a>
                 </div>
             </header>
             {% endif %}

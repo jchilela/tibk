@@ -5,17 +5,38 @@
     <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">GestÃ£o de Escalas
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">Gestão de Escalas
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">OrganizaÃ§Ã£o de membros por actividade e funÃ§Ã£o.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Organização de membros por actividade e função.</p>
         </div>
+        {% if perms.sitetibl.add_escala %}
         <a href="/tibl/escalas/criar/" class="bt-primary"
             style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
             <i class="fas fa-calendar-plus"></i> Nova Escala
         </a>
+        {% endif %}
     </div>
 
     {% if bb %}
+
+    <!-- Filtro por Departamento -->
+    <div class="modern-card" style="margin-bottom: 1.5rem;">
+        <form action="/tibl/buscaescalas/" method="GET" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Departamento</label>
+                <select name="departamentov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Todos os departamentos</option>
+                    {% for d in departamentos %}
+                    <option value="{{ d.id }}" {% if departamentov_sel == d.id|stringformat:"i" %}selected{% endif %}>{{ d.designacao }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="bt-primary" style="padding: 0.6rem 1.5rem; font-size: 0.9rem; color: white; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+        </form>
+    </div>
+
     {% regroup bb by actividade as escalas_por_actividade %}
 
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
@@ -55,18 +76,22 @@
                             </span>
                         </div>
                         <div style="display: flex; gap: 0.3rem;">
+                            {% if perms.sitetibl.change_escala %}
                             <a href="/tibl/escalas/actualizar/{{ escala.id }}"
                                 style="color: var(--text-muted); padding: 0.4rem; border-radius: 4px; transition: background 0.2s;"
                                 onmouseover="this.style.background='#f1f5f9'"
                                 onmouseout="this.style.background='transparent'">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            {% endif %}
+                            {% if perms.sitetibl.delete_escala %}
                             <a href="/tibl/escalas/eliminar/{{ escala.id }}"
                                 style="color: #ef4444; padding: 0.4rem; border-radius: 4px; transition: background 0.2s;"
                                 onmouseover="this.style.background='#fee2e2'"
                                 onmouseout="this.style.background='transparent'">
                                 <i class="fas fa-trash"></i>
                             </a>
+                            {% endif %}
                         </div>
                     </li>
                     {% endfor %}
@@ -92,7 +117,7 @@
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Escalas Ativas</h3>
-        <p style="color: var(--text-muted);">NÃ£o existem escalas de serviÃ§o registadas para este perÃ­odo.</p>
+        <p style="color: var(--text-muted);">Não existem escalas de serviço registadas para este período.</p>
     </div>
     {% endif %}
 </div>

@@ -41,14 +41,18 @@
             </div>
 
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                {% if perms.sitetibl.change_saidacaixa %}
                 <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                     style="padding: 0.6rem 1.25rem; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 15px rgba(46,125,50,0.2);">
                     <i class="fas fa-edit"></i> Editar
                 </a>
+                {% endif %}
+                {% if perms.sitetibl.delete_saidacaixa %}
                 <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-danger"
                     style="padding: 0.6rem 1.25rem; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 15px rgba(239,68,68,0.2);">
                     <i class="fas fa-trash"></i> Eliminar
                 </a>
+                {% endif %}
             </div>
         </div>
     </div>

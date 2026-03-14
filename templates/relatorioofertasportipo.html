@@ -5,6 +5,9 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Relatório de Ofertas por Tipo</h2>
         <div style="display: flex; gap: 0.8rem;">
+            <a href="/tibl/relatorioofertasportipo/pdf/{% if query_string %}?{{ query_string }}{% endif %}" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--accent); color: white;">
+                <i class="fas fa-file-pdf"></i> Exportar PDF
+            </a>
             <button onclick="window.print()" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--primary); color: white;">
                 <i class="fas fa-print"></i> Imprimir
             </button>
@@ -69,7 +72,7 @@
             </div>
             <div style="padding: 1rem; background: linear-gradient(135deg, #27ae60, #229954); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Moeda</div>
-                <div style="font-size: 2rem; font-weight: 700;">AKZ</div>
+                <div style="font-size: 2rem; font-weight: 700;">{% if moeda_resumo == "MULTI" %}Multimoeda{% else %}{{ moeda_resumo }}{% endif %}</div>
             </div>
         </div>
     </div>
@@ -80,6 +83,7 @@
                 <tr>
                     <th style="text-align: left;">Tipo de Oferta</th>
                     <th style="text-align: right;">Total Arrecadado</th>
+                    <th style="text-align: center;">Moeda</th>
                     <th style="text-align: right;">Nº Registos</th>
                 </tr>
             </thead>
@@ -89,7 +93,9 @@
                     <td style="font-weight: 600;">{{ row.tipooferta__designacao|default:"Geral" }}</td>
                     <td style="text-align: right;">
                         <span style="font-weight: 700; color: var(--primary); font-size: 1.1rem;">{{ row.total|floatformat:2 }}</span>
-                        <span style="font-size: 0.75rem; color: var(--text-muted);"> AKZ</span>
+                    </td>
+                    <td style="text-align: center; color: var(--text-muted);">
+                        {{ row.moeda }}
                     </td>
                     <td style="text-align: right;">
                         <span style="background: var(--bg-sidebar); padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); font-weight: 600; color: white;">{{ row.count }}</span>
@@ -101,9 +107,10 @@
             <tfoot>
                 <tr style="background: var(--bg-sidebar); font-weight: 700; border-top: 2px solid var(--primary);">
                     <td style="color: white;">Total Geral</td>
-                    <td style="text-align: right; color: var(--primary);">
-                        {{ total_geral|floatformat:2 }} AKZ
+                    <td style="text-align: right; color: white;">
+                        {{ total_geral|floatformat:2 }}
                     </td>
+                    <td style="text-align: center; color: white;">{% if moeda_resumo == "MULTI" %}Multimoeda{% else %}{{ moeda_resumo }}{% endif %}</td>
                     <td></td>
                 </tr>
             </tfoot>

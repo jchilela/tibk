@@ -138,19 +138,48 @@ All project templates must start with:
 
 ---
 
-## 5. User Groups and Access Control
+## 5. User Groups, Permissions and Access Control
 
-The project uses standard Django groups (`django.contrib.auth.models.Group`).
+The project uses **Django permissions as the source of truth**. Groups are bundles of permissions, assigned via the seeder (`seed_base_data.py`).
 
 ### Existing groups:
 
-- `Administrador`
-- `Financeiro`
-- `Secretaria`
-- `Membros Baptizados`
-- `Membro Geral`
+| Group | Scope |
+|---|---|
+| `Administrador` | All `sitetibl` permissions (176) |
+| `Pastor` | Supervisão pastoral — CRUD actividades/membros/pedidos, view financeiro (58) |
+| `Financeiro` | CRUD financeiro + aprovação de pedidos + view membros (45) |
+| `Secretaria` | CRUD membros/actividades/comunicação + view financeiro (60) |
+| `Líder de Departamento` | CRUD actividades/escalas/mandatos do dept, cria pedidos, envia mensagens (37) |
+| `Vice-Líder de Departamento` | CRUD actividades/escalas/mandatos do dept, cria pedidos (26) |
+| `Líder de Célula` | Relatórios semanais (CRU) + view membros/actividades (9) |
+| `Membros Baptizados` | View maioria + add relatório + view escalas (11) |
+| `Membro Geral` | View actividade, departamento, conteúdo, anúncios (4) |
 
-### Custom filter `has_group` (in `verificagrupo.py`):
+### Authorization in templates — use `perms.*`:
+
+```django
+{# CORRECT — permission-based #}
+{% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco %}
+  {# financial menu #}
+{% endif %}
+
+{% if request.user.is_staff %}
+  <a href="/admin/">Admin</a>
+{% endif %}
+```
+
+> ⚠️ **Do NOT use `has_group` for authorization.** Use it only for display/label purposes (e.g., showing the user's role badge).
+
+### Authorization in views — use `has_perm()`:
+
+```python
+perm = f'{model._meta.app_label}.change_{model._meta.model_name}'
+if not request.user.has_perm(perm):
+    raise PermissionDenied
+```
+
+### Custom filter `has_group` — display only (in `verificagrupo.py`):
 
 ```python
 # Location: sitetibl/templatetags/verificagrupo.py
@@ -161,10 +190,12 @@ def has_group(user, group_name):
     return group_name in user._group_cache
 ```
 
-**To use in templates:**
+**Allowed usage — role label display only:**
 ```django
 {% load verificagrupo %}
-{% if request.user|has_group:"Administrador" %}...{% endif %}
+{% if request.user|has_group:"Administrador" %}
+  <span class="badge">Admin</span>
+{% endif %}
 ```
 
 > ⚠️ `is_superuser=True` **DOES NOT imply belonging to a group**. A superuser must be explicitly added to the `Administrador` group for `has_group` to work.

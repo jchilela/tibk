@@ -23,23 +23,14 @@
                 <label>Município</label>
                 <select name="municipiov">
                     <option value="0">Todos</option>
-                    {% if listamunicipios %}
-                        {% for x, y in listamunicipios.items %}
-                            <option value="{{ x }}">{{ y }}</option>
-                        {% endfor %}
-                    {% endif %}
+                    {% for mun in listamunicipios %}
+                        <option value="{{ mun.id }}">{{ mun.nome }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="filter-field">
                 <label>Profissão</label>
-                <select name="profissaov">
-                    <option value="0">Todas</option>
-                    {% if listaprofissoes %}
-                        {% for x in listaprofissoes %}
-                            <option value="{{ x.id }}">{{ x.designacao }}</option>
-                        {% endfor %}
-                    {% endif %}
-                </select>
+                <input type="text" name="profissaov" placeholder="Pesquisar profissão..." value="">
             </div>
             <input type="hidden" name="pagina" value="1">
             <div style="display: flex; align-items: flex-end;">
@@ -53,9 +44,11 @@
     <!-- Header -->
     <div class="page-header">
         <h2><i class="fas fa-users"></i> Lista de Irmãos</h2>
+        {% if perms.sitetibl.add_irmao %}
         <a href="/tibl/irmaos/criar/" class="bt-primary">
             <i class="fas fa-plus"></i> Novo Irmão
         </a>
+        {% endif %}
     </div>
 
     {% if bb %}
@@ -78,7 +71,7 @@
                             </div>
                             <div>
                                 <div style="font-weight: 600; color: var(--text-main);">{{ x.nome }} {{ x.outrosnomes }} {{ x.apelido }}</div>
-                                <div style="font-size: 0.72rem; color: var(--text-muted);">Membro Registado</div>
+                                <div style="font-size: 0.72rem; color: var(--text-muted);">{% for m in x.mandato_set.all %}{{ m.departamento.designacao }}{% if not forloop.last %}, {% endif %}{% empty %}Sem departamento{% endfor %}</div>
                             </div>
                         </div>
                     </td>
@@ -86,7 +79,7 @@
                         <i class="fas fa-phone-alt" style="font-size: 0.75rem; margin-right: 4px; color: var(--primary-light);"></i> {{ x.telefone|default:"—" }}
                     </td>
                     <td style="text-align: right;">
-                        <a href="/tibl/irmaos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+                        <a href="/tibl/irmaos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.9rem; font-size: 0.8rem; color: white;">
                             <i class="fas fa-eye"></i>
                             <span style="display: none;" class="btn-text"> Detalhes</span>
                         </a>

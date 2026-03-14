@@ -3,137 +3,212 @@
 {% load static %}
 
 {% if registoachado %}
-<div class="profile-container" style="max-width: 950px; margin: 0 auto; padding-bottom: 4rem;">
+<div class="profile-container" style="max-width: 1000px; margin: 0 auto; padding-bottom: 4rem;">
     {% for x in registoachado %}
 
-    <!-- Request Header Card -->
-    <div class="modern-card"
-        style="margin-bottom: 2rem; border-left: 6px solid var(--primary); background: linear-gradient(135deg, white, #f1f8ed); display: flex; justify-content: space-between; align-items: start;">
-        <div style="flex-grow: 1;">
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                <span
-                    style="font-size: 0.75rem; color: white; background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700;">RequisiÃ§Ã£o
-                    de SaÃ­da</span>
-                <span class="badge"
-                    style="background: {% if x.status_de_aprovacao.designacao == 'Aprovado' %}#dcfce7; color: #166534;{% elif x.status_de_aprovacao.designacao == 'Pendente' %}#fef9c3; color: #854d0e;{% else %}#fee2e2; color: #991b1b;{% endif %} padding: 4px 12px; border-radius: 20px; font-weight: 700;">
-                    {{ x.status_de_aprovacao.designacao }}
-                </span>
+    <!-- Header -->
+    <div class="modern-card" style="margin-bottom: 2rem; border-left: 6px solid {% if x.estado == 'aprovado' %}#10b981{% elif x.estado == 'rejeitado' %}#ef4444{% elif x.estado == 'em_analise' %}#3b82f6{% else %}#f59e0b{% endif %}; background: linear-gradient(135deg, white, #f8fafc);">
+        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+            <div style="flex-grow: 1;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                    <span style="font-size: 0.7rem; background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Requisição de Saída</span>
+                    <span style="display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; {% if x.estado == 'pendente' %}background: #fef3c7; color: #92400e;{% elif x.estado == 'em_analise' %}background: #dbeafe; color: #1e40af;{% elif x.estado == 'aprovado' %}background: #dcfce7; color: #166534;{% elif x.estado == 'rejeitado' %}background: #fee2e2; color: #991b1b;{% endif %}">{{ x.get_estado_display }}</span>
+                    {% if x.estado == 'aprovado' %}
+                    <span style="display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; {% if x.estado_pagamento == 'pago' %}background: #dcfce7; color: #166534;{% elif x.estado_pagamento == 'aguardando' %}background: #fef3c7; color: #92400e;{% else %}background: #f1f5f9; color: #64748b;{% endif %}"><i class="fas fa-money-bill-wave" style="margin-right: 4px;"></i>{{ x.get_estado_pagamento_display }}</span>
+                    {% endif %}
+                </div>
+                <h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.montante|floatformat:2 }} {% if x.moeda %}{{ x.moeda.designacao }}{% endif %}</h1>
+                <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500; margin-top: 0.5rem;">
+                    <i class="fas fa-project-diagram" style="color: var(--primary); margin-right: 0.5rem;"></i>{{ x.projecto }}
+                </p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Ref: #REQ-{{ x.id }} &middot; Criado: {{ x.data_criacao|date:"d/m/Y H:i" }}</p>
             </div>
-            <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.montante|floatformat:2 }} {{ x.moeda.designacao }}</h1>
-            <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
-                <i class="fas fa-project-diagram mr-2" style="color: var(--primary);"></i> Projecto: {{ x.projecto }}
-            </p>
-        </div>
-        <div style="display: flex; gap: 0.75rem;">
-            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
-                style="padding: 0.6rem 1rem;">
-                <i class="fas fa-edit"></i> Editar
-            </a>
-            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
-                style="background-color: #ef4444; padding: 0.6rem 1rem;">
-                <i class="fas fa-trash"></i> Eliminar
-            </a>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% if x.estado == 'pendente' or x.estado == 'em_analise' %}
+                {% if perms.sitetibl.change_pedidosaida %}
+                <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-edit"></i> Editar</a>
+                {% endif %}
+                {% endif %}
+                {% if perms.sitetibl.delete_pedidosaida %}
+                <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary" style="background-color: #ef4444; padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-trash"></i> Eliminar</a>
+                {% endif %}
+                <a href="/tibl/gestao/pedidosaida/1" class="bt-primary" style="background-color: #64748b; padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-arrow-left"></i> Voltar</a>
+            </div>
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
-        <!-- General Info -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem;">
+
+        <!-- Detalhes da Requisição -->
         <div class="modern-card">
-            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-file-alt mr-2"></i> Detalhes da RequisiÃ§Ã£o
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem; font-size: 1rem;">
+                <i class="fas fa-file-alt" style="margin-right: 0.5rem;"></i>Detalhes da Requisição
             </h3>
-
-            <div class="detail-row"
-                style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
-                <span style="color: var(--text-muted); font-weight: 500;">Departamento</span>
-                <span style="font-weight: 600;">{{ x.departamento.designacao }}</span>
-            </div>
-
-            <div class="detail-row"
-                style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
-                <span style="color: var(--text-muted); font-weight: 500;">Centro de Custo</span>
-                <span style="font-weight: 600;">{{ x.centro_custo.designacao }}</span>
-            </div>
-
-            <div class="detail-row"
-                style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
-                <span style="color: var(--text-muted); font-weight: 500;">TipificaÃ§Ã£o de Custo</span>
-                <span style="font-weight: 600;">{{ x.tipificacao_custo.designacao }}</span>
-            </div>
-
-            <div class="detail-row"
-                style="margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; display: flex; justify-content: space-between;">
-                <span style="color: var(--text-muted); font-weight: 500;">IBAN de Destino</span>
-                <span style="font-family: monospace; font-weight: 700;">{{ x.iban }}</span>
-            </div>
-
-            <div style="margin-top: 1.5rem;">
-                <label
-                    style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Justificativa
-                    de Custo</label>
-                <div
-                    style="background: rgba(0,0,0,0.02); padding: 1rem; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.6; border: 1px solid rgba(0,0,0,0.05);">
-                    {{ x.justificativa_custo|default:"Sem justificaÃ§Ã£o detalhada." }}
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">Departamento</span>
+                    <span style="font-weight: 600;">{% if x.departamento %}{{ x.departamento.designacao }}{% else %}&mdash;{% endif %}</span>
                 </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">Centro de Custo</span>
+                    <span style="font-weight: 600;">{% if x.centro_custo %}{{ x.centro_custo.designacao }}{% else %}&mdash;{% endif %}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">Tipificação de Custo</span>
+                    <span style="font-weight: 600;">{% if x.tipificacao_custo %}{{ x.tipificacao_custo.designacao }}{% else %}&mdash;{% endif %}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">IBAN de Destino</span>
+                    <span style="font-family: monospace; font-weight: 700; font-size: 0.9rem;">{{ x.iban }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">Requerente</span>
+                    <span style="font-weight: 600;">{% if x.requerente %}{{ x.requerente.nome }} {{ x.requerente.apelido }}{% else %}&mdash;{% endif %}</span>
+                </div>
+            </div>
+            <div style="margin-top: 1.25rem;">
+                <label style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: 0.5px;">Justificativa de Custo</label>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; font-size: 0.9rem; line-height: 1.6; border: 1px solid #e2e8f0;">{% if x.justificativa_custo %}{{ x.justificativa_custo }}{% else %}Sem justificação detalhada.{% endif %}</div>
             </div>
         </div>
 
-        <!-- workflow & Document -->
-        <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <!-- Coluna direita: Workflow + Documentos -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+            <!-- Workflow de Aprovação -->
             <div class="modern-card" style="position: relative; overflow: hidden;">
-                <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                    <i class="fas fa-check-double mr-2"></i> Workflow de AprovaÃ§Ã£o
+                <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem; font-size: 1rem;">
+                    <i class="fas fa-tasks" style="margin-right: 0.5rem;"></i>Workflow de Aprovação
                 </h3>
 
-                <div
-                    style="padding: 1rem; background: #f8fafc; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div
-                            style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user-check"></i>
-                        </div>
-                        <div>
-                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Aprovador ResponsÃ¡vel</p>
-                            <p style="font-weight: 700; color: var(--text-main); margin: 0;">{{ x.aprovador.nome }} {{ x.aprovador.apelido }}</p>
-                        </div>
+                <!-- Timeline -->
+                <div style="position: relative; padding-left: 2rem; margin-bottom: 1.5rem;">
+                    <!-- Criação -->
+                    <div style="position: relative; padding-bottom: 1.25rem;">
+                        <div style="position: absolute; left: -1.5rem; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center;"><i class="fas fa-plus" style="color: white; font-size: 0.5rem;"></i></div>
+                        <div style="border-left: 2px solid #e2e8f0; position: absolute; left: -0.6rem; top: 22px; height: calc(100% - 22px);"></div>
+                        <p style="font-weight: 600; font-size: 0.85rem; margin: 0;">Pedido criado</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">{{ x.data_criacao|date:"d/m/Y H:i" }} {% if x.requerente %}&middot; {{ x.requerente }}{% endif %}</p>
                     </div>
-                    <div
-                        style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
-                        <span>Criado em: {{ x.data_criacao|date:"d/m/Y H:i" }}</span>
-                        <span>Atualizado: {{ x.data_atualizacao|date:"d/m/Y H:i" }}</span>
+                    <!-- Análise -->
+                    {% if x.estado == 'em_analise' or x.estado == 'aprovado' or x.estado == 'rejeitado' %}
+                    <div style="position: relative; padding-bottom: 1.25rem;">
+                        <div style="position: absolute; left: -1.5rem; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center;"><i class="fas fa-search" style="color: white; font-size: 0.5rem;"></i></div>
+                        <div style="border-left: 2px solid #e2e8f0; position: absolute; left: -0.6rem; top: 22px; height: calc(100% - 22px);"></div>
+                        <p style="font-weight: 600; font-size: 0.85rem; margin: 0;">Em análise</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">Pedido em revisão pelo financeiro</p>
                     </div>
-                </div>
-
-                <div class="modern-card" style="border: 1px dashed var(--primary); background: white;">
-                    <h4
-                        style="font-size: 0.85rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-file-contract"></i> Documento Justificativo
-                    </h4>
-                    {% if x.documento_justificativo %}
-                    <div
-                        style="display: flex; align-items: center; justify-content: space-between; background: #f1f8ed; padding: 0.75rem; border-radius: 8px;">
-                        <span style="font-size: 0.85rem; font-weight: 500;"><i class="fas fa-paperclip mr-2"></i>
-                            anexo_justificativo.pdf</span>
-                        <a href="{{ x.documento_justificativo.url }}" target="_blank" class="bt-primary"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">
-                            <i class="fas fa-external-link-alt"></i> Ver Arquivo
-                        </a>
+                    {% endif %}
+                    <!-- Decisão: Aprovado -->
+                    {% if x.estado == 'aprovado' %}
+                    <div style="position: relative; padding-bottom: 1.25rem;">
+                        <div style="position: absolute; left: -1.5rem; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #10b981; display: flex; align-items: center; justify-content: center;"><i class="fas fa-check" style="color: white; font-size: 0.5rem;"></i></div>
+                        {% if x.estado_pagamento != 'pago' %}<div style="border-left: 2px solid #e2e8f0; position: absolute; left: -0.6rem; top: 22px; height: calc(100% - 22px);"></div>{% endif %}
+                        <p style="font-weight: 600; font-size: 0.85rem; margin: 0; color: #166534;">Aprovado</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">{% if x.data_aprovacao %}{{ x.data_aprovacao|date:"d/m/Y H:i" }}{% endif %} {% if x.aprovador %}&middot; {{ x.aprovador.nome }} {{ x.aprovador.apelido }}{% endif %}</p>
                     </div>
-                    {% else %}
-                    <div style="text-align: center; color: var(--text-muted); padding: 1rem;">
-                        <i class="fas fa-file-excel"
-                            style="font-size: 1.5rem; opacity: 0.3; margin-bottom: 0.5rem;"></i>
-                        <p style="font-size: 0.8rem;">Nenhum documento anexado.</p>
+                    {% endif %}
+                    <!-- Decisão: Rejeitado -->
+                    {% if x.estado == 'rejeitado' %}
+                    <div style="position: relative; padding-bottom: 0;">
+                        <div style="position: absolute; left: -1.5rem; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #ef4444; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times" style="color: white; font-size: 0.5rem;"></i></div>
+                        <p style="font-weight: 600; font-size: 0.85rem; margin: 0; color: #991b1b;">Rejeitado</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">{% if x.data_aprovacao %}{{ x.data_aprovacao|date:"d/m/Y H:i" }}{% endif %} {% if x.aprovador %}&middot; {{ x.aprovador.nome }} {{ x.aprovador.apelido }}{% endif %}</p>
+                    </div>
+                    {% endif %}
+                    <!-- Pagamento efectuado -->
+                    {% if x.estado == 'aprovado' and x.estado_pagamento == 'pago' %}
+                    <div style="position: relative; padding-bottom: 0;">
+                        <div style="position: absolute; left: -1.5rem; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #10b981; display: flex; align-items: center; justify-content: center;"><i class="fas fa-money-bill-wave" style="color: white; font-size: 0.5rem;"></i></div>
+                        <p style="font-weight: 600; font-size: 0.85rem; margin: 0; color: #166534;">Pago</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">{% if x.data_pagamento %}{{ x.data_pagamento|date:"d/m/Y H:i" }}{% endif %}</p>
                     </div>
                     {% endif %}
                 </div>
+
+                <!-- Observação do aprovador -->
+                {% if x.observacao_aprovador %}
+                <div style="background: {% if x.estado == 'rejeitado' %}#fef2f2{% else %}#f0fdf4{% endif %}; border: 1px solid {% if x.estado == 'rejeitado' %}#fecaca{% else %}#bbf7d0{% endif %}; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem;">
+                    <p style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: {% if x.estado == 'rejeitado' %}#991b1b{% else %}#166534{% endif %}; margin: 0 0 0.25rem 0; letter-spacing: 0.5px;">
+                        <i class="fas fa-comment-alt" style="margin-right: 4px;"></i>Observação do Aprovador
+                    </p>
+                    <p style="font-size: 0.85rem; margin: 0; line-height: 1.5;">{{ x.observacao_aprovador }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Acções de aprovação (apenas para quem tem permissão) -->
+                {% if pode_aprovar %}
+                {% if x.estado == 'pendente' or x.estado == 'em_analise' %}
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem; margin-top: 0.5rem;">
+                    <p style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 0.75rem 0; letter-spacing: 0.5px;">Acções de Aprovação</p>
+                    <div id="observacao-wrapper" style="margin-bottom: 1rem;">
+                        <label for="observacao-input" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Observação <span style="font-size: 0.7rem;">(obrigatória para rejeição)</span></label>
+                        <textarea id="observacao-input" rows="2" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem; resize: vertical; box-sizing: border-box;" placeholder="Motivo ou comentário..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        {% if x.estado == 'pendente' %}
+                        <form method="post" style="margin: 0;">{% csrf_token %}<input type="hidden" name="action" value="em_analise"><button type="submit" class="bt-primary" style="background: #3b82f6; padding: 0.5rem 1rem; font-size: 0.85rem; cursor: pointer; border: none;"><i class="fas fa-search"></i> Em Análise</button></form>
+                        {% endif %}
+                        <form method="post" style="margin: 0;" onsubmit="document.getElementById('obs-aprovar').value=document.getElementById('observacao-input').value;">{% csrf_token %}<input type="hidden" name="action" value="aprovar"><input type="hidden" name="observacao" id="obs-aprovar" value=""><button type="submit" class="bt-primary" style="background: #10b981; padding: 0.5rem 1rem; font-size: 0.85rem; cursor: pointer; border: none;"><i class="fas fa-check"></i> Aprovar</button></form>
+                        <form method="post" style="margin: 0;" onsubmit="var o=document.getElementById('observacao-input').value; if(!o.trim()){alert('Indique o motivo da rejeição.');return false;} document.getElementById('obs-rejeitar').value=o;">{% csrf_token %}<input type="hidden" name="action" value="rejeitar"><input type="hidden" name="observacao" id="obs-rejeitar" value=""><button type="submit" class="bt-primary" style="background: #ef4444; padding: 0.5rem 1rem; font-size: 0.85rem; cursor: pointer; border: none;"><i class="fas fa-times"></i> Rejeitar</button></form>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Efectivação de Pagamento -->
+                {% if x.estado == 'aprovado' and x.estado_pagamento == 'aguardando' %}
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem; margin-top: 1rem;">
+                    <p style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 0.75rem 0; letter-spacing: 0.5px;"><i class="fas fa-hand-holding-usd" style="margin-right: 4px;"></i>Efectivação de Pagamento</p>
+                    <form method="post" enctype="multipart/form-data" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="marcar_pago">
+                        <div style="margin-bottom: 0.75rem;">
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Comprovativo de Pagamento *</label>
+                            <input type="file" name="comprovativo" accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem; box-sizing: border-box; background: white;">
+                        </div>
+                        <button type="submit" class="bt-primary" style="background: #10b981; padding: 0.5rem 1rem; font-size: 0.85rem; cursor: pointer; border: none; width: 100%;"><i class="fas fa-check-double"></i> Confirmar Pagamento</button>
+                    </form>
+                </div>
+                {% endif %}
+                {% endif %}
             </div>
 
-            <div class="modern-card" style="background: var(--primary-light); color: white; color: white; text-align: center;">
-                <p style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.5rem;">Requerente da SaÃ­da</p>
-                <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--accent);">{{ x.requerente }}</h4>
-                <div style="width: 40px; height: 2px; background: var(--accent); margin: 1rem auto;"></div>
-                <p style="font-size: 0.75rem; opacity: 0.7;">IdentificaÃ§Ã£o Ref: #REQ-{{ x.id }}</p>
+            <!-- Documentos -->
+            <div class="modern-card">
+                <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.25rem; font-size: 1rem;">
+                    <i class="fas fa-paperclip" style="margin-right: 0.5rem;"></i>Documentos
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- Justificativo -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem;">
+                        <p style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 0.5rem 0;">Documento Justificativo</p>
+                        {% if x.documento_justificativo %}
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="font-size: 0.85rem;"><i class="fas fa-file-pdf" style="color: #ef4444; margin-right: 0.4rem;"></i>{{ x.documento_justificativo.name }}</span>
+                            <a href="{{ x.documento_justificativo.url }}" target="_blank" class="bt-primary" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Ver</a>
+                        </div>
+                        {% else %}
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;"><i class="fas fa-info-circle" style="margin-right: 4px;"></i>Nenhum documento anexado.</p>
+                        {% endif %}
+                    </div>
+                    <!-- Comprovativo de pagamento -->
+                    {% if x.estado == 'aprovado' %}
+                    <div style="background: {% if x.estado_pagamento == 'pago' %}#f0fdf4{% else %}#f8fafc{% endif %}; border: 1px solid {% if x.estado_pagamento == 'pago' %}#bbf7d0{% else %}#e2e8f0{% endif %}; border-radius: 8px; padding: 0.75rem 1rem;">
+                        <p style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 0.5rem 0;">Comprovativo de Pagamento</p>
+                        {% if x.comprovativo_pagamento %}
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="font-size: 0.85rem;"><i class="fas fa-receipt" style="color: #10b981; margin-right: 0.4rem;"></i>{{ x.comprovativo_pagamento.name }}</span>
+                            <a href="{{ x.comprovativo_pagamento.url }}" target="_blank" class="bt-primary" style="padding: 0.3rem 0.7rem; font-size: 0.75rem; background: #10b981;"><i class="fas fa-download"></i> Ver</a>
+                        </div>
+                        {% if x.data_pagamento %}
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0.4rem 0 0 0;">Pago em {{ x.data_pagamento|date:"d/m/Y H:i" }}</p>
+                        {% endif %}
+                        {% else %}
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;"><i class="fas fa-clock" style="margin-right: 4px;"></i>Aguardando comprovativo.</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -141,12 +216,5 @@
     {% endfor %}
 </div>
 {% endif %}
-
-<div style="text-align: center; margin-top: 3rem;">
-    <a href="/tibl/gestao/pedidosaida/1"
-        style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
-        <i class="fas fa-chevron-left"></i> Voltar aos Pedidos
-    </a>
-</div>
 
 {% endblock %}

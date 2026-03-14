@@ -1,0 +1,152 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load verificagrupo %}
+{% block Actividades %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">
+                <i class="fas fa-redo" style="color: #6366f1; margin-right: 0.5rem;"></i> Série Recorrente
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Cria múltiplas actividades de uma vez para um intervalo de datas.</p>
+        </div>
+        <a href="/tibl/gestao/actividades/1/" style="color: var(--text-muted); font-size: 0.9rem; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Voltar às Actividades
+        </a>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="modern-card" style="margin-bottom: 1rem; padding: 1rem 1.5rem; border-left: 4px solid {% if message.tags == 'error' %}#ef4444{% elif message.tags == 'warning' %}#f59e0b{% else %}#10b981{% endif %}; background: {% if message.tags == 'error' %}#fef2f2{% elif message.tags == 'warning' %}#fffbeb{% else %}#f0fdf4{% endif %};">
+        <p style="margin: 0; color: {% if message.tags == 'error' %}#dc2626{% elif message.tags == 'warning' %}#d97706{% else %}#059669{% endif %}; font-weight: 600;">{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="modern-card" style="margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem;">
+                Tipo e Localização
+            </h3>
+
+            {% if form.non_field_errors %}
+            <div style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: var(--radius-sm);">
+                {% for error in form.non_field_errors %}
+                <p style="margin: 0; color: #dc2626; font-weight: 600;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.tipo_actividade.label }}</label>
+                    <select name="tipo_actividade" style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                        <option value="">Seleccione...</option>
+                        {% for obj in form.fields.tipo_actividade.queryset %}
+                        <option value="{{ obj.pk }}" {% if form.tipo_actividade.value == obj.pk|stringformat:"i" %}selected{% endif %}>{{ obj }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.tipo_actividade.errors %}
+                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ form.tipo_actividade.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.departamento.label }}</label>
+                    <select name="departamento" style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                        <option value="">Geral (sem departamento)</option>
+                        {% for obj in form.fields.departamento.queryset %}
+                        <option value="{{ obj.pk }}" {% if form.departamento.value == obj.pk|stringformat:"i" %}selected{% endif %}>{{ obj }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.localactividade.label }}</label>
+                    <select name="localactividade" style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                        <option value="">Seleccione...</option>
+                        {% for obj in form.fields.localactividade.queryset %}
+                        <option value="{{ obj.pk }}" {% if form.localactividade.value == obj.pk|stringformat:"i" %}selected{% endif %}>{{ obj }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="modern-card" style="margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem;">
+                Horário e Período
+            </h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1.25rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.inicio.label }}</label>
+                    <input type="time" name="inicio" value="{{ form.inicio.value|default:'' }}"
+                        style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                    {% if form.inicio.errors %}
+                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ form.inicio.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.fim.label }}</label>
+                    <input type="time" name="fim" value="{{ form.fim.value|default:'' }}"
+                        style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                    {% if form.fim.errors %}
+                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ form.fim.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.data_inicio.label }}</label>
+                    <input type="date" name="data_inicio" value="{{ form.data_inicio.value|default:'' }}"
+                        style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                    {% if form.data_inicio.errors %}
+                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ form.data_inicio.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main);">{{ form.data_fim.label }}</label>
+                    <input type="date" name="data_fim" value="{{ form.data_fim.value|default:'' }}"
+                        style="width: 100%; padding: 0.65rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                    {% if form.data_fim.errors %}
+                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ form.data_fim.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="modern-card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem;">
+                Dias da Semana
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Seleccione os dias em que a actividade se repete.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                {% for value, label in form.fields.dias_semana.choices %}
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.6rem 1.1rem; font-size: 0.9rem; font-weight: 600; transition: all 0.15s;"
+                    onmouseover="this.style.borderColor='#6366f1'; this.style.color='#6366f1';"
+                    onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='inherit';">
+                    <input type="checkbox" name="dias_semana" value="{{ value }}"
+                        {% if value|stringformat:"i" in form.dias_semana.value %}checked{% endif %}
+                        style="accent-color: #6366f1; width: 1rem; height: 1rem;">
+                    {{ label }}
+                </label>
+                {% endfor %}
+            </div>
+            {% if form.dias_semana.errors %}
+            <p style="color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem;">{{ form.dias_semana.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="/tibl/gestao/actividades/1/"
+                style="padding: 0.75rem 2rem; border: 2px solid #e2e8f0; border-radius: var(--radius-sm); color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem;">
+                Cancelar
+            </a>
+            <button type="submit"
+                style="padding: 0.75rem 2rem; background: #6366f1; color: white; border: none; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-calendar-plus"></i> Criar Actividades
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -42,11 +42,21 @@
         </form>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Dízimos e Ofertas</h2>
-        <a href="/tibl/dizimosofertas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
-            <i class="fas fa-plus"></i> Registrar Entrada
-        </a>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
+            <a href="/tibl/relatoriodizimosmembro/" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--primary-dark); color: white;">
+                <i class="fas fa-chart-bar"></i> Relatório por Membro
+            </a>
+            <a href="/tibl/relatorioofertasportipo/" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--accent); color: white;">
+                <i class="fas fa-layer-group"></i> Relatório por Tipo
+            </a>
+            {% if perms.sitetibl.add_dizimooferta %}
+            <a href="/tibl/dizimosofertas/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
+                <i class="fas fa-plus"></i> Registrar Entrada
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     {% if bb %}

@@ -3,10 +3,13 @@
 Utilitários para vinculação automática de dízimos com entradas bancárias e de caixa.
 """
 
+import logging
 from decimal import Decimal
 from datetime import datetime, timedelta
 from django.db.models import Q
 from .models import Dizimooferta, Entradabanco, Entradacaixa
+
+logger = logging.getLogger(__name__)
 
 
 def vincular_dizimos_existentes(dias_tolerancia=0, moeda=None, force=False):
@@ -34,7 +37,10 @@ def vincular_dizimos_existentes(dias_tolerancia=0, moeda=None, force=False):
     filtro_dizimos = Dizimooferta.objects.all()
     
     if not force:
-        filtro_dizimos = filtro_dizimos.filter(entradabanco__isnull=True)
+        filtro_dizimos = filtro_dizimos.filter(
+            entradabanco__isnull=True,
+            entradacaixa__isnull=True,
+        )
     
     if moeda:
         filtro_dizimos = filtro_dizimos.filter(moeda=moeda)
@@ -42,6 +48,10 @@ def vincular_dizimos_existentes(dias_tolerancia=0, moeda=None, force=False):
     for dizimo in filtro_dizimos:
         stats['total_processados'] += 1
         
+        if dizimo.entradacaixa:
+            stats['ja_vinculados'] += 1
+            continue
+
         if dizimo.entradabanco and not force:
             stats['ja_vinculados'] += 1
             continue
@@ -59,13 +69,13 @@ def vincular_dizimos_existentes(dias_tolerancia=0, moeda=None, force=False):
                 dizimo.entradabanco = entrada
                 dizimo.save(update_fields=['entradabanco'])
                 stats['sucesso'] += 1
-                print(f"✅ Dízimo {dizimo.id} vinculado com Entrada {entrada.id}")
+                logger.info('Dizimo %s vinculado com Entrada %s', dizimo.id, entrada.id)
             else:
                 stats['sem_correspondencia'] += 1
                 
         except Exception as e:
             stats['erro'] += 1
-            print(f"❌ Erro ao processar dízimo {dizimo.id}: {str(e)}")
+            logger.error('Erro ao processar dizimo %s: %s', dizimo.id, str(e))
     
     return stats
 
@@ -121,14 +131,14 @@ def vincular_entradas_bancarias_existentes(dias_tolerancia=0, moeda=None, force=
                     dizimo.entradabanco = entrada
                     dizimo.save(update_fields=['entradabanco'])
                     stats['sucesso'] += 1
-                    print(f"✅ Entrada {entrada.id} vinculada com Dízimo {dizimo.id}")
+                    logger.info('Entrada %s vinculada com Dizimo %s', entrada.id, dizimo.id)
             
             if not dizimos:
                 stats['sem_correspondencia'] += 1
                 
         except Exception as e:
             stats['erro'] += 1
-            print(f"❌ Erro ao processar entrada {entrada.id}: {str(e)}")
+            logger.error('Erro ao processar entrada %s: %s', entrada.id, str(e))
     
     return stats
 
@@ -194,7 +204,8 @@ def buscar_dizimos_correspondentes(data, valor, moeda, dias_tolerancia=0):
         datacorrespondente__lte=data_fim,
         valor=Decimal(str(valor)),
         moeda=moeda,
-        entradabanco__isnull=True  # Apenas não vinculados
+        entradabanco__isnull=True,
+        entradacaixa__isnull=True  # Apenas não vinculados a outro meio
     )
     
     return dizimos
@@ -218,11 +229,11 @@ def desvincular_dizimo(dizimo_id):
         dizimo.save()
         
         if entrada_id:
-            print(f"✅ Dízimo {dizimo_id} desvinculado da Entrada {entrada_id}")
+            logger.info('Dizimo %s desvinculado da Entrada %s', dizimo_id, entrada_id)
         
         return True
     except Dizimooferta.DoesNotExist:
-        print(f"❌ Dízimo {dizimo_id} não encontrado")
+        logger.warning('Dizimo %s nao encontrado', dizimo_id)
         return False
 
 
@@ -283,7 +294,10 @@ def vincular_dizimos_com_caixa(dias_tolerancia=0, moeda=None, force=False):
     filtro_dizimos = Dizimooferta.objects.all()
     
     if not force:
-        filtro_dizimos = filtro_dizimos.filter(entradacaixa__isnull=True)
+        filtro_dizimos = filtro_dizimos.filter(
+            entradacaixa__isnull=True,
+            entradabanco__isnull=True,
+        )
     
     if moeda:
         filtro_dizimos = filtro_dizimos.filter(moeda=moeda)
@@ -291,6 +305,10 @@ def vincular_dizimos_com_caixa(dias_tolerancia=0, moeda=None, force=False):
     for dizimo in filtro_dizimos:
         stats['total_processados'] += 1
         
+        if dizimo.entradabanco:
+            stats['ja_vinculados'] += 1
+            continue
+
         if dizimo.entradacaixa and not force:
             stats['ja_vinculados'] += 1
             continue
@@ -308,13 +326,13 @@ def vincular_dizimos_com_caixa(dias_tolerancia=0, moeda=None, force=False):
                 dizimo.entradacaixa = entrada
                 dizimo.save(update_fields=['entradacaixa'])
                 stats['sucesso'] += 1
-                print(f"✅ Dízimo {dizimo.id} vinculado com Caixa {entrada.id}")
+                logger.info('Dizimo %s vinculado com Caixa %s', dizimo.id, entrada.id)
             else:
                 stats['sem_correspondencia'] += 1
                 
         except Exception as e:
             stats['erro'] += 1
-            print(f"❌ Erro ao processar dízimo {dizimo.id}: {str(e)}")
+            logger.error('Erro ao processar dizimo %s: %s', dizimo.id, str(e))
     
     return stats
 
@@ -370,14 +388,14 @@ def vincular_caixas_existentes(dias_tolerancia=0, moeda=None, force=False):
                     dizimo.entradacaixa = entrada
                     dizimo.save(update_fields=['entradacaixa'])
                     stats['sucesso'] += 1
-                    print(f"✅ Caixa {entrada.id} vinculada com Dízimo {dizimo.id}")
+                    logger.info('Caixa %s vinculada com Dizimo %s', entrada.id, dizimo.id)
             
             if not dizimos:
                 stats['sem_correspondencia'] += 1
                 
         except Exception as e:
             stats['erro'] += 1
-            print(f"❌ Erro ao processar caixa {entrada.id}: {str(e)}")
+            logger.error('Erro ao processar caixa %s: %s', entrada.id, str(e))
     
     return stats
 
@@ -443,7 +461,8 @@ def buscar_dizimos_para_caixa(data, valor, moeda, dias_tolerancia=0):
         datacorrespondente__lte=data_fim,
         valor=Decimal(str(valor)),
         moeda=moeda,
-        entradacaixa__isnull=True  # Apenas não vinculados
+        entradacaixa__isnull=True,
+        entradabanco__isnull=True  # Apenas não vinculados a outro meio
     )
     
     return dizimos
@@ -467,11 +486,11 @@ def desvincular_dizimo_caixa(dizimo_id):
         dizimo.save()
         
         if caixa_id:
-            print(f"✅ Dízimo {dizimo_id} desvinculado da Caixa {caixa_id}")
+            logger.info('Dizimo %s desvinculado da Caixa %s', dizimo_id, caixa_id)
         
         return True
     except Dizimooferta.DoesNotExist:
-        print(f"❌ Dízimo {dizimo_id} não encontrado")
+        logger.warning('Dizimo %s nao encontrado', dizimo_id)
         return False
 
 

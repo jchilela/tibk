@@ -18,30 +18,34 @@
 			</p>
 		</div>
 		<div style="display: flex; gap: 0.75rem;">
+			{% if perms.sitetibl.change_cesta %}
 			<a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
 				style="padding: 0.6rem 1rem;">
 				<i class="fas fa-edit"></i> Editar
 			</a>
+			{% endif %}
+			{% if perms.sitetibl.delete_cesta %}
 			<a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
 				style="background-color: #ef4444; padding: 0.6rem 1rem;">
 				<i class="fas fa-trash"></i> Eliminar
 			</a>
+			{% endif %}
 		</div>
 	</div>
 
 	<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
 		<div class="modern-card">
 			<h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-				<i class="fas fa-info-circle mr-2"></i> InformaÃ§Ãµes Gerais
+				<i class="fas fa-info-circle mr-2"></i> Informações Gerais
 			</h3>
 			<div class="detail-row"
 				style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-				<span style="color: var(--text-muted); font-weight: 500;">Data de DisponibilizaÃ§Ã£o</span>
+				<span style="color: var(--text-muted); font-weight: 500;">Data de Disponibilização</span>
 				<span style="font-weight: 600;">{{ x.Datadisponvalor|date:"d/m/Y"|default:x.Datadisponvalor }}</span>
 			</div>
 			<div style="margin-top: 1rem;">
 				<label
-					style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">ObservaÃ§Ã£o</label>
+					style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Observao</label>
 				<div
 					style="background: rgba(0,0,0,0.02); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.9rem; border: 1px solid rgba(0,0,0,0.05);">
 					{{ x.observacao|default:"Sem observaÃ§Ãµes registadas." }}
@@ -77,7 +81,7 @@
 	{% if detalhecestas %}
 	<div class="modern-card">
 		<h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
-			<i class="fas fa-shopping-basket mr-2"></i> ComposiÃ§Ã£o da Cesta
+			<i class="fas fa-shopping-basket mr-2"></i> Composição da Cesta
 		</h3>
 
 		<div class="modern-table-container">
@@ -117,7 +121,7 @@
 	<div style="text-align: center; margin-top: 3rem;">
 		<a href="/tibl/gestao/cestas/1"
 			style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
-			<i class="fas fa-arrow-left"></i> Voltar Ã  Lista de Cestas
+			<i class="fas fa-arrow-left"></i> Voltar à Lista de Cestas
 		</a>
 	</div>
 </div>

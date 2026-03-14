@@ -40,6 +40,7 @@ urlpatterns = [
     path('dashboard/conteudo-ensino-mensal', sitetibl.views.dashboardConteudoEnsinoMensal, name='dashboard_conteudo_ensino_mensal'),
     path('dashboard/dizimo-oferta', sitetibl.views.dashboardDizimoOferta, name='dashboard_dizimo_oferta'),
     path('dashboard/crescimento-membros', sitetibl.views.dashboardCrescimentoMembros, name='dashboard_crescimento_membros'),
+    path('dashboard/departamentos-membros', sitetibl.views.dashboardDepartamentosMembros, name='dashboard_departamentos_membros'),
 
     # Relatórios
     path('relatorios/', sitetibl.views.pagina_relatorios, name='pagina_relatorios'),

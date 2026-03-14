@@ -38,17 +38,23 @@
                 </h1>
                 <p
                     style="font-size: 1.1rem; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem;">
-                    <i class="fas fa-id-badge mr-2"></i>{{ x.outrosnomes|default:"Membro Registado" }}
+                    <i class="fas fa-church mr-2"></i>{{ x.localcongregacao|default:"Sem congregação" }}
+                    {% if x.batizado %}<span style="margin-left: 0.8rem; background: #dcfce7; color: #166534; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; text-transform: none; letter-spacing: 0;"><i class="fas fa-water mr-1"></i>Batizado</span>{% endif %}
+                    {% if x.celula %}<span style="margin-left: 0.4rem; background: #fef3c7; color: #92400e; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; text-transform: none; letter-spacing: 0;"><i class="fas fa-home mr-1"></i>{{ x.celula }}</span>{% endif %}
                 </p>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    {% if perms.sitetibl.change_irmao %}
                     <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                         style="padding: 0.75rem 1.5rem; font-weight: 600;">
                         <i class="fas fa-edit mr-2"></i> Editar Perfil
                     </a>
+                    {% endif %}
+                    {% if perms.sitetibl.delete_irmao %}
                     <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-danger"
                         style="padding: 0.75rem 1.5rem; font-weight: 600;">
                         <i class="fas fa-trash-alt mr-2"></i> Eliminar
                     </a>
+                    {% endif %}
                     <a href="/tibl/gestao/irmaos/1" class="bt-secondary"
                         style="padding: 0.75rem 1.5rem; font-weight: 600;">
                         <i class="fas fa-arrow-left mr-2"></i> Voltar à Lista
@@ -147,7 +153,13 @@
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Município</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_municipio_display|default:"—" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.municipio|default:"—" }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Província</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.provincia|default:"—" }}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
                     <span
@@ -157,6 +169,28 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Departamentos -->
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.25s; margin-bottom: 1.5rem; border-top: 4px solid var(--primary-light);">
+        <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; color: var(--text-main); font-size: 1.1rem; font-family: 'Outfit', sans-serif;">
+            <i class="fas fa-sitemap mr-2" style="color: var(--primary);"></i> Departamentos
+        </h3>
+        {% if mandatos_irmao %}
+        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+            {% for m in mandatos_irmao %}
+            <a href="/tibl/departamentos/detalhe/{{ m.departamento_id }}" style="text-decoration: none; background: var(--primary-50); border: 1px solid var(--primary-light); border-radius: 10px; padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.6rem; transition: box-shadow 0.2s;">
+                <i class="fas fa-users" style="color: var(--primary); font-size: 0.9rem;"></i>
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">{{ m.departamento.designacao }}</div>
+                    <div style="font-size: 0.75rem; color: var(--primary-dark); font-weight: 600;">{{ m.get_funcao_display }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Este membro não está associado a nenhum departamento.</p>
+        {% endif %}
     </div>
 
     <!-- System Info Card -->

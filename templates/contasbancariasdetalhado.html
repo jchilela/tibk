@@ -43,27 +43,35 @@
 
             <!-- Actions -->
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                {% if perms.sitetibl.change_contabancaria %}
                 <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                     style="padding: 0.75rem 1.5rem; font-weight: 600;">
                     <i class="fas fa-edit mr-2"></i> Editar Conta
                 </a>
+                {% endif %}
                 {% if x.is_active %}
+                {% if perms.sitetibl.change_contabancaria %}
                 <a href="/tibl/contasbancarias/inativar/{{ x.id }}/" class="bt-primary"
                     style="padding: 0.75rem 1.5rem; font-weight: 600; background: #b91c1c; color: white;"
                     onclick="return confirm('Confirma a inativação desta conta bancária?');">
                     <i class="fas fa-user-slash mr-2"></i> Inativar Conta
                 </a>
+                {% endif %}
                 {% else %}
+                {% if perms.sitetibl.change_contabancaria %}
                 <a href="/tibl/contasbancarias/reativar/{{ x.id }}/" class="bt-primary"
                     style="padding: 0.75rem 1.5rem; font-weight: 600; background: #166534; color: white;"
                     onclick="return confirm('Confirma a reativação desta conta bancária?');">
                     <i class="fas fa-user-check mr-2"></i> Reativar Conta
                 </a>
                 {% endif %}
+                {% endif %}
+                {% if perms.sitetibl.delete_contabancaria %}
                 <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-danger"
                     style="padding: 0.75rem 1.5rem; font-weight: 600;">
                     <i class="fas fa-trash-alt mr-2"></i> Eliminar
                 </a>
+                {% endif %}
             </div>
         </div>
     </div>

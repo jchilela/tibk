@@ -26,14 +26,18 @@
                         </p>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
+                        {% if perms.sitetibl.change_inventariopatrimonio %}
                         <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                             style="padding: 0.5rem 1rem;">
                             <i class="fas fa-edit"></i>
                         </a>
+                        {% endif %}
+                        {% if perms.sitetibl.delete_inventariopatrimonio %}
                         <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
                             style="padding: 0.5rem 1rem; background-color: #ef4444;">
                             <i class="fas fa-trash"></i>
                         </a>
+                        {% endif %}
                     </div>
                 </div>
 

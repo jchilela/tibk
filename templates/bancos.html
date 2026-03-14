@@ -7,9 +7,11 @@
             <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">InstituiÃ§Ãµes BancÃ¡rias</h2>
             <p style="color: var(--text-muted); font-size: 0.9rem;">Lista de bancos registados para operaÃ§Ãµes financeiras.</p>
         </div>
+        {% if perms.sitetibl.add_banco %}
         <a href="/tibl/bancos/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white;">
             <i class="fas fa-university"></i> Novo Banco
         </a>
+        {% endif %}
     </div>
 
     {% if bb %}
@@ -18,9 +20,9 @@
             <thead>
                 <tr>
                     <th>Abreviatura</th>
-                    <th>DesignaÃ§Ã£o Completa</th>
+                    <th>Designação Completa</th>
                     <th style="text-align: center;">Contacto</th>
-                    <th style="text-align: right;">AÃ§Ãµes</th>
+                    <th style="text-align: right;">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,7 +57,7 @@
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-building-columns" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum Banco Registado</h3>
-        <p style="color: var(--text-muted);">NÃ£o existem instituiÃ§Ãµes bancÃ¡rias configuradas no sistema.</p>
+        <p style="color: var(--text-muted);">Não existem instituições bancárias configuradas no sistema.</p>
     </div>
     {% endif %}
 </div>

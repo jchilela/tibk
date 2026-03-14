@@ -251,6 +251,56 @@
     if (contaDebitoSelect) {
       contaDebitoSelect.addEventListener('change', updateSaldoWarning);
     }
+
+    // ── Cascading: Província → Município ──
+    const provinciaSelect = document.getElementById('id_provincia');
+    const municipioSelect = document.getElementById('id_municipio');
+    if (provinciaSelect && municipioSelect) {
+      provinciaSelect.addEventListener('change', function () {
+        const provId = this.value;
+        municipioSelect.innerHTML = '<option value="">---------</option>';
+        if (!provId) return;
+        fetch('/tibl/api/municipios/' + provId + '/')
+          .then(r => r.json())
+          .then(data => {
+            data.forEach(m => {
+              const opt = document.createElement('option');
+              opt.value = m.id;
+              opt.textContent = m.nome;
+              municipioSelect.appendChild(opt);
+            });
+          });
+      });
+    }
+    // ── Cascading: Actividade → Função (para escalas) ──
+    const actividadeSelect = document.getElementById('id_actividade');
+    const funcaoSelect = document.getElementById('id_funcao');
+    if (actividadeSelect && funcaoSelect) {
+      // Guardar valor actual da função para re-seleccionar após refresh
+      const funcaoActualVal = funcaoSelect.value;
+      actividadeSelect.addEventListener('change', function () {
+        const actId = this.value;
+        if (!actId) {
+          // Sem actividade seleccionada: mostrar todas as opções originais
+          return;
+        }
+        fetch('/tibl/api/funcoes-actividade/' + actId + '/')
+          .then(r => r.json())
+          .then(data => {
+            const selectedVal = funcaoSelect.value;
+            funcaoSelect.innerHTML = '<option value="">---------</option>';
+            if (data.length > 0) {
+              data.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.designacao;
+                if (String(f.id) === String(selectedVal)) opt.selected = true;
+                funcaoSelect.appendChild(opt);
+              });
+            }
+          });
+      });
+    }
   });
 </script>
 

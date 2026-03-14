@@ -263,6 +263,27 @@
         if (contaDebitoSelect) {
             contaDebitoSelect.addEventListener('change', updateSaldoWarning);
         }
+
+        // ── Cascading: Província → Município ──
+        const provinciaSelect = document.getElementById('id_provincia');
+        const municipioSelect = document.getElementById('id_municipio');
+        if (provinciaSelect && municipioSelect) {
+            provinciaSelect.addEventListener('change', function () {
+                const provId = this.value;
+                municipioSelect.innerHTML = '<option value="">---------</option>';
+                if (!provId) return;
+                fetch('/tibl/api/municipios/' + provId + '/')
+                    .then(r => r.json())
+                    .then(data => {
+                        data.forEach(m => {
+                            const opt = document.createElement('option');
+                            opt.value = m.id;
+                            opt.textContent = m.nome;
+                            municipioSelect.appendChild(opt);
+                        });
+                    });
+            });
+        }
     });
 </script>
 

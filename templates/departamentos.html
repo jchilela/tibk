@@ -26,17 +26,17 @@
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Cargo</label>
-                <select name="cargov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-                    <option value="0">------------</option>
-                    {% if listacargos %}
-                        {% for x in listacargos %}
-                            <option value="{{ x.id }}">{{ x.designacao }}</option>
+                <select name="funcaov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="">------------</option>
+                    {% if funcao_choices %}
+                        {% for value, label in funcao_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
                         {% endfor %}
                     {% endif %}
                 </select>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
+            <button type="submit" class="bt-primary" style="padding: 0.42rem 0.7rem; width: 100%; min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; font-weight: 600; font-size: 0.8rem; color: white;">
                 <i class="fas fa-search"></i> Buscar
             </button>
         </form>
@@ -44,9 +44,11 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Estrutura de Departamentos</h2>
+        {% if perms.sitetibl.add_departamento %}
         <a href="/tibl/departamentos/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
             <i class="fas fa-plus"></i> Novo Departamento
         </a>
+        {% endif %}
     </div>
 
     {% if bb %}

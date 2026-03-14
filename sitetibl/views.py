@@ -11,7 +11,7 @@ from datetime import date
 from django import forms
 from django.urls import reverse
 from django.template import loader
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count, F, Q
 from django.db import IntegrityError
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
@@ -20,7 +20,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from django.conf import settings
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, LongTable
 from reportlab.lib import colors
 import os
 from django.contrib.auth.decorators import login_required
@@ -29,6 +29,7 @@ from django.db.models.functions import TruncMonth
 import json
 from django.http import JsonResponse
 from django.utils.timezone import now
+from .signals import notificar_mudanca_estado_pedido
 from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
@@ -41,6 +42,7 @@ from rest_framework import status
 # Register your models here.
 #from gestaoinfra.models import Contacto
 from sitetibl.models import Irmao
+from sitetibl.models import Municipio
 from sitetibl.models import TipoOferta
 from sitetibl.models import Ajuda
 from sitetibl.models import Cestabasica
@@ -51,10 +53,8 @@ from sitetibl.models import Departamento
 from sitetibl.models import ComposicaoCesta
 from sitetibl.models import Funcao
 from sitetibl.models import Listaactividades
-from sitetibl.models import Cargo
 from sitetibl.models import Mandato
 from sitetibl.models import Escala
-from sitetibl.models import Profissao
 from sitetibl.models import Rubricaentrada
 from sitetibl.models import Rubricasaida
 from sitetibl.models import Saidacaixa
@@ -68,6 +68,8 @@ from sitetibl.models import Servico
 from sitetibl.models import Tipoajuda
 from sitetibl.models import RelatorioSemanalCelula
 from sitetibl.models import PedidoSaida
+from sitetibl.models import Status_Aprovacao
+from sitetibl.models import Anuncio
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
@@ -99,15 +101,60 @@ from sitetibl.forms import OrcamentoDepartamentoForm
 from sitetibl.forms import InventarioPatrimonioForm
 from sitetibl.forms import ConteudoEnsinoForm
 from sitetibl.forms import EnvioMensagemForm
+from sitetibl.forms import MeuPerfilForm, MeuPerfilPasswordForm
+from sitetibl.forms import ActividadesRecorrentesForm
+from django.contrib.auth import update_session_auth_hash
+from datetime import timedelta
 
 PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kuanza Norte','KZS':'Kuanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
 MOEDA = {'AKZ':'Kwanza','USD':'USA Dólar','EU':'Euro','R':'Reais','RAN':'ZA Rands','NAMD':'Dólar Namibiano', 'LB':'Libra Inglesa'}
+
+
+def _sincronizar_status_legado_pedidosaida(pedido):
+    """Mantém o FK legado status_de_aprovacao coerente com o novo campo estado."""
+    mapa = {
+        'pendente': 'Em analise',
+        'em_analise': 'Em analise',
+        'aprovado': 'Aprovado',
+        'rejeitado': 'Rejeitado',
+    }
+    designacao = mapa.get(pedido.estado)
+    if not designacao:
+        return
+
+    status = Status_Aprovacao.objects.filter(designacao__iexact=designacao).first()
+    if status and pedido.status_de_aprovacao_id != status.id:
+        pedido.status_de_aprovacao = status
 MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'Junho','7':'Julho','8':'Agosto','9':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'}
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
 
 def comeco(request):
     return render(request, 'index.html')
+
+
+@login_required
+def api_municipios(request, provincia_id):
+    """Retorna municípios de uma província em JSON (para cascading dropdown)."""
+    municipios = Municipio.objects.filter(
+        provincia_id=provincia_id
+    ).order_by('nome').values('id', 'nome')
+    return JsonResponse(list(municipios), safe=False)
+
+
+@login_required
+def api_funcoes_por_actividade(request, actividade_id):
+    """Retorna funções relevantes para o departamento da actividade + genéricas."""
+    actividade = get_object_or_404(Actividade, id=actividade_id)
+    if actividade.departamento_id:
+        funcoes = Funcao.objects.filter(
+            Q(departamento_id=actividade.departamento_id) | Q(departamento__isnull=True)
+        ).order_by('designacao')
+    else:
+        funcoes = Funcao.objects.all().order_by('designacao')
+    data = [{'id': f.id, 'designacao': f.designacao} for f in funcoes]
+    return JsonResponse(data, safe=False)
+
 
 def index(request):
     template = loader.get_template('index.html')
@@ -116,8 +163,8 @@ def index(request):
 @login_required
 def mostraGestao(request,gestaoescolhida,pagina):
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'funcao'), 
-             'mandatos': Mandato.objects.select_related('irmao', 'departamento', 'cargo'), 
-             'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'), 
+             'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
+             'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
              'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'), 
              'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
              'bancos': Banco.objects, 
@@ -164,7 +211,13 @@ def mostraGestao(request,gestaoescolhida,pagina):
 
         resultado = lista[gestaoescolhida].filter(**kwargs).order_by('id')
     elif (gestaoescolhida == 'irmaos'):
-        resultado = lista[gestaoescolhida].all().order_by('nome','outrosnomes')
+        resultado = lista[gestaoescolhida].prefetch_related('mandato_set__departamento').all().order_by('nome','outrosnomes')
+    elif gestaoescolhida == 'pedidosaida':
+        qs = lista[gestaoescolhida].all()
+        estado_filtro = request.GET.get('estado', '').strip()
+        if estado_filtro:
+            qs = qs.filter(estado=estado_filtro)
+        resultado = qs.order_by('-data_criacao')
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
@@ -172,7 +225,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
     if (gestaoescolhida == 'ajudas') or (gestaoescolhida == 'cestas') or (gestaoescolhida == 'actividades'):
         context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao')}
     elif gestaoescolhida == 'departamentos':
-        context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'listacargos' : Cargo.objects.values('id','designacao')}
+        context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'funcao_choices': Mandato.FUNCAO_CHOICES}
     elif gestaoescolhida == 'contasbancarias':
         context = {
             'bb': paginaresultado,
@@ -186,8 +239,24 @@ def mostraGestao(request,gestaoescolhida,pagina):
         }
     elif (gestaoescolhida == 'entradascaixa') or (gestaoescolhida == 'saidascaixa') or (gestaoescolhida == 'entradabancos') or (gestaoescolhida == 'saidabancos'):
         context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
+    elif gestaoescolhida == 'irmaos':
+        context = { 'bb':paginaresultado, 'listamunicipios': Municipio.objects.select_related('provincia').order_by('provincia__nome', 'nome') }
+    elif gestaoescolhida == 'pedidosaida':
+        from django.db.models import Count
+        contagens = dict(
+            PedidoSaida.objects.values_list('estado')
+            .annotate(c=Count('id'))
+            .values_list('estado', 'c')
+        )
+        context = {
+            'bb': paginaresultado,
+            'estado_filtro': request.GET.get('estado', ''),
+            'estado_choices': PedidoSaida.ESTADO_CHOICES,
+            'contagem_por_estado': contagens,
+            'total_pedidos': sum(contagens.values()),
+        }
     else:
-        context = { 'bb':paginaresultado, 'listaprofissoes' : Profissao.objects.values('id','designacao'), 'listameses' : MESES }
+        context = { 'bb':paginaresultado, 'listameses' : MESES }
 
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
@@ -251,6 +320,22 @@ def mostraActualizacao(request, gestaoescolhida, id):
 
     registo = get_object_or_404(model, id=id)
 
+    # 🔐 Verificação de propriedade para actividades
+    if gestaoescolhida == 'actividades':
+        papel_elevado = request.user.has_perm('sitetibl.change_mandato')
+        if not papel_elevado:
+            pode_editar = (registo.criado_por is not None and registo.criado_por == request.user)
+            if not pode_editar and registo.departamento_id:
+                irmao_logado = Irmao.objects.filter(user=request.user).first()
+                if irmao_logado:
+                    pode_editar = Departamento.objects.filter(
+                        Q(lider_departamento=irmao_logado) | Q(vice_lider_departamento=irmao_logado),
+                        id=registo.departamento_id,
+                    ).exists()
+            if not pode_editar:
+                messages.error(request, 'Só pode editar actividades que criou ou do seu departamento.')
+                return redirect('index')
+
     if request.method == 'GET':
         form = listaformularios[gestaoescolhida](instance=registo)
         return render(request, 'formulario_actualizacao.html', {
@@ -268,22 +353,31 @@ def mostraActualizacao(request, gestaoescolhida, id):
         if formulario.is_valid():
             obj = formulario.save(commit=False)
 
-            if gestaoescolhida == 'pedidosaida':
-                # só define aprovador se o estado NÃO for nulo
-                if obj.status_de_aprovacao is not None:
-                    try:
-                        obj.aprovador = Irmao.objects.get(user=request.user)
-                    except Irmao.DoesNotExist:
-                        messages.error(
-                            request,
-                            'O utilizador logado não está associado a nenhum Irmão.'
-                        )
-                        return render(request, 'formulario_actualizacao.html', {
-                            'formulario': formulario
-                        })
-                else:
-                    # se o estado for null, garante que o aprovador também fica null
-                    obj.aprovador = None
+            # ⚠️ Verificação de conflito de horário para actividades
+            if gestaoescolhida == 'actividades':
+                data = formulario.cleaned_data['data']
+                inicio = formulario.cleaned_data['inicio']
+                fim = formulario.cleaned_data['fim']
+                conflitos = Actividade.objects.filter(
+                    data=data, inicio__lt=fim, fim__gt=inicio
+                ).exclude(id=registo.id)
+                mesma_data_diferente = Actividade.objects.filter(
+                    data=data
+                ).exclude(id=registo.id).exclude(inicio__lt=fim, fim__gt=inicio)
+                if conflitos.exists():
+                    primeiro = conflitos.first()
+                    messages.error(
+                        request,
+                        f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
+                        f'das {primeiro.inicio} às {primeiro.fim} neste dia com horário sobrepóvel.'
+                    )
+                    return render(request, 'formulario_actualizacao.html', {'formulario': formulario, 'id': id})
+                elif mesma_data_diferente.exists():
+                    messages.warning(
+                        request,
+                        'Já existe outra actividade neste dia com horário diferente. '
+                        'Se for num local diferente, pode prosseguir normalmente.'
+                    )
 
             obj.save()
             messages.success(request, 'Actualização foi bem sucedida')
@@ -299,7 +393,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
 @login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
     lista_qs = {
-        'irmaos': Irmao.objects.select_related('profissao', 'celula', 'localcongregacao'),
+        'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'),
         'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'),
         'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'),
         'bancos': Banco.objects,
@@ -354,19 +448,20 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
     elif gestaoescolhida == 'departamentos':
         mandatos_departamento = (
             Mandato.objects
-            .select_related('irmao', 'cargo')
+            .select_related('irmao')
             .filter(departamento_id=identificador)
-            .order_by('cargo__designacao', 'irmao__nome', 'irmao__apelido')
+            .order_by('funcao', 'irmao__nome', 'irmao__apelido')
         )
         irmao_logado = Irmao.objects.filter(user=request.user).first()
         lidera_departamento = (
-            irmao_logado is not None and registo.lider_departamento_id == irmao_logado.id
+            irmao_logado is not None
+            and (registo.lider_departamento_id == irmao_logado.id
+                 or registo.vice_lider_departamento_id == irmao_logado.id)
         )
-        pode_gerir_membros = (
-            lidera_departamento
-            or request.user.has_perm('sitetibl.add_mandato')
-            or request.user.has_perm('sitetibl.delete_mandato')
-        )
+        # Papéis elevados (Pastor/Secretaria/Admin) gerem qualquer dept;
+        # LD/VLD só gere o departamento onde é líder ou vice-líder.
+        papel_elevado_dept = request.user.has_perm('sitetibl.change_mandato')
+        pode_gerir_membros = lidera_departamento or papel_elevado_dept
 
         if request.method == 'POST':
             if not pode_gerir_membros:
@@ -376,32 +471,54 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             action = request.POST.get('action', '').strip()
             if action == 'add_member':
                 irmao_id = request.POST.get('irmao_id', '').strip()
-                cargo_id = request.POST.get('cargo_id', '').strip()
-                inicio = request.POST.get('inicio') or None
-                fim = request.POST.get('fim') or None
+                funcao = request.POST.get('funcao', 'membro').strip()
+                funcoes_validas = [c[0] for c in Mandato.FUNCAO_CHOICES]
+                if funcao not in funcoes_validas:
+                    funcao = 'membro'
 
-                if not irmao_id or not cargo_id:
-                    messages.error(request, 'Selecione um irmao e um cargo para adicionar ao departamento.')
+                if not irmao_id:
+                    messages.error(request, 'Seleccione um irmão para adicionar ao departamento.')
                 else:
                     mandato_existente = Mandato.objects.filter(
                         departamento_id=identificador,
                         irmao_id=irmao_id,
-                        cargo_id=cargo_id,
-                    ).exists()
+                    ).first()
+
+                    # Funções exclusivas: só pode haver um por departamento
+                    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
+                    if funcao in FUNCOES_EXCLUSIVAS:
+                        ocupante = Mandato.objects.filter(
+                            departamento_id=identificador,
+                            funcao=funcao,
+                        ).select_related('irmao').first()
+                        if ocupante and str(ocupante.irmao_id) != irmao_id:
+                            nome_anterior = f'{ocupante.irmao.nome} {ocupante.irmao.apelido}'
+                            ocupante.funcao = 'membro'
+                            ocupante.save(update_fields=['funcao'])
+                            funcao_display = dict(Mandato.FUNCAO_CHOICES).get(funcao, funcao)
+                            messages.warning(
+                                request,
+                                f'{nome_anterior} deixou de ser {funcao_display} e voltou a ser Membro.'
+                            )
+
                     if mandato_existente:
-                        messages.warning(request, 'Este membro ja possui este cargo neste departamento.')
+                        # Membro já existe — actualizar a função
+                        if mandato_existente.funcao != funcao:
+                            mandato_existente.funcao = funcao
+                            mandato_existente.save(update_fields=['funcao'])
+                            messages.success(request, 'Função do membro actualizada com sucesso.')
+                        else:
+                            messages.warning(request, 'Este membro já pertence a este departamento com essa função.')
                     else:
                         try:
                             Mandato.objects.create(
                                 departamento_id=identificador,
                                 irmao_id=irmao_id,
-                                cargo_id=cargo_id,
-                                inicio=inicio,
-                                fim=fim,
+                                funcao=funcao,
                             )
                             messages.success(request, 'Membro adicionado ao departamento com sucesso.')
                         except IntegrityError:
-                            messages.error(request, 'Nao foi possivel adicionar o membro. Verifique os dados informados.')
+                            messages.error(request, 'Não foi possível adicionar o membro. Verifique os dados informados.')
 
             elif action == 'remove_member':
                 mandato_id = request.POST.get('mandato_id', '').strip()
@@ -409,18 +526,58 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 if mandato is None:
                     messages.error(request, 'Registo de mandato nao encontrado para este departamento.')
                 else:
+                    # Limpar FK do Departamento se removendo lider/vice_lider
+                    if mandato.funcao == 'lider':
+                        Departamento.objects.filter(pk=identificador, lider_departamento=mandato.irmao).update(lider_departamento=None)
+                    elif mandato.funcao == 'vice_lider':
+                        Departamento.objects.filter(pk=identificador, vice_lider_departamento=mandato.irmao).update(vice_lider_departamento=None)
                     mandato.delete()
                     messages.success(request, 'Membro removido do departamento com sucesso.')
 
+            elif action == 'add_funcao':
+                if not (lidera_departamento or request.user.has_perm('sitetibl.add_funcao')):
+                    messages.error(request, 'Sem permissão para adicionar funções.')
+                else:
+                    nome_funcao = request.POST.get('nome_funcao', '').strip()
+                    if not nome_funcao:
+                        messages.error(request, 'O nome da função não pode estar vazio.')
+                    elif Funcao.objects.filter(designacao=nome_funcao, departamento_id=identificador).exists():
+                        messages.warning(request, 'Esta função já existe neste departamento.')
+                    else:
+                        Funcao.objects.create(designacao=nome_funcao, departamento_id=identificador)
+                        messages.success(request, f'Função "{nome_funcao}" adicionada ao departamento.')
+
+            elif action == 'remove_funcao':
+                if not (lidera_departamento or request.user.has_perm('sitetibl.delete_funcao')):
+                    messages.error(request, 'Sem permissão para remover funções.')
+                else:
+                    funcao_id = request.POST.get('funcao_id', '').strip()
+                    func = Funcao.objects.filter(id=funcao_id, departamento_id=identificador).first()
+                    if func is None:
+                        messages.error(request, 'Função não encontrada neste departamento.')
+                    elif Escala.objects.filter(funcao=func).exists():
+                        messages.warning(request, f'Não é possível remover "{func.designacao}" porque já está em uso em escalas.')
+                    else:
+                        func.delete()
+                        messages.success(request, 'Função removida do departamento.')
+
             return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
+
+        funcoes_departamento = Funcao.objects.filter(departamento_id=identificador).order_by('designacao')
+        pode_gerir_funcoes = (
+            lidera_departamento
+            or request.user.has_perm('sitetibl.add_funcao')
+        )
 
         context = {
             'registoachado': registoachado,
             'gestaoescolhida': gestaoescolhida,
             'mandatos_departamento': mandatos_departamento,
             'todos_irmaos': Irmao.objects.order_by('nome', 'apelido'),
-            'todos_cargos': Cargo.objects.order_by('designacao'),
+            'funcao_choices': Mandato.FUNCAO_CHOICES,
             'pode_gerir_membros': pode_gerir_membros,
+            'funcoes_departamento': funcoes_departamento,
+            'pode_gerir_funcoes': pode_gerir_funcoes,
         }
     elif gestaoescolhida == 'contasbancarias':
         entradas_conta = (
@@ -580,6 +737,79 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'saidas_relacionadas': saidas_relacionadas,
             'total_saidas_rubrica': total_saidas_rubrica,
         }
+    elif gestaoescolhida == 'irmaos':
+        mandatos_irmao = (
+            Mandato.objects
+            .select_related('departamento')
+            .filter(irmao_id=identificador)
+            .order_by('departamento__designacao')
+        )
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'mandatos_irmao': mandatos_irmao,
+        }
+    elif gestaoescolhida == 'pedidosaida':
+        pode_aprovar = request.user.has_perm('sitetibl.change_pedidosaida')
+
+        if request.method == 'POST' and pode_aprovar:
+            action = request.POST.get('action', '').strip()
+            irmao_logado = Irmao.objects.filter(user=request.user).first()
+
+            if action == 'aprovar':
+                registo.estado = 'aprovado'
+                registo.estado_pagamento = 'aguardando'
+                registo.aprovador = irmao_logado
+                registo.observacao_aprovador = request.POST.get('observacao', '').strip()
+                registo.data_aprovacao = now()
+                _sincronizar_status_legado_pedidosaida(registo)
+                registo.save()
+                notificar_mudanca_estado_pedido(registo, 'aprovado', irmao_logado)
+                messages.success(request, 'Pedido aprovado com sucesso.')
+
+            elif action == 'rejeitar':
+                obs = request.POST.get('observacao', '').strip()
+                if not obs:
+                    messages.error(request, 'É obrigatório indicar o motivo da rejeição.')
+                else:
+                    registo.estado = 'rejeitado'
+                    registo.estado_pagamento = 'nao_aplicavel'
+                    registo.aprovador = irmao_logado
+                    registo.observacao_aprovador = obs
+                    registo.data_aprovacao = now()
+                    _sincronizar_status_legado_pedidosaida(registo)
+                    registo.save()
+                    notificar_mudanca_estado_pedido(registo, 'rejeitado', irmao_logado)
+                    messages.success(request, 'Pedido rejeitado.')
+
+            elif action == 'em_analise':
+                registo.estado = 'em_analise'
+                _sincronizar_status_legado_pedidosaida(registo)
+                registo.save(update_fields=['estado', 'status_de_aprovacao', 'data_atualizacao'])
+                notificar_mudanca_estado_pedido(registo, 'em_analise', irmao_logado)
+                messages.info(request, 'Pedido marcado como "Em Análise".')
+
+            elif action == 'marcar_pago':
+                comprovativo = request.FILES.get('comprovativo')
+                if not comprovativo:
+                    messages.error(request, 'Anexe o comprovativo de pagamento.')
+                else:
+                    registo.estado_pagamento = 'pago'
+                    registo.comprovativo_pagamento = comprovativo
+                    registo.data_pagamento = now()
+                    registo.save()
+                    notificar_mudanca_estado_pedido(registo, 'pago', irmao_logado)
+                    messages.success(request, 'Pagamento registado com sucesso.')
+
+            return HttpResponseRedirect(
+                reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+            )
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'pode_aprovar': pode_aprovar,
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
@@ -615,6 +845,22 @@ def mostraEliminacao(request, gestaoescolhida, id):
         return redirect('index')
 
     registo = get_object_or_404(model, id=id)
+
+    # 🔐 Verificação de propriedade para actividades
+    if gestaoescolhida == 'actividades':
+        papel_elevado = request.user.has_perm('sitetibl.change_mandato')
+        if not papel_elevado:
+            pode_eliminar = (registo.criado_por is not None and registo.criado_por == request.user)
+            if not pode_eliminar and registo.departamento_id:
+                irmao_logado = Irmao.objects.filter(user=request.user).first()
+                if irmao_logado:
+                    pode_eliminar = Departamento.objects.filter(
+                        Q(lider_departamento=irmao_logado) | Q(vice_lider_departamento=irmao_logado),
+                        id=registo.departamento_id,
+                    ).exists()
+            if not pode_eliminar:
+                messages.error(request, 'Só pode eliminar actividades que criou ou do seu departamento.')
+                return redirect('index')
 
     if request.method == 'POST':
         registo.delete()
@@ -666,7 +912,59 @@ def mostraCriacao(request, gestaoescolhida):
     if request.method == 'POST':
         formulario = form_class(request.POST, request.FILES)
         if formulario.is_valid():
-            formulario.save()
+            obj = formulario.save(commit=False)
+
+            # ⚠️ Verificação de conflito de horário para actividades
+            if gestaoescolhida == 'actividades':
+                data = formulario.cleaned_data['data']
+                inicio = formulario.cleaned_data['inicio']
+                fim = formulario.cleaned_data['fim']
+                conflitos = Actividade.objects.filter(
+                    data=data, inicio__lt=fim, fim__gt=inicio
+                )
+                mesma_data_diferente = Actividade.objects.filter(
+                    data=data
+                ).exclude(inicio__lt=fim, fim__gt=inicio)
+                if conflitos.exists():
+                    primeiro = conflitos.first()
+                    messages.error(
+                        request,
+                        f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
+                        f'das {primeiro.inicio} às {primeiro.fim} neste dia com horário sobrepóvel.'
+                    )
+                    return render(request, 'formulario_criacao.html', {'formulario': formulario})
+                elif mesma_data_diferente.exists():
+                    messages.warning(
+                        request,
+                        'Já existe outra actividade neste dia com horário diferente. '
+                        'Se for num local diferente, pode prosseguir normalmente.'
+                    )
+
+            obj.save()
+
+            # 👤 Regista o criador nas actividades
+            if gestaoescolhida == 'actividades':
+                obj.criado_por = request.user
+                obj.save(update_fields=['criado_por'])
+
+            # 📋 Pedido de Saída: definir requerente e estado inicial
+            if gestaoescolhida == 'pedidosaida':
+                irmao_req = Irmao.objects.filter(user=request.user).first()
+                if irmao_req:
+                    obj.requerente = irmao_req
+                obj.estado = 'pendente'
+                obj.estado_pagamento = 'nao_aplicavel'
+                obj.save(update_fields=['requerente', 'estado', 'estado_pagamento'])
+
+            # Se for Irmão e o utilizador escolheu departamentos, criar Mandatos
+            if gestaoescolhida == 'irmaos':
+                departamentos = formulario.cleaned_data.get('departamentos')
+                if departamentos:
+                    for dep in departamentos:
+                        Mandato.objects.get_or_create(
+                            irmao=obj, departamento=dep,
+                            defaults={'funcao': 'membro'},
+                        )
             messages.success(request, 'Dados salvos com sucesso!')
             return redirect('index')
         else:
@@ -683,14 +981,15 @@ def encontraIrmao(request):
     municipiov = request.GET.get('municipiov', '').strip()
     bairrov = request.GET.get('bairrov', '').strip()
     
-    profissaov_str = request.GET.get('profissaov', '0').strip()
-    profissaov = int(profissaov_str) if profissaov_str.isdigit() else 0
+    profissaov = request.GET.get('profissaov', '').strip()
     
     pagina = request.GET.get('pagina', '1')
-    kwargs= {'nome__icontains':nomev, 'apelido__icontains' : apelidov, 'bairro__icontains' : bairrov, 'profissao_id' : profissaov }
-    if (profissaov == 0):
-        del kwargs['profissao_id']
-    resultado = Irmao.objects.select_related('profissao', 'celula', 'localcongregacao').filter(**kwargs)
+    kwargs= {'nome__icontains':nomev, 'apelido__icontains' : apelidov, 'bairro__icontains' : bairrov}
+    if profissaov:
+        kwargs['profissao__icontains'] = profissaov
+    if municipiov and municipiov != '0':
+        kwargs['municipio_id'] = municipiov
+    resultado = Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -791,16 +1090,452 @@ def contasbancariasinativas(request):
     })
 
 
+def _get_relatorio_dizimos_membro_context(params):
+    q = params.get('q', '').strip()
+    mesv = params.get('mesv', '0')
+    anov = params.get('anov', '0')
+    datainicio = params.get('datainicio', '').strip()
+    datafim = params.get('datafim', '').strip()
+
+    filtros = {}
+    if mesv != '0':
+        filtros['datacorrespondente__month'] = mesv
+    if anov != '0':
+        filtros['datacorrespondente__year'] = anov
+    if datainicio:
+        filtros['datacorrespondente__gte'] = datainicio
+    if datafim:
+        filtros['datacorrespondente__lte'] = datafim
+
+    queryset = Dizimooferta.objects.select_related('irmao').filter(**filtros)
+    if q:
+        queryset = queryset.filter(
+            Q(irmao__nome__icontains=q)
+            | Q(irmao__apelido__icontains=q)
+            | Q(irmao__outrosnomes__icontains=q)
+            | Q(irmao__email__icontains=q)
+        )
+
+    agregados = list(
+        queryset.values('irmao_id', 'moeda')
+        .annotate(total_registos=Count('id'), total_valor=Sum('valor'))
+        .order_by('-total_valor')
+    )
+
+    irmaos_ids = [item['irmao_id'] for item in agregados]
+    irmaos_map = {
+        irmao.id: irmao
+        for irmao in Irmao.objects.filter(id__in=irmaos_ids)
+    }
+
+    relatorio = []
+    contribuinte_ids = set()
+    for item in agregados:
+        irmao = irmaos_map.get(item['irmao_id'])
+        if not irmao:
+            continue
+        contribuinte_ids.add(irmao.id)
+        relatorio.append({
+            'irmao': irmao,
+            'total_registos': item['total_registos'],
+            'total_valor': item['total_valor'] or 0,
+            'moeda': item['moeda'],
+        })
+
+    total_contribuintes = len(contribuinte_ids)
+    total_geral = queryset.aggregate(total=Sum('valor'))['total'] or 0
+    moedas_distintas = list(queryset.values_list('moeda', flat=True).distinct())
+    moeda_resumo = moedas_distintas[0] if len(moedas_distintas) == 1 else 'MULTI'
+    media_por_membro = (total_geral / total_contribuintes) if total_contribuintes and len(moedas_distintas) == 1 else None
+
+    return {
+        'relatorio': relatorio,
+        'q': q,
+        'mesv': mesv,
+        'anov': anov,
+        'datainicio': datainicio,
+        'datafim': datafim,
+        'listameses': MESES,
+        'total_contribuintes': total_contribuintes,
+        'total_geral': total_geral,
+        'media_por_membro': media_por_membro,
+        'moeda_resumo': moeda_resumo,
+        'query_string': params.urlencode(),
+    }
+
+
+def _desenhar_rodape_pdf(canvas_obj, doc):
+    canvas_obj.saveState()
+    canvas_obj.setFont('Helvetica', 9)
+    canvas_obj.setFillColor(colors.HexColor('#666666'))
+    canvas_obj.drawRightString(doc.pagesize[0] - 40, 20, f'Pagina {canvas_obj.getPageNumber()}')
+    canvas_obj.restoreState()
+
+
 @login_required
 def relatoriodizimosmembro(request):
-    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
-    return redirect('pagina_relatorios')
+    return render(request, 'relatoriodizimosmembro.html', _get_relatorio_dizimos_membro_context(request.GET))
+
+
+@login_required
+def relatoriodizimosmembro_pdf(request):
+    context = _get_relatorio_dizimos_membro_context(request.GET)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="relatorio_dizimos_por_membro.pdf"'
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40,
+        title="Relatorio de Dizimos por Membro",
+        author="Sistema TIBL"
+    )
+
+    styles = getSampleStyleSheet()
+    header_style = ParagraphStyle(
+        'RelatorioHeaderMembro',
+        parent=styles['Heading2'],
+        alignment=1,
+        textColor=colors.HexColor('#1f3d1f'),
+        spaceAfter=4,
+    )
+    subtitle_style = ParagraphStyle(
+        'RelatorioSubtitleMembro',
+        parent=styles['Normal'],
+        alignment=1,
+        textColor=colors.HexColor('#4f4f4f'),
+        fontSize=9,
+        spaceAfter=6,
+    )
+    meta_style = ParagraphStyle(
+        'RelatorioMetaMembro',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#555555'),
+        leading=12,
+        spaceAfter=4,
+    )
+    elements = []
+
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=80, height=80)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+
+    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(Paragraph("<b>Terceira Igreja Baptista de Luanda</b>", header_style))
+    elements.append(Paragraph("Sistema TIBL | Relatorio Financeiro", subtitle_style))
+    elements.append(Paragraph("<b>Relatorio de Dizimos por Membro</b>", styles['Title']))
+
+    filtros_aplicados = []
+    if context['q']:
+        filtros_aplicados.append(f"Pesquisa: {context['q']}")
+    if context['mesv'] != '0':
+        filtros_aplicados.append(f"Mes: {MESES.get(context['mesv'], context['mesv'])}")
+    if context['anov'] != '0':
+        filtros_aplicados.append(f"Ano: {context['anov']}")
+    if context['datainicio']:
+        filtros_aplicados.append(f"De: {context['datainicio']}")
+    if context['datafim']:
+        filtros_aplicados.append(f"Ate: {context['datafim']}")
+
+    periodo = 'Todos os periodos'
+    if context['datainicio'] and context['datafim']:
+        periodo = f"{context['datainicio']} ate {context['datafim']}"
+    elif context['datainicio']:
+        periodo = f"A partir de {context['datainicio']}"
+    elif context['datafim']:
+        periodo = f"Ate {context['datafim']}"
+    elif context['mesv'] != '0' and context['anov'] != '0':
+        periodo = f"{MESES.get(context['mesv'], context['mesv'])} de {context['anov']}"
+    elif context['mesv'] != '0':
+        periodo = MESES.get(context['mesv'], context['mesv'])
+    elif context['anov'] != '0':
+        periodo = f"Ano de {context['anov']}"
+
+    moeda_label = 'Multimoeda' if context['moeda_resumo'] == 'MULTI' else context['moeda_resumo']
+
+    elements.append(Paragraph(f"<b>Periodo:</b> {periodo}", meta_style))
+    elements.append(Paragraph(f"<b>Emitido em:</b> {date.today().strftime('%d/%m/%Y')}", meta_style))
+    if filtros_aplicados:
+        elements.append(Paragraph(f"<b>Filtros:</b> {' | '.join(filtros_aplicados)}", meta_style))
+    else:
+        elements.append(Paragraph("<b>Filtros:</b> Nenhum filtro adicional aplicado", meta_style))
+
+    resumo = Table([
+        ['Contribuintes', 'Total arrecadado', 'Moeda', 'Media por membro'],
+        [
+            str(context['total_contribuintes']),
+            f"{context['total_geral']:,.2f}",
+            moeda_label,
+            f"{context['media_por_membro']:,.2f}" if context['media_por_membro'] is not None else '--',
+        ],
+    ], colWidths=[100, 130, 90, 110])
+    resumo.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d9ead3')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#1f3d1f')),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f4fbf1')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#a8c79d')),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(resumo)
+    elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+    data = [['Membro', 'Email', 'Moeda', 'Total Contribuido', 'N. Registos']]
+    for item in context['relatorio']:
+        data.append([
+            f"{item['irmao'].nome} {item['irmao'].apelido}",
+            item['irmao'].email or '-',
+            item['moeda'],
+            f"{item['total_valor']:,.2f}",
+            str(item['total_registos'])
+        ])
+
+    if len(data) == 1:
+        data.append(['Nenhum registo encontrado', '-', '-', '-', '-'])
+
+    data.append([
+        'Total Geral',
+        '',
+        moeda_label,
+        f"{context['total_geral']:,.2f}",
+        ''
+    ])
+
+    table = LongTable(data, colWidths=[150, 130, 60, 100, 70], repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#548c2f')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('TOPPADDING', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ('ALIGN', (2, 1), (2, -1), 'CENTER'),
+        ('ALIGN', (3, 1), (4, -1), 'RIGHT'),
+        ('BACKGROUND', (0, 1), (-1, -2), colors.whitesmoke),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f3e0')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+
+    elements.append(table)
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
+
+
+def _get_relatorio_ofertas_por_tipo_context(params):
+    q = params.get('q', '').strip()
+    mes = params.get('mes', '').strip()
+    ano = params.get('ano', '').strip()
+    datainicio = params.get('datainicio', '').strip()
+    datafim = params.get('datafim', '').strip()
+
+    filtros = {}
+    if mes:
+        filtros['datacorrespondente__month'] = mes
+    if ano:
+        filtros['datacorrespondente__year'] = ano
+    if datainicio:
+        filtros['datacorrespondente__gte'] = datainicio
+    if datafim:
+        filtros['datacorrespondente__lte'] = datafim
+
+    queryset = Dizimooferta.objects.select_related('tipooferta', 'irmao').filter(**filtros)
+    if q:
+        queryset = queryset.filter(
+            Q(tipooferta__designacao__icontains=q)
+            | Q(irmao__nome__icontains=q)
+            | Q(irmao__apelido__icontains=q)
+            | Q(irmao__email__icontains=q)
+        )
+
+    reporte = list(
+        queryset.values('tipooferta__designacao', 'moeda')
+        .annotate(total=Sum('valor'), count=Count('id'))
+        .order_by('-total', 'tipooferta__designacao')
+    )
+
+    total_geral = queryset.aggregate(total=Sum('valor'))['total'] or 0
+    moedas_distintas = list(queryset.values_list('moeda', flat=True).distinct())
+    moeda_resumo = moedas_distintas[0] if len(moedas_distintas) == 1 else 'MULTI'
+
+    return {
+        'reporte': reporte,
+        'q': q,
+        'mes': mes,
+        'ano': ano,
+        'datainicio': datainicio,
+        'datafim': datafim,
+        'total_geral': total_geral,
+        'moeda_resumo': moeda_resumo,
+        'query_string': params.urlencode(),
+    }
 
 
 @login_required
 def relatorioofertasportipo(request):
-    messages.info(request, 'Use os relatórios em /relatorios/ para este tipo de consulta.')
-    return redirect('pagina_relatorios')
+    return render(request, 'relatorioofertasportipo.html', _get_relatorio_ofertas_por_tipo_context(request.GET))
+
+
+@login_required
+def relatorioofertasportipo_pdf(request):
+    context = _get_relatorio_ofertas_por_tipo_context(request.GET)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="relatorio_ofertas_por_tipo.pdf"'
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40,
+        title="Relatorio de Ofertas por Tipo",
+        author="Sistema TIBL"
+    )
+
+    styles = getSampleStyleSheet()
+    header_style = ParagraphStyle(
+        'RelatorioHeader',
+        parent=styles['Heading2'],
+        alignment=1,
+        textColor=colors.HexColor('#1f3d1f'),
+        spaceAfter=4,
+    )
+    subtitle_style = ParagraphStyle(
+        'RelatorioSubtitle',
+        parent=styles['Normal'],
+        alignment=1,
+        textColor=colors.HexColor('#4f4f4f'),
+        fontSize=9,
+        spaceAfter=6,
+    )
+    meta_style = ParagraphStyle(
+        'RelatorioMeta',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#555555'),
+        leading=12,
+        spaceAfter=4,
+    )
+    elements = []
+
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=80, height=80)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+
+    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(Paragraph("<b>Terceira Igreja Baptista de Luanda</b>", header_style))
+    elements.append(Paragraph("Sistema TIBL | Relatorio Financeiro", subtitle_style))
+    elements.append(Paragraph("<b>Relatorio de Ofertas por Tipo</b>", styles['Title']))
+
+    filtros_aplicados = []
+    if context['q']:
+        filtros_aplicados.append(f"Pesquisa: {context['q']}")
+    if context['mes']:
+        filtros_aplicados.append(f"Mes: {MESES.get(context['mes'], context['mes'])}")
+    if context['ano']:
+        filtros_aplicados.append(f"Ano: {context['ano']}")
+    if context['datainicio']:
+        filtros_aplicados.append(f"De: {context['datainicio']}")
+    if context['datafim']:
+        filtros_aplicados.append(f"Ate: {context['datafim']}")
+    periodo = 'Todos os periodos'
+    if context['datainicio'] and context['datafim']:
+        periodo = f"{context['datainicio']} ate {context['datafim']}"
+    elif context['datainicio']:
+        periodo = f"A partir de {context['datainicio']}"
+    elif context['datafim']:
+        periodo = f"Ate {context['datafim']}"
+    elif context['mes'] and context['ano']:
+        periodo = f"{MESES.get(context['mes'], context['mes'])} de {context['ano']}"
+    elif context['mes']:
+        periodo = MESES.get(context['mes'], context['mes'])
+    elif context['ano']:
+        periodo = f"Ano de {context['ano']}"
+
+    total_registos = sum(row['count'] for row in context['reporte'])
+    moeda_label = 'Multimoeda' if context['moeda_resumo'] == 'MULTI' else context['moeda_resumo']
+
+    elements.append(Paragraph(f"<b>Periodo:</b> {periodo}", meta_style))
+    elements.append(Paragraph(f"<b>Emitido em:</b> {date.today().strftime('%d/%m/%Y')}", meta_style))
+    if filtros_aplicados:
+        elements.append(Paragraph(f"<b>Filtros:</b> {' | '.join(filtros_aplicados)}", meta_style))
+    else:
+        elements.append(Paragraph("<b>Filtros:</b> Nenhum filtro adicional aplicado", meta_style))
+
+    resumo = Table([
+        ['Tipos de oferta', 'Total arrecadado', 'Moeda', 'Registos'],
+        [str(len(context['reporte'])), f"{context['total_geral']:,.2f}", moeda_label, str(total_registos)],
+    ], colWidths=[110, 140, 90, 90])
+    resumo.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d9ead3')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#1f3d1f')),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f4fbf1')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#a8c79d')),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(resumo)
+    elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+    data = [['Tipo de Oferta', 'Moeda', 'Total Arrecadado', 'N. Registos']]
+    for row in context['reporte']:
+        data.append([
+            row['tipooferta__designacao'] or 'Geral',
+            row['moeda'],
+            f"{row['total']:,.2f}",
+            str(row['count'])
+        ])
+
+    if len(data) == 1:
+        data.append(['Nenhum registo encontrado', '-', '-', '-'])
+
+    data.append([
+        'Total Geral',
+        'Multimoeda' if context['moeda_resumo'] == 'MULTI' else context['moeda_resumo'],
+        f"{context['total_geral']:,.2f}",
+        ''
+    ])
+
+    table = LongTable(data, colWidths=[180, 70, 120, 80], repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#548c2f')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('TOPPADDING', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ('ALIGN', (1, 1), (1, -1), 'CENTER'),
+        ('ALIGN', (2, 1), (3, -1), 'RIGHT'),
+        ('BACKGROUND', (0, 1), (-1, -2), colors.whitesmoke),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f3e0')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+
+    elements.append(table)
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
+
+
 
 
 @login_required
@@ -898,14 +1633,19 @@ def encontraDepartamentos(request):
     nomev = request.GET['nomev']
     apelidov = request.GET['apelidov']
     departamentov = int(request.GET['departamentov'])
-    cargov = int(request.GET['cargov'])
+    funcaov = request.GET.get('funcaov', '').strip()
     pagina= request.GET['pagina']
-    kwargs= {'irmao__nome__icontains':nomev, 'irmao__apelido__icontains' : apelidov, 'cargo_id' : cargov, 'departamento_id' : departamentov }
+    kwargs= {'irmao__nome__icontains':nomev, 'irmao__apelido__icontains' : apelidov, 'departamento_id' : departamentov }
     if (departamentov == 0):
         del kwargs['departamento_id']
-    if (cargov == 0):
-        del kwargs['cargo_id']
-    resultado = Mandato.objects.values('departamento_id', 'departamento__designacao', 'cargo__designacao', 'irmao__nome', 'irmao__apelido').filter(**kwargs).order_by('departamento__designacao')
+    if funcaov:
+        kwargs['funcao'] = funcaov
+    resultado = Mandato.objects.values('departamento_id', 'departamento__designacao', 'funcao', 'irmao__nome', 'irmao__apelido').filter(**kwargs).order_by('departamento__designacao')
+    # Mapear valor bruto do cargo para etiqueta legível
+    cargo_map = dict(Mandato.FUNCAO_CHOICES)
+    resultado = list(resultado)
+    for r in resultado:
+        r['cargo_display'] = cargo_map.get(r['funcao'], r['funcao'])
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -1127,22 +1867,78 @@ def encontraBancos(request):
 
 @login_required
 def encontraEscalas(request):
-    actividade = request.GET['actividade']
-    funcao = request.GET['funcao']
-    
-    
-    kwargs= {'actividade__designacao__designacao__icontains':actividade, 
-             'funcao__designacao__icontains' : funcao, 
-             
-            }
-    pagina= request.GET['pagina']
-    resultado = Escala.objects.filter(**kwargs)
+    actividade = request.GET.get('actividade', '')
+    funcao = request.GET.get('funcao', '')
+    departamentov = request.GET.get('departamentov', '0')
+
+    kwargs = {
+        'actividade__designacao__designacao__icontains': actividade,
+        'funcao__designacao__icontains': funcao,
+    }
+    if departamentov and departamentov != '0':
+        kwargs['actividade__departamento_id'] = departamentov
+
+    pagina = request.GET.get('pagina', 1)
+    resultado = Escala.objects.filter(**kwargs).select_related(
+        'irmao', 'actividade', 'actividade__departamento', 'funcao'
+    )
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
-    dd = dict(request.GET.lists())
-    del dd['pagina']
-    cc = request.META['QUERY_STRING']
-    return render(request,'escalasfiltrados.html', {'bb':paginaresultado})
+    departamentos = Departamento.objects.all().order_by('designacao')
+    return render(request, 'escalasfiltrados.html', {
+        'bb': paginaresultado,
+        'departamentos': departamentos,
+        'departamentov_sel': departamentov,
+    })
+
+
+@login_required
+def criar_actividades_recorrentes(request):
+    """Cria múltiplas actividades para uma série semanal recorrente."""
+    if not request.user.has_perm('sitetibl.add_actividade'):
+        messages.error(request, 'Acesso negado! Não tem permissão para criar actividades.')
+        return redirect('index')
+
+    if request.method == 'POST':
+        form = ActividadesRecorrentesForm(request.POST)
+        if form.is_valid():
+            tipo = form.cleaned_data['tipo_actividade']
+            departamento = form.cleaned_data.get('departamento')
+            localactividade = form.cleaned_data.get('localactividade')
+            inicio = form.cleaned_data['inicio']
+            fim = form.cleaned_data['fim']
+            data_inicio = form.cleaned_data['data_inicio']
+            data_fim = form.cleaned_data['data_fim']
+            dias_semana = [int(d) for d in form.cleaned_data['dias_semana']]
+
+            current = data_inicio
+            criadas = []
+            while current <= data_fim:
+                if current.weekday() in dias_semana:
+                    a = Actividade.objects.create(
+                        designacao=tipo,
+                        departamento=departamento,
+                        localactividade=localactividade,
+                        inicio=inicio,
+                        fim=fim,
+                        data=current,
+                        criado_por=request.user,
+                    )
+                    criadas.append(a)
+                current += timedelta(days=1)
+
+            if criadas:
+                messages.success(
+                    request,
+                    f'{len(criadas)} actividade{"s" if len(criadas) != 1 else ""} criada{"s" if len(criadas) != 1 else ""} com sucesso.'
+                )
+            else:
+                messages.warning(request, 'Nenhuma actividade criada. Verifique o intervalo de datas e os dias seleccionados.')
+            return redirect('sitetibl:mostra_gestao', gestaoescolhida='actividades', pagina=1)
+    else:
+        form = ActividadesRecorrentesForm()
+
+    return render(request, 'actividades_recorrentes.html', {'form': form})
 
 
 class EscalasPorActividadeView(APIView):
@@ -1375,14 +2171,64 @@ def dashboardCrescimentoMembros(request):
     })
 
 
+@login_required
+def dashboardDepartamentosMembros(request):
+    """Número de membros por departamento — gráfico de barras horizontais."""
+    dados = (
+        Mandato.objects
+        .values('departamento__designacao')
+        .annotate(total=Count('irmao', distinct=True))
+        .order_by('-total')
+    )
+    labels = [d['departamento__designacao'] for d in dados]
+    data = [d['total'] for d in dados]
+    return JsonResponse({"labels": labels, "data": data})
+
 
 #VIEWS QUE GERAM RELATÓRIOS
+@login_required
+def meu_perfil(request):
+    """Página de perfil pessoal: actualiza contactos e senha."""
+    try:
+        irmao = request.user.irmao
+    except Irmao.DoesNotExist:
+        irmao = None
+
+    perfil_form = MeuPerfilForm(instance=irmao) if irmao else None
+    senha_form = MeuPerfilPasswordForm(user=request.user)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'perfil' and irmao:
+            perfil_form = MeuPerfilForm(request.POST, request.FILES, instance=irmao)
+            if perfil_form.is_valid():
+                perfil_form.save()
+                messages.success(request, 'Dados de contacto actualizados com sucesso.')
+                return redirect('sitetibl:meu_perfil')
+
+        elif action == 'senha':
+            senha_form = MeuPerfilPasswordForm(user=request.user, data=request.POST)
+            if senha_form.is_valid():
+                senha_form.save()
+                update_session_auth_hash(request, senha_form.user)
+                messages.success(request, 'Senha alterada com sucesso.')
+                return redirect('sitetibl:meu_perfil')
+
+    return render(request, 'meu_perfil.html', {
+        'perfil_form': perfil_form,
+        'senha_form': senha_form,
+        'irmao': irmao,
+    })
+
+
 @login_required
 def pagina_relatorios(request):
     return render(request, 'relatorios/template_relatorio.html')
 
 
 @login_required
+@permission_required('sitetibl.change_irmao', raise_exception=True)
 def relatorio_irmaos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_irmaos.pdf"'
@@ -1460,6 +2306,7 @@ def relatorio_irmaos_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_dizimooferta', raise_exception=True)
 def relatorio_dizimos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_dizimos_ofertas.pdf"'
@@ -1550,6 +2397,7 @@ def relatorio_dizimos_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_departamento', raise_exception=True)
 def relatorio_departamentos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_departamentos.pdf"'
@@ -1616,6 +2464,7 @@ def relatorio_departamentos_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_escala', raise_exception=True)
 def relatorio_escalas_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_escalas.pdf"'
@@ -1703,6 +2552,7 @@ def relatorio_escalas_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_actividade', raise_exception=True)
 def relatorio_actividades_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_actividades.pdf"'
@@ -1805,6 +2655,7 @@ def relatorio_actividades_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_inventariopatrimonio', raise_exception=True)
 def relatorio_inventario_patrimonio_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_inventario_patrimonio.pdf"'
@@ -1905,6 +2756,7 @@ def relatorio_inventario_patrimonio_pdf(request):
 
 
 @login_required
+@permission_required('sitetibl.view_saidacaixa', raise_exception=True)
 def relatorio_saida_caixa_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_saida_caixa.pdf"'
@@ -2011,8 +2863,104 @@ def relatorio_saida_caixa_pdf(request):
 
 @login_required
 def dashboard(request):
+    from datetime import date as dt_date, timedelta
+    import random
+    hoje = dt_date.today()
+    user = request.user
+
+    # --- Versículo do dia (roda pela data para variar diariamente) ---
+    VERSICULOS = [
+        {'texto': 'Porque eu bem sei os pensamentos que penso de vós, diz o Senhor; pensamentos de paz e não de mal, para vos dar o fim que esperais.', 'ref': 'Jeremias 29:11'},
+        {'texto': 'Tudo posso naquele que me fortalece.', 'ref': 'Filipenses 4:13'},
+        {'texto': 'O Senhor é o meu pastor; nada me faltará.', 'ref': 'Salmos 23:1'},
+        {'texto': 'Confia no Senhor de todo o teu coração e não te estribes no teu próprio entendimento.', 'ref': 'Provérbios 3:5'},
+        {'texto': 'Mas os que esperam no Senhor renovarão as suas forças; subirão com asas como águias; correrão e não se cansarão; caminharão e não se fatigarão.', 'ref': 'Isaías 40:31'},
+        {'texto': 'Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça.', 'ref': 'Isaías 41:10'},
+        {'texto': 'Dá instrução ao sábio, e ele se fará mais sábio; ensina ao justo, e ele crescerá em entendimento.', 'ref': 'Provérbios 9:9'},
+        {'texto': 'O amor é paciente, o amor é bondoso. Não inveja, não se vangloria, não se orgulha.', 'ref': '1 Coríntios 13:4'},
+        {'texto': 'Alegrai-vos sempre no Senhor; outra vez digo: alegrai-vos.', 'ref': 'Filipenses 4:4'},
+        {'texto': 'Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.', 'ref': 'Mateus 11:28'},
+        {'texto': 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigénito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.', 'ref': 'João 3:16'},
+        {'texto': 'E sabemos que todas as coisas contribuem juntamente para o bem daqueles que amam a Deus.', 'ref': 'Romanos 8:28'},
+        {'texto': 'Sê forte e corajoso; não temas, nem te espantes, porque o Senhor, teu Deus, é contigo por onde quer que andares.', 'ref': 'Josué 1:9'},
+        {'texto': 'O Senhor é a minha luz e a minha salvação; a quem temerei? O Senhor é a força da minha vida; de quem me recearei?', 'ref': 'Salmos 27:1'},
+        {'texto': 'Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós.', 'ref': '1 Pedro 5:7'},
+        {'texto': 'Sede fortes e corajosos, não temais, nem vos assusteis por causa deles, pois o Senhor, vosso Deus, é quem vai convosco; não vos deixará, nem vos desamparará.', 'ref': 'Deuteronómio 31:6'},
+        {'texto': 'Eu sou a videira, vós, as varas; quem está em mim, e eu nele, este dá muito fruto, porque sem mim nada podeis fazer.', 'ref': 'João 15:5'},
+        {'texto': 'A tua palavra é lâmpada que ilumina os meus passos e luz que clareia o meu caminho.', 'ref': 'Salmos 119:105'},
+        {'texto': 'Porque onde estiverem dois ou três reunidos em meu nome, aí estou eu no meio deles.', 'ref': 'Mateus 18:20'},
+        {'texto': 'Entrega o teu caminho ao Senhor; confia nele, e ele tudo fará.', 'ref': 'Salmos 37:5'},
+        {'texto': 'Irmãos, não julgo havê-lo alcançado; mas uma coisa faço: esquecendo-me das coisas que ficaram para trás e avançando para as que estão adiante, prossigo para o alvo.', 'ref': 'Filipenses 3:13-14'},
+    ]
+    idx_versiculo = hoje.toordinal() % len(VERSICULOS)
+    versiculo_do_dia = VERSICULOS[idx_versiculo]
+
+    # --- Dados visíveis para TODOS ---
+    anuncios = Anuncio.objects.order_by('-data')[:5]
+
+    proximas_actividades = (
+        Actividade.objects
+        .filter(data__gte=hoje, data__lte=hoje + timedelta(days=14))
+        .select_related('designacao', 'localactividade')
+        .order_by('data', 'inicio')[:6]
+    )
+
+    # Escalas do membro logado + verificação de célula
+    minhas_escalas_list = []
+    irmao_obj = Irmao.objects.filter(user=user).select_related('celula').first()
+    tem_celula = False
+    if irmao_obj:
+        tem_celula = irmao_obj.celula is not None
+        minhas_escalas_list = (
+            Escala.objects
+            .filter(irmao=irmao_obj, actividade__data__gte=hoje)
+            .select_related('actividade__designacao', 'funcao')
+            .order_by('actividade__data')[:5]
+        )
+
+    # Aniversariantes do mês
+    aniversariantes = (
+        Irmao.objects
+        .filter(datanascimento__month=hoje.month)
+        .order_by('datanascimento__day')[:10]
+    )
+
+    # --- Dados financeiros (passados apenas se utilizador tem permissão) ---
+    pedidos_pendentes = None
+    saldos_bancarios = None
+    total_membros = Irmao.objects.count()
+
+    if user.has_perm('sitetibl.view_pedidosaida'):
+        pedidos_pendentes = (
+            PedidoSaida.objects
+            .exclude(estado__in=['aprovado', 'rejeitado'])
+            .select_related('requerente', 'departamento', 'status_de_aprovacao')
+            .order_by('-data_criacao')[:5]
+        )
+
+    if user.has_perm('sitetibl.view_contabancaria'):
+        contas = Contabancaria.objects.filter(is_active=True).select_related('banco')
+        saldos_bancarios = []
+        for c in contas:
+            saldos_bancarios.append({
+                'banco': str(c.banco),
+                'numero': c.numeroconta[-4:] if len(c.numeroconta) >= 4 else c.numeroconta,
+                'moeda': c.moeda,
+                'saldo': c.saldo_actual(),
+            })
+
     context = {
         'titulo': 'Dashboard',
+        'versiculo': versiculo_do_dia,
+        'tem_celula': tem_celula,
+        'tem_perfil': irmao_obj is not None,
+        'anuncios': anuncios,
+        'proximas_actividades': proximas_actividades,
+        'minhas_escalas': minhas_escalas_list,
+        'aniversariantes': aniversariantes,
+        'pedidos_pendentes': pedidos_pendentes,
+        'saldos_bancarios': saldos_bancarios,
+        'total_membros': total_membros,
     }
     return render(request, 'dashboard.html', context)
 
@@ -2021,22 +2969,31 @@ def root_redirect(request):
 
 @login_required
 def minhas_escalas(request):
-    import datetime
-    agora = datetime.datetime.now()
-    try:
-        irmao_obj = request.user.irmao
-        escalas = Escala.objects.filter(irmao=irmao_obj, actividade__data__gte=agora.date()).select_related(
-            'actividade', 
-            'actividade__designacao', 
-            'actividade__localactividade', 
-            'funcao'
-        ).order_by('actividade__data', 'actividade__inicio')
-    except:
-        escalas = []
+    from datetime import date as dt_date
+    hoje = dt_date.today()
+
+    irmao_obj = Irmao.objects.filter(user=request.user).first()
+    if not irmao_obj:
+        messages.warning(request, 'O seu utilizador não está associado a nenhum perfil de irmão.')
+        return render(request, 'minhasescalas.html', {
+            'escalas_futuras': [],
+            'escalas_passadas': [],
+            'titulo': 'As Minhas Escalas',
+        })
+
+    base_qs = Escala.objects.filter(irmao=irmao_obj).select_related(
+        'actividade',
+        'actividade__designacao',
+        'actividade__localactividade',
+        'funcao',
+    )
+    escalas_futuras = base_qs.filter(actividade__data__gte=hoje).order_by('actividade__data', 'actividade__inicio')
+    escalas_passadas = base_qs.filter(actividade__data__lt=hoje).order_by('-actividade__data', '-actividade__inicio')[:20]
 
     context = {
-        'escalas': escalas,
-        'titulo': 'As Minhas Escalas'
+        'escalas_futuras': escalas_futuras,
+        'escalas_passadas': escalas_passadas,
+        'titulo': 'As Minhas Escalas',
     }
     return render(request, 'minhasescalas.html', context)
 

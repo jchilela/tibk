@@ -6,6 +6,7 @@ from sitetibl.models import Contabancaria
 from sitetibl.models import Actividade
 from sitetibl.models import Departamento
 from sitetibl.models import Mandato
+from sitetibl.models import Cargo
 from sitetibl.models import Escala
 from sitetibl.models import Saidacaixa
 from sitetibl.models import Saidabanco
@@ -16,6 +17,7 @@ from sitetibl.models import Pagamentoservico
 from sitetibl.models import Gruporubrica
 from sitetibl.models import Servico
 from sitetibl.models import Sitio
+from sitetibl.models import Municipio
 from sitetibl.models import RelatorioSemanalCelula
 from sitetibl.models import PedidoSaida
 from sitetibl.models import OrcamentoDepartamento
@@ -23,13 +25,45 @@ from sitetibl.models import InventarioPatrimonio
 from sitetibl.models import ConteudoEnsino
 from sitetibl.models import EnvioMensagem
 from sitetibl.models import TipoOferta
+from sitetibl.models import Listaactividades
 
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django import forms
+from datetime import date, timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import re
+from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
+
+
+class MeuPerfilForm(ModelForm):
+    """Campos que o próprio utilizador pode alterar no seu perfil."""
+    class Meta:
+        model = Irmao
+        fields = ['foto', 'telefone', 'telefonewhatsapp', 'email']
+        widgets = {
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 923000000'}),
+            'telefonewhatsapp': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 923000000'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'foto': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+
+class MeuPerfilPasswordForm(DjangoPasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+        self.fields['old_password'].label = 'Senha actual'
+        self.fields['old_password'].help_text = ''
+        self.fields['new_password1'].label = 'Nova senha'
+        self.fields['new_password1'].help_text = (
+            'A senha deve ter pelo menos 8 caracteres. '
+            'Não pode ser apenas números nem semelhante ao nome de utilizador.'
+        )
+        self.fields['new_password2'].label = 'Confirmar nova senha'
+        self.fields['new_password2'].help_text = 'Repita a nova senha para confirmar.'
 
 
 class ContabancariaForm(forms.ModelForm):
@@ -57,19 +91,60 @@ class IrmaoForm(ModelForm):
         ]
     )
 
+    departamentos = forms.ModelMultipleChoiceField(
+        queryset=Departamento.objects.order_by('designacao'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label='Departamentos',
+        help_text='Seleccione um ou mais departamentos (opcional).',
+    )
+
     class Meta:
         model = Irmao
-        fields = '__all__'
+        fields = [
+            # --- Identificação pessoal ---
+            'nome', 'apelido', 'outrosnomes', 'sexo', 'foto',
+            'datanascimento', 'estadocivil',
+            # --- Contactos ---
+            'telefone', 'telefonewhatsapp', 'email',
+            # --- Localização ---
+            'ruaenumero', 'bairro', 'provincia', 'municipio',
+            # --- Vida eclesiástica ---
+            'localcongregacao', 'celula', 'culto', 'batizado', 'dizimista',
+            # --- Profissão e trabalho ---
+            'profissao', 'especialidade', 'grauescolaridade', 'localdetrabalho',
+            # --- Outros ---
+            'observacao',
+        ]
         widgets = {
-            'datanascimento': forms.DateInput(attrs={'type': 'date'})
+            'datanascimento': forms.DateInput(attrs={'type': 'date'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        #filtrar as dropdown para aparecer ou celula ou igreja
+        # Filtrar dropdowns: só células ou só igrejas
         self.fields['celula'].queryset = Sitio.objects.filter(tipo='2')
         self.fields['localcongregacao'].queryset = Sitio.objects.filter(tipo='1')
+
+        # Cascading: município depende da província seleccionada
+        if self.instance and self.instance.pk and self.instance.provincia_id:
+            # Edição: mostrar municípios da província do registo
+            self.fields['municipio'].queryset = Municipio.objects.filter(
+                provincia_id=self.instance.provincia_id
+            )
+        elif 'provincia' in self.data:
+            # POST: filtrar pela província enviada
+            try:
+                provincia_id = int(self.data.get('provincia'))
+                self.fields['municipio'].queryset = Municipio.objects.filter(
+                    provincia_id=provincia_id
+                )
+            except (ValueError, TypeError):
+                self.fields['municipio'].queryset = Municipio.objects.none()
+        else:
+            # Criação: município vazio até escolher província
+            self.fields['municipio'].queryset = Municipio.objects.none()
 
 class AjudaForm(ModelForm):
     class Meta:
@@ -179,12 +254,82 @@ class ContabancariaForm(ModelForm):
 class ActividadeForm(ModelForm):
     class Meta:
         model = Actividade
-        exclude = ('participantes',)
+        exclude = ('participantes', 'criado_por')
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'inicio': forms.DateInput(attrs={'type': 'time'}),
             'fim': forms.DateInput(attrs={'type': 'time'}),
         }
+
+
+DIAS_SEMANA_CHOICES = [
+    (6, 'Domingo'),
+    (0, 'Segunda-feira'),
+    (1, 'Terça-feira'),
+    (2, 'Quarta-feira'),
+    (3, 'Quinta-feira'),
+    (4, 'Sexta-feira'),
+    (5, 'Sábado'),
+]
+
+
+class ActividadesRecorrentesForm(forms.Form):
+    """Cria múltiplas actividades de uma vez para uma série semanal."""
+    tipo_actividade = forms.ModelChoiceField(
+        queryset=Listaactividades.objects.all().order_by('designacao'),
+        label='Tipo de Actividade',
+        empty_label='Seleccione...',
+    )
+    departamento = forms.ModelChoiceField(
+        queryset=Departamento.objects.all().order_by('designacao'),
+        label='Departamento',
+        required=False,
+        empty_label='Geral (sem departamento)',
+    )
+    localactividade = forms.ModelChoiceField(
+        queryset=Sitio.objects.all().order_by('designacao'),
+        label='Local',
+        required=False,
+        empty_label='Seleccione...',
+    )
+    inicio = forms.TimeField(
+        label='Hora de Início',
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+    )
+    fim = forms.TimeField(
+        label='Hora de Fim',
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+    )
+    data_inicio = forms.DateField(
+        label='Data de Início',
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    data_fim = forms.DateField(
+        label='Data de Fim',
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    dias_semana = forms.MultipleChoiceField(
+        choices=DIAS_SEMANA_CHOICES,
+        label='Dias da Semana',
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        data_inicio = cleaned.get('data_inicio')
+        data_fim = cleaned.get('data_fim')
+        inicio = cleaned.get('inicio')
+        fim = cleaned.get('fim')
+        dias = cleaned.get('dias_semana')
+
+        if data_inicio and data_fim and data_fim < data_inicio:
+            raise forms.ValidationError('A data de fim deve ser igual ou posterior à data de início.')
+        if inicio and fim and fim <= inicio:
+            raise forms.ValidationError('A hora de fim deve ser posterior à hora de início.')
+        if not dias:
+            raise forms.ValidationError('Seleccione pelo menos um dia da semana.')
+        return cleaned
+
 
 class DepartamentoForm(ModelForm):
     class Meta:
@@ -194,7 +339,7 @@ class DepartamentoForm(ModelForm):
 class MandatoForm(ModelForm):
     class Meta:
         model = Mandato
-        fields = '__all__'
+        fields = ['irmao', 'departamento', 'funcao', 'inicio', 'fim']
         widgets = {
             'inicio': forms.DateInput(attrs={'type': 'date'}),
             'fim': forms.DateInput(attrs={'type': 'date'}),
@@ -208,7 +353,7 @@ class EscalaForm(ModelForm):
 class DizimoofertaForm(ModelForm):
     class Meta:
         model = Dizimooferta
-        fields = '__all__'
+        exclude = ('entradabanco', 'entradacaixa')
         widgets = {
             'dataregisto': forms.DateInput(attrs={'type': 'date'}),
             'datacorrespondente': forms.DateInput(attrs={'type': 'date'})
@@ -217,7 +362,7 @@ class DizimoofertaForm(ModelForm):
 class DizimoForm(ModelForm):
     class Meta:
         model = Dizimooferta
-        fields = '__all__'
+        exclude = ('entradabanco', 'entradacaixa')
         widgets = {
             'valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00', 'step': '0.01'}),
             'moeda': forms.Select(attrs={'class': 'form-control'}),
@@ -226,8 +371,6 @@ class DizimoForm(ModelForm):
             'irmao': forms.Select(attrs={'class': 'form-control'}),
             'actividade': forms.Select(attrs={'class': 'form-control'}),
             'dataregisto': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'entradabanco': forms.Select(attrs={'class': 'form-control'}),
-            'entradacaixa': forms.Select(attrs={'class': 'form-control'}),
         }
 
 class OfertaForm(ModelForm):
@@ -352,14 +495,20 @@ class  RelatorioSemanalCelulaForm(ModelForm):
 class PedidoSaidaForm(ModelForm):
     class Meta:
         model = PedidoSaida
-        fields = '__all__'
-        exclude = ['status_de_aprovacao', 'aprovador']
+        fields = [
+            'departamento', 'projecto', 'montante', 'moeda',
+            'centro_custo', 'tipificacao_custo', 'iban',
+            'justificativa_custo', 'documento_justificativo',
+        ]
 
 class PedidoSaidaUpdateForm(ModelForm):
     class Meta:
         model = PedidoSaida
-        fields = '__all__'
-        exclude = ['aprovador']
+        fields = [
+            'departamento', 'projecto', 'montante', 'moeda',
+            'centro_custo', 'tipificacao_custo', 'iban',
+            'justificativa_custo', 'documento_justificativo',
+        ]
 
 class OrcamentoDepartamentoForm(ModelForm):
     class Meta:

@@ -11,7 +11,7 @@
         </div>
         <a href="/tibl/gestao/departamentos/1" class="bt-primary"
             style="background-color: var(--info); color: white;">
-            <i class="fas fa-undo"></i> Voltar Ã  Estrutura
+            <i class="fas fa-undo"></i> Voltar à Estrutura
         </a>
     </div>
 
@@ -21,9 +21,9 @@
             <thead>
                 <tr>
                     <th>Departamento</th>
-                    <th>Cargo / FunÃ§Ã£o</th>
-                    <th>IrmÃ£o ResponsÃ¡vel</th>
-                    <th style="text-align: right;">AÃ§Ãµes</th>
+                    <th>Cargo</th>
+                    <th>Irmão Responsável</th>
+                    <th style="text-align: right;">Acções</th>
                 </tr>
             </thead>
             <tbody>
@@ -36,7 +36,7 @@
                     <td>
                         <span class="badge"
                             style="background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">
-                            {{ x.cargo__designacao }}
+                            {{ x.cargo_display }}
                         </span>
                     </td>
                     <td>
@@ -61,7 +61,7 @@
     <div class="modern-card" style="text-align: center; padding: 4rem;">
         <i class="fas fa-users-slash" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
         <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum cargo encontrado</h3>
-        <p style="color: var(--text-muted);">A sua pesquisa nÃ£o retornou atribuiÃ§Ãµes de cargos para os critÃ©rios
+        <p style="color: var(--text-muted);">A sua pesquisa não retornou atribuições de cargos para os critérios
             informados.</p>
     </div>
     {% endif %}
