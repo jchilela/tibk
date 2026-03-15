@@ -2950,7 +2950,9 @@ def dashboard(request):
     proximas_actividades = (
         Actividade.objects
         .filter(data__gte=hoje, data__lte=hoje + timedelta(days=14))
+        .exclude(is_recorrente=True, parent_event__isnull=True)
         .select_related('designacao', 'localactividade')
+        .distinct()
         .order_by('data', 'inicio')[:5]
     )
 
