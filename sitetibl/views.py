@@ -29,7 +29,9 @@ from django.db.models.functions import TruncMonth
 import json
 from django.http import JsonResponse
 from django.utils.timezone import now
-from .signals import notificar_mudanca_estado_pedido
+from .signals import notificar_mudanca_estado_pedido, _atribuir_grupos_irmao, _enviar_credenciais_email, _enviar_credenciais_sms
+from django.utils.crypto import get_random_string
+from django.contrib.auth.models import User
 from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
@@ -781,6 +783,61 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'total_saidas_rubrica': total_saidas_rubrica,
         }
     elif gestaoescolhida == 'irmaos':
+        pode_gerir_user = request.user.has_perm('sitetibl.change_irmao')
+
+        if request.method == 'POST' and pode_gerir_user:
+            action = request.POST.get('action', '').strip()
+
+            if action == 'criar_user' and registo.user is None:
+                # Build a unique username
+                if registo.email:
+                    base_username = registo.email.split('@')[0].lower().replace(' ', '')
+                else:
+                    base_username = f'{registo.nome}.{registo.apelido}'.lower().replace(' ', '')
+                username = base_username
+                counter = 1
+                while User.objects.filter(username=username).exists():
+                    username = f'{base_username}{counter}'
+                    counter += 1
+
+                temp_password = get_random_string(length=12)
+                user = User.objects.create_user(
+                    username=username,
+                    email=registo.email or '',
+                    password=temp_password,
+                    first_name=registo.nome or '',
+                    last_name=registo.apelido or '',
+                )
+                Irmao.objects.filter(pk=registo.pk).update(user=user)
+                _atribuir_grupos_irmao(user, registo.batizado)
+
+                if registo.email:
+                    _enviar_credenciais_email(registo, username, temp_password)
+                elif registo.telefone:
+                    _enviar_credenciais_sms(registo, username, temp_password)
+
+                messages.success(request, f'Utilizador "{username}" criado e credenciais enviadas com sucesso.')
+
+            elif action == 'reenviar_credenciais' and registo.user is not None:
+                temp_password = get_random_string(length=12)
+                registo.user.set_password(temp_password)
+                registo.user.save(update_fields=['password'])
+                username = registo.user.username
+
+                if registo.email:
+                    _enviar_credenciais_email(registo, username, temp_password)
+                elif registo.telefone:
+                    _enviar_credenciais_sms(registo, username, temp_password)
+                else:
+                    messages.warning(request, 'Credenciais renovadas mas sem email nem telefone para envio.')
+
+                if registo.email or registo.telefone:
+                    messages.success(request, f'Credenciais de acesso reenviadas para "{username}".')
+
+            return HttpResponseRedirect(
+                reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+            )
+
         mandatos_irmao = (
             Mandato.objects
             .select_related('departamento')
@@ -791,6 +848,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'registoachado': registoachado,
             'gestaoescolhida': gestaoescolhida,
             'mandatos_irmao': mandatos_irmao,
+            'pode_gerir_user': pode_gerir_user,
         }
     elif gestaoescolhida == 'pedidosaida':
         pode_aprovar = request.user.has_perm('sitetibl.change_pedidosaida')
