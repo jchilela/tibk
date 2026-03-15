@@ -16,7 +16,63 @@ logger = logging.getLogger(__name__)
 
 
 # =========================================
-# 👤 AUTO-CRIAR USER AO CRIAR IRMÃO
+# � GRUPOS AUTOMÁTICOS — IRMÃO
+# =========================================
+
+GRUPO_GERAL = 'Membro Geral'
+GRUPO_BATIZADOS = 'Membros Baptizados'
+
+
+def _atribuir_grupos_irmao(user, batizado):
+    """Garante que o user tem os grupos base correctos."""
+    try:
+        user.groups.add(Group.objects.get(name=GRUPO_GERAL))
+    except Group.DoesNotExist:
+        logger.warning('Grupo "%s" não encontrado — verifique o seeder.', GRUPO_GERAL)
+    if batizado:
+        try:
+            user.groups.add(Group.objects.get(name=GRUPO_BATIZADOS))
+        except Group.DoesNotExist:
+            logger.warning('Grupo "%s" não encontrado — verifique o seeder.', GRUPO_BATIZADOS)
+
+
+@receiver(pre_save, sender=Irmao)
+def _guardar_batizado_anterior(sender, instance, **kwargs):
+    """Memoriza o valor actual de batizado antes de qualquer actualização."""
+    if instance.pk:
+        try:
+            instance._batizado_anterior = (
+                Irmao.objects.values_list('batizado', flat=True).get(pk=instance.pk)
+            )
+        except Irmao.DoesNotExist:
+            instance._batizado_anterior = False
+    else:
+        instance._batizado_anterior = False
+
+
+@receiver(post_save, sender=Irmao)
+def _gerir_grupos_irmao(sender, instance, created, **kwargs):
+    """
+    Atribui grupos quando:
+    - Irmão criado com user já vinculado (created=True, user not None)
+    - batizado muda de False → True em actualização
+    """
+    user = instance.user
+    if not user:
+        # Será tratado em criar_user_para_irmao após criar o user
+        return
+
+    if created:
+        _atribuir_grupos_irmao(user, instance.batizado)
+        return
+
+    batizado_anterior = getattr(instance, '_batizado_anterior', None)
+    if batizado_anterior is not None and instance.batizado != batizado_anterior:
+        _atribuir_grupos_irmao(user, instance.batizado)
+
+
+# =========================================
+# �👤 AUTO-CRIAR USER AO CRIAR IRMÃO
 # =========================================
 
 @receiver(post_save, sender=Irmao)
@@ -52,6 +108,9 @@ def criar_user_para_irmao(sender, instance, created, **kwargs):
 
     # Vincular sem disparar o signal novamente
     Irmao.objects.filter(pk=instance.pk).update(user=user)
+
+    # Atribuir grupos base imediatamente após criar o user
+    _atribuir_grupos_irmao(user, instance.batizado)
 
     logger.info('User "%s" criado para Irmao ID %s', username, instance.pk)
 
