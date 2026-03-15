@@ -500,55 +500,68 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
 
             action = request.POST.get('action', '').strip()
             if action == 'add_member':
-                irmao_id = request.POST.get('irmao_id', '').strip()
+                irmao_ids = [i for i in request.POST.getlist('irmao_ids') if i.strip()]
                 funcao = request.POST.get('funcao', 'membro').strip()
                 funcoes_validas = [c[0] for c in Mandato.FUNCAO_CHOICES]
                 if funcao not in funcoes_validas:
                     funcao = 'membro'
 
-                if not irmao_id:
-                    messages.error(request, 'Seleccione um irmão para adicionar ao departamento.')
+                if not irmao_ids:
+                    messages.error(request, 'Seleccione pelo menos um irmão para adicionar ao departamento.')
                 else:
-                    mandato_existente = Mandato.objects.filter(
-                        departamento_id=identificador,
-                        irmao_id=irmao_id,
-                    ).first()
-
-                    # Funções exclusivas: só pode haver um por departamento
                     FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
-                    if funcao in FUNCOES_EXCLUSIVAS:
+                    # Cargo exclusivo com vários irmãos selecionados → forçar 'membro'
+                    if funcao in FUNCOES_EXCLUSIVAS and len(irmao_ids) > 1:
+                        funcao = 'membro'
+                        messages.warning(request, 'Cargo exclusivo não pode ser atribuído a vários irmãos de uma vez. Cargo alterado para Membro.')
+                    elif funcao in FUNCOES_EXCLUSIVAS:
+                        # Remover cargo exclusivo do ocupante anterior
                         ocupante = Mandato.objects.filter(
                             departamento_id=identificador,
                             funcao=funcao,
                         ).select_related('irmao').first()
-                        if ocupante and str(ocupante.irmao_id) != irmao_id:
+                        if ocupante and str(ocupante.irmao_id) != irmao_ids[0]:
                             nome_anterior = f'{ocupante.irmao.nome} {ocupante.irmao.apelido}'
                             ocupante.funcao = 'membro'
                             ocupante.save(update_fields=['funcao'])
                             funcao_display = dict(Mandato.FUNCAO_CHOICES).get(funcao, funcao)
                             messages.warning(
                                 request,
-                                f'{nome_anterior} deixou de ser {funcao_display} e voltou a ser Membro.'
+                                f'{nome_anterior} deixou de ser {funcao_display} e voltou a ser Membro.',
                             )
 
-                    if mandato_existente:
-                        # Membro já existe — actualizar a função
-                        if mandato_existente.funcao != funcao:
-                            mandato_existente.funcao = funcao
-                            mandato_existente.save(update_fields=['funcao'])
-                            messages.success(request, 'Função do membro actualizada com sucesso.')
+                    adicionados = 0
+                    atualizados = 0
+                    for irmao_id in irmao_ids:
+                        mandato_existente = Mandato.objects.filter(
+                            departamento_id=identificador,
+                            irmao_id=irmao_id,
+                        ).first()
+                        if mandato_existente:
+                            if mandato_existente.funcao != funcao:
+                                mandato_existente.funcao = funcao
+                                mandato_existente.save(update_fields=['funcao'])
+                                atualizados += 1
                         else:
-                            messages.warning(request, 'Este membro já pertence a este departamento com essa função.')
+                            try:
+                                Mandato.objects.create(
+                                    departamento_id=identificador,
+                                    irmao_id=irmao_id,
+                                    funcao=funcao,
+                                )
+                                adicionados += 1
+                            except IntegrityError:
+                                pass
+
+                    partes = []
+                    if adicionados:
+                        partes.append(f'{adicionados} membro(s) adicionado(s)')
+                    if atualizados:
+                        partes.append(f'{atualizados} cargo(s) actualizado(s)')
+                    if partes:
+                        messages.success(request, ' e '.join(partes) + ' com sucesso.')
                     else:
-                        try:
-                            Mandato.objects.create(
-                                departamento_id=identificador,
-                                irmao_id=irmao_id,
-                                funcao=funcao,
-                            )
-                            messages.success(request, 'Membro adicionado ao departamento com sucesso.')
-                        except IntegrityError:
-                            messages.error(request, 'Não foi possível adicionar o membro. Verifique os dados informados.')
+                        messages.info(request, 'Nenhuma alteração efectuada — os irmãos já pertencem ao departamento com esse cargo.')
 
             elif action == 'remove_member':
                 mandato_id = request.POST.get('mandato_id', '').strip()
