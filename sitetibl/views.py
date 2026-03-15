@@ -895,12 +895,19 @@ def mostraEliminacao(request, gestaoescolhida, id):
     if request.method == 'POST':
         registo.delete()
         messages.success(request, 'Eliminação foi bem sucedida')
+        next_url = request.POST.get('next', '')
+        if next_url and next_url.startswith('/'):
+            return redirect(next_url)
         return redirect('index')
 
     # GET → mostra confirmação
+    next_url = request.GET.get('next', '')
+    if next_url and not next_url.startswith('/'):
+        next_url = ''
     return render(request, 'confirmar_eliminacao.html', {
         'registo': registo,
-        'gestao': gestaoescolhida
+        'gestao': gestaoescolhida,
+        'next': next_url,
     })
 
 @login_required

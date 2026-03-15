@@ -13,6 +13,7 @@
 
         <form method="post">
             {% csrf_token %}
+            {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
             <div class="dialog-actions">
                 <a href="javascript:history.back()" class="bt-secondary">
                     <i class="fas fa-times"></i> Cancelar
