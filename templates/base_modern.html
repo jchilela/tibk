@@ -60,12 +60,6 @@
                     <i class="fas fa-user-clock fa-fw"></i> <span>As Minhas Escalas</span>
                 </a>
 
-                {% if perms.sitetibl.view_irmao %}
-                <a href="/tibl/gestao/irmaos/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
-                    <i class="fas fa-users fa-fw"></i> <span>Irmãos</span>
-                </a>
-                {% endif %}
-
                 {% if perms.sitetibl.view_actividade %}
                 <a href="/tibl/actividades/calendario/"
                     class="nav-item {% if 'actividades' in request.path %}active{% endif %}">
@@ -76,6 +70,12 @@
                 {% if perms.sitetibl.view_escala %}
                 <a href="/tibl/gestao/escalas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
                     <i class="fas fa-clipboard-list fa-fw"></i> Escalas
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_irmao %}
+                <a href="/tibl/gestao/irmaos/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
+                    <i class="fas fa-users fa-fw"></i> <span>Irmãos</span>
                 </a>
                 {% endif %}
 
