@@ -19,9 +19,9 @@
         <a href="/tibl/gestao/pedidosaida/1" style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {% if not estado_filtro %}background: var(--primary); color: white;{% else %}background: #f1f5f9; color: var(--text-muted);{% endif %}">
             Todos <span style="opacity: 0.7;">({{ total_pedidos|default:"0" }})</span>
         </a>
-        {% for val, label in estado_choices %}
+        {% for val, label, contagem in estado_choices_com_contagem %}
         <a href="/tibl/gestao/pedidosaida/1?estado={{ val }}" style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {% if estado_filtro == val %}background: {% if val == 'pendente' %}#f59e0b{% elif val == 'em_analise' %}#3b82f6{% elif val == 'aprovado' %}#10b981{% elif val == 'rejeitado' %}#ef4444{% endif %}; color: white;{% else %}background: #f1f5f9; color: var(--text-muted);{% endif %}">
-            {{ label }} <span style="opacity: 0.7;">({{ contagem_por_estado|default_if_none:"" }})</span>
+            {{ label }} <span style="opacity: 0.7;">({{ contagem }})</span>
         </a>
         {% endfor %}
     </div>
