@@ -474,7 +474,7 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Escala)
 def notificar_irmao_escalado(sender, instance, created, **kwargs):
     """
-    Envia email de confirmação ao irmão imediatamente quando é adicionado a uma escala.
+    Envia email e/ou SMS ao irmão quando é adicionado a uma escala.
     """
     if not created:
         return
@@ -482,35 +482,70 @@ def notificar_irmao_escalado(sender, instance, created, **kwargs):
     irmao = instance.irmao
     actividade = instance.actividade
 
-    if not irmao or not irmao.email:
-        logger.info('Escala ID %s: irmão sem email — notificação ignorada.', instance.pk)
+    if not irmao:
         return
 
-    try:
-        data_fmt = actividade.data.strftime('%d/%m/%Y') if actividade.data else '—'
-        context = {
-            'nome': irmao.nome,
-            'apelido': irmao.apelido,
-            'actividade': str(actividade.designacao),
-            'data': data_fmt,
-            'hora': actividade.inicio if actividade.inicio else '',
-            'local': str(actividade.localactividade) if actividade.localactividade else '',
-            'funcao': str(instance.funcao) if instance.funcao else 'Sem função específica',
-            'departamento': str(actividade.departamento) if actividade.departamento else '',
-        }
-        html_content = render_to_string('emails/confirmacao_escala.html', context)
-        from django.utils.html import strip_tags
-        msg = EmailMultiAlternatives(
-            subject=f'Confirmação de Escala — {context["actividade"]} ({data_fmt})',
-            body=strip_tags(html_content),
-            from_email=None,  # usa DEFAULT_FROM_EMAIL
-            to=[irmao.email],
+    data_fmt = actividade.data.strftime('%d/%m/%Y') if actividade.data else '—'
+    funcao_str = str(instance.funcao) if instance.funcao else 'Sem função específica'
+    actividade_str = str(actividade.designacao)
+
+    # ---------- EMAIL ----------
+    if irmao.email:
+        try:
+            context = {
+                'nome': irmao.nome,
+                'apelido': irmao.apelido,
+                'actividade': actividade_str,
+                'data': data_fmt,
+                'hora': actividade.inicio if actividade.inicio else '',
+                'local': str(actividade.localactividade) if actividade.localactividade else '',
+                'funcao': funcao_str,
+                'departamento': str(actividade.departamento) if actividade.departamento else '',
+            }
+            html_content = render_to_string('emails/confirmacao_escala.html', context)
+            from django.utils.html import strip_tags
+            msg = EmailMultiAlternatives(
+                subject=f'Confirmação de Escala — {actividade_str} ({data_fmt})',
+                body=strip_tags(html_content),
+                from_email=None,
+                to=[irmao.email],
+            )
+            msg.attach_alternative(html_content, 'text/html')
+            msg.send()
+            logger.info('Email de escala enviado para %s (Escala ID %s)', irmao.email, instance.pk)
+        except Exception:
+            logger.exception('Erro ao enviar email de escala ID %s', instance.pk)
+    else:
+        logger.info('Escala ID %s: irmão sem email — email ignorado.', instance.pk)
+
+    # ---------- SMS ----------
+    if getattr(irmao, 'telefone', None):
+        sms_url = 'https://telcosms.co.ao/send_message'
+        mensagem_sms = (
+            f'TIBL — Está escalado para {actividade_str} no dia {data_fmt}'
+            f'{" às " + str(actividade.inicio) if actividade.inicio else ""}. '
+            f'Função: {funcao_str}.'
         )
-        msg.attach_alternative(html_content, 'text/html')
-        msg.send()
-        logger.info('Notificação de escala enviada para %s (Escala ID %s)', irmao.email, instance.pk)
-    except Exception:
-        logger.exception('Erro ao enviar notificação de escala ID %s', instance.pk)
+        sms_data = {
+            'message': {
+                'api_key_app': _telcosms_api_key(),
+                'phone_number': irmao.telefone,
+                'message_body': mensagem_sms,
+            }
+        }
+        try:
+            response = requests.post(sms_url, json=sms_data, timeout=10)
+            if response.status_code == 200:
+                logger.info('SMS de escala enviado para %s (Escala ID %s)', irmao.telefone, instance.pk)
+            else:
+                logger.error(
+                    'Falha SMS de escala para %s — status %s: %s',
+                    irmao.telefone, response.status_code, response.text,
+                )
+        except requests.exceptions.RequestException as e:
+            logger.error('Erro SMS de escala para %s: %s', irmao.telefone, e)
+    else:
+        logger.info('Escala ID %s: irmão sem telefone — SMS ignorado.', instance.pk)
 
 
 # =========================================
