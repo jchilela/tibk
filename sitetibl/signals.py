@@ -14,6 +14,11 @@ from .models import Departamento, EnvioMensagem, Escala, Irmao, Mandato, PedidoS
 
 logger = logging.getLogger(__name__)
 
+from django.conf import settings as django_settings
+
+def _telcosms_api_key():
+    return getattr(django_settings, 'TELCOSMS_API_KEY', '')
+
 
 # =========================================
 # � GRUPOS AUTOMÁTICOS — IRMÃO
@@ -162,7 +167,7 @@ def _enviar_credenciais_sms(irmao, username, password):
     )
     sms_data = {
         'message': {
-            'api_key_app': 'prdc4b5a87b97d15edf8aa0cb5929',
+            'api_key_app': _telcosms_api_key(),
             'phone_number': irmao.telefone,
             'message_body': mensagem,
         }
@@ -231,7 +236,7 @@ def enviar_email_sms_massivo(sender, instance, created, **kwargs):
         for irmao in irmaos_telefone:
             sms_data = {
                 'message': {
-                    'api_key_app': 'prdc4b5a87b97d15edf8aa0cb5929',
+                    'api_key_app': _telcosms_api_key(),
                     'phone_number': irmao.telefone,
                     'message_body': f'{instance.mensagem}. Atenciosamente a equipa TIBL.',
                 }
@@ -356,7 +361,7 @@ def notificar_mudanca_estado_pedido(pedido, novo_estado, aprovador_irmao=None):
         )
         sms_data = {
             'message': {
-                'api_key_app': 'prdc4b5a87b97d15edf8aa0cb5929',
+                'api_key_app': _telcosms_api_key(),
                 'phone_number': pedido.requerente.telefone,
                 'message_body': mensagem_sms,
             }
@@ -444,7 +449,7 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
     for telefone in telefones_unicos:
         sms_data = {
             'message': {
-                'api_key_app': 'prdc4b5a87b97d15edf8aa0cb5929',
+                'api_key_app': _telcosms_api_key(),
                 'phone_number': telefone,
                 'message_body': mensagem_sms,
             }
