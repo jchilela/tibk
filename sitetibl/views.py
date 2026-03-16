@@ -256,11 +256,14 @@ def mostraGestao(request,gestaoescolhida,pagina):
             .annotate(c=Count('id'))
             .values_list('estado', 'c')
         )
+        estado_choices_com_contagem = [
+            (val, label, contagens.get(val, 0))
+            for val, label in PedidoSaida.ESTADO_CHOICES
+        ]
         context = {
             'bb': paginaresultado,
             'estado_filtro': request.GET.get('estado', ''),
-            'estado_choices': PedidoSaida.ESTADO_CHOICES,
-            'contagem_por_estado': contagens,
+            'estado_choices_com_contagem': estado_choices_com_contagem,
             'total_pedidos': sum(contagens.values()),
         }
     elif gestaoescolhida == 'escalas':
@@ -1048,6 +1051,14 @@ def mostraCriacao(request, gestaoescolhida):
                         'Se for num local diferente, pode prosseguir normalmente.'
                     )
 
+            # 📋 Pedido de Saída: definir requerente e estado inicial antes do primeiro save
+            if gestaoescolhida == 'pedidosaida':
+                irmao_req = Irmao.objects.filter(user=request.user).first()
+                if irmao_req:
+                    obj.requerente = irmao_req
+                obj.estado = 'pendente'
+                obj.estado_pagamento = 'nao_aplicavel'
+
             obj.save()
 
             # 👤 Regista o criador nas actividades
@@ -1055,14 +1066,9 @@ def mostraCriacao(request, gestaoescolhida):
                 obj.criado_por = request.user
                 obj.save(update_fields=['criado_por'])
 
-            # 📋 Pedido de Saída: definir requerente e estado inicial
+            # 📋 Pedido de Saída: já definido antes do save, nada a fazer aqui
             if gestaoescolhida == 'pedidosaida':
-                irmao_req = Irmao.objects.filter(user=request.user).first()
-                if irmao_req:
-                    obj.requerente = irmao_req
-                obj.estado = 'pendente'
-                obj.estado_pagamento = 'nao_aplicavel'
-                obj.save(update_fields=['requerente', 'estado', 'estado_pagamento'])
+                pass
 
             # Se for Irmão e o utilizador escolheu departamentos, criar Mandatos
             if gestaoescolhida == 'irmaos':
