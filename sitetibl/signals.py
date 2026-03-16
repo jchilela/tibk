@@ -308,44 +308,42 @@ def notificar_mudanca_estado_pedido(pedido, novo_estado, aprovador_irmao=None):
             if dept.vice_lider_departamento.email not in emails_destino:
                 emails_destino.append(dept.vice_lider_departamento.email)
 
-    if not emails_destino:
-        return
+    if emails_destino:
+        aprovador_nome = ''
+        if aprovador_irmao:
+            aprovador_nome = f'{aprovador_irmao.nome} {aprovador_irmao.apelido}'
 
-    aprovador_nome = ''
-    if aprovador_irmao:
-        aprovador_nome = f'{aprovador_irmao.nome} {aprovador_irmao.apelido}'
+        try:
+            html_content = render_to_string(
+                'emails/email_pedido_saida_estado.html',
+                {
+                    'titulo': config['titulo'],
+                    'mensagem': config['mensagem'],
+                    'novo_estado': novo_estado,
+                    'estado_display': config['estado_display'],
+                    'projecto': pedido.projecto,
+                    'montante': pedido.montante,
+                    'moeda': pedido.moeda.abreviatura if pedido.moeda else '',
+                    'departamento': pedido.departamento.designacao if pedido.departamento else '',
+                    'aprovador': aprovador_nome,
+                    'observacao': pedido.observacao_aprovador or '',
+                }
+            )
 
-    try:
-        html_content = render_to_string(
-            'emails/email_pedido_saida_estado.html',
-            {
-                'titulo': config['titulo'],
-                'mensagem': config['mensagem'],
-                'novo_estado': novo_estado,
-                'estado_display': config['estado_display'],
-                'projecto': pedido.projecto,
-                'montante': pedido.montante,
-                'moeda': pedido.moeda.abreviatura if pedido.moeda else '',
-                'departamento': pedido.departamento.designacao if pedido.departamento else '',
-                'aprovador': aprovador_nome,
-                'observacao': pedido.observacao_aprovador or '',
-            }
-        )
-
-        connection = get_connection()
-        connection.open()
-        msg = EmailMultiAlternatives(
-            subject=f'{config["titulo"]} — #{pedido.id} {pedido.projecto}',
-            body=config['mensagem'],
-            from_email=from_email,
-            to=emails_destino,
-            connection=connection,
-        )
-        msg.attach_alternative(html_content, 'text/html')
-        msg.send()
-        connection.close()
-    except Exception:
-        logger.exception('Erro ao enviar notificação de mudança de estado do pedido #%s', pedido.id)
+            connection = get_connection()
+            connection.open()
+            msg = EmailMultiAlternatives(
+                subject=f'{config["titulo"]} — #{pedido.id} {pedido.projecto}',
+                body=config['mensagem'],
+                from_email=from_email,
+                to=emails_destino,
+                connection=connection,
+            )
+            msg.attach_alternative(html_content, 'text/html')
+            msg.send()
+            connection.close()
+        except Exception:
+            logger.exception('Erro ao enviar notificação de mudança de estado do pedido #%s', pedido.id)
 
 
 # =========================================
