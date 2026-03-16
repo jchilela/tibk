@@ -357,31 +357,13 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
     if not created:
         return
 
-    departamento = instance.departamento
-
     emails_destino = []
     telefones = []
 
     subject = 'Pedido de Saída de Caixa - TIBL'
     from_email = 'noreply@suaigreja.ao'
 
-    # Líder e Vice-líder do departamento
-    if departamento:
-        if departamento.lider_departamento:
-            lider = departamento.lider_departamento
-            if lider.email:
-                emails_destino.append(lider.email)
-            if getattr(lider, 'telefone', None):
-                telefones.append(lider.telefone)
-
-        if departamento.vice_lider_departamento:
-            vice = departamento.vice_lider_departamento
-            if vice.email:
-                emails_destino.append(vice.email)
-            if getattr(vice, 'telefone', None):
-                telefones.append(vice.telefone)
-
-    # Membros do grupo Financeiro
+    # Apenas membros do grupo Financeiro
     try:
         grupo_financeiro = Group.objects.get(name='Financeiro')
         for user in grupo_financeiro.user_set.select_related('irmao').all():
@@ -392,7 +374,7 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
                 if getattr(irmao, 'telefone', None) and irmao.telefone not in telefones:
                     telefones.append(irmao.telefone)
     except Group.DoesNotExist:
-        pass
+        logger.warning('Grupo "Financeiro" não encontrado — notificação de pedido de saída não enviada.')
 
     # ---------- EMAIL ----------
     if emails_destino:
@@ -425,31 +407,33 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
 
     
     # ---------- SMS ----------
-    # telefones_unicos = list(set(telefones)) #eliminar numeros repetidos
-    # for telefone in telefones_unicos:
-        
-    #     # Enviar SMS 
-    #     sms_url = 'https://telcosms.co.ao/send_message'
-    #     sms_data = {
-    #         "message": {
-    #             "api_key_app": "prdc4b5a87b97d15edf8aa0cb5929",
-    #             "phone_number": telefone,  # campo para passar o numero de telefone do User
-    #             "message_body": f"Novo pedido de saida de caixa, Montante:{instance.montante}, Requerente:{instance.requerente}.Antenciosamente a equipa TIBL."
-    #         }
-    #     }
-        
-    #     try:
-    #         sms_response = requests.post(sms_url, json=sms_data)
-    #         if sms_response.status_code == 200:
-    #             print('Mensagem SMS enviada com sucesso!')
-    #         else:
-    #             print('Falha ao enviar a mensagem SMS. Código de status:', sms_response.status_code)
-    #             print('Resposta do servidor:', sms_response.text)
-    #     except requests.exceptions.RequestException as e:
-    #         print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
-
-    
-    #     print(telefones_unicos)
+    sms_url = 'https://telcosms.co.ao/send_message'
+    mensagem_sms = (
+        f'TIBL — Novo pedido de saída de caixa: '
+        f'{instance.projecto or "sem título"}, '
+        f'Montante: {instance.montante} {instance.moeda.abreviatura if instance.moeda else ""}. '
+        f'Requerente: {instance.requerente}.'
+    )
+    telefones_unicos = list(dict.fromkeys(t for t in telefones if t))
+    for telefone in telefones_unicos:
+        sms_data = {
+            'message': {
+                'api_key_app': 'prdc4b5a87b97d15edf8aa0cb5929',
+                'phone_number': telefone,
+                'message_body': mensagem_sms,
+            }
+        }
+        try:
+            response = requests.post(sms_url, json=sms_data, timeout=10)
+            if response.status_code == 200:
+                logger.info('SMS de pedido de saída enviado para %s', telefone)
+            else:
+                logger.error(
+                    'Falha ao enviar SMS para %s — status %s: %s',
+                    telefone, response.status_code, response.text,
+                )
+        except requests.exceptions.RequestException as e:
+            logger.error('Erro ao enviar SMS para %s: %s', telefone, e)
 
 
 # =========================================
