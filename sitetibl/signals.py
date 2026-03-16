@@ -182,7 +182,7 @@ def _enviar_credenciais_sms(irmao, username, password):
 @receiver(post_save, sender=EnvioMensagem)
 def enviar_email_sms_massivo(sender, instance, created, **kwargs):
     irmaos = Irmao.objects.exclude(email__isnull=True).exclude(email='')
-    irmaos_telefone = Irmao.objects.exclude(email__isnull=True).exclude(email='').exclude(telefone__isnull=True) #exclui irmaos que não têm numero de telefone
+    irmaos_telefone = Irmao.objects.exclude(telefone__isnull=True).exclude(telefone='').distinct()
 
 
     if created and instance.email:
@@ -226,28 +226,27 @@ def enviar_email_sms_massivo(sender, instance, created, **kwargs):
         connection.send_messages(emails)
         connection.close()
     
-    irmaos_telefone_unico = list(set(irmaos_telefone)) # lista sem numero repetidos e sem numeros nulos
-    # if instance.sms:
-    #         for irmao in  irmaos_telefone_unico :
-    #             # Enviar SMS 
-    #             sms_url = 'https://telcosms.co.ao/send_message'
-    #             sms_data = {
-    #                 "message": {
-    #                     "api_key_app": "prdc4b5a87b97d15edf8aa0cb5929",
-    #                     "phone_number": irmao.telefone,  # campo para passar o numero de telefone do User
-    #                     "message_body": f"{instance.mensagem}.Antenciosamente a equipa TIBL."
-    #                 }
-    #             }
-                
-    #             try:
-    #                 sms_response = requests.post(sms_url, json=sms_data)
-    #                 if sms_response.status_code == 200:
-    #                     print('Mensagem SMS enviada com sucesso!')
-    #                 else:
-    #                     print('Falha ao enviar a mensagem SMS. Código de status:', sms_response.status_code)
-    #                     print('Resposta do servidor:', sms_response.text)
-    #             except requests.exceptions.RequestException as e:
-    #                 print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
+    if instance.sms:
+        sms_url = 'https://telcosms.co.ao/send_message'
+        for irmao in irmaos_telefone:
+            sms_data = {
+                'message': {
+                    'api_key_app': 'prdc4b5a87b97d15edf8aa0cb5929',
+                    'phone_number': irmao.telefone,
+                    'message_body': f'{instance.mensagem}. Atenciosamente a equipa TIBL.',
+                }
+            }
+            try:
+                response = requests.post(sms_url, json=sms_data, timeout=10)
+                if response.status_code == 200:
+                    logger.info('SMS massivo enviado para %s', irmao.telefone)
+                else:
+                    logger.error(
+                        'Falha SMS massivo para %s — status %s: %s',
+                        irmao.telefone, response.status_code, response.text,
+                    )
+            except requests.exceptions.RequestException as e:
+                logger.error('Erro SMS massivo para %s: %s', irmao.telefone, e)
 
 
 # =========================================
@@ -346,6 +345,33 @@ def notificar_mudanca_estado_pedido(pedido, novo_estado, aprovador_irmao=None):
         connection.close()
     except Exception:
         logger.exception('Erro ao enviar notificação de mudança de estado do pedido #%s', pedido.id)
+
+    # SMS ao requerente se tiver telefone mas não email (ou adicionalmente)
+    if pedido.requerente and getattr(pedido.requerente, 'telefone', None):
+        sms_url = 'https://telcosms.co.ao/send_message'
+        mensagem_sms = (
+            f'TIBL — {config["titulo"]}: '
+            f'Pedido #{pedido.id} ({pedido.projecto}). '
+            f'{config["mensagem"]}'
+        )
+        sms_data = {
+            'message': {
+                'api_key_app': 'prdc4b5a87b97d15edf8aa0cb5929',
+                'phone_number': pedido.requerente.telefone,
+                'message_body': mensagem_sms,
+            }
+        }
+        try:
+            response = requests.post(sms_url, json=sms_data, timeout=10)
+            if response.status_code == 200:
+                logger.info('SMS de estado de pedido enviado para %s', pedido.requerente.telefone)
+            else:
+                logger.error(
+                    'Falha SMS pedido #%s para %s — status %s: %s',
+                    pedido.id, pedido.requerente.telefone, response.status_code, response.text,
+                )
+        except requests.exceptions.RequestException as e:
+            logger.error('Erro SMS pedido #%s para %s: %s', pedido.id, pedido.requerente.telefone, e)
 
 
 # =========================================
