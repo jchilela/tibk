@@ -955,8 +955,12 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'conteudoensino':ConteudoEnsino,
              'enviomensagem':EnvioMensagem,
              'escalas':Escala,
+             'mandatos':Mandato,
              }
     model = lista.get(gestaoescolhida)
+    if model is None:
+        messages.error(request, f'Tipo de registo desconhecido: {gestaoescolhida}')
+        return redirect('index')
 
     # 🔐 verificação dinâmica
     perm = f'{model._meta.app_label}.delete_{model._meta.model_name}'
