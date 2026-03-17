@@ -11,7 +11,7 @@ from datetime import date
 from django import forms
 from django.urls import reverse
 from django.template import loader
-from django.db.models import Sum, Count, F, Q
+from django.db.models import Sum, Count, F, Q, Case, When, Value, IntegerField
 from django.db import IntegrityError
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
@@ -221,12 +221,27 @@ def mostraGestao(request,gestaoescolhida,pagina):
             qs = qs.filter(estado=estado_filtro)
         resultado = qs.order_by('-data_criacao')
     elif gestaoescolhida == 'escalas':
-        resultado = lista[gestaoescolhida].all().order_by(
+        resultado = lista[gestaoescolhida].all().annotate(
+            is_passado=Case(
+                When(actividade__data__lt=date.today(), then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by(
             'actividade__departamento__designacao',
+            'is_passado',
             'actividade__data',
             'actividade__id',
             'funcao__designacao',
         )
+    elif gestaoescolhida == 'actividades':
+        resultado = lista[gestaoescolhida].all().annotate(
+            is_passado=Case(
+                When(data__lt=date.today(), then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by('is_passado', 'data')
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
@@ -271,6 +286,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
             'bb': paginaresultado,
             'departamentos': Departamento.objects.order_by('designacao'),
             'departamentov_sel': request.GET.get('departamentov', ''),
+            'hoje': date.today(),
         }
     else:
         context = { 'bb':paginaresultado, 'listameses' : MESES }

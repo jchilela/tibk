@@ -52,8 +52,13 @@
 
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 1rem;">
         {% for evento in escalas_por_actividade %}
+        {% if evento.grouper.data and evento.grouper.data < hoje %}
+        <div class="modern-card" data-past="true"
+            style="border-top: 5px solid #cbd5e1; padding: 0; display: flex; flex-direction: column; overflow: hidden; opacity: 0.65; filter: grayscale(40%);">
+        {% else %}
         <div class="modern-card"
             style="border-top: 5px solid var(--primary); padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+        {% endif %}
             <!-- Header do Evento -->
             <div style="background: var(--primary-light); color: white; padding: 1.5rem; text-align: center;">
                 <h3 style="margin: 0; color: white; font-size: 1.35rem; line-height: 1.3;">
@@ -122,6 +127,34 @@
     </div>
     {% endfor %}
 
+    <div id="past-escalas-toggle" style="display:none; text-align:center; margin: 1rem 0;">
+        <button id="btn-toggle-escalas" onclick="toggleEscalasPassadas()"
+            style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 0.5rem 1.5rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+            <i class="fas fa-history" style="margin-right: 0.4rem;"></i>
+            <span id="btn-escalas-label">Mostrar escalas passadas</span>
+        </button>
+    </div>
+    <script>
+    (function() {
+        var cards = document.querySelectorAll('[data-past="true"]');
+        if (!cards.length) return;
+        cards.forEach(function(c) { c.style.display = 'none'; });
+        var btn = document.getElementById('past-escalas-toggle');
+        if (btn) {
+            btn.style.display = 'block';
+            document.getElementById('btn-escalas-label').textContent = 'Mostrar ' + cards.length + ' escala(s) passada(s)';
+        }
+    })();
+    function toggleEscalasPassadas() {
+        var cards = document.querySelectorAll('[data-past="true"]');
+        var label = document.getElementById('btn-escalas-label');
+        var hidden = cards[0].style.display === 'none';
+        cards.forEach(function(c) { c.style.display = hidden ? '' : 'none'; });
+        label.textContent = hidden
+            ? 'Ocultar escalas passadas'
+            : 'Mostrar ' + cards.length + ' escala(s) passada(s)';
+    }
+    </script>
     <div style="margin-top: 2rem;">
         {% include 'paginacao.html' %}
     </div>
