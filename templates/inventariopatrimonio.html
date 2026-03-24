@@ -3,8 +3,8 @@
 
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem;">
-        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-search mr-2"></i> Procurar no PatrimÃ³nio</h3>
-        <form action="/tibl/buscainventariopatrimonio" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; align-items: flex-end;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-search mr-2"></i> Procurar no Património</h3>
+        <form action="/tibl/buscainventariopatrimonio" method="GET" style="display: grid; grid-template-columns: repeat(3, 1fr) minmax(130px, 155px); gap: 1rem; align-items: flex-end;">
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome do Bem</label>
                 <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
@@ -18,7 +18,7 @@
                 <input type="text" name="codigov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
+            <button type="submit" class="bt-primary" style="padding: 0.65rem 1rem; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%;">
                 <i class="fas fa-search"></i> Pesquisar
             </button>
         </form>

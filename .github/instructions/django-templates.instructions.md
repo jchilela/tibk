@@ -1,9 +1,9 @@
----
+﻿---
 description: "Use when creating or editing Django HTML templates. Enforces strict DTL syntax, tag balance validation, forbidden patterns, base template inheritance, and the empty-string bug guard."
 applyTo: "templates/**"
 ---
 
-# Django Template Language (DTL) — Strict Rules
+# Django Template Language (DTL) â€” Strict Rules
 
 > **NEVER** use Jinja2 syntax. This project uses DTL exclusively.
 
@@ -30,17 +30,17 @@ Every template MUST start with:
 {% load static %}                    {# load tags #}
 ```
 
-## ❌ Forbidden Patterns
+## âŒ Forbidden Patterns
 
 | Wrong | Why | Correct |
-|---|---|---|
-| `{{ user.first_name\|default:user.username }}` | `default` does not catch empty strings | `{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}` |
+| --- | --- | --- |
+| `{{ user.first_name\ | default:user.username }}` | `default` does not catch empty strings | `{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}` |
 | `{% if cond or` *(newline)* `other %}` | Multi-line DTL tags are invalid | Keep entire `{% if ... %}` on one single line |
 | `{{ user.groups.first() }}` | DTL forbids parentheses in calls | `{{ user.groups.first.name }}` |
 | `{{ variable() }}` | Jinja2 call syntax | `{{ variable }}` |
 | `{% import %}` | Jinja2 import | `{% load taglib %}` |
 
-## Golden Rules — Tag Balance
+## Golden Rules â€” Tag Balance
 
 1. Every `{% if %}` must have exactly one `{% endif %}`
 2. Every `{% for %}` must have exactly one `{% endfor %}`
@@ -68,7 +68,7 @@ endblocks = len(re.findall(r'\{%-?\s*endblock\s*-?%\}', content))
 ## Available Blocks in `base_modern.html`
 
 | Block | Purpose |
-|---|---|
+| --- | --- |
 | `title` | Page title |
 | `extra_css` | Additional CSS |
 | `content` | Main content |
@@ -77,10 +77,10 @@ endblocks = len(re.findall(r'\{%-?\s*endblock\s*-?%\}', content))
 
 ## Authorization in Templates
 
-Use `perms.sitetibl.*` for access control — NOT `has_group`:
+Use `perms.sitetibl.*` for access control â€” NOT `has_group`:
 
 ```django
-{# CORRECT — permission-based #}
+{# CORRECT â€” permission-based #}
 {% if perms.sitetibl.view_dizimooferta %}
   {# show menu item #}
 {% endif %}

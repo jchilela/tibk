@@ -1,10 +1,44 @@
 ﻿{% extends 'index.html' %}
+
+{% block extra_css %}
+<style>
+    .do-filter-form {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(170px, 1fr)) minmax(140px, 170px);
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .do-filter-btn {
+        width: 100%;
+        padding: 0.5rem 1.2rem;
+        font-size: 0.9rem;
+        justify-self: stretch;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.42rem;
+        text-align: center;
+    }
+
+    @media (max-width: 920px) {
+        .do-filter-form {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .do-filter-btn {
+            max-width: 180px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block Dizimosofertas %}
 
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros Financeiros</h3>
-        <form action="/tibl/buscadizimosofertas" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; align-items: flex-end;">
+        <form action="/tibl/buscadizimosofertas" method="GET" class="do-filter-form">
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
                 <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
@@ -36,7 +70,7 @@
                 </select>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
+            <button type="submit" class="bt-primary do-filter-btn">
                 <i class="fas fa-search"></i> Filtrar
             </button>
         </form>

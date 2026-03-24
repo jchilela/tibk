@@ -210,6 +210,9 @@ class ContabancariaForm(ModelForm):
     class Meta:
         model = Contabancaria
         fields = '__all__'
+        labels = {
+            'is_active': 'Está activo',
+        }
         widgets = {
             'numeroconta': forms.TextInput(attrs={
                 'placeholder': '1XXXXXXXX'
@@ -555,15 +558,46 @@ class EscalaForm(ModelForm):
         )
 
 class DizimoofertaForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Evita N+1 ao montar as opções de actividade (usa Actividade.__str__).
+        if 'actividade' in self.fields:
+            self.fields['actividade'].queryset = (
+                Actividade.objects
+                .select_related('designacao')
+                .order_by('-data', 'inicio')
+            )
+
+        if 'irmao' in self.fields:
+            self.fields['irmao'].queryset = Irmao.objects.order_by('nome', 'apelido')
+
     class Meta:
         model = Dizimooferta
         exclude = ('entradabanco', 'entradacaixa')
+        labels = {
+            'datacorrespondente': 'Data correspondente',
+            'dataregisto': 'Data registo',
+        }
         widgets = {
             'dataregisto': forms.DateInput(attrs={'type': 'date'}),
             'datacorrespondente': forms.DateInput(attrs={'type': 'date'})
         }
 
 class DizimoForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if 'actividade' in self.fields:
+            self.fields['actividade'].queryset = (
+                Actividade.objects
+                .select_related('designacao')
+                .order_by('-data', 'inicio')
+            )
+
+        if 'irmao' in self.fields:
+            self.fields['irmao'].queryset = Irmao.objects.order_by('nome', 'apelido')
+
     class Meta:
         model = Dizimooferta
         exclude = ('entradabanco', 'entradacaixa')
@@ -631,6 +665,7 @@ class SaidabancoForm(ModelForm):
                 lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
             )
         if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label = 'Conta a creditar'
             self.fields['contaaacreditar'].label_from_instance = (
                 lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
             )
@@ -651,6 +686,7 @@ class EntradabancoForm(ModelForm):
 
         # Show real-time balance in account dropdowns for safer bank operations.
         if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label = 'Conta a creditar'
             self.fields['contaaacreditar'].label_from_instance = (
                 lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
             )
@@ -738,3 +774,6 @@ class EnvioMensagemForm(ModelForm):
     class Meta:
         model = EnvioMensagem
         fields = '__all__'
+        labels = {
+            'quemenviou': 'Quem enviou',
+        }

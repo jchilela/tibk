@@ -1,18 +1,18 @@
-# 🧾 Template de Recibo - Guia de Uso
+﻿# ðŸ§¾ Template de Recibo - Guia de Uso
 
-## 📝 Visão Geral
+## ðŸ“ VisÃ£o Geral
 
-Foi criado um template HTML profissional para visualizar e imprimir recibos de dízimos/ofertas diretamente no navegador.
+Foi criado um template HTML profissional para visualizar e imprimir recibos de dÃ­zimos/ofertas diretamente no navegador.
 
-## 📁 Arquivos Criados
+## ðŸ“ Arquivos Criados
 
 ### 1. Template HTML
 - **Arquivo:** `templates/recibo_dizimo.html`
-- **Descrição:** Template completo com design profissional, pronto para impressão
+- **DescriÃ§Ã£o:** Template completo com design profissional, pronto para impressÃ£o
 
 ### 2. View Django
 - **Arquivo:** `sitetibl/views.py`
-- **Função:** `visualizar_recibo_dizimo(request, dizimo_id)`
+- **FunÃ§Ã£o:** `visualizar_recibo_dizimo(request, dizimo_id)`
 - **Linha:** ~2132
 
 ### 3. Rota URL
@@ -20,27 +20,27 @@ Foi criado um template HTML profissional para visualizar e imprimir recibos de d
 - **URL:** `/dizimos/recibo/<id>/visualizar/`
 - **Nome:** `visualizar_recibo_dizimo`
 
-## 🚀 Como Usar
+## ðŸš€ Como Usar
 
-### Opção 1: Acesso Direto via URL
+### OpÃ§Ã£o 1: Acesso Direto via URL
 
 ```
 # Visualizar recibo HTML (pode imprimir no navegador)
 http://localhost:8000/dizimos/recibo/1/visualizar/
 
-# Baixar recibo PDF (download automático)
+# Baixar recibo PDF (download automÃ¡tico)
 http://localhost:8000/dizimos/recibo/1/
 ```
 
-### Opção 2: Adicionar Botões na Interface
+### OpÃ§Ã£o 2: Adicionar BotÃµes na Interface
 
 #### A) No Template de Detalhes (dizimosofertasdetalhado.html)
 
-Adicione os botões de recibo junto com os botões "Editar" e "Eliminar":
+Adicione os botÃµes de recibo junto com os botÃµes "Editar" e "Eliminar":
 
 ```html
 <div style="display: flex; gap: 0.75rem;">
-    <!-- Botões existentes -->
+    <!-- BotÃµes existentes -->
     <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary">
         <i class="fas fa-edit"></i> Editar
     </a>
@@ -49,7 +49,7 @@ Adicione os botões de recibo junto com os botões "Editar" e "Eliminar":
         <i class="fas fa-trash"></i> Eliminar
     </a>
     
-    <!-- NOVOS BOTÕES DE RECIBO -->
+    <!-- NOVOS BOTÃ•ES DE RECIBO -->
     <a href="{% url 'visualizar_recibo_dizimo' x.id %}" 
        class="bt-primary" 
        style="background-color: #548c2f;"
@@ -64,9 +64,9 @@ Adicione os botões de recibo junto com os botões "Editar" e "Eliminar":
 </div>
 ```
 
-#### B) Na Listagem de Dízimos (dizimosofertasfiltradas.html)
+#### B) Na Listagem de DÃ­zimos (dizimosofertasfiltradas.html)
 
-Adicione uma coluna de ações na tabela:
+Adicione uma coluna de aÃ§Ãµes na tabela:
 
 ```html
 <table>
@@ -76,7 +76,7 @@ Adicione uma coluna de ações na tabela:
             <th>Valor</th>
             <th>Data</th>
             <th>Tipo</th>
-            <th>Ações</th> <!-- Nova coluna -->
+            <th>AÃ§Ãµes</th> <!-- Nova coluna -->
         </tr>
     </thead>
     <tbody>
@@ -87,7 +87,7 @@ Adicione uma coluna de ações na tabela:
             <td>{{ dizimo.datacorrespondente|date:"d/m/Y" }}</td>
             <td>{{ dizimo.tipooferta.designacao }}</td>
             <td>
-                <!-- Botões de recibo -->
+                <!-- BotÃµes de recibo -->
                 <a href="{% url 'visualizar_recibo_dizimo' dizimo.id %}" 
                    class="btn btn-sm btn-success"
                    target="_blank"
@@ -106,44 +106,44 @@ Adicione uma coluna de ações na tabela:
 </table>
 ```
 
-## ✨ Recursos do Template
+## âœ¨ Recursos do Template
 
 ### 1. **Design Responsivo**
-- ✅ Adaptável a diferentes tamanhos de tela
-- ✅ Layout otimizado para impressão
-- ✅ CSS @media print para remover elementos desnecessários
+- âœ… AdaptÃ¡vel a diferentes tamanhos de tela
+- âœ… Layout otimizado para impressÃ£o
+- âœ… CSS @media print para remover elementos desnecessÃ¡rios
 
-### 2. **Botões de Ação**
-- 🖨️ **Imprimir:** Abre diálogo de impressão do navegador
-- 📄 **Baixar PDF:** Gera e baixa o PDF automaticamente
-- ⬅️ **Voltar:** Retorna à página anterior
+### 2. **BotÃµes de AÃ§Ã£o**
+- ðŸ–¨ï¸ **Imprimir:** Abre diÃ¡logo de impressÃ£o do navegador
+- ðŸ“„ **Baixar PDF:** Gera e baixa o PDF automaticamente
+- â¬…ï¸ **Voltar:** Retorna Ã  pÃ¡gina anterior
 
-### 3. **Informações Exibidas**
+### 3. **InformaÃ§Ãµes Exibidas**
 - Logo da igreja (se existir)
-- Número do recibo (formatado com 6 dígitos)
+- NÃºmero do recibo (formatado com 6 dÃ­gitos)
 - Nome completo do doador
-- Valor numérico e por extenso
+- Valor numÃ©rico e por extenso
 - Tipo de oferta
 - Data correspondente
-- Método de pagamento (banco/caixa) com ícones
-- Data de emissão
+- MÃ©todo de pagamento (banco/caixa) com Ã­cones
+- Data de emissÃ£o
 - Linha para assinatura
 
-### 4. **Seção de Detalhes**
-Grid com informações adicionais:
+### 4. **SeÃ§Ã£o de Detalhes**
+Grid com informaÃ§Ãµes adicionais:
 - Tipo de oferta
 - Data correspondente
 - Moeda
 - Data de registro
 
-### 5. **Estilos de Impressão**
-Quando imprimir (Ctrl+P ou botão "Imprimir"):
-- Remove botões de ação
+### 5. **Estilos de ImpressÃ£o**
+Quando imprimir (Ctrl+P ou botÃ£o "Imprimir"):
+- Remove botÃµes de aÃ§Ã£o
 - Remove sombras e bordas arredondadas
 - Ajusta margens para A4
-- Otimiza cores para impressão
+- Otimiza cores para impressÃ£o
 
-## 🎨 Customização
+## ðŸŽ¨ CustomizaÃ§Ã£o
 
 ### Alterar Cores
 
@@ -167,83 +167,83 @@ border-bottom: 3px solid #548c2f;  /* Altere #548c2f */
 ```css
 /* Container do recibo */
 .recibo-container {
-    max-width: 800px;      /* Largura máxima */
-    padding: 60px;         /* Espaçamento interno */
+    max-width: 800px;      /* Largura mÃ¡xima */
+    padding: 60px;         /* EspaÃ§amento interno */
 }
 
-/* Tamanho do título */
+/* Tamanho do tÃ­tulo */
 .recibo-titulo {
     font-size: 32px;       /* Tamanho da fonte */
-    letter-spacing: 2px;   /* Espaçamento entre letras */
+    letter-spacing: 2px;   /* EspaÃ§amento entre letras */
 }
 ```
 
 ### Adicionar Campo Personalizado
 
 ```html
-<!-- Após a seção de detalhes -->
+<!-- ApÃ³s a seÃ§Ã£o de detalhes -->
 <div class="recibo-linha">
     <strong>Campo Personalizado:</strong> {{ dizimo.campo_custom }}
 </div>
 ```
 
-## 🖨️ Dicas de Impressão
+## ðŸ–¨ï¸ Dicas de ImpressÃ£o
 
 ### Para Melhor Qualidade
 
 1. **Configure a impressora:**
-   - Orientação: Retrato (Portrait)
+   - OrientaÃ§Ã£o: Retrato (Portrait)
    - Tamanho: A4
-   - Margens: Padrão (1cm)
+   - Margens: PadrÃ£o (1cm)
    - Escalamento: 100%
 
 2. **No navegador:**
-   - Chrome/Edge: Ctrl+P → Configurações → Mais configurações
-   - Desmarque "Cabeçalhos e rodapés" se não quiser data/URL
-   - Marque "Gráficos de plano de fundo" para manter cores
+   - Chrome/Edge: Ctrl+P â†’ ConfiguraÃ§Ãµes â†’ Mais configuraÃ§Ãµes
+   - Desmarque "CabeÃ§alhos e rodapÃ©s" se nÃ£o quiser data/URL
+   - Marque "GrÃ¡ficos de plano de fundo" para manter cores
 
 3. **Para salvar como PDF:**
-   - Ctrl+P → Destino: "Salvar como PDF"
+   - Ctrl+P â†’ Destino: "Salvar como PDF"
    - Melhor que o download direto se quiser editar
 
-## 📱 Recursos Mobile
+## ðŸ“± Recursos Mobile
 
-O template é totalmente responsivo:
+O template Ã© totalmente responsivo:
 - Em telas pequenas, ajusta automaticamente
-- Botões ficam empilhados verticalmente
-- Grid de detalhes vira coluna única
+- BotÃµes ficam empilhados verticalmente
+- Grid de detalhes vira coluna Ãºnica
 - Fonte redimensionada para legibilidade
 
-## 🔒 Segurança
+## ðŸ”’ SeguranÃ§a
 
-- ✅ Protegido com `@login_required`
-- ✅ Validação com `get_object_or_404`
-- ✅ Apenas usuários autenticados podem acessar
-- ✅ Verifica se o dízimo existe
+- âœ… Protegido com `@login_required`
+- âœ… ValidaÃ§Ã£o com `get_object_or_404`
+- âœ… Apenas usuÃ¡rios autenticados podem acessar
+- âœ… Verifica se o dÃ­zimo existe
 
-## 🐛 Troubleshooting
+## ðŸ› Troubleshooting
 
-### Logo não aparece
+### Logo nÃ£o aparece
 ```html
-<!-- O template já tem fallback -->
+<!-- O template jÃ¡ tem fallback -->
 <img src="{% static 'fotos/2022/cba.png' %}" 
      onerror="this.style.display='none'">
 ```
-Se o logo não existir, simplesmente não será exibido.
+Se o logo nÃ£o existir, simplesmente nÃ£o serÃ¡ exibido.
 
-### Estilos não aplicados
-Verifique se o template está sendo carregado:
+### Estilos nÃ£o aplicados
+Verifique se o template estÃ¡ sendo carregado:
 ```python
 # Em views.py, adicione debug
 print(f"Template path: {settings.TEMPLATES[0]['DIRS']}")
 ```
 
 ### Valor por extenso errado
-A função `numero_por_extenso()` está em `views.py` (linhas ~1795-1985).
-Suporta valores até 1 bilhão.
+A funÃ§Ã£o `numero_por_extenso()` estÃ¡ em `views.py` (linhas ~1795-1985).
+Suporta valores atÃ© 1 bilhÃ£o.
 
-### Botões não funcionam
-Verifique se as rotas estão corretas:
+### BotÃµes nÃ£o funcionam
+Verifique se as rotas estÃ£o corretas:
 ```python
 # No shell Django
 python manage.py shell
@@ -252,39 +252,39 @@ python manage.py shell
 '/dizimos/recibo/1/visualizar/'
 ```
 
-## 📊 Comparação: HTML vs PDF
+## ðŸ“Š ComparaÃ§Ã£o: HTML vs PDF
 
 | Recurso | Template HTML | Recibo PDF |
-|---------|--------------|------------|
-| **Velocidade** | ⚡ Instantâneo | 🔄 ~100ms |
-| **Tamanho** | 📦 ~5KB | 📦 ~10KB |
-| **Editável** | ✅ Sim (inspetor) | ❌ Não |
-| **Impressão** | ✅ Nativa navegador | ✅ Direto |
-| **Compartilhar** | 🔗 Link | 📎 Arquivo |
-| **Mobile** | ✅ Responsivo | ❌ Fixo |
-| **Offline** | ❌ Precisa servidor | ✅ Pode baixar |
+| --------- | -------------- | ------------ |
+| **Velocidade** | âš¡ InstantÃ¢neo | ðŸ”„ ~100ms |
+| **Tamanho** | ðŸ“¦ ~5KB | ðŸ“¦ ~10KB |
+| **EditÃ¡vel** | âœ… Sim (inspetor) | âŒ NÃ£o |
+| **ImpressÃ£o** | âœ… Nativa navegador | âœ… Direto |
+| **Compartilhar** | ðŸ”— Link | ðŸ“Ž Arquivo |
+| **Mobile** | âœ… Responsivo | âŒ Fixo |
+| **Offline** | âŒ Precisa servidor | âœ… Pode baixar |
 
-## 🎯 Recomendações
+## ðŸŽ¯ RecomendaÃ§Ãµes
 
 ### Use o Template HTML quando:
-- ✅ Quiser visualizar rapidamente
-- ✅ Precisar imprimir diretamente
-- ✅ Usuário estiver em mobile
-- ✅ Quiser copiar informações
+- âœ… Quiser visualizar rapidamente
+- âœ… Precisar imprimir diretamente
+- âœ… UsuÃ¡rio estiver em mobile
+- âœ… Quiser copiar informaÃ§Ãµes
 
 ### Use o PDF quando:
-- ✅ Precisar arquivar/anexar
-- ✅ Enviar por email
-- ✅ Garantir formatação fixa
-- ✅ Uso offline/compartilhamento
+- âœ… Precisar arquivar/anexar
+- âœ… Enviar por email
+- âœ… Garantir formataÃ§Ã£o fixa
+- âœ… Uso offline/compartilhamento
 
-## 🚀 Melhorias Futuras Sugeridas
+## ðŸš€ Melhorias Futuras Sugeridas
 
 1. **QR Code no recibo**
-   - Adicionar QR code com link de verificação
+   - Adicionar QR code com link de verificaÃ§Ã£o
    ```python
    import qrcode
-   # Gerar QR com URL de verificação
+   # Gerar QR com URL de verificaÃ§Ã£o
    ```
 
 2. **Envio por Email**
@@ -293,20 +293,20 @@ python manage.py shell
    # Enviar recibo HTML no corpo do email
    ```
 
-3. **Múltiplos Templates**
+3. **MÃºltiplos Templates**
    - Template "simples"
    - Template "detalhado"
    - Template "oficial" com timbre
 
 4. **Assinatura Digital**
    - Integrar com certificado digital
-   - Validação blockchain
+   - ValidaÃ§Ã£o blockchain
 
-5. **Personalização por Igreja**
-   - Salvar preferências no banco
-   - Cores/logo customizáveis via admin
+5. **PersonalizaÃ§Ã£o por Igreja**
+   - Salvar preferÃªncias no banco
+   - Cores/logo customizÃ¡veis via admin
 
-## 📝 Exemplo de Uso Completo
+## ðŸ“ Exemplo de Uso Completo
 
 ```python
 # 1. Em uma view, redirecionar para recibo
@@ -314,13 +314,13 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 def minha_view(request, dizimo_id):
-    # Após salvar dizimo...
+    # ApÃ³s salvar dizimo...
     return redirect('visualizar_recibo_dizimo', dizimo_id=dizimo_id)
 
 # 2. Em um template, criar link
 {% url 'visualizar_recibo_dizimo' dizimo.id %}
 
-# 3. Gerar múltiplos recibos
+# 3. Gerar mÃºltiplos recibos
 def gerar_recibos_lote(request):
     dizimos = Dizimooferta.objects.filter(dataregisto=date.today())
     recibos = []
@@ -333,17 +333,17 @@ def gerar_recibos_lote(request):
     return render(request, 'lista_recibos.html', {'recibos': recibos})
 ```
 
-## ✅ Status
+## âœ… Status
 
-- ✅ Template criado e testado
-- ✅ View configurada
-- ✅ Rota registrada
-- ✅ Sem erros de sintaxe
-- ⏳ **Pronto para teste no navegador**
+- âœ… Template criado e testado
+- âœ… View configurada
+- âœ… Rota registrada
+- âœ… Sem erros de sintaxe
+- â³ **Pronto para teste no navegador**
 
-## 🧪 Teste Agora
+## ðŸ§ª Teste Agora
 
-1. **Inicie o servidor** (se não estiver rodando):
+1. **Inicie o servidor** (se nÃ£o estiver rodando):
    ```bash
    python manage.py runserver
    ```
@@ -353,18 +353,18 @@ def gerar_recibos_lote(request):
    http://localhost:8000/dizimos/recibo/1/visualizar/
    ```
 
-3. **Teste os botões:**
-   - Clique em "Imprimir Recibo" → Abre diálogo de impressão
-   - Clique em "Baixar PDF" → Baixa o arquivo PDF
-   - Clique em "Voltar" → Retorna à página anterior
+3. **Teste os botÃµes:**
+   - Clique em "Imprimir Recibo" â†’ Abre diÃ¡logo de impressÃ£o
+   - Clique em "Baixar PDF" â†’ Baixa o arquivo PDF
+   - Clique em "Voltar" â†’ Retorna Ã  pÃ¡gina anterior
 
-4. **Teste a impressão:**
+4. **Teste a impressÃ£o:**
    - Pressione Ctrl+P
-   - Veja que os botões desaparecem
+   - Veja que os botÃµes desaparecem
    - O layout fica otimizado para papel A4
 
 ---
 
-**Documentação criada em:** 05/03/2026  
-**Versão:** 1.0  
+**DocumentaÃ§Ã£o criada em:** 05/03/2026  
+**VersÃ£o:** 1.0  
 **Autor:** Sistema TIBL

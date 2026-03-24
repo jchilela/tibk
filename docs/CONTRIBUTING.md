@@ -1,84 +1,84 @@
-# Guia de Contribuição - Sistema TIBL
+﻿# Guia de ContribuiÃ§Ã£o - Sistema TIBL
 
 Obrigado por considerar contribuir para o Sistema TIBL! Este documento fornece diretrizes para contribuir com o projeto.
 
-## 📋 Índice
+## ðŸ“‹ Ãndice
 
-- [Código de Conduta](#código-de-conduta)
+- [CÃ³digo de Conduta](#cÃ³digo-de-conduta)
 - [Como Posso Contribuir?](#como-posso-contribuir)
 - [Workflow de Desenvolvimento](#workflow-de-desenvolvimento)
-- [Padrões de Código](#padrões-de-código)
-- [Padrões de Commit](#padrões-de-commit)
+- [PadrÃµes de CÃ³digo](#padrÃµes-de-cÃ³digo)
+- [PadrÃµes de Commit](#padrÃµes-de-commit)
 - [Processo de Pull Request](#processo-de-pull-request)
 - [Reportando Bugs](#reportando-bugs)
 - [Sugerindo Melhorias](#sugerindo-melhorias)
 
-## 📜 Código de Conduta
+## ðŸ“œ CÃ³digo de Conduta
 
 ### Nossa Promessa
 
-No interesse de promover um ambiente aberto e acolhedor, nós, como contribuidores e mantenedores, nos comprometemos a tornar a participação em nosso projeto e em nossa comunidade uma experiência livre de assédio para todos.
+No interesse de promover um ambiente aberto e acolhedor, nÃ³s, como contribuidores e mantenedores, nos comprometemos a tornar a participaÃ§Ã£o em nosso projeto e em nossa comunidade uma experiÃªncia livre de assÃ©dio para todos.
 
-### Nossos Padrões
+### Nossos PadrÃµes
 
 Exemplos de comportamento que contribuem para criar um ambiente positivo incluem:
 
-- ✅ Usar linguagem acolhedora e inclusiva
-- ✅ Respeitar pontos de vista e experiências diferentes
-- ✅ Aceitar críticas construtivas com elegância
-- ✅ Focar no que é melhor para a comunidade
-- ✅ Mostrar empatia com outros membros da comunidade
+- âœ… Usar linguagem acolhedora e inclusiva
+- âœ… Respeitar pontos de vista e experiÃªncias diferentes
+- âœ… Aceitar crÃ­ticas construtivas com elegÃ¢ncia
+- âœ… Focar no que Ã© melhor para a comunidade
+- âœ… Mostrar empatia com outros membros da comunidade
 
-Exemplos de comportamento inaceitável incluem:
+Exemplos de comportamento inaceitÃ¡vel incluem:
 
-- ❌ Uso de linguagem ou imagens sexualizadas
-- ❌ Comentários insultuosos/depreciativos e ataques pessoais ou políticos
-- ❌ Assédio público ou privado
-- ❌ Publicar informações privadas de outros sem permissão explícita
-- ❌ Outras condutas que possam ser consideradas inadequadas em ambiente profissional
+- âŒ Uso de linguagem ou imagens sexualizadas
+- âŒ ComentÃ¡rios insultuosos/depreciativos e ataques pessoais ou polÃ­ticos
+- âŒ AssÃ©dio pÃºblico ou privado
+- âŒ Publicar informaÃ§Ãµes privadas de outros sem permissÃ£o explÃ­cita
+- âŒ Outras condutas que possam ser consideradas inadequadas em ambiente profissional
 
-## 🤝 Como Posso Contribuir?
+## ðŸ¤ Como Posso Contribuir?
 
-### Tipos de Contribuição
+### Tipos de ContribuiÃ§Ã£o
 
-1. **Reportar Bugs** 🐛
+1. **Reportar Bugs** ðŸ›
    - Use o template de bug report
-   - Forneça informações detalhadas
+   - ForneÃ§a informaÃ§Ãµes detalhadas
    - Inclua passos para reproduzir
 
-2. **Sugerir Funcionalidades** 💡
+2. **Sugerir Funcionalidades** ðŸ’¡
    - Use o template de feature request
    - Explique o problema que resolve
-   - Descreva a solução proposta
+   - Descreva a soluÃ§Ã£o proposta
 
-3. **Corrigir Bugs** 🔧
+3. **Corrigir Bugs** ðŸ”§
    - Procure issues com label `bug`
-   - Comente na issue antes de começar
+   - Comente na issue antes de comeÃ§ar
    - Siga o workflow de desenvolvimento
 
-4. **Implementar Funcionalidades** ✨
+4. **Implementar Funcionalidades** âœ¨
    - Procure issues com label `feature`
-   - Discuta a implementação antes de começar
-   - Siga os padrões do projeto
+   - Discuta a implementaÃ§Ã£o antes de comeÃ§ar
+   - Siga os padrÃµes do projeto
 
-5. **Melhorar Documentação** 📚
-   - Corrigir erros de digitação
+5. **Melhorar DocumentaÃ§Ã£o** ðŸ“š
+   - Corrigir erros de digitaÃ§Ã£o
    - Adicionar exemplos
-   - Esclarecer informações confusas
+   - Esclarecer informaÃ§Ãµes confusas
 
-6. **Escrever Testes** 🧪
+6. **Escrever Testes** ðŸ§ª
    - Aumentar cobertura de testes
    - Adicionar testes para casos edge
    - Melhorar testes existentes
 
-## 🔄 Workflow de Desenvolvimento
+## ðŸ”„ Workflow de Desenvolvimento
 
 Para detalhes completos, consulte [GITHUB_FLOW.md](GITHUB_FLOW.md)
 
-### Resumo Rápido:
+### Resumo RÃ¡pido:
 
 ```bash
-# 1. Fork e clone o repositório
+# 1. Fork e clone o repositÃ³rio
 git clone https://github.com/seu-usuario/tibk.git
 cd tibk
 
@@ -90,15 +90,15 @@ pip install -r requirements.txt
 # 3. Crie uma branch
 git checkout -b tipo/descricao-curta
 
-# 4. Faça suas alterações
-# ... editar código ...
+# 4. FaÃ§a suas alteraÃ§Ãµes
+# ... editar cÃ³digo ...
 
 # 5. Execute os testes
 python manage.py test
 
-# 6. Commit suas mudanças
+# 6. Commit suas mudanÃ§as
 git add .
-git commit -m "tipo: descrição da mudança"
+git commit -m "tipo: descriÃ§Ã£o da mudanÃ§a"
 
 # 7. Push para seu fork
 git push origin tipo/descricao-curta
@@ -106,15 +106,15 @@ git push origin tipo/descricao-curta
 # 8. Abra um Pull Request
 ```
 
-## 💻 Padrões de Código
+## ðŸ’» PadrÃµes de CÃ³digo
 
 ### Python/Django
 
 - **PEP 8**: Seguir guia de estilo Python
-- **Linha máxima**: 100 caracteres
+- **Linha mÃ¡xima**: 100 caracteres
 - **Imports**: Organizados e ordenados
   ```python
-  # 1. Imports padrão do Python
+  # 1. Imports padrÃ£o do Python
   import os
   import sys
   
@@ -126,32 +126,32 @@ git push origin tipo/descricao-curta
   from sitetibl.models import Irmao
   ```
 
-- **Docstrings**: Para funções e classes complexas
+- **Docstrings**: Para funÃ§Ãµes e classes complexas
   ```python
   def funcao_complexa(param1, param2):
       """
-      Descrição breve da função.
+      DescriÃ§Ã£o breve da funÃ§Ã£o.
       
       Args:
-          param1 (tipo): Descrição do parâmetro
-          param2 (tipo): Descrição do parâmetro
+          param1 (tipo): DescriÃ§Ã£o do parÃ¢metro
+          param2 (tipo): DescriÃ§Ã£o do parÃ¢metro
           
       Returns:
-          tipo: Descrição do retorno
+          tipo: DescriÃ§Ã£o do retorno
       """
       pass
   ```
 
 - **Nomes descritivos**:
   ```python
-  # ✅ Bom
+  # âœ… Bom
   total_dizimos = calcular_total_dizimos(mes, ano)
   
-  # ❌ Ruim
+  # âŒ Ruim
   t = calc(m, a)
   ```
 
-### Django Específico
+### Django EspecÃ­fico
 
 - **Models**: Nome no singular, CamelCase
   ```python
@@ -176,9 +176,9 @@ git push origin tipo/descricao-curta
   path('irmaos/detalhe/<int:id>/', mostra_detalhe_irmao)
   ```
 
-### Formatação
+### FormataÃ§Ã£o
 
-Use `black` para formatação automática:
+Use `black` para formataÃ§Ã£o automÃ¡tica:
 
 ```bash
 pip install black
@@ -192,46 +192,46 @@ pip install flake8
 flake8 sitetibl/
 ```
 
-## 📝 Padrões de Commit
+## ðŸ“ PadrÃµes de Commit
 
 Seguimos **Conventional Commits**:
 
 ### Formato:
 
 ```
-tipo(escopo opcional): descrição curta
+tipo(escopo opcional): descriÃ§Ã£o curta
 
-Descrição detalhada (opcional)
+DescriÃ§Ã£o detalhada (opcional)
 
 Refs: #issue-number (opcional)
 ```
 
 ### Tipos:
 
-| Tipo | Descrição | Exemplo |
-|------|-----------|---------|
-| `feat` | Nova funcionalidade | `feat: adiciona relatório de presença` |
-| `fix` | Correção de bug | `fix: corrige validação de telefone` |
-| `docs` | Documentação | `docs: atualiza README com instalação` |
-| `style` | Formatação | `style: formata código com black` |
-| `refactor` | Refatoração | `refactor: simplifica query de dashboard` |
+| Tipo | DescriÃ§Ã£o | Exemplo |
+| ------ | ----------- | --------- |
+| `feat` | Nova funcionalidade | `feat: adiciona relatÃ³rio de presenÃ§a` |
+| `fix` | CorreÃ§Ã£o de bug | `fix: corrige validaÃ§Ã£o de telefone` |
+| `docs` | DocumentaÃ§Ã£o | `docs: atualiza README com instalaÃ§Ã£o` |
+| `style` | FormataÃ§Ã£o | `style: formata cÃ³digo com black` |
+| `refactor` | RefatoraÃ§Ã£o | `refactor: simplifica query de dashboard` |
 | `test` | Testes | `test: adiciona testes para modelo Irmao` |
-| `chore` | Manutenção | `chore: atualiza dependências` |
+| `chore` | ManutenÃ§Ã£o | `chore: atualiza dependÃªncias` |
 | `perf` | Performance | `perf: otimiza query com select_related` |
 
 ### Exemplos:
 
 ```bash
 # Feature simples
-git commit -m "feat: adiciona filtro de busca por célula"
+git commit -m "feat: adiciona filtro de busca por cÃ©lula"
 
 # Fix com escopo
-git commit -m "fix(auth): corrige redirecionamento após login"
+git commit -m "fix(auth): corrige redirecionamento apÃ³s login"
 
-# Com descrição detalhada
-git commit -m "refactor: extrai lógica de relatórios
+# Com descriÃ§Ã£o detalhada
+git commit -m "refactor: extrai lÃ³gica de relatÃ³rios
 
-Extrai a geração de PDFs para classes separadas
+Extrai a geraÃ§Ã£o de PDFs para classes separadas
 para melhorar reusabilidade e testabilidade.
 
 Refs: #123"
@@ -239,79 +239,79 @@ Refs: #123"
 
 ### Regras:
 
-- ✅ Use verbo no presente: "adiciona" não "adicionado"
-- ✅ Primeira letra minúscula
-- ✅ Sem ponto final na descrição curta
-- ✅ Descrição curta com no máximo 72 caracteres
-- ✅ Descrição detalhada separada por linha em branco
+- âœ… Use verbo no presente: "adiciona" nÃ£o "adicionado"
+- âœ… Primeira letra minÃºscula
+- âœ… Sem ponto final na descriÃ§Ã£o curta
+- âœ… DescriÃ§Ã£o curta com no mÃ¡ximo 72 caracteres
+- âœ… DescriÃ§Ã£o detalhada separada por linha em branco
 
-## 🔍 Processo de Pull Request
+## ðŸ” Processo de Pull Request
 
 ### Antes de Criar o PR:
 
-- [ ] Código testado localmente
-- [ ] Testes unitários passando
+- [ ] CÃ³digo testado localmente
+- [ ] Testes unitÃ¡rios passando
 - [ ] Sem erros de lint
-- [ ] Documentação atualizada
+- [ ] DocumentaÃ§Ã£o atualizada
 - [ ] Branch atualizada com `main`
 - [ ] Commits bem organizados
 
 ### Criando o PR:
 
-1. **Use o template**: Preencha todas as seções
-2. **Título descritivo**: Use formato de commit
-3. **Descrição clara**: Explique o que, por que e como
-4. **Screenshots**: Inclua se houver mudanças visuais
+1. **Use o template**: Preencha todas as seÃ§Ãµes
+2. **TÃ­tulo descritivo**: Use formato de commit
+3. **DescriÃ§Ã£o clara**: Explique o que, por que e como
+4. **Screenshots**: Inclua se houver mudanÃ§as visuais
 5. **Marque labels**: bug, feature, docs, etc.
 6. **Link issues**: Refs #issue-number
 7. **Marque revisores**: @username
 
-### Durante a Revisão:
+### Durante a RevisÃ£o:
 
-- ✅ Responda comentários prontamente
-- ✅ Seja receptivo a feedback
-- ✅ Faça alterações solicitadas
-- ✅ Marque conversas como resolvidas
-- ✅ Mantenha PR atualizado com `main`
+- âœ… Responda comentÃ¡rios prontamente
+- âœ… Seja receptivo a feedback
+- âœ… FaÃ§a alteraÃ§Ãµes solicitadas
+- âœ… Marque conversas como resolvidas
+- âœ… Mantenha PR atualizado com `main`
 
-### Após Aprovação:
+### ApÃ³s AprovaÃ§Ã£o:
 
-- ✅ Squash and merge (recomendado)
-- ✅ Delete a branch
-- ✅ Feche issues relacionadas
+- âœ… Squash and merge (recomendado)
+- âœ… Delete a branch
+- âœ… Feche issues relacionadas
 
-## 🐛 Reportando Bugs
+## ðŸ› Reportando Bugs
 
 ### Antes de Reportar:
 
-- [ ] Verifique se já não existe issue similar
-- [ ] Teste na última versão disponível
+- [ ] Verifique se jÃ¡ nÃ£o existe issue similar
+- [ ] Teste na Ãºltima versÃ£o disponÃ­vel
 - [ ] Tente reproduzir em ambiente limpo
-- [ ] Colete logs e informações relevantes
+- [ ] Colete logs e informaÃ§Ãµes relevantes
 
 ### Ao Reportar:
 
 Use o [template de bug report](../.github/ISSUE_TEMPLATE/bug_report.md) e inclua:
 
-1. **Descrição clara** do problema
+1. **DescriÃ§Ã£o clara** do problema
 2. **Passos para reproduzir** detalhados
 3. **Comportamento esperado** vs atual
-4. **Screenshots** se aplicável
-5. **Ambiente** (OS, browser, versões)
+4. **Screenshots** se aplicÃ¡vel
+5. **Ambiente** (OS, browser, versÃµes)
 6. **Logs de erro** relevantes
 
 ### Prioridade:
 
-- 🔥 **Crítico**: Sistema não funciona
-- ⚠️ **Alto**: Funcionalidade principal quebrada
-- 🔶 **Médio**: Funcionalidade secundária afetada
-- 🟡 **Baixo**: Problema cosmético
+- ðŸ”¥ **CrÃ­tico**: Sistema nÃ£o funciona
+- âš ï¸ **Alto**: Funcionalidade principal quebrada
+- ðŸ”¶ **MÃ©dio**: Funcionalidade secundÃ¡ria afetada
+- ðŸŸ¡ **Baixo**: Problema cosmÃ©tico
 
-## 💡 Sugerindo Melhorias
+## ðŸ’¡ Sugerindo Melhorias
 
 ### Antes de Sugerir:
 
-- [ ] Verifique se já não existe issue similar
+- [ ] Verifique se jÃ¡ nÃ£o existe issue similar
 - [ ] Considere se alinha com objetivos do projeto
 - [ ] Pense em alternativas
 - [ ] Avalie impacto e complexidade
@@ -320,39 +320,39 @@ Use o [template de bug report](../.github/ISSUE_TEMPLATE/bug_report.md) e inclua
 
 Use o [template de feature request](../.github/ISSUE_TEMPLATE/feature_request.md) e inclua:
 
-1. **Descrição clara** da funcionalidade
+1. **DescriÃ§Ã£o clara** da funcionalidade
 2. **Problema que resolve**
-3. **Solução proposta** detalhada
+3. **SoluÃ§Ã£o proposta** detalhada
 4. **Alternativas consideradas**
-5. **Mockups/referências** se aplicável
+5. **Mockups/referÃªncias** se aplicÃ¡vel
 6. **Contexto adicional**
 
-## 📊 Métricas de Qualidade
+## ðŸ“Š MÃ©tricas de Qualidade
 
 ### Code Coverage
 
-Mantemos cobertura mínima de **80%** para:
+Mantemos cobertura mÃ­nima de **80%** para:
 - Models
 - Forms
 - Views principais
-- Lógica de negócio
+- LÃ³gica de negÃ³cio
 
 ### Performance
 
-- Queries: Máximo de 50ms
-- Views: Máximo de 500ms
-- APIs: Máximo de 200ms
+- Queries: MÃ¡ximo de 50ms
+- Views: MÃ¡ximo de 500ms
+- APIs: MÃ¡ximo de 200ms
 
-### Documentação
+### DocumentaÃ§Ã£o
 
-- Toda feature deve ter documentação
-- Toda API deve ter especificação
+- Toda feature deve ter documentaÃ§Ã£o
+- Toda API deve ter especificaÃ§Ã£o
 - Todo modelo complexo deve ter docstring
 
-## 🎓 Recursos para Aprendizado
+## ðŸŽ“ Recursos para Aprendizado
 
 ### Django
-- [Documentação oficial Django](https://docs.djangoproject.com/)
+- [DocumentaÃ§Ã£o oficial Django](https://docs.djangoproject.com/)
 - [Django Tutorial](https://docs.djangoproject.com/en/4.2/intro/tutorial01/)
 - [Two Scoops of Django](https://www.feldroy.com/books/two-scoops-of-django-3-x)
 
@@ -366,77 +366,77 @@ Mantemos cobertura mínima de **80%** para:
 - [Python Guide](https://docs.python-guide.org/)
 - [Real Python](https://realpython.com/)
 
-## 🏆 Reconhecimento
+## ðŸ† Reconhecimento
 
-Contribuidores que fazem contribuições significativas serão:
+Contribuidores que fazem contribuiÃ§Ãµes significativas serÃ£o:
 
 - Listados no README
 - Mencionados em releases
 - Reconhecidos publicamente
 - Adicionados ao CONTRIBUTORS.md
 
-## ❓ Dúvidas?
+## â“ DÃºvidas?
 
-- **GitHub Issues**: Para dúvidas técnicas
+- **GitHub Issues**: Para dÃºvidas tÃ©cnicas
 - **Email**: tiblbaptista7@gmail.com
-- **Pull Request**: Para discussões de código
+- **Pull Request**: Para discussÃµes de cÃ³digo
 
-## 📜 Checklist de Contribuição
+## ðŸ“œ Checklist de ContribuiÃ§Ã£o
 
-Antes de submeter sua contribuição:
+Antes de submeter sua contribuiÃ§Ã£o:
 
-### Código
-- [ ] Código segue PEP 8 e padrões do projeto
-- [ ] Código foi formatado com `black`
+### CÃ³digo
+- [ ] CÃ³digo segue PEP 8 e padrÃµes do projeto
+- [ ] CÃ³digo foi formatado com `black`
 - [ ] Nenhum warning de `flake8`
-- [ ] Nomes são descritivos e claros
-- [ ] Comentários adicionados onde necessário
-- [ ] Sem código comentado ou debug prints
+- [ ] Nomes sÃ£o descritivos e claros
+- [ ] ComentÃ¡rios adicionados onde necessÃ¡rio
+- [ ] Sem cÃ³digo comentado ou debug prints
 
 ### Testes
-- [ ] Testes unitários adicionados/atualizados
+- [ ] Testes unitÃ¡rios adicionados/atualizados
 - [ ] Todos os testes passam
 - [ ] Cobertura mantida ou melhorada
 - [ ] Casos edge foram considerados
 
-### Documentação
-- [ ] README atualizado (se necessário)
+### DocumentaÃ§Ã£o
+- [ ] README atualizado (se necessÃ¡rio)
 - [ ] REQUISITOS.md atualizado (se nova feature)
-- [ ] DOCUMENTACAO_TECNICA.md atualizada (se mudança arquitetural)
-- [ ] Docstrings adicionadas para código complexo
-- [ ] Comentários inline onde necessário
+- [ ] DOCUMENTACAO_TECNICA.md atualizada (se mudanÃ§a arquitetural)
+- [ ] Docstrings adicionadas para cÃ³digo complexo
+- [ ] ComentÃ¡rios inline onde necessÃ¡rio
 
-### Django Específico
+### Django EspecÃ­fico
 - [ ] Migrations criadas e testadas
-- [ ] Models seguem convenções
-- [ ] Views são eficientes (select_related/prefetch_related)
-- [ ] Templates não têm lógica complexa
-- [ ] Forms têm validações adequadas
-- [ ] URLs seguem padrões do projeto
+- [ ] Models seguem convenÃ§Ãµes
+- [ ] Views sÃ£o eficientes (select_related/prefetch_related)
+- [ ] Templates nÃ£o tÃªm lÃ³gica complexa
+- [ ] Forms tÃªm validaÃ§Ãµes adequadas
+- [ ] URLs seguem padrÃµes do projeto
 
-### Segurança
-- [ ] Inputs são validados
-- [ ] Queries são parametrizadas (ORM)
-- [ ] Não há dados sensíveis hardcoded
+### SeguranÃ§a
+- [ ] Inputs sÃ£o validados
+- [ ] Queries sÃ£o parametrizadas (ORM)
+- [ ] NÃ£o hÃ¡ dados sensÃ­veis hardcoded
 - [ ] CSRF protection mantida
-- [ ] Permissões verificadas
+- [ ] PermissÃµes verificadas
 
 ### Git
 - [ ] Commits seguem Conventional Commits
 - [ ] Branch tem nome descritivo
-- [ ] Branch está atualizada com `main`
+- [ ] Branch estÃ¡ atualizada com `main`
 - [ ] Sem conflitos
 
 ### Pull Request
 - [ ] Template preenchido completamente
-- [ ] Título é descritivo
-- [ ] Screenshots incluídos (se aplicável)
+- [ ] TÃ­tulo Ã© descritivo
+- [ ] Screenshots incluÃ­dos (se aplicÃ¡vel)
 - [ ] Issues relacionadas linkadas
 - [ ] Revisores marcados
 - [ ] Labels apropriadas adicionadas
 
 ---
 
-**Obrigado por contribuir com o Sistema TIBL!** 🙏
+**Obrigado por contribuir com o Sistema TIBL!** ðŸ™
 
-Suas contribuições ajudam a melhorar a gestão da Terceira Igreja Baptista de Luanda e servir melhor a comunidade.
+Suas contribuiÃ§Ãµes ajudam a melhorar a gestÃ£o da Terceira Igreja Baptista de Luanda e servir melhor a comunidade.

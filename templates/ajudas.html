@@ -1,10 +1,44 @@
 ﻿{% extends 'index.html' %}
+
+{% block extra_css %}
+<style>
+    .aj-filter-form {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(180px, 1fr)) minmax(120px, 150px);
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .aj-filter-btn {
+        width: 100%;
+        padding: 0.68rem 0.9rem;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        text-align: center;
+        justify-self: stretch;
+    }
+
+    @media (max-width: 920px) {
+        .aj-filter-form {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .aj-filter-btn {
+            max-width: 180px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block Ajudas %}
 
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Apoios</h3>
-        <form action="/tibl/buscaajudas" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; align-items: flex-end;">
+        <form action="/tibl/buscaajudas" method="GET" class="aj-filter-form">
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
                 <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
@@ -48,7 +82,7 @@
                 </div>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
+            <button type="submit" class="bt-primary aj-filter-btn">
                 <i class="fas fa-search"></i> Buscar
             </button>
         </form>

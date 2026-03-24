@@ -1,4 +1,6 @@
 {% extends 'index.html' %}
+{% load static %}
+<!-- htmlhint inline-style-disabled:false -->
 
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
@@ -27,31 +29,27 @@
 
 {% block Formularioactualizacao %}
 
-<div class="modern-form-container" style="max-width: 1000px; margin: 0 auto; padding-bottom: 4rem;">
-    <div class="modern-card"
-        style="padding: 2.5rem; position: relative; overflow: hidden; border-top: 5px solid var(--primary);">
-
-        <div
-            style="position: absolute; right: -20px; top: -20px; opacity: 0.03; font-size: 15rem; transform: rotate(-15deg); pointer-events: none;">
-            <i class="fas fa-edit"></i>
+<div class="modern-form-container upd-shell">
+    <div class="modern-card upd-shell-card">
+        <div class="upd-banner">
+            <div class="upd-banner-overlay"></div>
+            <div class="upd-banner-content">
+                <h2 class="upd-banner-title">
+                    <i class="fas fa-sync-alt mr-2 upd-banner-icon"></i> Atualizar Registo
+                </h2>
+                <p class="upd-banner-subtitle">Revise e modifique os detalhes deste registo. As alterações serão salvas no banco de dados central.</p>
+            </div>
         </div>
 
-        <div style="margin-bottom: 3rem; border-bottom: 2px solid var(--primary-light); padding-bottom: 1.5rem;">
-            <h2 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.5rem;">
-                <i class="fas fa-sync-alt mr-2" style="color: var(--primary);"></i> Atualizar Registro
-            </h2>
-            <p style="color: var(--text-muted); font-size: 1rem;">Revise e modifique os detalhes deste registro. As
-                alterações serão salvas no banco de dados central.</p>
-        </div>
+        <div class="upd-content-wrap">
 
         <form method="post" enctype="multipart/form-data" class="modern-form" id="update-form" novalidate>
             {% csrf_token %}
 
             {% if formulario.non_field_errors %}
-            <div class="modern-card"
-                style="background: #fee2e2; border: 1px solid #ef4444; margin-bottom: 2.5rem; padding: 1.25rem;">
+            <div class="modern-card upd-error-box">
                 {% for error in formulario.non_field_errors %}
-                <p style="color: #991b1b; font-size: 0.9rem; font-weight: 600;"><i
+                <p class="upd-error-text"><i
                         class="fas fa-exclamation-circle mr-2"></i> {{ error }}</p>
                 {% endfor %}
             </div>
@@ -61,45 +59,37 @@
             {{ hidden_field }}
             {% endfor %}
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div class="upd-form-grid">
                 {% for field in formulario.visible_fields %}
-                <div class="form-group {% if field.errors %}has-error{% endif %}"
-                    style="{% if field.name == 'observacoes' or field.name == 'descricao' or 'nomes' in field.name %}grid-column: 1 / -1;{% endif %}">
+                <div class="form-group {% if field.errors %}has-error{% endif %} {% if field.name == 'observacoes' or field.name == 'descricao' or 'nomes' in field.name %}upd-form-full{% endif %}">
 
-                    <label for="{{ field.id_for_label }}" class="form-label"
-                        style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 0.95rem; color: var(--text-main);">
-                        {{ field.label }} {% if field.field.required %}<span style="color: #ef4444;">*</span>{% endif %}
+                    <label for="{{ field.id_for_label }}" class="form-label upd-form-label">
+                        {{ field.label }} {% if field.field.required %}<span class="upd-required">*</span>{% endif %}
                     </label>
 
                     <div class="field-container">
                         {% if field.name == "momentos_realizados" %}
-                        <div
-                            style="background: rgba(0,0,0,0.02); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid #e2e8f0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem;">
+                        <div class="upd-checkbox-grid">
                             {% for checkbox in field %}
-                            <label class="checkbox-custom"
-                                style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-size: 0.9rem;">
+                            <label class="checkbox-custom upd-checkbox-label">
                                 {{ checkbox.tag }} <span>{{ checkbox.choice_label }}</span>
                             </label>
                             {% endfor %}
                         </div>
                         {% elif field.name == "documento_justificativo" or field.name == "foto" %}
-                        <div
-                            style="border: 1.5px dashed var(--primary-light); padding: 1.25rem; border-radius: var(--radius-md); background: #f8fafc; transition: var(--transition);">
+                        <div class="upd-file-zone">
                             {% if field.value %}
-                            <div
-                                style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 1rem; background: white; padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
-                                <div
-                                    style="width: 40px; height: 40px; background: var(--primary-light); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            <div class="upd-file-current">
+                                <div class="upd-file-icon">
                                     <i
                                         class="fas {% if field.name == 'foto' %}fa-image{% else %}fa-file-pdf{% endif %}"></i>
                                 </div>
-                                <div style="flex: 1;">
-                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Arquivo Atual:
+                                <div class="upd-file-meta">
+                                    <p class="upd-file-meta-label">Arquivo Atual:
                                     </p>
                                     <a href="{{ field.value.url }}" target="_blank"
-                                        style="font-size: 0.9rem; font-weight: 700; color: var(--primary); text-decoration: none;">
-                                        Visualizar Anexo <i class="fas fa-external-link-alt"
-                                            style="font-size: 0.7rem;"></i>
+                                        class="upd-file-link">
+                                        Visualizar Anexo <i class="fas fa-external-link-alt upd-file-link-icon"></i>
                                     </a>
                                 </div>
                             </div>
@@ -113,16 +103,16 @@
                         {% endif %}
 
                         {% if field.errors %}
-                        <div style="color: #ef4444; font-size: 0.825rem; margin-top: 0.5rem; font-weight: 500;">
+                        <div class="upd-field-error">
                             {% for error in field.errors %}
-                            <p style="margin: 2px 0;"><i class="fas fa-times-circle mr-1"></i> {{ error }}</p>
+                            <p class="upd-field-error-item"><i class="fas fa-times-circle mr-1"></i> {{ error }}</p>
                             {% endfor %}
                         </div>
                         {% endif %}
 
                         {% if field.help_text %}
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4;">
-                            <i class="fas fa-info-circle" style="opacity: 0.5;"></i> {{ field.help_text|safe }}
+                        <p class="upd-help-text">
+                            <i class="fas fa-info-circle upd-help-icon"></i> {{ field.help_text|safe }}
                         </p>
                         {% endif %}
                     </div>
@@ -130,10 +120,8 @@
                 {% endfor %}
             </div>
 
-            <div class="form-actions"
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: 4rem; border-top: 1px solid #f1f5f9; padding-top: 2rem;">
-                <button type="button" onclick="window.history.back()" class="bt-primary"
-                    style="background: #f1f5f9; color: var(--text-main); box-shadow: none;">
+            <div class="form-actions upd-form-actions">
+                <button type="button" onclick="window.history.back()" class="bt-primary upd-cancel-btn">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
                 <button type="submit" class="bt-primary" id="btn-save">
@@ -142,9 +130,206 @@
             </div>
         </form>
     </div>
+    </div>
 </div>
 
 <style>
+    .upd-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+    }
+
+    .upd-shell-card {
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upd-banner {
+        background-image: url('{% static 'fotos/2022/homepage1.jpeg' %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 180px;
+        position: relative;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+
+    .upd-banner-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%);
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+
+    .upd-banner-content {
+        position: relative;
+        z-index: 1;
+        padding: 2.5rem 2.5rem 2rem;
+    }
+
+    .upd-banner-title {
+        font-size: 2rem;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .upd-banner-icon {
+        color: #93c5fd;
+    }
+
+    .upd-banner-subtitle {
+        color: rgba(255,255,255,0.82);
+        font-size: 1rem;
+    }
+
+    .upd-content-wrap {
+        padding: 2.5rem;
+    }
+
+    .upd-error-box {
+        background: #fee2e2;
+        border: 1px solid #ef4444;
+        margin-bottom: 2.5rem;
+        padding: 1.25rem;
+    }
+
+    .upd-error-text {
+        color: #991b1b;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .upd-form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .upd-form-full {
+        grid-column: 1 / -1;
+    }
+
+    .upd-form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.6rem;
+        font-size: 0.95rem;
+        color: var(--text-main);
+    }
+
+    .upd-required {
+        color: #ef4444;
+    }
+
+    .upd-checkbox-grid {
+        background: rgba(0,0,0,0.02);
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        border: 1px solid #e2e8f0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .upd-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .upd-file-zone {
+        border: 1.5px dashed var(--primary-light);
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        background: #f8fafc;
+        transition: var(--transition);
+    }
+
+    .upd-file-current {
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: white;
+        padding: 0.75rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid #e2e8f0;
+    }
+
+    .upd-file-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-light);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .upd-file-meta {
+        flex: 1;
+    }
+
+    .upd-file-meta-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .upd-file-link {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .upd-file-link-icon {
+        font-size: 0.7rem;
+    }
+
+    .upd-field-error {
+        color: #ef4444;
+        font-size: 0.825rem;
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+
+    .upd-field-error-item {
+        margin: 2px 0;
+    }
+
+    .upd-help-text {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .upd-help-icon {
+        opacity: 0.5;
+    }
+
+    .upd-form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 4rem;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 2rem;
+    }
+
+    .upd-cancel-btn {
+        background: #f1f5f9;
+        color: var(--text-main);
+        box-shadow: none;
+    }
+
     .modern-form input[type="text"],
     .modern-form input[type="number"],
     .modern-form input[type="email"],

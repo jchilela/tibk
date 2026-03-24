@@ -1,537 +1,537 @@
-# Sprint 1 - Lançamento do Módulo Financeiro
+﻿# Sprint 1 - LanÃ§amento do MÃ³dulo Financeiro
 
-**Data de Início**: 10 de Fevereiro de 2026 (Segunda-feira)  
-**Data de Término**: 21 de Fevereiro de 2026 (Sexta-feira) - 10 dias úteis  
-**Departamento-Alvo**: Departamento de Finanças  
-**Objectivo**: Lançar o sistema de gestão financeira completo para uso do departamento de finanças da TIBL
-
----
-
-## 🎯 Objectivo da Sprint
-
-Entregar um sistema financeiro completo e funcional que permita ao departamento de finanças da igreja gerir todas as operações financeiras de forma centralizada, segura e eficiente.
+**Data de InÃ­cio**: 10 de Fevereiro de 2026 (Segunda-feira)  
+**Data de TÃ©rmino**: 21 de Fevereiro de 2026 (Sexta-feira) - 10 dias Ãºteis  
+**Departamento-Alvo**: Departamento de FinanÃ§as  
+**Objectivo**: LanÃ§ar o sistema de gestÃ£o financeira completo para uso do departamento de finanÃ§as da TIBL
 
 ---
 
-## 📦 Módulos Financeiros a Concluir
+## ðŸŽ¯ Objectivo da Sprint
 
-### 1. Gestão de Bancos e Contas Bancárias
+Entregar um sistema financeiro completo e funcional que permita ao departamento de finanÃ§as da igreja gerir todas as operaÃ§Ãµes financeiras de forma centralizada, segura e eficiente.
+
+---
+
+## ðŸ“¦ MÃ³dulos Financeiros a Concluir
+
+### 1. GestÃ£o de Bancos e Contas BancÃ¡rias
 
 #### 1.1 Bancos
-**Status**: ✅ Para concluir  
+**Status**: âœ… Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
-- [x] Cadastro de bancos (designação, abreviação, gestor, contactos)
+- [x] Cadastro de bancos (designaÃ§Ã£o, abreviaÃ§Ã£o, gestor, contactos)
 - [ ] Listagem de bancos com filtros
-- [ ] Edição de dados bancários
-- [ ] Eliminação de bancos (com validação de dependências)
-- [ ] Página de detalhes do banco
+- [ ] EdiÃ§Ã£o de dados bancÃ¡rios
+- [ ] EliminaÃ§Ã£o de bancos (com validaÃ§Ã£o de dependÃªncias)
+- [ ] PÃ¡gina de detalhes do banco
 
-**Critérios de Aceitação**:
+**CritÃ©rios de AceitaÃ§Ã£o**:
 - Gestor financeiro consegue cadastrar novos bancos
-- Sistema valida campos obrigatórios
-- Não permite eliminação de bancos com contas activas
+- Sistema valida campos obrigatÃ³rios
+- NÃ£o permite eliminaÃ§Ã£o de bancos com contas activas
 
-#### 1.2 Contas Bancárias
-**Status**: ✅ Para concluir  
+#### 1.2 Contas BancÃ¡rias
+**Status**: âœ… Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
-- [x] Cadastro de contas bancárias (banco, número, IBAN, tipo de moeda)
+- [x] Cadastro de contas bancÃ¡rias (banco, nÃºmero, IBAN, tipo de moeda)
 - [ ] Listagem de contas com filtros por banco/moeda
-- [ ] Visualização de saldo actual
-- [ ] Edição de dados da conta
-- [ ] Inactivação de contas (não eliminação física)
-- [ ] Página de detalhes com histórico de movimentações
+- [ ] VisualizaÃ§Ã£o de saldo actual
+- [ ] EdiÃ§Ã£o de dados da conta
+- [ ] InactivaÃ§Ã£o de contas (nÃ£o eliminaÃ§Ã£o fÃ­sica)
+- [ ] PÃ¡gina de detalhes com histÃ³rico de movimentaÃ§Ãµes
 
-**Critérios de Aceitação**:
-- IBAN e número de conta são únicos no sistema
-- Saldo é calculado automaticamente com base nas transacções
-- Validação de formato IBAN
-- Sistema impede valores negativos sem autorização
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- IBAN e nÃºmero de conta sÃ£o Ãºnicos no sistema
+- Saldo Ã© calculado automaticamente com base nas transacÃ§Ãµes
+- ValidaÃ§Ã£o de formato IBAN
+- Sistema impede valores negativos sem autorizaÃ§Ã£o
 
 ---
 
-### 2. Movimentações de Caixa
+### 2. MovimentaÃ§Ãµes de Caixa
 
 #### 2.1 Entradas de Caixa
-**Status**: 🔨 Para concluir  
+**Status**: ðŸ”¨ Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
 - [ ] Registo de entradas em caixa
-- [ ] Vinculação com rubrica de entrada
-- [ ] Registo de responsável pela entrada
-- [ ] Campo de observações
+- [ ] VinculaÃ§Ã£o com rubrica de entrada
+- [ ] Registo de responsÃ¡vel pela entrada
+- [ ] Campo de observaÃ§Ãµes
 - [ ] Listagem com filtros (data, rubrica, valor)
-- [ ] Página de detalhes da entrada
-- [ ] Edição (com auditoria)
-- [ ] Cancelamento (não eliminação física)
+- [ ] PÃ¡gina de detalhes da entrada
+- [ ] EdiÃ§Ã£o (com auditoria)
+- [ ] Cancelamento (nÃ£o eliminaÃ§Ã£o fÃ­sica)
 
-**Critérios de Aceitação**:
-- Todas as entradas têm rubrica e responsável
-- Data e hora são registadas automaticamente
-- Valores são sempre positivos
-- Sistema mantém histórico de alterações (auditoria)
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- Todas as entradas tÃªm rubrica e responsÃ¡vel
+- Data e hora sÃ£o registadas automaticamente
+- Valores sÃ£o sempre positivos
+- Sistema mantÃ©m histÃ³rico de alteraÃ§Ãµes (auditoria)
 
-#### 2.2 Saídas de Caixa
-**Status**: 🔨 Para concluir  
+#### 2.2 SaÃ­das de Caixa
+**Status**: ðŸ”¨ Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
-- [ ] Registo de saídas de caixa
-- [ ] Vinculação com rubrica de saída
-- [ ] Registo de responsável
-- [ ] Campo de observações
-- [ ] Data de controlo automática
+- [ ] Registo de saÃ­das de caixa
+- [ ] VinculaÃ§Ã£o com rubrica de saÃ­da
+- [ ] Registo de responsÃ¡vel
+- [ ] Campo de observaÃ§Ãµes
+- [ ] Data de controlo automÃ¡tica
 - [ ] Listagem com filtros (data, rubrica, valor)
-- [ ] Página de detalhes da saída
-- [ ] Edição (com auditoria)
-- [ ] Cancelamento com justificação
+- [ ] PÃ¡gina de detalhes da saÃ­da
+- [ ] EdiÃ§Ã£o (com auditoria)
+- [ ] Cancelamento com justificaÃ§Ã£o
 
-**Critérios de Aceitação**:
-- Saídas requerem aprovação (workflow)
-- Sistema valida saldo disponível antes de aprovar
-- Mantém log de todas as alterações
-- Valores são sempre positivos
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- SaÃ­das requerem aprovaÃ§Ã£o (workflow)
+- Sistema valida saldo disponÃ­vel antes de aprovar
+- MantÃ©m log de todas as alteraÃ§Ãµes
+- Valores sÃ£o sempre positivos
 
 ---
 
-### 3. Movimentações Bancárias
+### 3. MovimentaÃ§Ãµes BancÃ¡rias
 
-#### 3.1 Entradas Bancárias
-**Status**: 🔨 Para concluir  
+#### 3.1 Entradas BancÃ¡rias
+**Status**: ðŸ”¨ Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
-- [ ] Registo de entradas bancárias
-- [ ] Selecção da conta a ser creditada
-- [ ] Definição de via (depósito, transferência, multicaixa)
-- [ ] Vinculação com rubrica
-- [ ] Conta de origem (se transferência)
-- [ ] Registo de responsável
-- [ ] Actualização automática de saldo
-- [ ] Listagem com filtros avançados
-- [ ] Página de detalhes
-- [ ] Edição (com auditoria)
+- [ ] Registo de entradas bancÃ¡rias
+- [ ] SelecÃ§Ã£o da conta a ser creditada
+- [ ] DefiniÃ§Ã£o de via (depÃ³sito, transferÃªncia, multicaixa)
+- [ ] VinculaÃ§Ã£o com rubrica
+- [ ] Conta de origem (se transferÃªncia)
+- [ ] Registo de responsÃ¡vel
+- [ ] ActualizaÃ§Ã£o automÃ¡tica de saldo
+- [ ] Listagem com filtros avanÃ§ados
+- [ ] PÃ¡gina de detalhes
+- [ ] EdiÃ§Ã£o (com auditoria)
 
-**Critérios de Aceitação**:
-- Via de entrada é obrigatória
-- Para transferências, conta origem é obrigatória
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- Via de entrada Ã© obrigatÃ³ria
+- Para transferÃªncias, conta origem Ã© obrigatÃ³ria
 - Saldo actualiza automaticamente e em tempo real
-- Histórico de transacções é imutável
+- HistÃ³rico de transacÃ§Ãµes Ã© imutÃ¡vel
 
-#### 3.2 Saídas Bancárias
-**Status**: 🔨 Para concluir  
+#### 3.2 SaÃ­das BancÃ¡rias
+**Status**: ðŸ”¨ Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
-- [ ] Registo de saídas bancárias
-- [ ] Selecção da conta de débito
-- [ ] Definição de rubrica
-- [ ] Conta destino (se transferência)
-- [ ] Registo de responsável
-- [ ] Actualização automática de saldo
-- [ ] Validação de saldo disponível
+- [ ] Registo de saÃ­das bancÃ¡rias
+- [ ] SelecÃ§Ã£o da conta de dÃ©bito
+- [ ] DefiniÃ§Ã£o de rubrica
+- [ ] Conta destino (se transferÃªncia)
+- [ ] Registo de responsÃ¡vel
+- [ ] ActualizaÃ§Ã£o automÃ¡tica de saldo
+- [ ] ValidaÃ§Ã£o de saldo disponÃ­vel
 - [ ] Listagem com filtros
-- [ ] Página de detalhes
-- [ ] Cancelamento com autorização
+- [ ] PÃ¡gina de detalhes
+- [ ] Cancelamento com autorizaÃ§Ã£o
 
-**Critérios de Aceitação**:
-- Sistema não permite saída sem saldo suficiente
-- Transferências entre contas são atómicas
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- Sistema nÃ£o permite saÃ­da sem saldo suficiente
+- TransferÃªncias entre contas sÃ£o atÃ³micas
 - Saldo actualiza instantaneamente
-- Requer aprovação para valores acima de X
+- Requer aprovaÃ§Ã£o para valores acima de X
 
 ---
 
-### 4. Dízimos e Ofertas
+### 4. DÃ­zimos e Ofertas
 
-#### 4.1 Gestão de Dízimos e Ofertas
-**Status**: 🔨 Para concluir  
+#### 4.1 GestÃ£o de DÃ­zimos e Ofertas
+**Status**: ðŸ”¨ Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
-- [ ] Registo de dízimos e ofertas
-- [ ] Selecção do tipo de oferta
-- [ ] Vinculação com membro dizimista
-- [ ] Associação com actividade (culto, célula, etc.)
-- [ ] Vinculação automática com entrada bancária ou caixa
-- [ ] Emissão de recibo (PDF)
+- [ ] Registo de dÃ­zimos e ofertas
+- [ ] SelecÃ§Ã£o do tipo de oferta
+- [ ] VinculaÃ§Ã£o com membro dizimista
+- [ ] AssociaÃ§Ã£o com actividade (culto, cÃ©lula, etc.)
+- [ ] VinculaÃ§Ã£o automÃ¡tica com entrada bancÃ¡ria ou caixa
+- [ ] EmissÃ£o de recibo (PDF)
 - [ ] Listagem com filtros (membro, tipo, data, actividade)
-- [ ] Relatórios de dízimos por membro
-- [ ] Relatórios de ofertas por tipo
-- [ ] Dashboard de arrecadação
+- [ ] RelatÃ³rios de dÃ­zimos por membro
+- [ ] RelatÃ³rios de ofertas por tipo
+- [ ] Dashboard de arrecadaÃ§Ã£o
 
-**Critérios de Aceitação**:
-- Dízimo deve estar vinculado a um membro
-- Ofertas podem ser anónimas
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- DÃ­zimo deve estar vinculado a um membro
+- Ofertas podem ser anÃ³nimas
 - Sistema gera recibo automaticamente
-- Vinculação com entrada (banco/caixa) é obrigatória
-- Dashboard mostra tendências de arrecadação
+- VinculaÃ§Ã£o com entrada (banco/caixa) Ã© obrigatÃ³ria
+- Dashboard mostra tendÃªncias de arrecadaÃ§Ã£o
 
 ---
 
-### 5. Orçamento Departamental
+### 5. OrÃ§amento Departamental
 
-#### 5.1 Gestão de Orçamento
-**Status**: 🔨 Para concluir  
-**Prioridade**: Média
+#### 5.1 GestÃ£o de OrÃ§amento
+**Status**: ðŸ”¨ Para concluir  
+**Prioridade**: MÃ©dia
 
 **Funcionalidades**:
-- [ ] Cadastro de orçamento anual por departamento
-- [ ] Visualização de orçamento vs. realizado
-- [ ] Alertas quando ultrapassar 80% do orçamento
-- [ ] Listagem de orçamentos por ano
-- [ ] Edição de valores (com aprovação)
-- [ ] Relatório de execução orçamentária
+- [ ] Cadastro de orÃ§amento anual por departamento
+- [ ] VisualizaÃ§Ã£o de orÃ§amento vs. realizado
+- [ ] Alertas quando ultrapassar 80% do orÃ§amento
+- [ ] Listagem de orÃ§amentos por ano
+- [ ] EdiÃ§Ã£o de valores (com aprovaÃ§Ã£o)
+- [ ] RelatÃ³rio de execuÃ§Ã£o orÃ§amentÃ¡ria
 - [ ] Dashboard de consumo por departamento
 
-**Critérios de Aceitação**:
-- Cada departamento tem orçamento único por ano
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- Cada departamento tem orÃ§amento Ãºnico por ano
 - Sistema calcula automaticamente o realizado
-- Alertas são enviados aos gestores
-- Relatórios exportáveis em PDF/Excel
+- Alertas sÃ£o enviados aos gestores
+- RelatÃ³rios exportÃ¡veis em PDF/Excel
 
-#### 5.2 Pedidos de Saída
-**Status**: 🔨 Para concluir  
+#### 5.2 Pedidos de SaÃ­da
+**Status**: ðŸ”¨ Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
-- [ ] Criação de pedidos de saída
-- [ ] Workflow de aprovação (solicitação → aprovação → execução)
-- [ ] Vinculação com departamento e projecto
-- [ ] Definição de centro de custo
+- [ ] CriaÃ§Ã£o de pedidos de saÃ­da
+- [ ] Workflow de aprovaÃ§Ã£o (solicitaÃ§Ã£o â†’ aprovaÃ§Ã£o â†’ execuÃ§Ã£o)
+- [ ] VinculaÃ§Ã£o com departamento e projecto
+- [ ] DefiniÃ§Ã£o de centro de custo
 - [ ] Upload de documentos comprovativos
-- [ ] Validação contra orçamento disponível
+- [ ] ValidaÃ§Ã£o contra orÃ§amento disponÃ­vel
 - [ ] IBAN de destino
 - [ ] Listagem com filtros (status, departamento, valor)
 - [ ] Dashboard de pedidos pendentes
-- [ ] Notificações por email
+- [ ] NotificaÃ§Ãµes por email
 
-**Critérios de Aceitação**:
-- Pedidos requerem justificação obrigatória
-- Sistema valida orçamento disponível
-- Workflow de aprovação é configurável
-- Aprovador recebe notificação automática
-- Após aprovação, gera saída automaticamente
-- Histórico completo de aprovações
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- Pedidos requerem justificaÃ§Ã£o obrigatÃ³ria
+- Sistema valida orÃ§amento disponÃ­vel
+- Workflow de aprovaÃ§Ã£o Ã© configurÃ¡vel
+- Aprovador recebe notificaÃ§Ã£o automÃ¡tica
+- ApÃ³s aprovaÃ§Ã£o, gera saÃ­da automaticamente
+- HistÃ³rico completo de aprovaÃ§Ãµes
 
 ---
 
 ### 6. Rubricas Financeiras
 
-#### 6.1 Rubricas de Entrada e Saída
-**Status**: ✅ Para concluir  
+#### 6.1 Rubricas de Entrada e SaÃ­da
+**Status**: âœ… Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
 - [ ] Cadastro de rubricas de entrada
-- [ ] Cadastro de rubricas de saída
-- [ ] Organização hierárquica (categorias)
+- [ ] Cadastro de rubricas de saÃ­da
+- [ ] OrganizaÃ§Ã£o hierÃ¡rquica (categorias)
 - [ ] Listagem de rubricas activas
-- [ ] Inactivação de rubricas não utilizadas
-- [ ] Relatório de movimentações por rubrica
+- [ ] InactivaÃ§Ã£o de rubricas nÃ£o utilizadas
+- [ ] RelatÃ³rio de movimentaÃ§Ãµes por rubrica
 
-**Critérios de Aceitação**:
-- Cada movimentação tem uma rubrica
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- Cada movimentaÃ§Ã£o tem uma rubrica
 - Rubricas podem ser categorizadas
-- Não permite eliminação de rubricas com transacções
+- NÃ£o permite eliminaÃ§Ã£o de rubricas com transacÃ§Ãµes
 - Sistema sugere rubricas mais utilizadas
 
 ---
 
-### 7. Relatórios Financeiros
+### 7. RelatÃ³rios Financeiros
 
-#### 7.1 Relatórios Gerenciais
-**Status**: 🔨 Para concluir  
+#### 7.1 RelatÃ³rios Gerenciais
+**Status**: ðŸ”¨ Para concluir  
 **Prioridade**: Alta
 
 **Funcionalidades**:
-- [ ] Relatório de fluxo de caixa (PDF/Excel)
-- [ ] Relatório de movimentações bancárias (PDF/Excel)
-- [ ] Relatório de dízimos e ofertas (PDF/Excel)
-- [ ] Relatório de execução orçamentária (PDF/Excel)
-- [ ] Relatório de pedidos de saída (PDF/Excel)
+- [ ] RelatÃ³rio de fluxo de caixa (PDF/Excel)
+- [ ] RelatÃ³rio de movimentaÃ§Ãµes bancÃ¡rias (PDF/Excel)
+- [ ] RelatÃ³rio de dÃ­zimos e ofertas (PDF/Excel)
+- [ ] RelatÃ³rio de execuÃ§Ã£o orÃ§amentÃ¡ria (PDF/Excel)
+- [ ] RelatÃ³rio de pedidos de saÃ­da (PDF/Excel)
 - [ ] DRE simplificado (Demonstrativo de Resultado)
 - [ ] Balancete mensal
-- [ ] Conciliação bancária
+- [ ] ConciliaÃ§Ã£o bancÃ¡ria
 
-**Critérios de Aceitação**:
-- Relatórios com filtros de período
-- Exportação em PDF e Excel
-- Gráficos visuais claros
+**CritÃ©rios de AceitaÃ§Ã£o**:
+- RelatÃ³rios com filtros de perÃ­odo
+- ExportaÃ§Ã£o em PDF e Excel
+- GrÃ¡ficos visuais claros
 - Totalizadores e subtotais correctos
 - Assinatura digital nos PDFs
 
 #### 7.2 Dashboard Financeiro
-**Status**: 🔨 Para concluir  
-**Prioridade**: Média
+**Status**: ðŸ”¨ Para concluir  
+**Prioridade**: MÃ©dia
 
 **Funcionalidades**:
 - [ ] Total em caixa (saldo actual)
 - [ ] Total em bancos (soma de todas as contas)
-- [ ] Dízimos e ofertas do mês
-- [ ] Gráfico de entrada vs. saída (mensal)
+- [ ] DÃ­zimos e ofertas do mÃªs
+- [ ] GrÃ¡fico de entrada vs. saÃ­da (mensal)
 - [ ] Top 5 rubricas de entrada
-- [ ] Top 5 rubricas de saída
-- [ ] Execução orçamentária por departamento
-- [ ] Pedidos pendentes de aprovação
+- [ ] Top 5 rubricas de saÃ­da
+- [ ] ExecuÃ§Ã£o orÃ§amentÃ¡ria por departamento
+- [ ] Pedidos pendentes de aprovaÃ§Ã£o
 - [ ] Alertas financeiros
 
-**Critérios de Aceitação**:
+**CritÃ©rios de AceitaÃ§Ã£o**:
 - Dashboard actualiza em tempo real
-- Gráficos interactivos
-- Período personalizável
-- Exportação de dados
+- GrÃ¡ficos interactivos
+- PerÃ­odo personalizÃ¡vel
+- ExportaÃ§Ã£o de dados
 
 ---
 
-## 🔐 Requisitos de Segurança
+## ðŸ” Requisitos de SeguranÃ§a
 
 ### Controlo de Acesso
-- [ ] Apenas utilizadores do grupo "Finanças" acedem aos módulos financeiros
-- [ ] Permissões diferenciadas (visualização, edição, aprovação, eliminação)
-- [ ] Auditoria completa de todas as acções financeiras
-- [ ] Logs de acesso e modificações
+- [ ] Apenas utilizadores do grupo "FinanÃ§as" acedem aos mÃ³dulos financeiros
+- [ ] PermissÃµes diferenciadas (visualizaÃ§Ã£o, ediÃ§Ã£o, aprovaÃ§Ã£o, eliminaÃ§Ã£o)
+- [ ] Auditoria completa de todas as acÃ§Ãµes financeiras
+- [ ] Logs de acesso e modificaÃ§Ãµes
 
-### Validações
-- [ ] Validação de saldo antes de qualquer saída
-- [ ] Validação de IBAN e dados bancários
-- [ ] Campos monetários sempre positivos
-- [ ] Bloqueio de edição após período de fecho contabilístico
+### ValidaÃ§Ãµes
+- [ ] ValidaÃ§Ã£o de saldo antes de qualquer saÃ­da
+- [ ] ValidaÃ§Ã£o de IBAN e dados bancÃ¡rios
+- [ ] Campos monetÃ¡rios sempre positivos
+- [ ] Bloqueio de ediÃ§Ã£o apÃ³s perÃ­odo de fecho contabilÃ­stico
 
-### Backup e Recuperação
-- [ ] Backup automático diário
-- [ ] Backup antes de operações críticas
-- [ ] Procedimento de recuperação documentado
-- [ ] Testes de recuperação mensais
+### Backup e RecuperaÃ§Ã£o
+- [ ] Backup automÃ¡tico diÃ¡rio
+- [ ] Backup antes de operaÃ§Ãµes crÃ­ticas
+- [ ] Procedimento de recuperaÃ§Ã£o documentado
+- [ ] Testes de recuperaÃ§Ã£o mensais
 
 ---
 
-## 📊 Indicadores de Sucesso
+## ðŸ“Š Indicadores de Sucesso
 
-### Métricas Técnicas
+### MÃ©tricas TÃ©cnicas
 - [ ] 100% das funcionalidades financeiras implementadas
-- [ ] 0 bugs críticos em produção
+- [ ] 0 bugs crÃ­ticos em produÃ§Ã£o
 - [ ] Tempo de resposta < 2s para consultas
 - [ ] Cobertura de testes > 80%
 
-### Métricas de Negócio
-- [ ] 100% do departamento de finanças treinado
-- [ ] Redução de 50% no tempo de fecho mensal
-- [ ] 90% de satisfação dos utilizadores
-- [ ] 0 inconsistências nos relatórios
+### MÃ©tricas de NegÃ³cio
+- [ ] 100% do departamento de finanÃ§as treinado
+- [ ] ReduÃ§Ã£o de 50% no tempo de fecho mensal
+- [ ] 90% de satisfaÃ§Ã£o dos utilizadores
+- [ ] 0 inconsistÃªncias nos relatÃ³rios
 
 ---
 
-## 🧪 Testes e Validação
+## ðŸ§ª Testes e ValidaÃ§Ã£o
 
-### Testes Unitários
-- [ ] Models (validações, cálculos)
-- [ ] Views (lógica de negócio)
-- [ ] Forms (validações)
-- [ ] Signals (actualizações automáticas)
+### Testes UnitÃ¡rios
+- [ ] Models (validaÃ§Ãµes, cÃ¡lculos)
+- [ ] Views (lÃ³gica de negÃ³cio)
+- [ ] Forms (validaÃ§Ãµes)
+- [ ] Signals (actualizaÃ§Ãµes automÃ¡ticas)
 
-### Testes de Integração
-- [ ] Fluxo completo de entrada/saída
-- [ ] Transferências entre contas
-- [ ] Workflow de aprovação de pedidos
-- [ ] Geração de relatórios
+### Testes de IntegraÃ§Ã£o
+- [ ] Fluxo completo de entrada/saÃ­da
+- [ ] TransferÃªncias entre contas
+- [ ] Workflow de aprovaÃ§Ã£o de pedidos
+- [ ] GeraÃ§Ã£o de relatÃ³rios
 
-### Testes de Aceitação do Utilizador (UAT)
-- [ ] Cenário 1: Registo de dízimo em culto
-- [ ] Cenário 2: Pedido e aprovação de saída
-- [ ] Cenário 3: Transferência entre contas
-- [ ] Cenário 4: Fecho e relatórios mensais
-- [ ] Cenário 5: Conciliação bancária
+### Testes de AceitaÃ§Ã£o do Utilizador (UAT)
+- [ ] CenÃ¡rio 1: Registo de dÃ­zimo em culto
+- [ ] CenÃ¡rio 2: Pedido e aprovaÃ§Ã£o de saÃ­da
+- [ ] CenÃ¡rio 3: TransferÃªncia entre contas
+- [ ] CenÃ¡rio 4: Fecho e relatÃ³rios mensais
+- [ ] CenÃ¡rio 5: ConciliaÃ§Ã£o bancÃ¡ria
 
 ---
 
-## 📚 Documentação
+## ðŸ“š DocumentaÃ§Ã£o
 
-### Documentação Técnica
-- [ ] Actualizar DOCUMENTACAO_TECNICA.md com módulos financeiros
+### DocumentaÃ§Ã£o TÃ©cnica
+- [ ] Actualizar DOCUMENTACAO_TECNICA.md com mÃ³dulos financeiros
 - [ ] Documentar APIs REST (se houver)
 - [ ] Diagramas de fluxo de trabalho
 - [ ] Modelo de dados actualizado
 
-### Documentação de Utilizador
-- [ ] Manual do utilizador - Módulo Financeiro
-- [ ] Vídeos tutoriais (screencast)
+### DocumentaÃ§Ã£o de Utilizador
+- [ ] Manual do utilizador - MÃ³dulo Financeiro
+- [ ] VÃ­deos tutoriais (screencast)
 - [ ] FAQ - Perguntas frequentes
-- [ ] Glossário financeiro
+- [ ] GlossÃ¡rio financeiro
 
 ### Treinamento
-- [ ] Sessão 1: Visão geral do sistema
-- [ ] Sessão 2: Cadastros básicos (bancos, contas, rubricas)
-- [ ] Sessão 3: Movimentações (entradas e saídas)
-- [ ] Sessão 4: Dízimos e ofertas
-- [ ] Sessão 5: Orçamento e pedidos de saída
-- [ ] Sessão 6: Relatórios e fecho mensal
+- [ ] SessÃ£o 1: VisÃ£o geral do sistema
+- [ ] SessÃ£o 2: Cadastros bÃ¡sicos (bancos, contas, rubricas)
+- [ ] SessÃ£o 3: MovimentaÃ§Ãµes (entradas e saÃ­das)
+- [ ] SessÃ£o 4: DÃ­zimos e ofertas
+- [ ] SessÃ£o 5: OrÃ§amento e pedidos de saÃ­da
+- [ ] SessÃ£o 6: RelatÃ³rios e fecho mensal
 
 ---
 
-## 🚀 Plano de Deploy
+## ðŸš€ Plano de Deploy
 
-### Pré-Produção (Semana 1: 10/02 - 14/02)
-- [ ] Deploy em ambiente de homologação (Quarta-feira, 12/02)
-- [ ] Migração de dados históricos se houver (Quinta-feira, 13/02)
+### PrÃ©-ProduÃ§Ã£o (Semana 1: 10/02 - 14/02)
+- [ ] Deploy em ambiente de homologaÃ§Ã£o (Quarta-feira, 12/02)
+- [ ] MigraÃ§Ã£o de dados histÃ³ricos se houver (Quinta-feira, 13/02)
 - [ ] Testes de carga e performance (Quinta-feira, 13/02)
 - [ ] Treinamento da equipa de TI (Sexta-feira, 14/02)
-- [ ] Validação com gestor financeiro (Sexta-feira, 14/02)
+- [ ] ValidaÃ§Ã£o com gestor financeiro (Sexta-feira, 14/02)
 
-### Produção (Semana 2: 17/02 - 21/02)
+### ProduÃ§Ã£o (Semana 2: 17/02 - 21/02)
 - [ ] Backup completo do sistema actual (Quinta-feira, 20/02 - 18:00)
-- [ ] Deploy em produção (Sexta-feira, 21/02 - 08:00)
-- [ ] Verificação de integridade dos dados (Sexta-feira, 21/02 - 09:00)
+- [ ] Deploy em produÃ§Ã£o (Sexta-feira, 21/02 - 08:00)
+- [ ] VerificaÃ§Ã£o de integridade dos dados (Sexta-feira, 21/02 - 09:00)
 - [ ] Treinamento final da equipa (Sexta-feira, 21/02 - 10:00)
 - [ ] Monitoramento activo durante o dia (Sexta-feira, 21/02)
-- [ ] Suporte prioritário na semana seguinte (24/02 - 28/02)
+- [ ] Suporte prioritÃ¡rio na semana seguinte (24/02 - 28/02)
 
-### Contingência
+### ContingÃªncia
 - [ ] Plano de rollback documentado
 - [ ] Sistema antigo mantido em standby por 30 dias
-- [ ] Equipa de suporte disponível durante horário comercial
+- [ ] Equipa de suporte disponÃ­vel durante horÃ¡rio comercial
 - [ ] Linha directa exclusiva para departamento financeiro
 
 ---
 
-## 👥 Equipa e Responsabilidades
+## ðŸ‘¥ Equipa e Responsabilidades
 
 ### Desenvolvimento
-- **Tech Lead**: Responsável pela arquitectura e revisão de código
-- **Dev Backend**: Implementação dos models, views e lógica de negócio
-- **Dev Frontend**: Templates, formulários e dashboard
-- **QA**: Testes e validação
+- **Tech Lead**: ResponsÃ¡vel pela arquitectura e revisÃ£o de cÃ³digo
+- **Dev Backend**: ImplementaÃ§Ã£o dos models, views e lÃ³gica de negÃ³cio
+- **Dev Frontend**: Templates, formulÃ¡rios e dashboard
+- **QA**: Testes e validaÃ§Ã£o
 
-### Negócio
-- **Gestor Financeiro**: Validação de requisitos e UAT
+### NegÃ³cio
+- **Gestor Financeiro**: ValidaÃ§Ã£o de requisitos e UAT
 - **Tesoureiro**: Testes e feedback
-- **Pastor/Líder**: Aprovação final
+- **Pastor/LÃ­der**: AprovaÃ§Ã£o final
 
 ---
 
-## 📅 Cronograma Detalhado
+## ðŸ“… Cronograma Detalhado
 
 ### Semana 1 (10/02 - 14/02) - Segunda a Sexta
 
 **Segunda-feira (10/02)**:
-- Reunião de kick-off da sprint
+- ReuniÃ£o de kick-off da sprint
 - Setup do ambiente de desenvolvimento
-- Revisão e refinamento dos models financeiros
-- Levantamento de dúvidas com o gestor financeiro
+- RevisÃ£o e refinamento dos models financeiros
+- Levantamento de dÃºvidas com o gestor financeiro
 
-**Terça-feira (11/02)**:
-- Criação/actualização de forms e validações
-- Implementação de views para bancos e contas bancárias
-- Testes unitários dos models
+**TerÃ§a-feira (11/02)**:
+- CriaÃ§Ã£o/actualizaÃ§Ã£o de forms e validaÃ§Ãµes
+- ImplementaÃ§Ã£o de views para bancos e contas bancÃ¡rias
+- Testes unitÃ¡rios dos models
 
 **Quarta-feira (12/02)**:
-- Implementação de views para entradas de caixa
-- Implementação de views para saídas de caixa
-- Criação de templates para movimentações de caixa
+- ImplementaÃ§Ã£o de views para entradas de caixa
+- ImplementaÃ§Ã£o de views para saÃ­das de caixa
+- CriaÃ§Ã£o de templates para movimentaÃ§Ãµes de caixa
 
 **Quinta-feira (13/02)**:
-- Implementação de views para entradas bancárias
-- Implementação de views para saídas bancárias
-- Criação de templates para movimentações bancárias
-- Testes unitários
+- ImplementaÃ§Ã£o de views para entradas bancÃ¡rias
+- ImplementaÃ§Ã£o de views para saÃ­das bancÃ¡rias
+- CriaÃ§Ã£o de templates para movimentaÃ§Ãµes bancÃ¡rias
+- Testes unitÃ¡rios
 
 **Sexta-feira (14/02)**:
-- Implementação de dízimos e ofertas
-- Vinculação com entradas bancárias/caixa
+- ImplementaÃ§Ã£o de dÃ­zimos e ofertas
+- VinculaÃ§Ã£o com entradas bancÃ¡rias/caixa
 - Code review da semana
-- Ajustes e correcções
+- Ajustes e correcÃ§Ãµes
 
 ### Semana 2 (17/02 - 21/02) - Segunda a Sexta
 
 **Segunda-feira (17/02)**:
-- Implementação de orçamento departamental
-- Implementação de pedidos de saída
-- Workflow de aprovação
+- ImplementaÃ§Ã£o de orÃ§amento departamental
+- ImplementaÃ§Ã£o de pedidos de saÃ­da
+- Workflow de aprovaÃ§Ã£o
 
-**Terça-feira (18/02)**:
-- Implementação de relatórios financeiros
-- Geração de PDFs (fluxo de caixa, movimentações)
-- Dashboard financeiro (gráficos)
+**TerÃ§a-feira (18/02)**:
+- ImplementaÃ§Ã£o de relatÃ³rios financeiros
+- GeraÃ§Ã£o de PDFs (fluxo de caixa, movimentaÃ§Ãµes)
+- Dashboard financeiro (grÃ¡ficos)
 
 **Quarta-feira (19/02)**:
-- Testes de integração completos
-- Correcção de bugs identificados
-- Documentação técnica
-- Preparação do manual do utilizador
+- Testes de integraÃ§Ã£o completos
+- CorrecÃ§Ã£o de bugs identificados
+- DocumentaÃ§Ã£o tÃ©cnica
+- PreparaÃ§Ã£o do manual do utilizador
 
 **Quinta-feira (20/02)**:
-- UAT (User Acceptance Testing) com departamento de finanças
+- UAT (User Acceptance Testing) com departamento de finanÃ§as
 - Ajustes finais baseados no feedback
-- Deploy em ambiente de homologação
-- Treinamento da equipa de finanças
+- Deploy em ambiente de homologaÃ§Ã£o
+- Treinamento da equipa de finanÃ§as
 
 **Sexta-feira (21/02)**:
-- Deploy em produção (manhã)
-- Verificação de integridade dos dados
+- Deploy em produÃ§Ã£o (manhÃ£)
+- VerificaÃ§Ã£o de integridade dos dados
 - Treinamento final e entrega
 - Monitoramento activo durante o dia
-- Reunião de encerramento da sprint
+- ReuniÃ£o de encerramento da sprint
 
 ---
 
-## 🐛 Riscos e Mitigação
+## ðŸ› Riscos e MitigaÃ§Ã£o
 
-| Risco | Probabilidade | Impacto | Mitigação |
-|-------|---------------|---------|-----------|
-| Inconsistência de dados na migração | Média | Alto | Validação rigorosa, scripts de verificação, backup completo |
-| Bugs em produção | Média | Alto | Testes extensivos, período de homologação, rollback preparado |
-| Resistência dos utilizadores | Baixa | Médio | Treinamento adequado, suporte dedicado, interface intuitiva |
-| Performance inadequada | Baixa | Médio | Testes de carga, optimização de queries, índices adequados |
-| Falha de segurança | Baixa | Crítico | Code review, testes de segurança, permissões rigorosas |
+| Risco | Probabilidade | Impacto | MitigaÃ§Ã£o |
+| ------- | --------------- | --------- | ----------- |
+| InconsistÃªncia de dados na migraÃ§Ã£o | MÃ©dia | Alto | ValidaÃ§Ã£o rigorosa, scripts de verificaÃ§Ã£o, backup completo |
+| Bugs em produÃ§Ã£o | MÃ©dia | Alto | Testes extensivos, perÃ­odo de homologaÃ§Ã£o, rollback preparado |
+| ResistÃªncia dos utilizadores | Baixa | MÃ©dio | Treinamento adequado, suporte dedicado, interface intuitiva |
+| Performance inadequada | Baixa | MÃ©dio | Testes de carga, optimizaÃ§Ã£o de queries, Ã­ndices adequados |
+| Falha de seguranÃ§a | Baixa | CrÃ­tico | Code review, testes de seguranÃ§a, permissÃµes rigorosas |
 
 ---
 
-## 📋 Checklist Final de Lançamento
+## ðŸ“‹ Checklist Final de LanÃ§amento
 
-### Técnico
-- [ ] Todos os testes passando (unitários e integração)
+### TÃ©cnico
+- [ ] Todos os testes passando (unitÃ¡rios e integraÃ§Ã£o)
 - [ ] Code review completo
-- [ ] Documentação técnica actualizada
+- [ ] DocumentaÃ§Ã£o tÃ©cnica actualizada
 - [ ] Logs configurados
 - [ ] Monitoramento activo
-- [ ] Backup automático funcionando
+- [ ] Backup automÃ¡tico funcionando
 - [ ] SSL/HTTPS configurado
 - [ ] Performance validada
 
 ### Funcional
 - [ ] Todas as funcionalidades testadas
 - [ ] UAT aprovado
-- [ ] Relatórios conferidos
+- [ ] RelatÃ³rios conferidos
 - [ ] Dashboard validado
-- [ ] Fluxos de aprovação testados
+- [ ] Fluxos de aprovaÃ§Ã£o testados
 
 ### Operacional
 - [ ] Manual do utilizador entregue
-- [ ] Treinamento concluído
+- [ ] Treinamento concluÃ­do
 - [ ] Suporte escalado
-- [ ] Plano de contingência preparado
-- [ ] Comunicação aos utilizadores feita
+- [ ] Plano de contingÃªncia preparado
+- [ ] ComunicaÃ§Ã£o aos utilizadores feita
 
 ---
 
-## 📞 Contactos de Suporte
+## ðŸ“ž Contactos de Suporte
 
-**Suporte Técnico**: [email/telefone]  
+**Suporte TÃ©cnico**: [email/telefone]  
 **Gestor do Projecto**: [email/telefone]  
-**Emergências**: [telefone horário comercial]
+**EmergÃªncias**: [telefone horÃ¡rio comercial]
 
 ---
 
-## 📝 Notas Adicionais
+## ðŸ“ Notas Adicionais
 
-Este documento será actualizado conforme o progresso da sprint. Todas as alterações devem ser comunicadas à equipa.
+Este documento serÃ¡ actualizado conforme o progresso da sprint. Todas as alteraÃ§Ãµes devem ser comunicadas Ã  equipa.
 
-**Última actualização**: 07 de Fevereiro de 2026 (Sábado - Reunião de Planeamento)
+**Ãšltima actualizaÃ§Ã£o**: 07 de Fevereiro de 2026 (SÃ¡bado - ReuniÃ£o de Planeamento)
 
 
 
-*"Cada um contribua segundo propôs no seu coração, não com tristeza ou por necessidade; porque Deus ama ao que dá com alegria." - 2 Coríntios 9:7*
+*"Cada um contribua segundo propÃ´s no seu coraÃ§Ã£o, nÃ£o com tristeza ou por necessidade; porque Deus ama ao que dÃ¡ com alegria." - 2 CorÃ­ntios 9:7*

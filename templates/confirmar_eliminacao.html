@@ -4,10 +4,14 @@
 {% block content %}
 <div style="display:flex; justify-content:center; align-items:center; min-height:60vh; padding: 2rem;">
     <div class="confirm-dialog">
-        <div class="dialog-icon">
-            <i class="fas fa-trash-alt"></i>
+        <div style="background-image: url('{% static 'fotos/2022/homepage1.jpeg' %}'); background-size: cover; background-position: center; min-height: 140px; position: relative; border-radius: var(--radius-md) var(--radius-md) 0 0; margin: -2rem -2rem 1.5rem -2rem;">
+            <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(153,27,27,0.82) 0%, rgba(0,0,0,0.55) 100%);"></div>
+            <div style="position: relative; z-index: 1; padding: 1.75rem 2rem; color: #fff;">
+                <h2 style="margin: 0; font-size: 1.4rem; color: #fff;"><i class="fas fa-trash-alt" style="margin-right: 0.45rem;"></i> Confirmar Eliminação</h2>
+                <p style="margin: 0.45rem 0 0 0; color: rgba(255,255,255,0.85);">A ação é irreversível para este registo.</p>
+            </div>
         </div>
-        <h2>Confirmar Eliminação</h2>
+
         <p>Tem a certeza que deseja eliminar este registo?</p>
         <p style="font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 1.5rem;">{{ registo }}</p>
 

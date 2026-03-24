@@ -3010,9 +3010,21 @@ def relatorio_saida_caixa_pdf(request):
 @login_required
 def dashboard(request):
     from datetime import date as dt_date, timedelta
-    import random
     hoje = dt_date.today()
     user = request.user
+
+    def _safe_birthday_for_year(birth_date, year):
+        try:
+            return birth_date.replace(year=year)
+        except ValueError:
+            # Ajuste para datas como 29/02 em anos não bissextos.
+            return birth_date.replace(year=year, day=28)
+
+    def _next_birthday_date(birth_date, today):
+        this_year = _safe_birthday_for_year(birth_date, today.year)
+        if this_year < today:
+            return _safe_birthday_for_year(birth_date, today.year + 1)
+        return this_year
 
     # --- Versículo do dia (roda pela data para variar diariamente) ---
     VERSICULOS = [
@@ -3040,6 +3052,8 @@ def dashboard(request):
     ]
     idx_versiculo = hoje.toordinal() % len(VERSICULOS)
     versiculo_do_dia = VERSICULOS[idx_versiculo]
+    temas_versiculo = ['verse-theme-blue', 'verse-theme-green', 'verse-theme-orange']
+    versiculo_tema_class = temas_versiculo[idx_versiculo % len(temas_versiculo)]
 
     # --- Dados visíveis para TODOS ---
     anuncios = Anuncio.objects.order_by('-data')[:5]
@@ -3052,6 +3066,27 @@ def dashboard(request):
         .distinct()
         .order_by('data', 'inicio')[:5]
     )
+
+    # Lembretes de atividades (1 a 7 dias antes)
+    lembretes_actividades = []
+    atividades_com_lembrete = (
+        Actividade.objects
+        .filter(data__gte=hoje + timedelta(days=1), data__lte=hoje + timedelta(days=7))
+        .exclude(is_recorrente=True, parent_event__isnull=True)
+        .select_related('designacao', 'localactividade')
+        .distinct()
+        .order_by('data', 'inicio')
+    )
+    for atividade in atividades_com_lembrete:
+        dias_faltam = (atividade.data - hoje).days
+        designacao = str(atividade.designacao) if atividade.designacao else atividade.get_display_designacao()
+        lembretes_actividades.append({
+            'designacao': designacao,
+            'dias_faltam': dias_faltam,
+            'data': atividade.data,
+            'hora_inicio': atividade.inicio,
+            'local': str(atividade.localactividade) if atividade.localactividade else 'Local não definido',
+        })
 
     # Escalas do membro logado + verificação de célula
     minhas_escalas_list = []
@@ -3072,6 +3107,49 @@ def dashboard(request):
         .filter(datanascimento__month=hoje.month)
         .order_by('datanascimento__day')[:10]
     )
+
+    aniversarios_alerta = []
+    aniversarios_alerta_por_id = {}
+    for irm in Irmao.objects.filter(datanascimento__isnull=False):
+        proximo_aniversario = _next_birthday_date(irm.datanascimento, hoje)
+        dias = (proximo_aniversario - hoje).days
+        if dias < 0 or dias > 2:
+            continue
+
+        nome_completo = f"{irm.nome} {irm.apelido}".strip()
+        if dias == 0:
+            aniversarios_alerta.append({
+                'tipo': 'today',
+                'mensagem': f"Hoje é aniversário do irmão {nome_completo}! 🎉",
+                'data_iso': proximo_aniversario.isoformat(),
+            })
+            aniversarios_alerta_por_id[irm.id] = {
+                'tipo': 'today',
+                'data_iso': proximo_aniversario.isoformat(),
+            }
+        else:
+            sufixo = 'dia' if dias == 1 else 'dias'
+            aniversarios_alerta.append({
+                'tipo': 'soon',
+                'mensagem': f"Aniversário do irmão {nome_completo} é daqui a {dias} {sufixo}.",
+                'data_iso': proximo_aniversario.isoformat(),
+            })
+            aniversarios_alerta_por_id[irm.id] = {
+                'tipo': 'soon',
+                'data_iso': proximo_aniversario.isoformat(),
+            }
+
+    aniversarios_alerta.sort(key=lambda a: 0 if a['tipo'] == 'today' else 1)
+
+    aniversariantes_display = [
+        {
+            'irmao': irm,
+            'mes_pt': MESES.get(str(irm.datanascimento.month), irm.datanascimento.strftime('%B')) if irm.datanascimento else '',
+            'alerta_tipo': aniversarios_alerta_por_id.get(irm.id, {}).get('tipo', ''),
+            'alerta_data_iso': aniversarios_alerta_por_id.get(irm.id, {}).get('data_iso', ''),
+        }
+        for irm in aniversariantes
+    ]
 
     # --- Dados financeiros (passados apenas se utilizador tem permissão) ---
     pedidos_pendentes = None
@@ -3100,12 +3178,15 @@ def dashboard(request):
     context = {
         'titulo': 'Dashboard',
         'versiculo': versiculo_do_dia,
+        'versiculo_tema_class': versiculo_tema_class,
         'tem_celula': tem_celula,
         'tem_perfil': irmao_obj is not None,
+        'aniversarios_alerta': aniversarios_alerta,
         'anuncios': anuncios,
         'proximas_actividades': proximas_actividades,
+        'lembretes_actividades': lembretes_actividades,
         'minhas_escalas': minhas_escalas_list,
-        'aniversariantes': aniversariantes,
+        'aniversariantes': aniversariantes_display,
         'pedidos_pendentes': pedidos_pendentes,
         'saldos_bancarios': saldos_bancarios,
         'total_membros': total_membros,

@@ -1,16 +1,94 @@
 ﻿{% extends 'index.html' %}
 {% block Departamentos %}
 
+<style>
+    .depf-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .depf-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        color: var(--text-main);
+    }
+
+    .depf-subtitle {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .depf-back {
+        background-color: var(--info);
+        color: white;
+    }
+
+    .depf-th-right,
+    .depf-td-right {
+        text-align: right;
+    }
+
+    .depf-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+
+    .depf-badge {
+        background: var(--primary-light);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .depf-irmao {
+        font-weight: 500;
+    }
+
+    .depf-view {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        background: var(--primary-light);
+        color: white;
+    }
+
+    .depf-pagination {
+        margin-top: 2rem;
+    }
+
+    .depf-empty {
+        text-align: center;
+        padding: 4rem;
+    }
+
+    .depf-empty-icon {
+        font-size: 4rem;
+        color: #e2e8f0;
+        margin-bottom: 1.5rem;
+    }
+
+    .depf-empty-title {
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+    }
+
+    .depf-empty-text {
+        color: var(--text-muted);
+    }
+</style>
+
 <div class="list-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div class="depf-header">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Estrutura
+            <h2 class="depf-title">Estrutura
                 HierÃ¡rquica Encontrada</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Registos de cargos e departamentos compatÃ­veis com a
+            <p class="depf-subtitle">Registos de cargos e departamentos compatÃ­veis com a
                 sua busca.</p>
         </div>
-        <a href="/tibl/gestao/departamentos/1" class="bt-primary"
-            style="background-color: var(--info); color: white;">
+        <a href="/tibl/gestao/departamentos/1" class="bt-primary depf-back">
             <i class="fas fa-undo"></i> Voltar à Estrutura
         </a>
     </div>
@@ -23,28 +101,26 @@
                     <th>Departamento</th>
                     <th>Cargo</th>
                     <th>Irmão Responsável</th>
-                    <th style="text-align: right;">Acções</th>
+                    <th class="depf-th-right">Acções</th>
                 </tr>
             </thead>
             <tbody>
                 {% for x in bb %}
                 <tr>
                     <td>
-                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.departamento__designacao }}
+                        <div class="depf-name">{{ x.departamento__designacao }}
                         </div>
                     </td>
                     <td>
-                        <span class="badge"
-                            style="background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">
+                        <span class="badge depf-badge">
                             {{ x.cargo_display }}
                         </span>
                     </td>
                     <td>
-                        <div style="font-weight: 500;">{{ x.irmao__nome }} {{ x.irmao__apelido }}</div>
+                        <div class="depf-irmao">{{ x.irmao__nome }} {{ x.irmao__apelido }}</div>
                     </td>
-                    <td style="text-align: right;">
-                        <a href="/tibl/departamentos/detalhe/{{ x.departamento_id }}" class="bt-primary"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                    <td class="depf-td-right">
+                        <a href="/tibl/departamentos/detalhe/{{ x.departamento_id }}" class="bt-primary depf-view">
                             <i class="fas fa-sitemap"></i> Ver
                         </a>
                     </td>
@@ -54,14 +130,14 @@
         </table>
     </div>
 
-    <div style="margin-top: 2rem;">
+    <div class="depf-pagination">
         {% include 'paginacao.html' %}
     </div>
     {% else %}
-    <div class="modern-card" style="text-align: center; padding: 4rem;">
-        <i class="fas fa-users-slash" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
-        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum cargo encontrado</h3>
-        <p style="color: var(--text-muted);">A sua pesquisa não retornou atribuições de cargos para os critérios
+    <div class="modern-card depf-empty">
+        <i class="fas fa-users-slash depf-empty-icon"></i>
+        <h3 class="depf-empty-title">Nenhum cargo encontrado</h3>
+        <p class="depf-empty-text">A sua pesquisa não retornou atribuições de cargos para os critérios
             informados.</p>
     </div>
     {% endif %}

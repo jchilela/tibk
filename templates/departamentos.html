@@ -1,21 +1,174 @@
 ﻿{% extends 'index.html' %}
 {% block Departamentos %}
 
+<style>
+    .dep-filter-card {
+        margin-bottom: 2rem;
+    }
+
+    .dep-filter-title {
+        margin-bottom: 1.5rem;
+    }
+
+    .dep-filter-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr auto;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .dep-filter-label {
+        display: block;
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+        color: var(--text-muted);
+    }
+
+    .dep-filter-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: var(--radius-sm);
+    }
+
+    .dep-filter-btn {
+        padding: 0.75rem 1.2rem;
+        width: auto;
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: white;
+        white-space: nowrap;
+    }
+
+    .dep-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .dep-header-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        color: var(--text-main);
+    }
+
+    .dep-header-new {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        background-color: var(--primary-light);
+        color: white;
+    }
+
+    .dep-th-center {
+        text-align: center;
+    }
+
+    .dep-th-right {
+        text-align: right;
+    }
+
+    .dep-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+
+    .dep-subtitle {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .dep-leader {
+        font-weight: 500;
+    }
+
+    .dep-empty-leader {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .dep-td-center {
+        text-align: center;
+    }
+
+    .dep-td-right {
+        text-align: right;
+    }
+
+    .dep-abbr {
+        background: var(--bg-main);
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--primary);
+    }
+
+    .dep-no-abbr {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .dep-count {
+        background: #f1f5f9;
+        color: #334155;
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .dep-view-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        background: var(--primary-light);
+        color: #ffffff !important;
+    }
+
+    .dep-view-btn i {
+        color: #ffffff !important;
+    }
+
+    .dep-pagination {
+        margin-top: 2rem;
+    }
+
+    .dep-empty-card {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .dep-empty-icon {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    .dep-empty-text {
+        color: var(--text-muted);
+    }
+</style>
+
 <div class="list-container">
-    <div class="modern-card" style="margin-bottom: 2rem;">
-        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Departamentos</h3>
-        <form action="/tibl/buscadepartamentos" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; align-items: flex-end;">
+    <div class="modern-card dep-filter-card">
+        <h3 class="dep-filter-title"><i class="fas fa-filter mr-2"></i> Filtros de Departamentos</h3>
+        <form action="/tibl/buscadepartamentos" method="GET" class="dep-filter-form">
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
-                <input type="text" name="nomev" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label class="dep-filter-label" for="filtro_nome">Nome</label>
+                <input id="filtro_nome" type="text" name="nomev" class="dep-filter-control">
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Apelido</label>
-                <input type="text" name="apelidov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label class="dep-filter-label" for="filtro_apelido">Apelido</label>
+                <input id="filtro_apelido" type="text" name="apelidov" class="dep-filter-control">
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Departamento</label>
-                <select name="departamentov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label class="dep-filter-label" for="filtro_departamento">Departamento</label>
+                <select id="filtro_departamento" name="departamentov" class="dep-filter-control">
                     <option value="0">------------</option>
                     {% if listadepartamentos %}
                         {% for x in listadepartamentos %}
@@ -25,8 +178,8 @@
                 </select>
             </div>
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Cargo</label>
-                <select name="funcaov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label class="dep-filter-label" for="filtro_cargo">Cargo</label>
+                <select id="filtro_cargo" name="funcaov" class="dep-filter-control">
                     <option value="">------------</option>
                     {% if funcao_choices %}
                         {% for value, label in funcao_choices %}
@@ -36,16 +189,16 @@
                 </select>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.42rem 0.7rem; width: 100%; min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; font-weight: 600; font-size: 0.8rem; color: white;">
+            <button type="submit" class="bt-primary dep-filter-btn">
                 <i class="fas fa-search"></i> Buscar
             </button>
         </form>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Estrutura de Departamentos</h2>
+    <div class="dep-header">
+        <h2 class="dep-header-title">Estrutura de Departamentos</h2>
         {% if perms.sitetibl.add_departamento %}
-        <a href="/tibl/departamentos/criar/" class="bt-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
+        <a href="/tibl/departamentos/criar/" class="bt-primary dep-header-new">
             <i class="fas fa-plus"></i> Novo Departamento
         </a>
         {% endif %}
@@ -58,33 +211,37 @@
                 <tr>
                     <th>Designação do Departamento</th>
                     <th>Lider</th>
-                    <th style="text-align: center;">Abreviação</th>
-                    <th style="text-align: center;">Membros</th>
-                    <th style="text-align: right;">Ações</th>
+                    <th class="dep-th-center">Abreviação</th>
+                    <th class="dep-th-center">Membros</th>
+                    <th class="dep-th-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {% for x in bb %}
                 <tr>
                     <td>
-                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.designacao }}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Unidade Administrativa</div>
+                        <div class="dep-name">{{ x.designacao }}</div>
+                        <div class="dep-subtitle">Unidade Administrativa</div>
                     </td>
                     <td>
                         {% if x.lider_departamento %}
-                        <div style="font-weight: 500;">{{ x.lider_departamento.nome }} {{ x.lider_departamento.apelido }}</div>
+                        <div class="dep-leader">{{ x.lider_departamento.nome }} {{ x.lider_departamento.apelido }}</div>
                         {% else %}
-                        <div style="color: var(--text-muted); font-size: 0.85rem;">Nao definido</div>
+                        <div class="dep-empty-leader">Nao definido</div>
                         {% endif %}
                     </td>
-                    <td style="text-align: center;">
-                        <span style="background: var(--bg-main); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--primary);">{{ x.abreviacao }}</span>
+                    <td class="dep-td-center">
+                        {% if x.abreviacao %}
+                        <span class="dep-abbr">{{ x.abreviacao }}</span>
+                        {% else %}
+                        <span class="dep-no-abbr">Nenhuma</span>
+                        {% endif %}
                     </td>
-                    <td style="text-align: center;">
-                        <span style="background: #f1f5f9; color: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem;">{{ x.total_integrantes|default:"0" }}</span>
+                    <td class="dep-td-center">
+                        <span class="dep-count">{{ x.total_integrantes|default:"0" }}</span>
                     </td>
-                    <td style="text-align: right;">
-                        <a href="/tibl/departamentos/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                    <td class="dep-td-right">
+                        <a href="/tibl/departamentos/detalhe/{{ x.id }}" class="bt-primary dep-view-btn">
                             <i class="fas fa-sitemap"></i> Ver Detalhes
                         </a>
                     </td>
@@ -94,13 +251,13 @@
         </table>
     </div>
     
-    <div style="margin-top: 2rem;">
+    <div class="dep-pagination">
         {% include 'paginacao.html' %}
     </div>
     {% else %}
-    <div class="modern-card" style="text-align: center; padding: 3rem;">
-        <i class="fas fa-hotel" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-        <p style="color: var(--text-muted);">Nenhum departamento registrado no sistema.</p>
+    <div class="modern-card dep-empty-card">
+        <i class="fas fa-hotel dep-empty-icon"></i>
+        <p class="dep-empty-text">Nenhum departamento registrado no sistema.</p>
     </div>
     {% endif %}
 </div>

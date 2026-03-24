@@ -1,4 +1,25 @@
 {% extends 'index.html' %}
+
+{% block extra_css %}
+<style>
+  .cb-filter-btn {
+    padding: 0.65rem 0.9rem;
+    font-size: 0.86rem;
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    text-align: center;
+  }
+  .cb-filter-btn:hover {
+    filter: none;
+    box-shadow: none;
+  }
+</style>
+{% endblock %}
+
 {% block Contasbancarias %}
 
 <div class="list-container">
@@ -35,7 +56,7 @@
                 </select>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.6rem;">
+            <button type="submit" class="bt-primary cb-filter-btn">
                 <i class="fas fa-search"></i> Buscar Contas
             </button>
         </form>

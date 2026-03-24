@@ -1,23 +1,23 @@
-# ANTIGRAVITY.md — Instructions for AI Coding Assistants: TIBL Project (tibk)
+﻿# ANTIGRAVITY.md â€” Instructions for AI Coding Assistants: TIBL Project (tibk)
 
 ## 1. Project Identity
 
 | Attribute | Value |
-|---|---|
+| --- | --- |
 | **Framework** | Django 4.2.5 |
-| **Template Engine** | Django Template Language (DTL) — **not Jinja2** |
-| **Architectural Pattern** | FBV (Function-Based Views) — no CBVs in the main app |
+| **Template Engine** | Django Template Language (DTL) â€” **not Jinja2** |
+| **Architectural Pattern** | FBV (Function-Based Views) â€” no CBVs in the main app |
 | **Main App** | `sitetibl` |
 | **Settings** | `tibl/settings.py` |
 | **Root URL** | `tibl/urls.py` |
 | **Database** | SQLite (configured in `.env`, via `db.sqlite3`) |
-| **Authentication** | `django.contrib.auth` — standard Django user |
+| **Authentication** | `django.contrib.auth` â€” standard Django user |
 
 ---
 
-## 2. Template Engine — Strict DTL Syntax Rules
+## 2. Template Engine â€” Strict DTL Syntax Rules
 
-> ⚠️ NEVER use Jinja2 syntax (`{{ variable() }}`, `{% import %}`, etc.). Only DTL is valid.
+> âš ï¸ NEVER use Jinja2 syntax (`{{ variable() }}`, `{% import %}`, etc.). Only DTL is valid.
 
 ### Allowed DTL Syntax:
 
@@ -53,26 +53,26 @@
 {% comment %}block comment{% endcomment %}
 ```
 
-### ❌ FORBIDDEN — Common mistakes to avoid:
+### âŒ FORBIDDEN â€” Common mistakes to avoid:
 
 ```django
-{# WRONG — default filter does not resolve empty strings #}
+{# WRONG â€” default filter does not resolve empty strings #}
 {{ user.first_name|default:user.username }}
 
 {# CORRECT #}
 {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}
 
-{# WRONG — multi-line {% if %} with broken or/and operators #}
+{# WRONG â€” multi-line {% if %} with broken or/and operators #}
 {% if user|has_group:"A" or
 user|has_group:"B" %}
 
-{# CORRECT — always on a single line #}
+{# CORRECT â€” always on a single line #}
 {% if user|has_group:"Administrador" or user|has_group:"Financeiro" %}
 
-{# WRONG — calling methods with parentheses #}
+{# WRONG â€” calling methods with parentheses #}
 {{ user.groups.first() }}
 
-{# CORRECT — DTL does not allow parentheses in calls #}
+{# CORRECT â€” DTL does not allow parentheses in calls #}
 {{ user.groups.first.name }}
 ```
 
@@ -82,22 +82,22 @@ user|has_group:"B" %}
 
 ```
 tibk/
-├── tibl/
-│   ├── settings.py          # Project settings
-│   └── urls.py              # Root URLs
-├── sitetibl/
-│   ├── models.py            # All models (FBV)
-│   ├── views.py             # All views (FBV)
-│   ├── forms.py             # Django forms
-│   └── templatetags/
-│       └── verificagrupo.py # Custom tags and filters
-├── templates/
-│   └── base_modern.html     # Base template — all others inherit from this
-├── static/
-│   ├── estilos/modern.css
-│   └── js/tibl-core.js
-├── requirements.txt
-└── .env                     # Environment variables (DB, email, etc.)
+â”œâ”€â”€ tibl/
+â”‚   â”œâ”€â”€ settings.py          # Project settings
+â”‚   â””â”€â”€ urls.py              # Root URLs
+â”œâ”€â”€ sitetibl/
+â”‚   â”œâ”€â”€ models.py            # All models (FBV)
+â”‚   â”œâ”€â”€ views.py             # All views (FBV)
+â”‚   â”œâ”€â”€ forms.py             # Django forms
+â”‚   â””â”€â”€ templatetags/
+â”‚       â””â”€â”€ verificagrupo.py # Custom tags and filters
+â”œâ”€â”€ templates/
+â”‚   â””â”€â”€ base_modern.html     # Base template â€” all others inherit from this
+â”œâ”€â”€ static/
+â”‚   â”œâ”€â”€ estilos/modern.css
+â”‚   â””â”€â”€ js/tibl-core.js
+â”œâ”€â”€ requirements.txt
+â””â”€â”€ .env                     # Environment variables (DB, email, etc.)
 ```
 
 ---
@@ -114,7 +114,7 @@ All project templates must start with:
 ### Available blocks in the base template:
 
 | Block | Usage |
-|---|---|
+| --- | --- |
 | `{% block title %}` | Page title |
 | `{% block extra_css %}` | Additional CSS |
 | `{% block content %}` | Main content |
@@ -125,7 +125,7 @@ All project templates must start with:
 ### Context variables always available in the base template:
 
 | Variable | Source | Description |
-|---|---|---|
+| --- | --- | --- |
 | `request.user` | Django Auth Middleware | Authenticated user |
 | `request.user.username` | `User.username` | Login name |
 | `request.user.first_name` | `User.first_name` | **Can be an empty string** |
@@ -145,21 +145,21 @@ The project uses **Django permissions as the source of truth**. Groups are bundl
 ### Existing groups:
 
 | Group | Scope |
-|---|---|
+| --- | --- |
 | `Administrador` | All `sitetibl` permissions (176) |
-| `Pastor` | Supervisão pastoral — CRUD actividades/membros/pedidos, view financeiro (58) |
-| `Financeiro` | CRUD financeiro + aprovação de pedidos + view membros (45) |
-| `Secretaria` | CRUD membros/actividades/comunicação + view financeiro (60) |
-| `Líder de Departamento` | CRUD actividades/escalas/mandatos do dept, cria pedidos, envia mensagens (37) |
-| `Vice-Líder de Departamento` | CRUD actividades/escalas/mandatos do dept, cria pedidos (26) |
-| `Líder de Célula` | Relatórios semanais (CRU) + view membros/actividades (9) |
-| `Membros Baptizados` | View maioria + add relatório + view escalas (11) |
-| `Membro Geral` | View actividade, departamento, conteúdo, anúncios (4) |
+| `Pastor` | SupervisÃ£o pastoral â€” CRUD actividades/membros/pedidos, view financeiro (58) |
+| `Financeiro` | CRUD financeiro + aprovaÃ§Ã£o de pedidos + view membros (45) |
+| `Secretaria` | CRUD membros/actividades/comunicaÃ§Ã£o + view financeiro (60) |
+| `LÃ­der de Departamento` | CRUD actividades/escalas/mandatos do dept, cria pedidos, envia mensagens (37) |
+| `Vice-LÃ­der de Departamento` | CRUD actividades/escalas/mandatos do dept, cria pedidos (26) |
+| `LÃ­der de CÃ©lula` | RelatÃ³rios semanais (CRU) + view membros/actividades (9) |
+| `Membros Baptizados` | View maioria + add relatÃ³rio + view escalas (11) |
+| `Membro Geral` | View actividade, departamento, conteÃºdo, anÃºncios (4) |
 
-### Authorization in templates — use `perms.*`:
+### Authorization in templates â€” use `perms.*`:
 
 ```django
-{# CORRECT — permission-based #}
+{# CORRECT â€” permission-based #}
 {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco %}
   {# financial menu #}
 {% endif %}
@@ -169,9 +169,9 @@ The project uses **Django permissions as the source of truth**. Groups are bundl
 {% endif %}
 ```
 
-> ⚠️ **Do NOT use `has_group` for authorization.** Use it only for display/label purposes (e.g., showing the user's role badge).
+> âš ï¸ **Do NOT use `has_group` for authorization.** Use it only for display/label purposes (e.g., showing the user's role badge).
 
-### Authorization in views — use `has_perm()`:
+### Authorization in views â€” use `has_perm()`:
 
 ```python
 perm = f'{model._meta.app_label}.change_{model._meta.model_name}'
@@ -179,7 +179,7 @@ if not request.user.has_perm(perm):
     raise PermissionDenied
 ```
 
-### Custom filter `has_group` — display only (in `verificagrupo.py`):
+### Custom filter `has_group` â€” display only (in `verificagrupo.py`):
 
 ```python
 # Location: sitetibl/templatetags/verificagrupo.py
@@ -190,7 +190,7 @@ def has_group(user, group_name):
     return group_name in user._group_cache
 ```
 
-**Allowed usage — role label display only:**
+**Allowed usage â€” role label display only:**
 ```django
 {% load verificagrupo %}
 {% if request.user|has_group:"Administrador" %}
@@ -198,21 +198,21 @@ def has_group(user, group_name):
 {% endif %}
 ```
 
-> ⚠️ `is_superuser=True` **DOES NOT imply belonging to a group**. A superuser must be explicitly added to the `Administrador` group for `has_group` to work.
+> âš ï¸ `is_superuser=True` **DOES NOT imply belonging to a group**. A superuser must be explicitly added to the `Administrador` group for `has_group` to work.
 
 ---
 
 ## 6. Main Models
 
 | Model | Description |
-|---|---|
+| --- | --- |
 | `Pessoa` | Base entity (people in general) |
-| `Irmao(Pessoa)` | Church member — extends Pessoa, has `OneToOneField(User)` |
+| `Irmao(Pessoa)` | Church member â€” extends Pessoa, has `OneToOneField(User)` |
 | `Sitio` | Physical location (Church, Cell, etc.) |
 | `Departamento` | Church departments |
-| `Mandato` | Relation Irmão ↔ Departamento ↔ Cargo (M2M through) |
+| `Mandato` | Relation IrmÃ£o â†” Departamento â†” Cargo (M2M through) |
 | `Actividade` | Events/activities |
-| `Escala` | Relation Irmão ↔ Actividade ↔ Função |
+| `Escala` | Relation IrmÃ£o â†” Actividade â†” FunÃ§Ã£o |
 | `Dizimooferta` | Tithes and offerings |
 | `Entradabanco` / `Saidabanco` | Bank transactions |
 | `Entradacaixa` / `Saidacaixa` | Cash transactions |
@@ -225,7 +225,7 @@ def has_group(user, group_name):
 
 ---
 
-## 7. Views — FBV Patterns
+## 7. Views â€” FBV Patterns
 
 The application uses Function-Based Views. The general pattern is:
 
@@ -237,11 +237,11 @@ def my_view(request):
 ```
 
 Generic management views follow the pattern:
-- `mostraGestao(request, gestaoescolhida, pagina)` — listings
-- `mostraDetalhe(request, gestaoescolhida, identificador)` — details
-- `mostraCriacao(request, gestaoescolhida)` — create
-- `mostraActualizacao(request, gestaoescolhida, id)` — edit
-- `mostraEliminacao(request, gestaoescolhida, id)` — delete
+- `mostraGestao(request, gestaoescolhida, pagina)` â€” listings
+- `mostraDetalhe(request, gestaoescolhida, identificador)` â€” details
+- `mostraCriacao(request, gestaoescolhida)` â€” create
+- `mostraActualizacao(request, gestaoescolhida, id)` â€” edit
+- `mostraEliminacao(request, gestaoescolhida, id)` â€” delete
 
 ---
 
