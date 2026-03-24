@@ -188,9 +188,9 @@
             <strong>{{ lembrete.designacao }}</strong>
             <span class="dash-list-meta">
               {% if lembrete.dias_faltam == 1 %}
-                Será realizada daqui a 1 dia · {{ lembrete.data|date:"d M" }} às {{ lembrete.hora_inicio|time:"H:i" }}
+                Falta 1 dia · {{ lembrete.data|date:"d M" }} às {{ lembrete.hora_inicio|time:"H:i" }}
               {% else %}
-                Será realizada daqui a {{ lembrete.dias_faltam }} dias · {{ lembrete.data|date:"d M" }} às {{ lembrete.hora_inicio|time:"H:i" }}
+                Faltam {{ lembrete.dias_faltam }} dias · {{ lembrete.data|date:"d M" }} às {{ lembrete.hora_inicio|time:"H:i" }}
               {% endif %}
             </span>
           </div>
@@ -218,8 +218,8 @@
       {% endif %}
       <div class="dash-list" style="max-height: 280px; overflow-y: auto;">
         {% for item in aniversariantes %}
-        <div class="dash-list-item {% if item.alerta_tipo %}dash-list-item-aniversario-alerta{% endif %}" {% if item.alerta_data_iso %}data-alerta-data="{{ item.alerta_data_iso }}"{% endif %}>
-          <div class="dash-list-icon {% if item.alerta_tipo %}dash-list-icon-aniversario-alerta{% endif %}" style="background: rgba(236,72,153,0.1); color: #ec4899;">
+        <div class="dash-list-item" {% if item.alerta_data_iso %}data-alerta-data="{{ item.alerta_data_iso }}"{% endif %}>
+          <div class="dash-list-icon" style="background: rgba(236,72,153,0.1); color: #ec4899;">
             <i class="fas fa-gift"></i>
           </div>
           <div class="dash-list-body">
@@ -228,6 +228,9 @@
           </div>
         </div>
         {% endfor %}
+      </div>
+      <div style="margin-top: 0.8rem; padding-top: 0.7rem; border-top: 1px solid #f3e8ff; font-size: 0.86rem; color: var(--text-muted);">
+        Total de aniversariantes do mês: <strong style="color: #be185d;">{{ aniversariantes_total_mes }}</strong>
       </div>
     </div>
     {% endif %}

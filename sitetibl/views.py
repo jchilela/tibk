@@ -3102,11 +3102,20 @@ def dashboard(request):
         )
 
     # Aniversariantes do mês
-    aniversariantes = (
+    aniversariantes_qs = (
         Irmao.objects
         .filter(datanascimento__month=hoje.month)
-        .order_by('datanascimento__day')[:10]
+        .annotate(
+            ordem_aniversario=Case(
+                When(datanascimento__day__gte=hoje.day, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by('ordem_aniversario', 'datanascimento__day')
     )
+    aniversariantes_total_mes = aniversariantes_qs.count()
+    aniversariantes = aniversariantes_qs
 
     aniversarios_alerta = []
     aniversarios_alerta_por_id = {}
@@ -3187,6 +3196,7 @@ def dashboard(request):
         'lembretes_actividades': lembretes_actividades,
         'minhas_escalas': minhas_escalas_list,
         'aniversariantes': aniversariantes_display,
+        'aniversariantes_total_mes': aniversariantes_total_mes,
         'pedidos_pendentes': pedidos_pendentes,
         'saldos_bancarios': saldos_bancarios,
         'total_membros': total_membros,
