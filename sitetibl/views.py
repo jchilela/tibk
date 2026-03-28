@@ -3069,12 +3069,14 @@ def dashboard(request):
     tem_celula = False
     if irmao_obj:
         tem_celula = irmao_obj.celula is not None
-        minhas_escalas_list = (
+        minhas_escalas_base = (
             Escala.objects
-            .filter(irmao=irmao_obj, actividade__data__gte=hoje)
-            .select_related('actividade__designacao', 'funcao')
-            .order_by('actividade__data')[:5]
+            .filter(irmao=irmao_obj)
+            .select_related('actividade', 'actividade__designacao', 'actividade__localactividade', 'funcao')
+            .order_by('-id')
         )
+        minhas_escalas_futuras, _ = _normalizar_escalas_por_ocorrencia(minhas_escalas_base, hoje)
+        minhas_escalas_list = minhas_escalas_futuras[:5]
 
     # Aniversariantes do mês
     aniversariantes = (
@@ -3125,6 +3127,72 @@ def dashboard(request):
 def root_redirect(request):
     return redirect('dashboard')
 
+
+def _normalizar_escalas_por_ocorrencia(escalas, hoje):
+    """
+    Para escalas ligadas a actividade-pai recorrente, usa a ocorrência-filho
+    relevante para exibição (próxima futura ou mais recente passada).
+    """
+    import datetime as _dt
+
+    escalas = list(escalas)
+    if not escalas:
+        return [], []
+
+    parent_ids = {
+        escala.actividade_id
+        for escala in escalas
+        if escala.actividade_id and escala.actividade and escala.actividade.is_recorrente and escala.actividade.parent_event_id is None
+    }
+
+    filhos_por_pai = {}
+    if parent_ids:
+        filhos = (
+            Actividade.objects
+            .select_related('designacao', 'localactividade')
+            .filter(parent_event_id__in=parent_ids)
+            .order_by('data', 'inicio', 'id')
+        )
+        for filho in filhos:
+            filhos_por_pai.setdefault(filho.parent_event_id, []).append(filho)
+
+    escalas_futuras = []
+    escalas_passadas = []
+
+    for escala in escalas:
+        actividade = escala.actividade
+        actividade_exibicao = actividade
+
+        if actividade and actividade.id in filhos_por_pai:
+            filhos = filhos_por_pai[actividade.id]
+            proxima = next((f for f in filhos if f.data and f.data >= hoje), None)
+            actividade_exibicao = proxima if proxima is not None else (filhos[-1] if filhos else actividade)
+
+        escala.actividade = actividade_exibicao
+        data_ref = actividade_exibicao.data if actividade_exibicao and actividade_exibicao.data else hoje
+        if data_ref >= hoje:
+            escalas_futuras.append(escala)
+        else:
+            escalas_passadas.append(escala)
+
+    escalas_futuras.sort(
+        key=lambda e: (
+            e.actividade.data if e.actividade and e.actividade.data else hoje,
+            e.actividade.inicio if e.actividade and e.actividade.inicio else _dt.time(0, 0),
+            e.id,
+        )
+    )
+    escalas_passadas.sort(
+        key=lambda e: (
+            e.actividade.data if e.actividade and e.actividade.data else hoje,
+            e.actividade.inicio if e.actividade and e.actividade.inicio else _dt.time(0, 0),
+            e.id,
+        ),
+        reverse=True,
+    )
+
+    return escalas_futuras, escalas_passadas
+
 @login_required
 def minhas_escalas(request):
     from datetime import date as dt_date
@@ -3145,8 +3213,8 @@ def minhas_escalas(request):
         'actividade__localactividade',
         'funcao',
     )
-    escalas_futuras = base_qs.filter(actividade__data__gte=hoje).order_by('actividade__data', 'actividade__inicio')
-    escalas_passadas = base_qs.filter(actividade__data__lt=hoje).order_by('-actividade__data', '-actividade__inicio')[:20]
+    escalas_futuras, escalas_passadas = _normalizar_escalas_por_ocorrencia(base_qs, hoje)
+    escalas_passadas = escalas_passadas[:20]
 
     context = {
         'escalas_futuras': escalas_futuras,
