@@ -164,6 +164,10 @@ def index(request):
 
 @login_required
 def mostraGestao(request,gestaoescolhida,pagina):
+    if gestaoescolhida == 'irmaos' and not request.user.has_perm('sitetibl.change_irmao'):
+        messages.error(request, 'Acesso negado! Não tem permissão para consultar a gestão de irmãos.')
+        return redirect('index')
+
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'actividade__departamento', 'funcao', 'funcao__departamento'), 
              'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
              'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
@@ -212,6 +216,8 @@ def mostraGestao(request,gestaoescolhida,pagina):
             kwargs['moeda'] = moedav
 
         resultado = lista[gestaoescolhida].filter(**kwargs).order_by('id')
+    elif gestaoescolhida == 'mandatos':
+        resultado = lista[gestaoescolhida].exclude(funcao='membro').order_by('departamento__designacao', 'funcao', 'irmao__nome', 'irmao__apelido')
     elif (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].prefetch_related('mandato_set__departamento').all().order_by('nome','outrosnomes')
     elif gestaoescolhida == 'pedidosaida':
@@ -430,6 +436,10 @@ def mostraActualizacao(request, gestaoescolhida, id):
 @login_required
 @login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
+    if gestaoescolhida == 'irmaos' and not request.user.has_perm('sitetibl.change_irmao'):
+        messages.error(request, 'Acesso negado! Não tem permissão para consultar detalhes de irmãos.')
+        return redirect('index')
+
     lista_qs = {
         'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'),
         'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'),
