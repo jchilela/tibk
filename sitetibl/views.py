@@ -3158,6 +3158,7 @@ def _normalizar_escalas_por_ocorrencia(escalas, hoje):
 
     escalas_futuras = []
     escalas_passadas = []
+    seen_keys = set()
 
     for escala in escalas:
         actividade = escala.actividade
@@ -3169,6 +3170,14 @@ def _normalizar_escalas_por_ocorrencia(escalas, hoje):
             actividade_exibicao = proxima if proxima is not None else (filhos[-1] if filhos else actividade)
 
         escala.actividade = actividade_exibicao
+        dedupe_key = (
+            actividade_exibicao.id if actividade_exibicao else None,
+            escala.funcao_id,
+        )
+        if dedupe_key in seen_keys:
+            continue
+        seen_keys.add(dedupe_key)
+
         data_ref = actividade_exibicao.data if actividade_exibicao and actividade_exibicao.data else hoje
         if data_ref >= hoje:
             escalas_futuras.append(escala)
