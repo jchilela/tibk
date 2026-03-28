@@ -3165,7 +3165,7 @@ def escalar_em_massa(request, actividade_id):
             actividade = get_object_or_404(Actividade, id=actividade_id)
             funcao = get_object_or_404(Funcao, id=funcao_id)
             
-            novas_escalas = []
+            novos = 0
             ids_processados = set()
             
             for irmao_id in irmaos_ids:
@@ -3175,15 +3175,18 @@ def escalar_em_massa(request, actividade_id):
                 
                 # Evitar que o membro seja escalado duas vezes na mesma Actividade (mesmo que com funções diferentes)
                 if not Escala.objects.filter(actividade=actividade, irmao_id=irmao_id).exists():
-                    novas_escalas.append(Escala(
-                        actividade=actividade,
-                        irmao_id=irmao_id,
-                        funcao=funcao
-                    ))
-            
-            if novas_escalas:
-                Escala.objects.bulk_create(novas_escalas)
-                messages.success(request, f'{len(novas_escalas)} irmãos escalados para {funcao.designacao} com sucesso!')
+                    try:
+                        Escala.objects.create(
+                            actividade=actividade,
+                            irmao_id=irmao_id,
+                            funcao=funcao,
+                        )
+                        novos += 1
+                    except IntegrityError:
+                        continue
+
+            if novos:
+                messages.success(request, f'{novos} irmãos escalados para {funcao.designacao} com sucesso!')
             else:
                 messages.info(request, 'As pessoas selecionadas já estavam escaladas para esta actividade.')
                 
@@ -3260,6 +3263,17 @@ def actividades_feed(request):
             Q(recorrencia_fim__isnull=True) | Q(recorrencia_fim__gte=start)
         )
     )
+    parent_ids = [p.id for p in parents]
+    child_map = {}
+    if parent_ids:
+        children = (
+            Actividade.objects
+            .filter(parent_event_id__in=parent_ids, data__range=(start, end))
+            .only('id', 'parent_event_id', 'data')
+        )
+        for child in children:
+            child_map[(child.parent_event_id, child.data)] = child.id
+
     for parent in parents:
         hora_inicio = parent.inicio or _dt.time(0, 0)
         hora_fim = parent.fim or _dt.time(23, 59)
@@ -3301,12 +3315,13 @@ def actividades_feed(request):
             if occ_date > end:
                 break
             fim_dt = occ_dt + dur
+            occurrence_id = child_map.get((parent.pk, occ_date), parent.pk)
             events.append({
                 'id': f'r{parent.pk}_{occ_date.isoformat()}',
                 'title': f'\u21bb {parent.designacao}',
                 'start': occ_dt.strftime('%Y-%m-%dT%H:%M:%S'),
                 'end': fim_dt.strftime('%Y-%m-%dT%H:%M:%S'),
-                'url': f'/tibl/actividades/detalhe/{parent.pk}/',
+                'url': f'/tibl/actividades/detalhe/{occurrence_id}/',
                 'backgroundColor': '#0369a1',
                 'borderColor': '#075985',
                 'textColor': '#ffffff',

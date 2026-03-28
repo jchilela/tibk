@@ -469,13 +469,8 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
 # � NOTIFICAÇÃO IMEDIATA AO SER ESCALADO
 # =========================================
 
-@receiver(post_save, sender=Escala)
-def notificar_irmao_escalado(sender, instance, created, **kwargs):
-    """
-    Envia email e/ou SMS ao irmão quando é adicionado a uma escala.
-    """
-    if not created:
-        return
+def enviar_notificacao_irmao_escalado(instance):
+    """Envia email e/ou SMS ao irmão para uma escala específica."""
 
     irmao = instance.irmao
     actividade = instance.actividade
@@ -544,6 +539,17 @@ def notificar_irmao_escalado(sender, instance, created, **kwargs):
             logger.error('Erro SMS de escala para %s: %s', irmao.telefone, e)
     else:
         logger.info('Escala ID %s: irmão sem telefone — SMS ignorado.', instance.pk)
+
+
+@receiver(post_save, sender=Escala)
+def notificar_irmao_escalado(sender, instance, created, **kwargs):
+    """
+    Envia email e/ou SMS ao irmão quando é adicionado a uma escala.
+    """
+    if not created:
+        return
+
+    enviar_notificacao_irmao_escalado(instance)
 
 
 # =========================================
