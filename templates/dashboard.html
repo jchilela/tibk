@@ -171,35 +171,6 @@
     </div>
     {% endif %}
 
-    {# Widget: Lembretes de Actividades — visível para todos com atividades próximas #}
-    {% if lembretes_actividades %}
-    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.45s;">
-      <div class="dash-widget-header">
-        <h3><i class="fas fa-clock" style="color: #f59e0b;"></i> Lembretes de Actividades</h3>
-      </div>
-      <div class="dash-list">
-        {% for lembrete in lembretes_actividades %}
-        <div class="dash-list-item lembrete-item">
-          <div class="dash-list-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
-            <i class="fas fa-bell"></i>
-          </div>
-          <div class="dash-list-body">
-            <span class="lembrete-label"><i>Lembrete</i></span>
-            <strong>{{ lembrete.designacao }}</strong>
-            <span class="dash-list-meta">
-              {% if lembrete.dias_faltam == 1 %}
-                Falta 1 dia · {{ lembrete.data|date:"d M" }} às {{ lembrete.hora_inicio|time:"H:i" }}
-              {% else %}
-                Faltam {{ lembrete.dias_faltam }} dias · {{ lembrete.data|date:"d M" }} às {{ lembrete.hora_inicio|time:"H:i" }}
-              {% endif %}
-            </span>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
     {# Widget: Aniversariantes do Mês — visível para todos #}
     {% if aniversariantes %}
     <div class="modern-card animate-fade-in-up" style="animation-delay: 0.5s;">
@@ -228,9 +199,6 @@
           </div>
         </div>
         {% endfor %}
-      </div>
-      <div style="margin-top: 0.8rem; padding-top: 0.7rem; border-top: 1px solid #f3e8ff; font-size: 0.86rem; color: var(--text-muted);">
-        Total de aniversariantes do mês: <strong style="color: #be185d;">{{ aniversariantes_total_mes }}</strong>
       </div>
     </div>
     {% endif %}
@@ -445,11 +413,11 @@
   }
 
   .verse-theme-green {
-    background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
   }
 
   .verse-theme-orange {
-    background: linear-gradient(135deg, #c2410c 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
   }
 
   .verse-quote-mark {

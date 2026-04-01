@@ -1,51 +1,174 @@
 {% extends 'index.html' %}
 {% block ConteudoEnsino %}
 
-<table cellpadding="0" cellspacing="0" align="center" width="15%" border="0">
-<form action="/tibl/buscaconteudoensino"  method="GET">
-<tr align="center" style="font-family: bold verdana,arial,sans-serif;font-size: 80%;">
-<td>Autor</td><td>Titulo</td>
-</tr>
-<tr align="center">
-<td><input type="text" name="autorv" style="width: 100px; border: 1px solid gray"></td>
-<td><input type="text" name="titulov" style="width: 100px; border: 1px solid gray"></td>
-<input type="hidden" name="pagina" value= 1>
-<td><input type="submit" name="" value="Busca" class="button"></td>
-</tr>
-</form>
-</table>
+<style>
+    .ce-filter-card { margin-bottom: 2rem; }
+    .ce-filter-title { margin-bottom: 1.5rem; }
+    .ce-filter-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+    .ce-filter-label {
+        display: block;
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+        color: var(--text-muted);
+    }
+    .ce-filter-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: var(--radius-sm);
+    }
+    .ce-filter-btn {
+        padding: 0.75rem 1.2rem;
+        width: auto;
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: white;
+        white-space: nowrap;
+    }
+    .ce-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .ce-header-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        color: var(--text-main);
+    }
+    .ce-header-new {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        background-color: var(--primary-light);
+        color: white;
+    }
+    .ce-author {
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+    .ce-title-text {
+        font-weight: 500;
+        color: var(--text-main);
+    }
+    .ce-file-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: #f0fdf4;
+        color: #166534;
+        padding: 0.2rem 0.7rem;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        font-weight: 500;
+    }
+    .ce-no-file {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+    .ce-view-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        background: var(--primary-light);
+        color: #ffffff !important;
+    }
+    .ce-view-btn i { color: #ffffff !important; }
+    .ce-td-center { text-align: center; }
+    .ce-td-right { text-align: right; }
+    .ce-pagination { margin-top: 2rem; }
+    .ce-empty-card { text-align: center; padding: 3rem; }
+    .ce-empty-icon { font-size: 3rem; color: #ddd; margin-bottom: 1rem; }
+    .ce-empty-text { color: var(--text-muted); }
+    @media (max-width: 640px) {
+        .ce-filter-form { grid-template-columns: 1fr; }
+    }
+</style>
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Conteudos de Ensino {% if perms.sitetibl.add_conteudoensino %}| <a href="/tibl/conteudoensino/criar/" class = 'aa'>Novo </b></a>{% endif %}]</font>
-</p>
-{% if bb %}
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Autor</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Titulo</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Ficheiro</b></font></a></td>
-</td>
-</tr>
-{% for x in bb %}
-{% if forloop.counter|divisibleby:2 %}
+<div class="list-container">
+    <div class="modern-card ce-filter-card">
+        <h3 class="ce-filter-title"><i class="fas fa-filter mr-2"></i> Filtros de Conteúdo de Ensino</h3>
+        <form action="/tibl/buscaconteudoensino" method="GET" class="ce-filter-form">
+            <div>
+                <label class="ce-filter-label" for="filtro_autor">Autor</label>
+                <input id="filtro_autor" type="text" name="autorv" class="ce-filter-control" placeholder="Pesquisar por autor...">
+            </div>
+            <div>
+                <label class="ce-filter-label" for="filtro_titulo">Título</label>
+                <input id="filtro_titulo" type="text" name="titulov" class="ce-filter-control" placeholder="Pesquisar por título...">
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary ce-filter-btn">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </form>
+    </div>
 
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
+    <div class="ce-header">
+        <h2 class="ce-header-title"><i class="fas fa-graduation-cap" style="margin-right: 0.5rem; color: var(--primary);"></i> Conteúdos de Ensino</h2>
+        {% if perms.sitetibl.add_conteudoensino %}
+        <a href="/tibl/conteudoensino/criar/" class="bt-primary ce-header-new">
+            <i class="fas fa-plus"></i> Novo Conteúdo
+        </a>
+        {% endif %}
+    </div>
 
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/conteudoensino/detalhe/{{ x.id }}" class = 'aa'>{{ x.autor }} </a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.titulo }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.ficheiro }}</font></td>
-</tr>
-{% endfor %}
-</table>
-<br>
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Autor</th>
+                    <th>Título</th>
+                    <th class="ce-td-center">Ficheiro</th>
+                    <th class="ce-td-right">Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <span class="ce-author">{{ x.autor }}</span>
+                    </td>
+                    <td>
+                        <span class="ce-title-text">{{ x.titulo }}</span>
+                    </td>
+                    <td class="ce-td-center">
+                        {% if x.ficheiro %}
+                        <span class="ce-file-badge"><i class="fas fa-file-alt"></i> Disponível</span>
+                        {% else %}
+                        <span class="ce-no-file">Sem ficheiro</span>
+                        {% endif %}
+                    </td>
+                    <td class="ce-td-right">
+                        <a href="/tibl/conteudoensino/detalhe/{{ x.id }}" class="bt-primary ce-view-btn">
+                            <i class="fas fa-eye"></i> Ver Detalhes
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-{% include 'paginacao.html' %}
-{% endif %}
-<br>
-<br>
-
+    <div class="ce-pagination">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card ce-empty-card">
+        <i class="fas fa-graduation-cap ce-empty-icon"></i>
+        <p class="ce-empty-text">Nenhum conteúdo de ensino registado no sistema.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
 

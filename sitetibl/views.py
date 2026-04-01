@@ -167,7 +167,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'actividade__departamento', 'funcao', 'funcao__departamento'), 
              'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
              'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
-             'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'), 
+             'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'), 
              'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
              'bancos': Banco.objects, 
              'contasbancarias' : Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'), 
@@ -432,7 +432,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
 def mostraDetalhe(request, gestaoescolhida, identificador):
     lista_qs = {
         'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'),
-        'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'),
+        'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'),
         'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'),
         'bancos': Banco.objects,
         'contasbancarias': Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'),
@@ -1717,7 +1717,7 @@ def encontraAjudas(request):
         del kwargs['data__year']
     if (tipoajudav == 0):
         del kwargs['ajuda_id']
-    resultado = Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta').filter(**kwargs)
+    resultado = Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -1978,6 +1978,31 @@ def encontraConteudoEnsino(request):
     del dd['pagina']
     cc = request.META['QUERY_STRING']
     return render(request,'conteudoensinofiltrados.html', {'bb':paginaresultado})
+
+
+@login_required
+def criarEnvioMensagem(request):
+    if not request.user.has_perm('sitetibl.add_enviomensagem'):
+        messages.error(request, 'Acesso negado! Você não tem permissão para enviar mensagens.')
+        return redirect('index')
+
+    departamentos = Departamento.objects.all().order_by('designacao')
+    irmaos = Irmao.objects.all().order_by('nome', 'apelido')
+
+    if request.method == 'POST':
+        formulario = EnvioMensagemForm(request.POST)
+        if formulario.is_valid():
+            obj = formulario.save()
+            messages.success(request, 'Mensagem registada com sucesso!')
+            return redirect('/tibl/gestao/enviomensagem/1')
+    else:
+        formulario = EnvioMensagemForm()
+
+    return render(request, 'enviomensagem_criar.html', {
+        'formulario': formulario,
+        'departamentos': departamentos,
+        'irmaos': irmaos,
+    })
 
 
 @login_required
@@ -3101,18 +3126,11 @@ def dashboard(request):
             .order_by('actividade__data')[:5]
         )
 
-    # Aniversariantes do mês
+    # Aniversariantes do mês (apenas de hoje em diante)
     aniversariantes_qs = (
         Irmao.objects
-        .filter(datanascimento__month=hoje.month)
-        .annotate(
-            ordem_aniversario=Case(
-                When(datanascimento__day__gte=hoje.day, then=Value(0)),
-                default=Value(1),
-                output_field=IntegerField(),
-            )
-        )
-        .order_by('ordem_aniversario', 'datanascimento__day')
+        .filter(datanascimento__month=hoje.month, datanascimento__day__gte=hoje.day)
+        .order_by('datanascimento__day')
     )
     aniversariantes_total_mes = aniversariantes_qs.count()
     aniversariantes = aniversariantes_qs
@@ -3126,10 +3144,11 @@ def dashboard(request):
             continue
 
         nome_completo = f"{irm.nome} {irm.apelido}".strip()
+        tratamento = 'da irmã' if getattr(irm, 'sexo', 'M') == 'F' else 'do irmão'
         if dias == 0:
             aniversarios_alerta.append({
                 'tipo': 'today',
-                'mensagem': f"Hoje é aniversário do irmão {nome_completo}! 🎉",
+                'mensagem': f"Hoje é aniversário {tratamento} {nome_completo}! 🎉",
                 'data_iso': proximo_aniversario.isoformat(),
             })
             aniversarios_alerta_por_id[irm.id] = {
@@ -3140,7 +3159,7 @@ def dashboard(request):
             sufixo = 'dia' if dias == 1 else 'dias'
             aniversarios_alerta.append({
                 'tipo': 'soon',
-                'mensagem': f"Aniversário do irmão {nome_completo} é daqui a {dias} {sufixo}.",
+                'mensagem': f"Aniversário {tratamento} {nome_completo} é daqui a {dias} {sufixo}.",
                 'data_iso': proximo_aniversario.isoformat(),
             })
             aniversarios_alerta_por_id[irm.id] = {

@@ -497,8 +497,8 @@ class Saidabanco(models.Model):
 
 class Cestabasica(models.Model):
     codigo = models.DateField(unique = True)
-    saiudobanco = models.ForeignKey(Saidabanco, blank = True, null = True, on_delete = models.CASCADE)
-    saiudacaixa = models.ForeignKey(Saidacaixa, blank = True, null = True, on_delete = models.CASCADE)
+    saiudobanco = models.ForeignKey(Saidabanco, verbose_name='Saiu do banco', blank = True, null = True, on_delete = models.CASCADE)
+    saiudacaixa = models.ForeignKey(Saidacaixa, verbose_name='Saiu da caixa', blank = True, null = True, on_delete = models.CASCADE)
     Datadisponvalor = models.DateField('Valor diponiblizado aos',blank = True, null = True)
     observacao = models.TextField('Observação', blank = True)
     def __str__(self):
@@ -551,14 +551,14 @@ class Tipoajuda(models.Model):
          pass
 
 class Ajuda(models.Model):
-     ajuda = models.ForeignKey(Tipoajuda, on_delete = models.CASCADE)
+     ajuda = models.CharField('Ajuda', max_length=200)
      beneficiario = models.ForeignKey(Pessoa, on_delete = models.CASCADE)
      patrocinador = models.ForeignKey(Pessoa, related_name = 'valordoador', on_delete = models.CASCADE, blank = True, null = True)
      valor = models.DecimalField('Valor[AKZ]', max_digits = 11, decimal_places = 2, default =0)
      cesta = models.ForeignKey(Cestabasica, on_delete = models.CASCADE, blank = True, null = True)
      data = models.DateField()
-     saiudobanco = models.ForeignKey(Saidabanco, blank = True, null = True, on_delete = models.CASCADE)
-     saiudacaixa = models.ForeignKey(Saidacaixa, blank = True, null = True, on_delete = models.CASCADE)
+     saiudobanco = models.ForeignKey(Saidabanco, verbose_name='Saiu do banco', blank = True, null = True, on_delete = models.CASCADE)
+     saiudacaixa = models.ForeignKey(Saidacaixa, verbose_name='Saiu da caixa', blank = True, null = True, on_delete = models.CASCADE)
      observacao = models.TextField('Observação', blank = True, null = True)
      def __str__(self):
          return '%s %s' % (self.beneficiario, self.patrocinador)
@@ -571,8 +571,8 @@ class Pagamentoservico(models.Model):
     moeda = models.CharField(max_length=50, choices = MOEDA, default = "AKZ")
     data = models.DateField(default = datetime.today)
     responsavel = models.ForeignKey(Irmao, on_delete = models.CASCADE)
-    saiudobanco = models.ForeignKey(Saidabanco, blank = True, null = True, on_delete = models.CASCADE)
-    saiudacaixa = models.ForeignKey(Saidacaixa, blank = True, null = True, on_delete = models.CASCADE)
+    saiudobanco = models.ForeignKey(Saidabanco, verbose_name='Saiu do banco', blank = True, null = True, on_delete = models.CASCADE)
+    saiudacaixa = models.ForeignKey(Saidacaixa, verbose_name='Saiu da caixa', blank = True, null = True, on_delete = models.CASCADE)
     def __str__(self):
         return '%s %s %s' % (self.servico, self.valor, self.data)
     class Admin:
@@ -691,6 +691,7 @@ class EnvioMensagem(models.Model):
     mensagem = models.TextField()
     sms = models.BooleanField(default=False)
     email = models.BooleanField(default=False)
-    quemenviou = models.ForeignKey(Irmao, blank=True, null=True, default=None, on_delete = models.CASCADE) 
+    quemenviou = models.ForeignKey(Irmao, blank=True, null=True, default=None, on_delete = models.CASCADE)
+    destinatarios = models.ManyToManyField(Irmao, blank=True, related_name='mensagens_recebidas', verbose_name='Destinatários')
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)

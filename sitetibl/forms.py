@@ -32,7 +32,7 @@ from django.forms import ModelForm , CheckboxSelectMultiple
 from django.utils import timezone as tz
 from schedule.models import Calendar, Rule, Event as ScheduleEvent
 from django import forms
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -153,6 +153,11 @@ class AjudaForm(ModelForm):
     class Meta:
         model = Ajuda
         fields = '__all__'
+        widgets = {
+            'ajuda': forms.TextInput(attrs={'placeholder': 'Descreva o tipo de ajuda'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+            'data': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class CestabasicaForm(ModelForm):
     class Meta:
@@ -220,6 +225,7 @@ class ContabancariaForm(ModelForm):
             'iban': forms.TextInput(attrs={
                 'placeholder': 'AO06 XXXX XXXX XXXX XXXX XXXX X'
             }),
+            'saldo': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
     
     def clean_numeroconta(self):
@@ -581,7 +587,8 @@ class DizimoofertaForm(ModelForm):
         }
         widgets = {
             'dataregisto': forms.DateInput(attrs={'type': 'date'}),
-            'datacorrespondente': forms.DateInput(attrs={'type': 'date'})
+            'datacorrespondente': forms.DateInput(attrs={'type': 'date'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
 
 class DizimoForm(ModelForm):
@@ -602,7 +609,7 @@ class DizimoForm(ModelForm):
         model = Dizimooferta
         exclude = ('entradabanco', 'entradacaixa')
         widgets = {
-            'valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00', 'step': '0.01'}),
+            'valor': forms.TextInput(attrs={'class': 'form-control money-input', 'placeholder': '0,00'}),
             'moeda': forms.Select(attrs={'class': 'form-control'}),
             'tipooferta': forms.Select(attrs={'class': 'form-control'}),
             'datacorrespondente': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -626,6 +633,7 @@ class SaidacaixaForm(ModelForm):
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
 
     def clean_valor(self):
@@ -643,7 +651,8 @@ class EntradacaixaForm(ModelForm):
         fields = '__all__'
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'})
+            'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
 
     def clean_valor(self):
@@ -675,7 +684,8 @@ class SaidabancoForm(ModelForm):
         fields = '__all__'
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'})
+            'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
         
 
@@ -700,7 +710,8 @@ class EntradabancoForm(ModelForm):
         fields = '__all__'
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'})
+            'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
         
 
@@ -710,6 +721,9 @@ class PagamentoservicoForm(ModelForm):
     class Meta:
         model = Pagamentoservico
         fields = '__all__'
+        widgets = {
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
 
 class GruporubricaForm(ModelForm):
     class Meta:
@@ -740,6 +754,9 @@ class PedidoSaidaForm(ModelForm):
             'centro_custo', 'tipificacao_custo', 'iban',
             'justificativa_custo', 'documento_justificativo',
         ]
+        widgets = {
+            'montante': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
 
 class PedidoSaidaUpdateForm(ModelForm):
     class Meta:
@@ -749,11 +766,18 @@ class PedidoSaidaUpdateForm(ModelForm):
             'centro_custo', 'tipificacao_custo', 'iban',
             'justificativa_custo', 'documento_justificativo',
         ]
+        widgets = {
+            'montante': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
 
 class OrcamentoDepartamentoForm(ModelForm):
     class Meta:
         model = OrcamentoDepartamento
         fields = '__all__'
+        widgets = {
+            'ano': forms.Select(choices=[('', '---------')] + [(y, y) for y in range(datetime.now().year - 2, datetime.now().year + 6)]),
+            'orcamento': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
 
 class InventarioPatrimonioForm(ModelForm):
     class Meta:
@@ -763,6 +787,7 @@ class InventarioPatrimonioForm(ModelForm):
             'data_aquisicao': forms.DateInput(attrs={'type': 'date'}),
             'data_ultima_manutencao': forms.DateInput(attrs={'type': 'date'}),
             'data_proxima_manutencao': forms.DateInput(attrs={'type': 'date'}),
+            'preco': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
 
 class ConteudoEnsinoForm(ModelForm):
@@ -776,4 +801,10 @@ class EnvioMensagemForm(ModelForm):
         fields = '__all__'
         labels = {
             'quemenviou': 'Quem enviou',
+            'destinatarios': 'Destinatários',
+            'mensagem': 'Mensagem',
+        }
+        widgets = {
+            'mensagem': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Escreva a sua mensagem aqui...'}),
+            'destinatarios': forms.CheckboxSelectMultiple(),
         }

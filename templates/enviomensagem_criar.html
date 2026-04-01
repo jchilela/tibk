@@ -1,0 +1,469 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Nova Mensagem{% endblock %}
+
+{% block extra_css %}
+<style>
+    .msg-container { max-width: 1100px; margin: 0 auto; }
+
+    /* Hero banner */
+    .msg-hero { margin-bottom: 1.5rem; padding: 0; overflow: hidden; }
+    .msg-hero-bg {
+        background-image: url('/static/fotos/2022/homepage1.jpeg');
+        background-size: cover; background-position: center;
+        min-height: 110px; position: relative; border-radius: var(--radius-md);
+    }
+    .msg-hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%); }
+    .msg-hero-content { position: relative; z-index: 1; padding: 1.4rem 1.6rem; }
+    .msg-hero-title { margin: 0; color: #fff; font-size: 1.25rem; }
+    .msg-hero-sub { margin: 0.35rem 0 0 0; color: rgba(255,255,255,0.84); font-size: 0.9rem; }
+
+    /* Layout: two columns */
+    .msg-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 860px) { .msg-layout { grid-template-columns: 1fr; } }
+
+    /* Cards */
+    .msg-card { background: #fff; border-radius: var(--radius-md); border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .msg-card-header {
+        padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9;
+        display: flex; align-items: center; gap: 0.5rem;
+        font-weight: 700; font-size: 0.95rem; color: var(--text-main);
+    }
+    .msg-card-header i { color: var(--primary); }
+    .msg-card-body { padding: 1.25rem; }
+
+    /* Mode switcher */
+    .msg-mode { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .msg-mode-btn {
+        flex: 1; padding: 0.65rem; border: 2px solid #e2e8f0; border-radius: var(--radius-sm);
+        background: #fff; cursor: pointer; text-align: center; font-weight: 600; font-size: 0.85rem;
+        color: var(--text-muted); transition: all 0.2s;
+    }
+    .msg-mode-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+    .msg-mode-btn.active { border-color: var(--primary); background: rgba(var(--primary-rgb),0.05); color: var(--primary); }
+    .msg-mode-btn i { display: block; font-size: 1.3rem; margin-bottom: 0.3rem; }
+
+    /* Search bar */
+    .msg-search {
+        width: 100%; padding: 0.6rem 0.9rem 0.6rem 2.4rem;
+        border: 1px solid #e2e8f0; border-radius: var(--radius-sm);
+        font-size: 0.88rem; transition: border-color 0.2s;
+    }
+    .msg-search:focus { outline: none; border-color: var(--primary); }
+    .msg-search-wrap { position: relative; margin-bottom: 0.75rem; }
+    .msg-search-icon { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem; }
+
+    /* Department select */
+    .msg-dept-select {
+        width: 100%; padding: 0.6rem; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);
+        font-size: 0.88rem; margin-bottom: 0.75rem;
+    }
+
+    /* Recipient list */
+    .msg-list { max-height: 340px; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: var(--radius-sm); }
+    .msg-list-item {
+        display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.8rem;
+        border-bottom: 1px solid #f8fafc; cursor: pointer; transition: background 0.15s;
+    }
+    .msg-list-item:last-child { border-bottom: none; }
+    .msg-list-item:hover { background: #f0fdf4; }
+    .msg-list-item input[type=checkbox] { accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; }
+    .msg-list-name { font-size: 0.88rem; font-weight: 500; color: var(--text-main); }
+    .msg-list-dept { font-size: 0.75rem; color: var(--text-muted); }
+    .msg-list-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.88rem; }
+    .msg-list-letter {
+        padding: 0.25rem 0.8rem; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em;
+        color: var(--primary); background: rgba(var(--primary-rgb),0.06);
+        border-bottom: 1px solid #eef2f8; position: sticky; top: 0; z-index: 1;
+    }
+
+    /* Select-all header */
+    .msg-list-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.6rem 0.8rem; background: #f8fafc; border: 1px solid #e2e8f0;
+        border-radius: var(--radius-sm) var(--radius-sm) 0 0; border-bottom: 2px solid var(--primary-light);
+    }
+    .msg-list-header label {
+        display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+        font-size: 0.85rem; font-weight: 700; color: var(--text-main);
+    }
+    .msg-list-header input[type=checkbox] { accent-color: var(--primary); width: 17px; height: 17px; }
+    .msg-sel-count { font-size: 0.8rem; font-weight: 600; color: var(--primary); }
+    .msg-clear-btn {
+        background: none; border: 1px solid #e2e8f0; cursor: pointer; font-size: 0.75rem;
+        font-weight: 600; color: var(--text-muted); padding: 0.25rem 0.6rem; border-radius: 4px;
+        transition: all 0.15s;
+    }
+    .msg-clear-btn:hover { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+    /* Tags for selected */
+    .msg-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; min-height: 28px; }
+    .msg-tag {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        background: #ecfdf5; color: #166534; padding: 0.2rem 0.6rem;
+        border-radius: 100px; font-size: 0.78rem; font-weight: 500;
+    }
+    .msg-tag-remove { cursor: pointer; font-size: 0.7rem; opacity: 0.6; transition: opacity 0.15s; }
+    .msg-tag-remove:hover { opacity: 1; }
+
+    /* Message compose */
+    .msg-field { margin-bottom: 1rem; }
+    .msg-label {
+        display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem;
+    }
+    .msg-textarea {
+        width: 100%; min-height: 140px; padding: 0.8rem; border: 1px solid #e2e8f0;
+        border-radius: var(--radius-sm); font-size: 0.95rem; font-family: inherit;
+        resize: vertical; transition: border-color 0.2s;
+    }
+    .msg-textarea:focus { outline: none; border-color: var(--primary); }
+    .msg-char-count { text-align: right; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    /* Channel toggles */
+    .msg-channels { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+    .msg-channel {
+        flex: 1; display: flex; align-items: center; gap: 0.6rem;
+        padding: 0.75rem 1rem; border: 2px solid #e2e8f0; border-radius: var(--radius-sm);
+        cursor: pointer; transition: all 0.2s;
+    }
+    .msg-channel:hover { border-color: var(--primary-light); }
+    .msg-channel.active { border-color: var(--primary); background: rgba(var(--primary-rgb),0.04); }
+    .msg-channel input { display: none; }
+    .msg-channel-icon { font-size: 1.1rem; color: #94a3b8; transition: color 0.2s; }
+    .msg-channel.active .msg-channel-icon { color: var(--primary); }
+    .msg-channel-text { font-size: 0.88rem; font-weight: 600; color: var(--text-main); }
+    .msg-channel-check {
+        margin-left: auto; width: 20px; height: 20px; border-radius: 50%;
+        border: 2px solid #ddd; display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s; font-size: 0.65rem; color: #fff;
+    }
+    .msg-channel.active .msg-channel-check { background: var(--primary); border-color: var(--primary); }
+
+    /* Sender select */
+    .msg-sender-select {
+        width: 100%; padding: 0.6rem; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); font-size: 0.88rem;
+    }
+
+    /* Actions */
+    .msg-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
+    .msg-btn-back {
+        padding: 0.6rem 1.2rem; border: 2px solid #e2e8f0; border-radius: var(--radius-sm);
+        background: #fff; color: var(--text-muted); font-weight: 600; font-size: 0.88rem;
+        cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
+        text-decoration: none;
+    }
+    .msg-btn-back:hover { border-color: var(--primary); color: var(--primary); }
+    .msg-btn-send {
+        padding: 0.7rem 2rem; border: none; border-radius: var(--radius-sm);
+        background: var(--primary); color: #fff; font-weight: 700; font-size: 0.95rem;
+        cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;
+    }
+    .msg-btn-send:hover { background: var(--primary-dark); }
+    .msg-btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Errors */
+    .msg-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 0.6rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.85rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="msg-container">
+    <div class="modern-card msg-hero">
+        <div class="msg-hero-bg">
+            <div class="msg-hero-overlay"></div>
+            <div class="msg-hero-content">
+                <h2 class="msg-hero-title"><i class="fas fa-paper-plane" style="margin-right: 0.45rem; color: #93c5fd;"></i> Nova Mensagem</h2>
+                <p class="msg-hero-sub">Envie mensagens individuais ou em grupo para os membros da igreja.</p>
+            </div>
+        </div>
+    </div>
+
+    {% if formulario.non_field_errors %}
+    <div class="msg-error">
+        {% for error in formulario.non_field_errors %}
+        <p style="margin: 0;"><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" id="msg-form">
+        {% csrf_token %}
+
+        <div class="msg-layout">
+            <!-- LEFT: Recipients -->
+            <div>
+                <div class="msg-card">
+                    <div class="msg-card-header"><i class="fas fa-users"></i> Destinatários</div>
+                    <div class="msg-card-body">
+
+                        <!-- Mode switcher -->
+                        <div class="msg-mode">
+                            <button type="button" class="msg-mode-btn active" data-mode="individual" onclick="switchMode('individual')">
+                                <i class="fas fa-user"></i> Individual
+                            </button>
+                            <button type="button" class="msg-mode-btn" data-mode="departamento" onclick="switchMode('departamento')">
+                                <i class="fas fa-sitemap"></i> Por Departamento
+                            </button>
+                            <button type="button" class="msg-mode-btn" data-mode="todos" onclick="switchMode('todos')">
+                                <i class="fas fa-globe"></i> Todos
+                            </button>
+                        </div>
+
+                        <!-- Department filter (hidden by default) -->
+                        <div id="dept-filter" style="display:none;">
+                            <select class="msg-dept-select" id="dept-select" onchange="filterByDept()">
+                                <option value="">Seleccione um departamento...</option>
+                                {% for dep in departamentos %}
+                                <option value="{{ dep.id }}">{{ dep.designacao }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Search -->
+                        <div class="msg-search-wrap" id="search-wrap">
+                            <i class="fas fa-search msg-search-icon"></i>
+                            <input type="text" class="msg-search" id="search-input" placeholder="Pesquisar irmão por nome..." oninput="filterList()">
+                        </div>
+
+                        <!-- Selected tags -->
+                        <div class="msg-tags" id="sel-tags"></div>
+
+                        <!-- Select-all header row -->
+                        <div class="msg-list-header">
+                            <label>
+                                <input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this.checked)">
+                                Seleccionar todos
+                            </label>
+                            <span class="msg-sel-count" id="sel-count">0 seleccionado(s)</span>
+                            <button type="button" class="msg-clear-btn" onclick="deselectAll()"><i class="fas fa-times"></i> Limpar</button>
+                        </div>
+
+                        <!-- Member list -->
+                        <div class="msg-list" id="member-list" style="border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm);">
+                            {% regroup irmaos by nome.0 as letter_groups %}
+                            {% for group in letter_groups %}
+                            <div class="msg-list-letter">{{ group.grouper|upper }}</div>
+                            {% for irmao in group.list %}
+                            <label class="msg-list-item" data-nome="{{ irmao.nome }} {{ irmao.apelido }}" data-id="{{ irmao.id }}" data-depts="{% for m in irmao.integrantes_departamento.all %}{{ m.id }},{% endfor %}">
+                                <input type="checkbox" name="destinatarios" value="{{ irmao.id }}" onchange="updateSelection()">
+                                <div>
+                                    <div class="msg-list-name">{{ irmao.nome }} {{ irmao.apelido }}</div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                            {% empty %}
+                            <div class="msg-list-empty"><i class="fas fa-users-slash"></i> Nenhum membro encontrado.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Compose -->
+            <div>
+                <div class="msg-card">
+                    <div class="msg-card-header"><i class="fas fa-edit"></i> Compor Mensagem</div>
+                    <div class="msg-card-body">
+
+                        <!-- Sender -->
+                        <div class="msg-field">
+                            <label class="msg-label" for="id_quemenviou">Remetente</label>
+                            {{ formulario.quemenviou }}
+                        </div>
+
+                        <!-- Channels -->
+                        <div class="msg-field">
+                            <label class="msg-label">Canal de Envio</label>
+                            <div class="msg-channels">
+                                <label class="msg-channel" id="ch-sms" onclick="toggleChannel('sms')">
+                                    <input type="checkbox" name="sms" id="id_sms" {% if formulario.sms.value %}checked{% endif %}>
+                                    <i class="fas fa-sms msg-channel-icon"></i>
+                                    <span class="msg-channel-text">SMS</span>
+                                    <span class="msg-channel-check"><i class="fas fa-check"></i></span>
+                                </label>
+                                <label class="msg-channel" id="ch-email" onclick="toggleChannel('email')">
+                                    <input type="checkbox" name="email" id="id_email" {% if formulario.email.value %}checked{% endif %}>
+                                    <i class="fas fa-envelope msg-channel-icon"></i>
+                                    <span class="msg-channel-text">Email</span>
+                                    <span class="msg-channel-check"><i class="fas fa-check"></i></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Message content -->
+                        <div class="msg-field">
+                            <label class="msg-label" for="id_mensagem">Mensagem</label>
+                            <textarea class="msg-textarea" name="mensagem" id="id_mensagem" placeholder="Escreva a sua mensagem aqui..." oninput="updateCharCount()">{{ formulario.mensagem.value|default:"" }}</textarea>
+                            <div class="msg-char-count"><span id="char-count">0</span> caracteres</div>
+                            {% if formulario.mensagem.errors %}
+                            <div class="msg-error" style="margin-top: 0.5rem;">
+                                {% for error in formulario.mensagem.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="msg-actions">
+            <a href="/tibl/gestao/enviomensagem/1" class="msg-btn-back">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+            <button type="submit" class="msg-btn-send" id="btn-send">
+                <i class="fas fa-paper-plane"></i> Enviar Mensagem
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var items = document.querySelectorAll('#member-list .msg-list-item');
+    var searchInput = document.getElementById('search-input');
+    var deptSelect = document.getElementById('dept-select');
+    var deptFilter = document.getElementById('dept-filter');
+    var searchWrap = document.getElementById('search-wrap');
+    var selTags = document.getElementById('sel-tags');
+    var selCount = document.getElementById('sel-count');
+    var currentMode = 'individual';
+
+    // Initialize channel toggle visuals
+    ['sms', 'email'].forEach(function(ch) {
+        var input = document.getElementById('id_' + ch);
+        var label = document.getElementById('ch-' + ch);
+        if (input && label && input.checked) label.classList.add('active');
+    });
+
+    window.switchMode = function(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.msg-mode-btn').forEach(function(b) {
+            b.classList.toggle('active', b.dataset.mode === mode);
+        });
+        deptFilter.style.display = mode === 'departamento' ? '' : 'none';
+        searchWrap.style.display = mode === 'todos' ? 'none' : '';
+        if (mode === 'todos') {
+            items.forEach(function(item) {
+                item.style.display = '';
+                item.querySelector('input').checked = true;
+            });
+            if (selectAllCb) selectAllCb.checked = true;
+            updateSelection();
+        } else if (mode === 'departamento') {
+            if (deptSelect.value) filterByDept(); else filterList();
+        } else {
+            deptSelect.value = '';
+            filterList();
+        }
+    };
+
+    window.toggleChannel = function(ch) {
+        var input = document.getElementById('id_' + ch);
+        var label = document.getElementById('ch-' + ch);
+        // Toggle is handled by the label click propagating to checkbox
+        setTimeout(function() {
+            label.classList.toggle('active', input.checked);
+        }, 10);
+    };
+
+    window.filterList = function() {
+        var q = searchInput.value.toLowerCase().trim();
+        var deptId = currentMode === 'departamento' ? deptSelect.value : '';
+        items.forEach(function(item) {
+            var name = (item.dataset.nome || '').toLowerCase();
+            var depts = item.dataset.depts || '';
+            var matchName = !q || name.indexOf(q) !== -1;
+            var matchDept = !deptId || depts.indexOf(deptId + ',') !== -1;
+            item.style.display = (matchName && matchDept) ? '' : 'none';
+        });
+        // Show/hide letter dividers based on visible items beneath them
+        document.querySelectorAll('#member-list .msg-list-letter').forEach(function(header) {
+            var sib = header.nextElementSibling;
+            var hasVisible = false;
+            while (sib && !sib.classList.contains('msg-list-letter')) {
+                if (sib.style.display !== 'none') { hasVisible = true; break; }
+                sib = sib.nextElementSibling;
+            }
+            header.style.display = hasVisible ? '' : 'none';
+        });
+        // Sync select-all checkbox after filtering
+        var visibleItems = 0, checkedVisible = 0;
+        items.forEach(function(item) {
+            if (item.style.display !== 'none') {
+                visibleItems++;
+                if (item.querySelector('input').checked) checkedVisible++;
+            }
+        });
+        if (selectAllCb) selectAllCb.checked = visibleItems > 0 && checkedVisible >= visibleItems;
+    };
+
+    window.filterByDept = function() {
+        filterList();
+    };
+
+    var selectAllCb = document.getElementById('select-all-cb');
+
+    window.toggleSelectAll = function(checked) {
+        items.forEach(function(item) {
+            if (item.style.display !== 'none') {
+                item.querySelector('input').checked = checked;
+            }
+        });
+        updateSelection();
+    };
+
+    window.deselectAll = function() {
+        items.forEach(function(item) {
+            item.querySelector('input').checked = false;
+        });
+        if (selectAllCb) selectAllCb.checked = false;
+        updateSelection();
+    };
+
+    window.updateSelection = function() {
+        var checked = document.querySelectorAll('#member-list input[type=checkbox]:checked');
+        var visibleItems = 0;
+        items.forEach(function(item) { if (item.style.display !== 'none') visibleItems++; });
+        var count = checked.length;
+        selCount.textContent = count + ' seleccionado(s)';
+        // Sync select-all checkbox state
+        if (selectAllCb) selectAllCb.checked = visibleItems > 0 && count >= visibleItems;
+
+        // Build tags
+        var html = '';
+        checked.forEach(function(cb) {
+            var label = cb.closest('.msg-list-item');
+            var name = label ? label.dataset.nome : '';
+            var id = cb.value;
+            html += '<span class="msg-tag">' + name + ' <i class="fas fa-times msg-tag-remove" onclick="removeRecipient(\'' + id + '\')"></i></span>';
+        });
+        selTags.innerHTML = html;
+    };
+
+    window.removeRecipient = function(id) {
+        items.forEach(function(item) {
+            if (item.dataset.id === id) {
+                item.querySelector('input').checked = false;
+            }
+        });
+        updateSelection();
+    };
+
+    window.updateCharCount = function() {
+        var ta = document.getElementById('id_mensagem');
+        document.getElementById('char-count').textContent = ta.value.length;
+    };
+
+    // Init char count
+    updateCharCount();
+})();
+</script>
+{% endblock %}

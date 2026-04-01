@@ -344,4 +344,82 @@
 ';
     document.head.appendChild(style);
 
+    // =========================================================================
+    // MONETARY INPUT MASK  (class="money-input")
+    // Format: 1.234.567,89  — Portuguese/Angolan style
+    // On submit the hidden sibling carries the raw numeric value.
+    // =========================================================================
+
+    function moneyFormat(value) {
+        // value is a raw string of digits (may include one comma for decimals)
+        var clean = value.replace(/[^\d]/g, '');
+        if (clean === '') return '';
+        // pad to at least 3 chars so we always have decimals
+        while (clean.length < 3) clean = '0' + clean;
+        var intPart = clean.slice(0, -2).replace(/^0+(?=\d)/, '') || '0';
+        var decPart = clean.slice(-2);
+        // add thousand separators
+        intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return intPart + ',' + decPart;
+    }
+
+    function initMoneyInputs() {
+        document.querySelectorAll('input.money-input').forEach(function (input) {
+            if (input.dataset.moneyInit) return;
+            input.dataset.moneyInit = '1';
+
+            // Create a hidden input to carry the real value for Django
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = input.name;
+            hidden.value = input.value || '';
+            input.name = input.name + '_display';
+            input.parentNode.insertBefore(hidden, input.nextSibling);
+
+            // Format existing value (edit forms)
+            if (hidden.value) {
+                var raw = String(hidden.value).replace(',', '.');
+                var num = parseFloat(raw);
+                if (!isNaN(num)) {
+                    var cents = Math.round(num * 100).toString();
+                    input.value = moneyFormat(cents);
+                }
+            }
+
+            input.setAttribute('inputmode', 'numeric');
+            input.setAttribute('autocomplete', 'off');
+            input.removeAttribute('type');
+            input.setAttribute('type', 'text');
+
+            input.addEventListener('input', function () {
+                var pos = input.selectionStart;
+                var oldLen = input.value.length;
+                var formatted = moneyFormat(input.value);
+                input.value = formatted;
+                // sync hidden
+                hidden.value = formatted.replace(/\./g, '').replace(',', '.');
+                // adjust cursor
+                var diff = input.value.length - oldLen;
+                var newPos = pos + diff;
+                if (newPos < 0) newPos = 0;
+                input.setSelectionRange(newPos, newPos);
+            });
+
+            input.addEventListener('blur', function () {
+                if (input.value === '' || input.value === '0,00') {
+                    hidden.value = '';
+                }
+            });
+        });
+    }
+
+    // Run on page load and expose for dynamic forms
+    window.TIBL.initMoneyInputs = initMoneyInputs;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMoneyInputs);
+    } else {
+        initMoneyInputs();
+    }
+
 })();
