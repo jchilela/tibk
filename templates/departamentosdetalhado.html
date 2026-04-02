@@ -69,7 +69,7 @@
         if (ok) visiveis++;
       });
       var countEl = document.getElementById('membros-visiveis-count');
-      if (countEl) countEl.textContent = 'A mostrar ' + visiveis + ' de ' + labels.length + ' irmÃ£o(s)';
+      if (countEl) countEl.textContent = 'A mostrar ' + visiveis + ' de ' + labels.length + ' irmão(s)';
     }
 
     window.selectAllMembros = function (checked) {
@@ -93,7 +93,7 @@
       if (el) el.addEventListener('input', filtrarMembros);
     });
 
-    // Correr filtro quando o modal abrir (botÃ£o chama filtrarMembros via open)
+    // Correr filtro quando o modal abrir (botão chama filtrarMembros via open)
     var btnAbrir = document.querySelector('[onclick*="modal-add-membros"]');
     if (btnAbrir) {
       btnAbrir.addEventListener('click', function () {
@@ -166,7 +166,7 @@
         <div
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; position: relative; z-index: 1;">
 
-            <!-- LideranÃ§a Card -->
+            <!-- Liderança Card -->
             <div style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 2rem; border-radius: var(--radius-lg); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; overflow: hidden;">
                 <div
                     style="position: absolute; top: -10px; right: -10px; opacity: 0.05; font-size: 6rem; color: var(--primary);">
@@ -175,7 +175,7 @@
 
                 <h4
                     style="color: var(--primary); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; font-family: 'Outfit', sans-serif;">
-                    <i class="fas fa-crown"></i> LideranÃ§a do Departamento
+                    <i class="fas fa-crown"></i> Liderança do Departamento
                 </h4>
                 <div style="display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1;">
                     <div
@@ -185,15 +185,15 @@
                     <div>
                         <p
                             style="font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--text-main); font-size: 1.25rem; margin-bottom: 0.25rem;">
-                            {{ x.lider_departamento|default:"NÃ£o definido" }}</p>
+                            {{ x.lider_departamento|default:"Não definido" }}</p>
                         <p style="font-size: 0.95rem; color: var(--text-secondary); font-weight: 500;">
-                            <i class="fas fa-id-badge mr-1" style="color: var(--primary-light);"></i> LÃ­der ResponsÃ¡vel
+                            <i class="fas fa-id-badge mr-1" style="color: var(--primary-light);"></i> Líder Responsável
                         </p>
                     </div>
                 </div>
             </div>
 
-            <!-- IdentificaÃ§Ã£o Card -->
+            <!-- Identificação Card -->
             <div style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 2rem; border-radius: var(--radius-lg); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; overflow: hidden;">
                 <div
                     style="position: absolute; top: -10px; right: -10px; opacity: 0.05; font-size: 6rem; color: var(--text-secondary);">
@@ -202,7 +202,7 @@
 
                 <h4
                     style="color: var(--primary); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; font-family: 'Outfit', sans-serif;">
-                    <i class="fas fa-fingerprint"></i> IdentificaÃ§Ã£o RÃ¡pida
+                    <i class="fas fa-fingerprint"></i> Identificação Rápida
                 </h4>
                 <div style="display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1;">
                     <div
@@ -221,18 +221,18 @@
                 </div>
             </div>
 
-            <!-- ObservaÃ§Ãµes Card (Full Width) -->
+            <!-- Observações Card (Full Width) -->
             <div style="grid-column: 1 / -1; margin-top: 0.5rem; background: linear-gradient(to right, rgba(254, 243, 199, 0.4), rgba(254, 243, 199, 0.1)); border-left: 4px solid #f59e0b; padding: 2rem; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; position: relative; z-index: 1;">
                 <h4
                     style="color: #d97706; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; margin-bottom: 1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; font-family: 'Outfit', sans-serif;">
-                    <i class="fas fa-sticky-note"></i> DescriÃ§Ã£o
+                    <i class="fas fa-sticky-note"></i> Descrição
                 </h4>
                 <p style="color: #92400e; font-size: 1.05rem; line-height: 1.7; font-weight: 500; margin: 0;">
                     {% if x.descricao %}
                     {{ x.descricao }}
                     {% else %}
                     <span style="font-style: italic; opacity: 0.7;"><i class="fas fa-info-circle mr-2"></i>Nenhuma
-                        descriÃ§Ã£o registada para este departamento no momento.</span>
+                        descrição registada para este departamento no momento.</span>
                     {% endif %}
                 </p>
             </div>
@@ -250,10 +250,10 @@
                     <table class="modern-table">
                         <thead>
                             <tr>
-                                <th>IrmÃ£o</th>
+                                <th>Irmão</th>
                                 <th>Cargo</th>
-                                <th>Periodo</th>
-                                <th style="text-align: right;">AcÃ§Ã£o</th>
+                                <th>Período</th>
+                                <th style="text-align: right;">Ação</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -282,7 +282,7 @@
                                         </button>
                                     </form>
                                     {% else %}
-                                    <span style="color: var(--text-muted); font-size: 0.85rem;">Sem permissao</span>
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">Sem permissão</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -292,7 +292,7 @@
                 </div>
                 {% else %}
                 <div style="padding: 1rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; color: #475569;">
-                    Este departamento ainda nao possui membros com mandato atribuido.
+                    Este departamento ainda não possui membros com mandato atribuído.
                 </div>
                 {% endif %}
 
@@ -305,11 +305,11 @@
                 {% endif %}
             </div>
 
-            <!-- FunÃ§Ãµes do Departamento -->
+            <!-- Funções do Departamento -->
             <div style="grid-column: 1 / -1; margin-top: 1rem; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
                     <h4 style="margin: 0; color: var(--text-main); font-family: 'Outfit', sans-serif; font-weight: 700;">
-                        <i class="fas fa-tasks" style="color: #6366f1;"></i> FunÃ§Ãµes do Departamento
+                        <i class="fas fa-tasks" style="color: #6366f1;"></i> Funções do Departamento
                     </h4>
                     <span style="font-size: 0.85rem; color: var(--text-muted);">Usadas nas escalas de actividades deste departamento</span>
                 </div>
@@ -334,7 +334,7 @@
                 </div>
                 {% else %}
                 <div style="padding: 1rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; color: #475569; margin-bottom: 1rem;">
-                    <i class="fas fa-info-circle"></i> Nenhuma funÃ§Ã£o especÃ­fica registada. As funÃ§Ãµes genÃ©ricas continuam disponÃ­veis nas escalas.
+                    <i class="fas fa-info-circle"></i> Nenhuma função específica registada. As funções genéricas continuam disponíveis nas escalas.
                 </div>
                 {% endif %}
 
@@ -343,11 +343,11 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add_funcao">
                     <div style="flex: 1;">
-                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Nova funÃ§Ã£o</label>
-                        <input type="text" name="nome_funcao" required placeholder="Ex.: Maestro, Orador, TÃ©cnico de Som..." style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Nova função</label>
+                        <input type="text" name="nome_funcao" required placeholder="Ex.: Maestro, Orador, Técnico de Som..." style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px;">
                     </div>
                     <button type="submit" style="padding: 0.55rem 1rem; background: #6366f1; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
-                        <i class="fas fa-plus"></i> Adicionar FunÃ§Ã£o
+                        <i class="fas fa-plus"></i> Adicionar Função
                     </button>
                 </form>
                 {% endif %}
@@ -373,9 +373,9 @@
         style="width: 80px; height: 80px; background: var(--bg-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
         <i class="fas fa-sitemap" style="font-size: 2rem; color: var(--text-muted);"></i>
     </div>
-    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Departamento nÃ£o
+    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Departamento não
         encontrado</h3>
-    <p style="color: var(--text-muted); margin: 0 auto;">O departamento solicitado nÃ£o existe ou foi recentemente
+    <p style="color: var(--text-muted); margin: 0 auto;">O departamento solicitado não existe ou foi recentemente
         removido do sistema.</p>
     <div style="margin-top: 2rem;">
         <a href="/tibl/gestao/departamentos/1" class="bt-primary"><i class="fas fa-arrow-left mr-2"></i> Voltar Ã 
@@ -389,7 +389,7 @@
 <div id="modal-add-membros" style="display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); padding:1rem;">
     <div style="background:white; border-radius:12px; width:100%; max-width:600px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.25); overflow:hidden;">
 
-        <!-- CabeÃ§alho do modal -->
+        <!-- Cabeçalho do modal -->
         <div style="display:flex; align-items:center; justify-content:space-between; padding:1.1rem 1.5rem; background:var(--primary); color:white; flex-shrink:0;">
             <span style="font-weight:700; font-size:1.05rem;"><i class="fas fa-user-plus" style="margin-right:0.5rem;"></i> Adicionar Membros ao Departamento</span>
             <button type="button" onclick="fecharModalMembros()" style="background:none; border:none; color:white; font-size:1.3rem; cursor:pointer; line-height:1; padding:0.2rem 0.4rem; border-radius:4px;" title="Fechar">&times;</button>
@@ -408,7 +408,7 @@
                         <input type="text" id="filtro-nome" placeholder="Pesquisar..." style="padding:0.4rem 0.6rem; border:1px solid #d1d5db; border-radius:6px; font-size:0.85rem; width:160px;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.2rem;">GÃ©nero</label>
+                        <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.2rem;">Género</label>
                         <select id="filtro-genero" style="padding:0.4rem 0.6rem; border:1px solid #d1d5db; border-radius:6px; font-size:0.85rem;">
                             <option value="">Todos</option>
                             <option value="M">Masculino</option>
@@ -416,11 +416,11 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.2rem;">Idade mÃ­n.</label>
+                        <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.2rem;">Idade mín.</label>
                         <input type="number" id="filtro-idade-min" min="0" max="120" placeholder="â€”" style="padding:0.4rem 0.6rem; border:1px solid #d1d5db; border-radius:6px; font-size:0.85rem; width:70px;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.2rem;">Idade mÃ¡x.</label>
+                        <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.2rem;">Idade máx.</label>
                         <input type="number" id="filtro-idade-max" min="0" max="120" placeholder="â€”" style="padding:0.4rem 0.6rem; border:1px solid #d1d5db; border-radius:6px; font-size:0.85rem; width:70px;">
                     </div>
                     <button type="button" onclick="limparFiltrosMembros()" style="padding:0.4rem 0.65rem; background:#e5e7eb; color:#374151; border:none; border-radius:6px; font-size:0.8rem; cursor:pointer;">
@@ -430,7 +430,7 @@
 
                 <!-- Contagem + seleccionar tudo -->
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-muted);">
-                    <span id="membros-visiveis-count">A carregarâ€¦</span>
+                    <span id="membros-visiveis-count">A carregar…</span>
                     <div style="display:flex; gap:0.4rem;">
                         <button type="button" onclick="selectAllMembros(true)" style="padding:0.2rem 0.55rem; background:#f0fdf4; color:var(--primary); border:1px solid #bbf7d0; border-radius:5px; font-size:0.75rem; cursor:pointer;">Todos</button>
                         <button type="button" onclick="selectAllMembros(false)" style="padding:0.2rem 0.55rem; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; border-radius:5px; font-size:0.75rem; cursor:pointer;">Nenhum</button>
@@ -450,13 +450,13 @@
                         </span>
                     </label>
                     {% empty %}
-                    <div style="padding:1rem; color:var(--text-muted); text-align:center;">Nenhum irmÃ£o registado.</div>
+                    <div style="padding:1rem; color:var(--text-muted); text-align:center;">Nenhum irmão registado.</div>
                     {% endfor %}
                 </div>
 
             </div>
 
-            <!-- RodapÃ©: cargo + botÃµes -->
+            <!-- Rodapé: cargo + botões -->
             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; padding:1rem 1.5rem; border-top:1px solid #e5e7eb; flex-shrink:0; background:#fafafa;">
                 <div style="display:flex; align-items:center; gap:0.6rem;">
                     <label style="font-size:0.85rem; color:var(--text-muted); white-space:nowrap;">Cargo:</label>
