@@ -14,7 +14,6 @@
     padding: 1.5rem;
   }
   .fc-event.recorrente {
-    /* cores geridas directamente no JSON feed — override residual */
     font-weight: 500;
   }
   .fc-toolbar-title {
@@ -33,6 +32,44 @@
   }
   .fc-day-today {
     background-color: rgba(27,77,62,0.06) !important;
+  }
+
+  /* ── Mobile optimizations ── */
+  @media (max-width: 768px) {
+    #calendar-wrapper {
+      padding: 0.5rem;
+      border-radius: 8px;
+    }
+    .fc-toolbar {
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .fc-toolbar-title {
+      font-size: 1rem !important;
+      text-align: center;
+    }
+    .fc-button {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.75rem !important;
+    }
+    .fc-button-group {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .fc-col-header-cell-cushion,
+    .fc-daygrid-day-number {
+      font-size: 0.75rem;
+    }
+    .fc-event-title,
+    .fc-event-time {
+      font-size: 0.72rem;
+    }
+    .fc-timegrid-slot {
+      height: 2rem !important;
+    }
+    .fc-list-event td {
+      padding: 0.4rem 0.5rem;
+    }
   }
 </style>
 {% endblock %}
@@ -76,12 +113,13 @@ document.addEventListener('DOMContentLoaded', function () {
   var calendarEl = document.getElementById('calendar');
   var calendar = new FullCalendar.Calendar(calendarEl, {
     locale: 'pt',
-    initialView: 'dayGridMonth',
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-    },
+    initialView: window.innerWidth < 768 ? 'listWeek' : 'timeGridWeek',
+    headerToolbar: window.innerWidth < 768
+      ? { left: 'prev,next', center: 'title', right: 'today' }
+      : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
+    footerToolbar: window.innerWidth < 768
+      ? { center: 'dayGridMonth,timeGridWeek,listWeek' }
+      : false,
     buttonText: {
       today: 'Hoje',
       month: 'Mês',
@@ -90,9 +128,25 @@ document.addEventListener('DOMContentLoaded', function () {
       list: 'Lista'
     },
     views: {
-      listWeek: { buttonText: 'Lista' }
+      listWeek: { buttonText: 'Lista' },
+      timeGridWeek: { buttonText: 'Semana' },
+      dayGridMonth: { buttonText: 'Mês' }
     },
     height: 'auto',
+    windowResize: function (view) {
+      var mobile = window.innerWidth < 768;
+      calendar.setOption('headerToolbar', mobile
+        ? { left: 'prev,next', center: 'title', right: 'today' }
+        : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' }
+      );
+      calendar.setOption('footerToolbar', mobile
+        ? { center: 'dayGridMonth,timeGridWeek,listWeek' }
+        : false
+      );
+      if (mobile && calendar.view.type === 'timeGridDay') {
+        calendar.changeView('listWeek');
+      }
+    },
     events: {
       url: '{{ feed_url }}',
       method: 'GET',

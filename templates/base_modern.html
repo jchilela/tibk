@@ -73,7 +73,7 @@
                 </a>
                 {% endif %}
 
-                {% if perms.sitetibl.view_irmao %}
+                {% if perms.sitetibl.change_irmao %}
                 <a href="/tibl/gestao/irmaos/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
                     <i class="fas fa-users fa-fw"></i> <span>Irmãos</span>
                 </a>
@@ -199,7 +199,7 @@
                 </a>
                 {% endif %}
 
-                <a href="{% url 'pagina_relatorios' %}" class="nav-item" target="_blank">
+                <a href="{% url 'pagina_relatorios' %}" class="nav-item">
                     <i class="fas fa-file-pdf fa-fw"></i> Relatórios PDF
                 </a>
 

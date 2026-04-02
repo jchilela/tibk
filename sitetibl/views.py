@@ -164,6 +164,10 @@ def index(request):
 
 @login_required
 def mostraGestao(request,gestaoescolhida,pagina):
+    if gestaoescolhida == 'irmaos' and not request.user.has_perm('sitetibl.change_irmao'):
+        messages.error(request, 'Acesso negado! Não tem permissão para consultar a gestão de irmãos.')
+        return redirect('index')
+
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'actividade__departamento', 'funcao', 'funcao__departamento'), 
              'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
              'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
@@ -212,6 +216,8 @@ def mostraGestao(request,gestaoescolhida,pagina):
             kwargs['moeda'] = moedav
 
         resultado = lista[gestaoescolhida].filter(**kwargs).order_by('id')
+    elif gestaoescolhida == 'mandatos':
+        resultado = lista[gestaoescolhida].exclude(funcao='membro').order_by('departamento__designacao', 'funcao', 'irmao__nome', 'irmao__apelido')
     elif (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].prefetch_related('mandato_set__departamento').all().order_by('nome','outrosnomes')
     elif gestaoescolhida == 'pedidosaida':
@@ -430,6 +436,10 @@ def mostraActualizacao(request, gestaoescolhida, id):
 @login_required
 @login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
+    if gestaoescolhida == 'irmaos' and not request.user.has_perm('sitetibl.change_irmao'):
+        messages.error(request, 'Acesso negado! Não tem permissão para consultar detalhes de irmãos.')
+        return redirect('index')
+
     lista_qs = {
         'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'),
         'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'),
@@ -3119,12 +3129,14 @@ def dashboard(request):
     tem_celula = False
     if irmao_obj:
         tem_celula = irmao_obj.celula is not None
-        minhas_escalas_list = (
+        minhas_escalas_base = (
             Escala.objects
-            .filter(irmao=irmao_obj, actividade__data__gte=hoje)
-            .select_related('actividade__designacao', 'funcao')
-            .order_by('actividade__data')[:5]
+            .filter(irmao=irmao_obj)
+            .select_related('actividade', 'actividade__designacao', 'actividade__localactividade', 'funcao')
+            .order_by('-id')
         )
+        minhas_escalas_futuras, _ = _normalizar_escalas_por_ocorrencia(minhas_escalas_base, hoje)
+        minhas_escalas_list = minhas_escalas_futuras[:5]
 
     # Aniversariantes do mês (apenas de hoje em diante)
     aniversariantes_qs = (
@@ -3225,6 +3237,81 @@ def dashboard(request):
 def root_redirect(request):
     return redirect('dashboard')
 
+
+def _normalizar_escalas_por_ocorrencia(escalas, hoje):
+    """
+    Para escalas ligadas a actividade-pai recorrente, usa a ocorrência-filho
+    relevante para exibição (próxima futura ou mais recente passada).
+    """
+    import datetime as _dt
+
+    escalas = list(escalas)
+    if not escalas:
+        return [], []
+
+    parent_ids = {
+        escala.actividade_id
+        for escala in escalas
+        if escala.actividade_id and escala.actividade and escala.actividade.is_recorrente and escala.actividade.parent_event_id is None
+    }
+
+    filhos_por_pai = {}
+    if parent_ids:
+        filhos = (
+            Actividade.objects
+            .select_related('designacao', 'localactividade')
+            .filter(parent_event_id__in=parent_ids)
+            .order_by('data', 'inicio', 'id')
+        )
+        for filho in filhos:
+            filhos_por_pai.setdefault(filho.parent_event_id, []).append(filho)
+
+    escalas_futuras = []
+    escalas_passadas = []
+    seen_keys = set()
+
+    for escala in escalas:
+        actividade = escala.actividade
+        actividade_exibicao = actividade
+
+        if actividade and actividade.id in filhos_por_pai:
+            filhos = filhos_por_pai[actividade.id]
+            proxima = next((f for f in filhos if f.data and f.data >= hoje), None)
+            actividade_exibicao = proxima if proxima is not None else (filhos[-1] if filhos else actividade)
+
+        escala.actividade = actividade_exibicao
+        dedupe_key = (
+            actividade_exibicao.id if actividade_exibicao else None,
+            escala.funcao_id,
+        )
+        if dedupe_key in seen_keys:
+            continue
+        seen_keys.add(dedupe_key)
+
+        data_ref = actividade_exibicao.data if actividade_exibicao and actividade_exibicao.data else hoje
+        if data_ref >= hoje:
+            escalas_futuras.append(escala)
+        else:
+            escalas_passadas.append(escala)
+
+    escalas_futuras.sort(
+        key=lambda e: (
+            e.actividade.data if e.actividade and e.actividade.data else hoje,
+            e.actividade.inicio if e.actividade and e.actividade.inicio else _dt.time(0, 0),
+            e.id,
+        )
+    )
+    escalas_passadas.sort(
+        key=lambda e: (
+            e.actividade.data if e.actividade and e.actividade.data else hoje,
+            e.actividade.inicio if e.actividade and e.actividade.inicio else _dt.time(0, 0),
+            e.id,
+        ),
+        reverse=True,
+    )
+
+    return escalas_futuras, escalas_passadas
+
 @login_required
 def minhas_escalas(request):
     from datetime import date as dt_date
@@ -3245,8 +3332,8 @@ def minhas_escalas(request):
         'actividade__localactividade',
         'funcao',
     )
-    escalas_futuras = base_qs.filter(actividade__data__gte=hoje).order_by('actividade__data', 'actividade__inicio')
-    escalas_passadas = base_qs.filter(actividade__data__lt=hoje).order_by('-actividade__data', '-actividade__inicio')[:20]
+    escalas_futuras, escalas_passadas = _normalizar_escalas_por_ocorrencia(base_qs, hoje)
+    escalas_passadas = escalas_passadas[:20]
 
     context = {
         'escalas_futuras': escalas_futuras,
@@ -3265,7 +3352,7 @@ def escalar_em_massa(request, actividade_id):
             actividade = get_object_or_404(Actividade, id=actividade_id)
             funcao = get_object_or_404(Funcao, id=funcao_id)
             
-            novas_escalas = []
+            novos = 0
             ids_processados = set()
             
             for irmao_id in irmaos_ids:
@@ -3275,15 +3362,18 @@ def escalar_em_massa(request, actividade_id):
                 
                 # Evitar que o membro seja escalado duas vezes na mesma Actividade (mesmo que com funções diferentes)
                 if not Escala.objects.filter(actividade=actividade, irmao_id=irmao_id).exists():
-                    novas_escalas.append(Escala(
-                        actividade=actividade,
-                        irmao_id=irmao_id,
-                        funcao=funcao
-                    ))
-            
-            if novas_escalas:
-                Escala.objects.bulk_create(novas_escalas)
-                messages.success(request, f'{len(novas_escalas)} irmãos escalados para {funcao.designacao} com sucesso!')
+                    try:
+                        Escala.objects.create(
+                            actividade=actividade,
+                            irmao_id=irmao_id,
+                            funcao=funcao,
+                        )
+                        novos += 1
+                    except IntegrityError:
+                        continue
+
+            if novos:
+                messages.success(request, f'{novos} irmãos escalados para {funcao.designacao} com sucesso!')
             else:
                 messages.info(request, 'As pessoas selecionadas já estavam escaladas para esta actividade.')
                 
@@ -3360,6 +3450,17 @@ def actividades_feed(request):
             Q(recorrencia_fim__isnull=True) | Q(recorrencia_fim__gte=start)
         )
     )
+    parent_ids = [p.id for p in parents]
+    child_map = {}
+    if parent_ids:
+        children = (
+            Actividade.objects
+            .filter(parent_event_id__in=parent_ids, data__range=(start, end))
+            .only('id', 'parent_event_id', 'data')
+        )
+        for child in children:
+            child_map[(child.parent_event_id, child.data)] = child.id
+
     for parent in parents:
         hora_inicio = parent.inicio or _dt.time(0, 0)
         hora_fim = parent.fim or _dt.time(23, 59)
@@ -3401,12 +3502,13 @@ def actividades_feed(request):
             if occ_date > end:
                 break
             fim_dt = occ_dt + dur
+            occurrence_id = child_map.get((parent.pk, occ_date), parent.pk)
             events.append({
                 'id': f'r{parent.pk}_{occ_date.isoformat()}',
                 'title': f'\u21bb {parent.designacao}',
                 'start': occ_dt.strftime('%Y-%m-%dT%H:%M:%S'),
                 'end': fim_dt.strftime('%Y-%m-%dT%H:%M:%S'),
-                'url': f'/tibl/actividades/detalhe/{parent.pk}/',
+                'url': f'/tibl/actividades/detalhe/{occurrence_id}/',
                 'backgroundColor': '#0369a1',
                 'borderColor': '#075985',
                 'textColor': '#ffffff',
