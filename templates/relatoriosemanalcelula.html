@@ -17,23 +17,25 @@
 
     <!-- Filter Section (Simplified & Modern) -->
     <div class="modern-card" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);">
-        <form action="/tibl/buscarelatoriosemanalcelula" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 1rem; align-items: end;">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nome da Célula</label>
-                <input type="text" name="nomev" class="modern-input" placeholder="Ex: Célula Betel..." style="padding: 0.6rem;">
+        <form action="/tibl/buscarelatoriosemanalcelula" method="GET">
+            <div style="display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
+                    <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Nome da Célula</label>
+                    <input type="text" name="nomev" class="modern-input" placeholder="Célula Betel..." style="padding: 0.5rem 0.75rem;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
+                    <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Líder</label>
+                    <input type="text" name="liderv" class="modern-input" placeholder="Nome do líder..." style="padding: 0.5rem 0.75rem;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
+                    <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Local / Tema</label>
+                    <input type="text" name="localv" class="modern-input" placeholder="Local ou tema..." style="padding: 0.5rem 0.75rem;">
+                </div>
+                <input type="hidden" name="pagina" value="1">
+                <button type="submit" class="bt-primary" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
+                    <i class="fas fa-search" style="margin-right: 0.4rem;"></i> Pesquisar
+                </button>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Líder</label>
-                <input type="text" name="liderv" class="modern-input" placeholder="Nome do líder..." style="padding: 0.6rem;">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Local / Tema</label>
-                <input type="text" name="localv" class="modern-input" placeholder="Local ou Tema..." style="padding: 0.6rem;">
-            </div>
-            <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="height: 42px; padding: 0 1.5rem;">
-                <i class="fas fa-search"></i>
-            </button>
         </form>
     </div>
 

@@ -1163,15 +1163,19 @@ def encontraIrmao(request):
 
 @login_required
 def encontraRelatorioSemanalCelula(request):
-    nomev = request.GET['nomev']
-    liderv = request.GET['liderv']
-    localv = request.GET['localv']
-    temav = request.GET['temav']
-    kwargs= {'nome_celula__icontains':nomev, 
-             'lider_responsavel__icontains' : liderv, 
+    nomev = request.GET.get('nomev', '').strip()
+    liderv = request.GET.get('liderv', '').strip()
+    localv = request.GET.get('localv', '').strip()
+    temav = request.GET.get('temav', '').strip()
+
+    if not any([nomev, liderv, localv, temav]):
+        return redirect('/tibl/gestao/relatoriosemanalcelula/1')
+
+    kwargs= {'nome_celula__designacao__icontains': nomev, 
+             'lider_responsavel__nome__icontains': liderv, 
              'local_reuniao__icontains' : localv, 
              'tema_palavra__icontains' : temav }
-    pagina= request.GET['pagina']
+    pagina= request.GET.get('pagina', 1)
     resultado = RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)

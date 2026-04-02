@@ -45,7 +45,9 @@
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <div style="font-size: 0.85rem; color: var(--text-muted);">{{ x.inicio|date:"Y"|default:x.inicio }} - {{ x.fim|date:"Y"|default:x.fim|default:"Presente" }}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">
+                            {% if x.inicio %}{{ x.inicio|date:"Y" }}{% else %}—{% endif %} - {% if x.fim %}{{ x.fim|date:"Y" }}{% else %}Presente{% endif %}
+                        </div>
                     </td>
                     <td style="text-align: right;">
                         <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">

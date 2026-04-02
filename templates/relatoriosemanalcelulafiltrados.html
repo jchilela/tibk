@@ -1,105 +1,120 @@
 {% extends 'index.html' %}
-{% block RelatorioSemanalCelulaFiltrados %}
+{% block Relatoriosemanalcelulafiltrados %}
 
-<div class="list-container" style="animation: fadeInUp 0.4s ease-out; padding-bottom: 3rem;">
-    <!-- Refined Header -->
-    <div
-        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1.5rem; background: white; padding: 2rem; border-radius: var(--radius-xl); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;">
-        <div style="display: flex; gap: 1.5rem; align-items: center;">
-            <div
-                style="width: 54px; height: 54px; background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 8px 16px rgba(46,125,50,0.25);">
-                <i class="fas fa-search"></i>
-            </div>
-            <div>
-                <h2
-                    style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.25rem;">
-                    Resultados da Busca</h2>
-                <p style="color: var(--text-muted); font-size: 0.95rem; font-weight: 500;">Exibindo os relatórios de
-                    célula compatíveis com os filtros.</p>
-            </div>
+<div class="list-container animate-fade-in-up">
+
+    {# ── Cabeçalho ── #}
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.75rem; color: var(--text-main); letter-spacing: -0.5px; margin-bottom: 0.25rem;">
+                <i class="fas fa-search" style="color: var(--primary); font-size: 1.4rem; margin-right: 0.5rem;"></i>
+                Resultados da Pesquisa
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Relatórios de células correspondentes aos filtros aplicados.</p>
         </div>
-        <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-secondary"
-            style="padding: 0.75rem 1.5rem; border-radius: 100px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
-            <i class="fas fa-undo mr-2"></i> Limpar Filtros
+        <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar à Lista
         </a>
     </div>
 
-    {% if bb %}
-    <div class="modern-card"
-        style="padding: 0; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
-        <div class="modern-table-container" style="box-shadow: none; border-radius: 0; border: none;">
-            <table class="modern-table" style="min-width: 600px;">
-                <thead>
-                    <tr>
-                        <th
-                            style="padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; color: var(--text-secondary);">
-                            Nome da Célula</th>
-                        <th
-                            style="padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; color: var(--text-secondary);">
-                            Líder Responsável</th>
-                        <th
-                            style="text-align: right; padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; color: var(--text-secondary);">
-                            Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for x in bb %}
-                    <tr style="transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#f8fafc';"
-                        onmouseout="this.style.backgroundColor='transparent';">
-                        <td style="padding: 1.25rem; border-bottom: 1px solid #f1f5f9;">
-                            <div
-                                style="font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 0.75rem; font-size: 1rem;">
-                                <div
-                                    style="width: 32px; height: 32px; border-radius: 8px; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                {{ x.nome_celula }}
-                            </div>
-                        </td>
-                        <td style="padding: 1.25rem; border-bottom: 1px solid #f1f5f9;">
-                            <div
-                                style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="fas fa-user-circle text-muted" style="font-size: 1.1rem;"></i>
-                                {{ x.lider_responsavel }}
-                            </div>
-                        </td>
-                        <td style="text-align: right; padding: 1.25rem; border-bottom: 1px solid #f1f5f9;">
-                            <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary"
-                                style="padding: 0.5rem 1rem; font-size: 0.85rem; background: white; color: var(--primary); border: 1.5px solid var(--primary-100); box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease;"
-                                onmouseover="this.style.background='var(--primary-50)'; this.style.borderColor='var(--primary-light)';"
-                                onmouseout="this.style.background='white'; this.style.borderColor='var(--primary-100)';">
-                                <i class="fas fa-external-link-alt mr-2"></i> Detalhes
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    {# ── Painel de Pesquisa ── #}
+    <div class="modern-card" style="margin-bottom: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.95)); backdrop-filter: blur(10px); border: 1px solid var(--border-color);">
+        <p style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 1rem;">
+            <i class="fas fa-filter" style="margin-right: 0.4rem;"></i> Refinar Pesquisa
+        </p>
+        <form action="/tibl/buscarelatoriosemanalcelula" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 1rem; align-items: end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.4rem;">Nome da Célula</label>
+                <input type="text" name="nomev" class="modern-input" placeholder="Ex: Célula Betel..." style="padding: 0.6rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.4rem;">Líder</label>
+                <input type="text" name="liderv" class="modern-input" placeholder="Nome do líder..." style="padding: 0.6rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.4rem;">Local / Tema</label>
+                <input type="text" name="localv" class="modern-input" placeholder="Local ou tema..." style="padding: 0.6rem;">
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="height: 42px; padding: 0 1.5rem; white-space: nowrap;">
+                <i class="fas fa-search" style="margin-right: 0.4rem;"></i> Pesquisar
+            </button>
+        </form>
     </div>
 
-    <div
-        style="margin-top: 2rem; background: white; padding: 1.5rem; border-radius: var(--radius-xl); box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;">
+    {# ── Resultados ── #}
+    {% if bb.object_list %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Nome da Célula</th>
+                    <th>Líder Responsável</th>
+                    <th>Local da Reunião</th>
+                    <th>Data da Reunião</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 34px; height: 34px; border-radius: 8px; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; color: var(--primary-dark); font-size: 0.95rem;">{{ x.nome_celula }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main); font-weight: 500;">
+                            <i class="fas fa-user-circle" style="color: var(--text-muted);"></i>
+                            {{ x.lider_responsavel }}
+                        </div>
+                    </td>
+                    <td>
+                        <span style="background: var(--bg-main); padding: 0.3rem 0.7rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-secondary);">
+                            <i class="fas fa-map-marker-alt" style="font-size: 0.75rem; margin-right: 0.3rem; color: var(--primary);"></i>
+                            {{ x.local_reuniao|default:"—" }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                            <i class="fas fa-calendar-alt" style="font-size: 0.8rem; margin-right: 0.3rem; color: var(--primary);"></i>
+                            {{ x.data_reuniao|date:"d/m/Y" }}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary"
+                            style="padding: 0.45rem 1rem; font-size: 0.85rem;">
+                            <i class="fas fa-file-alt"></i> Ver Relatório
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 2rem;">
         {% include 'paginacao.html' %}
     </div>
-    {% else %}
-    <div class="modern-card"
-        style="text-align: center; padding: 5rem 2rem; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">
-        <div
-            style="width: 80px; height: 80px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #94a3b8; font-size: 2.5rem;">
-            <i class="fas fa-search-minus"></i>
-        </div>
-        <h3 style="color: var(--text-main); margin-bottom: 0.75rem; font-size: 1.25rem; font-weight: 700;">Nenhum
-            relatório encontrado</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto 2rem;">A pesquisa não
-            retornou resultados para os filtros que aplicou. Tente alterar os critérios de busca.</p>
 
-        <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-primary"
-            style="padding: 0.75rem 2rem; border-radius: 100px;">
-            Ver Todos os Registos
-        </a>
+    {% else %}
+    <div class="modern-card animate-fade-in" style="text-align: center; padding: 5rem 2rem; border: 2px dashed var(--border-color);">
+        <div style="width: 80px; height: 80px; background: var(--bg-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+            <i class="fas fa-search" style="font-size: 2rem; color: var(--text-muted);"></i>
+        </div>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Nenhuma célula encontrada</h3>
+        <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;">Não encontrámos nenhum relatório com os critérios fornecidos. Tente ajustar os filtros de pesquisa acima.</p>
+        <div style="margin-top: 2rem;">
+            <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-primary">Ver todos os relatórios</a>
+        </div>
     </div>
     {% endif %}
+
 </div>
 
-{% endblock %}
+{% endblock Relatoriosemanalcelulafiltrados %}

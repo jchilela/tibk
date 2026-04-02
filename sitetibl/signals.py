@@ -146,7 +146,9 @@ def _enviar_credenciais_email(irmao, username, password):
         msg = EmailMultiAlternatives(
             subject='Bem-vindo ao sistema TIBL — As suas credenciais de acesso',
             body=f'Olá {irmao.nome}, o seu acesso ao TIBL foi criado. '
-                 f'Utilizador: {username} | Palavra-passe temporária: {password}',
+                 f'Utilizador: {username} | Palavra-passe temporária: {password} '
+                 f'| Aceda em: https://gestao.tibl.ao',
+
             from_email=None,  # usa DEFAULT_FROM_EMAIL do settings
             to=[irmao.email],
         )
@@ -163,7 +165,8 @@ def _enviar_credenciais_sms(irmao, username, password):
     mensagem = (
         f'TIBL - Bem-vindo {irmao.nome}! '
         f'Utilizador: {username} | Senha: {password} '
-        f'Altere a senha no primeiro acesso.'
+        f'Altere a senha no primeiro acesso. '
+        f'Aceda em: https://gestao.tibl.ao'
     )
     sms_data = {
         'message': {
