@@ -17,7 +17,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 import sitetibl.views
 
 urlpatterns = [
@@ -30,6 +30,9 @@ urlpatterns = [
 
     # django-scheduler (iCal + JSON feeds)
     path('schedule/', include('schedule.urls')),
+
+    # Documentação do utilizador
+    re_path(r'^documentacao/(?P<path>.*)$', sitetibl.views.serve_documentacao, name='documentacao'),
 
     # Root redirect
     path('', sitetibl.views.root_redirect, name='index'),

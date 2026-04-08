@@ -38,6 +38,9 @@ from django.shortcuts import redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+import mimetypes
+from pathlib import Path
+from django.http import FileResponse, Http404
 
 #from django.db.models import Count
 
@@ -3425,3 +3428,24 @@ def actividades_calendario(request):
         return redirect('sitetibl:comeco')
     feed_url = '/tibl/api/actividades/feed/'
     return render(request, 'actividades_calendario.html', {'feed_url': feed_url})
+
+# ---------------------------------------------------------------------------
+# Documentação do utilizador — serve o site estático gerado pelo ProperDocs
+# ---------------------------------------------------------------------------
+def serve_documentacao(request, path=''):
+    site_dir = Path(settings.BASE_DIR) / 'docs' / 'site'
+
+    file_path = site_dir / path if path else site_dir / 'index.html'
+
+    # Directórios → tentar index.html dentro deles
+    if file_path.is_dir():
+        file_path = file_path / 'index.html'
+
+    if not file_path.exists() or not file_path.is_file():
+        raise Http404
+
+    content_type, _ = mimetypes.guess_type(str(file_path))
+    return FileResponse(
+        open(file_path, 'rb'),
+        content_type=content_type or 'application/octet-stream',
+    )

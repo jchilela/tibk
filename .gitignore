@@ -39,6 +39,9 @@ ambivirtual.tar
 */*.bak
 */*.bak1
 
+# ProperDocs — site gerado (não commitar)
+docs/site/
+
 # IDEs
 .vscode/
 .idea/
