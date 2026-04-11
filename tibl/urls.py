@@ -17,7 +17,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 import sitetibl.views
 
 urlpatterns = [
@@ -36,6 +36,7 @@ urlpatterns = [
 
     # Dashboards
     path('dashboard/', sitetibl.views.dashboard, name='dashboard'),
+    re_path(r'^documentacao/(?P<path>.*)$', sitetibl.views.serve_documentacao, name='documentacao'),
     path('dashboard/as-minhas-escalas/', sitetibl.views.minhas_escalas, name='minhas_escalas'),
     path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos, name='dashboard_irmaos'),
     path('dashboard/orcamento-departamento', sitetibl.views.dashboardOrcamentoDepartamento, name='dashboard_orcamento_departamento'),

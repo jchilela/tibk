@@ -2,7 +2,7 @@
 from django.contrib import admin, messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaulttags import register
-from django.http import HttpResponseRedirect
+from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
@@ -38,6 +38,8 @@ from django.shortcuts import redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from pathlib import Path
+import mimetypes
 
 #from django.db.models import Count
 
@@ -3315,6 +3317,23 @@ def _normalizar_escalas_por_ocorrencia(escalas, hoje):
     )
 
     return escalas_futuras, escalas_passadas
+
+def serve_documentacao(request, path=''):
+    site_dir = Path(settings.BASE_DIR) / 'docs' / 'site'
+    file_path = site_dir / path if path else site_dir / 'index.html'
+
+    if file_path.is_dir():
+        file_path = file_path / 'index.html'
+
+    if not file_path.exists() or not file_path.is_file():
+        raise Http404
+
+    content_type, _ = mimetypes.guess_type(str(file_path))
+    return FileResponse(
+        open(file_path, 'rb'),
+        content_type=content_type or 'application/octet-stream',
+    )
+
 
 @login_required
 def minhas_escalas(request):
