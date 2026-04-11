@@ -1,0 +1,544 @@
+/* =========================================================================
+   TIBL Docs — Visual override to match the main site design system
+   ========================================================================= */
+
+/* Google Fonts — same as base_modern.html */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&family=Outfit:wght@700&display=swap');
+
+/* Bootstrap 5 CSS variable overrides
+   Must target both :root AND [data-bs-theme=light] (set on <html>),
+   which Bootstrap uses with higher specificity. */
+:root,
+[data-bs-theme="light"],
+[data-bs-theme] {
+    --bs-primary: #1b4d3e;
+    --bs-primary-rgb: 27, 77, 62;
+    --bs-link-color: #2d6a4f;
+    --bs-link-hover-color: #1b4d3e;
+    --bs-link-color-rgb: 45, 106, 79;
+    --bs-body-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    --bs-body-color: #1a2332;
+    --bs-body-bg: #f8fafc;
+    --tibl-surface: #ffffff;
+    --tibl-surface-soft: #f4f8f6;
+    --tibl-border: rgba(15, 23, 42, 0.08);
+    --tibl-muted: #5f7285;
+    --tibl-heading: #16352b;
+    --tibl-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+/* Base typography */
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #1a2332;
+    background-color: #f8fafc;
+    line-height: 1.75;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Page layout */
+.container {
+    max-width: 1320px;
+}
+
+[role="main"] {
+    background: var(--tibl-surface);
+    border: 1px solid var(--tibl-border);
+    border-radius: 24px;
+    box-shadow: var(--tibl-shadow);
+    padding: 2.5rem 3rem 3rem;
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+}
+
+@media (max-width: 991.98px) {
+    [role="main"] {
+        padding: 1.5rem 1.25rem 2rem;
+        border-radius: 18px;
+    }
+}
+
+/* ---- Navbar ---- */
+/* Bootstrap defines a second .bg-primary rule with a hardcoded blue gradient
+   via background-image, which overrides background-color. Must override both. */
+.navbar.bg-primary,
+.bg-primary {
+    background-image: none !important;
+    background-color: #0f172a !important;
+    border-bottom: 1px solid rgba(45, 106, 79, 0.4);
+}
+
+.navbar-brand {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.12rem;
+    letter-spacing: 0.02em;
+    color: #ffffff !important;
+}
+
+.navbar .nav-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.93rem;
+    font-weight: 500;
+    transition: color 150ms ease;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+    color: #ffffff !important;
+}
+
+/* Active nav item indicator */
+.navbar .nav-link.active {
+    border-bottom: 2px solid #3f8a68;
+    padding-bottom: 2px;
+}
+
+/* ---- Sidebar / TOC ---- */
+.bs-sidebar {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.93rem;
+    margin-top: 2rem;
+}
+
+.bs-sidebar .nav-link {
+    color: #455a6e;
+    padding: 0.45rem 0.75rem;
+    border-radius: 10px;
+    transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.bs-sidebar .nav-link:hover {
+    background: #f0fdf4;
+    color: #1b4d3e;
+    transform: translateX(2px);
+}
+
+.bs-sidebar .nav-link.active {
+    color: #1b4d3e;
+    font-weight: 600;
+    background: #dcfce7;
+}
+
+.bs-sidebar .navbar-brand,
+.bs-sidebar .nav-header {
+    color: var(--tibl-heading);
+}
+
+/* ---- Headings ---- */
+h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
+    color: var(--tibl-heading);
+    font-size: clamp(2rem, 3.2vw, 2.7rem);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgba(27, 77, 62, 0.12);
+}
+
+.doc-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.8fr);
+    gap: 2rem;
+    align-items: center;
+    background: linear-gradient(135deg, #f7fbf8 0%, #eef5f0 100%);
+    border: 1px solid rgba(27, 77, 62, 0.1);
+    border-radius: 26px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.doc-hero__eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #2d6a4f;
+    margin-bottom: 0.85rem;
+}
+
+.doc-hero__intro {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.4rem, 2vw, 1.95rem);
+    line-height: 1.35;
+    color: var(--tibl-heading);
+    margin-bottom: 0.9rem;
+}
+
+.doc-hero__summary {
+    color: #506476;
+    max-width: 62ch;
+    margin-bottom: 1.2rem;
+}
+
+.doc-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.doc-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1rem;
+    border-radius: 999px;
+    background: #1b4d3e;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 700;
+    box-shadow: 0 10px 20px rgba(27, 77, 62, 0.18);
+}
+
+.doc-pill:hover {
+    color: #fff;
+    text-decoration: none;
+    background: #163f33;
+}
+
+.doc-pill--muted {
+    background: #e8f1eb;
+    color: #1b4d3e;
+    box-shadow: none;
+}
+
+.doc-pill--muted:hover {
+    color: #1b4d3e;
+    background: #ddebe1;
+}
+
+.doc-hero__media {
+    text-align: center;
+}
+
+.doc-hero__media img {
+    margin: 0 auto 0.75rem;
+    max-width: 190px;
+}
+
+.doc-caption {
+    text-align: center;
+    color: var(--tibl-muted);
+    font-size: 0.92rem;
+    margin: 0;
+}
+
+h2, h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    color: var(--tibl-heading);
+}
+
+h2 {
+    font-size: 1.55rem;
+    margin-top: 2.4rem;
+    margin-bottom: 0.85rem;
+}
+
+h3 {
+    font-size: 1.15rem;
+    margin-top: 1.6rem;
+    margin-bottom: 0.65rem;
+}
+
+h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: #2d6a4f;
+}
+
+p {
+    margin-bottom: 1rem;
+    color: #203040;
+    font-size: 1rem;
+}
+
+ul,
+ol {
+    margin-bottom: 1.1rem;
+    padding-left: 1.35rem;
+}
+
+ol {
+    background: linear-gradient(180deg, #fbfcfb 0%, #f6faf7 100%);
+    border: 1px solid rgba(27, 77, 62, 0.08);
+    border-radius: 16px;
+    padding: 1rem 1.2rem 1rem 2rem;
+}
+
+ul {
+    padding-left: 1.2rem;
+}
+
+li {
+    margin-bottom: 0.45rem;
+    padding-left: 0.1rem;
+}
+
+ol li {
+    padding: 0.2rem 0;
+}
+
+strong {
+    color: #10281f;
+    font-weight: 700;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    margin: 2rem 0;
+}
+
+/* ---- Links ---- */
+a {
+    color: #2d6a4f;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+a:hover {
+    color: #1b4d3e;
+    text-decoration: underline;
+}
+
+/* ---- Lead image and captions ---- */
+[role="main"] img {
+    display: block;
+    max-width: min(220px, 100%);
+    width: 100%;
+    height: auto;
+    margin: 1.25rem auto 0.75rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f5faf7, #edf5ef);
+    border: 1px solid rgba(27, 77, 62, 0.08);
+    box-shadow: 0 12px 30px rgba(27, 77, 62, 0.12);
+    padding: 1rem;
+}
+
+[role="main"] img + em {
+    display: block;
+    text-align: center;
+    color: var(--tibl-muted);
+    font-size: 0.92rem;
+    margin-bottom: 1.5rem;
+}
+
+.doc-grid {
+    display: grid;
+    gap: 1rem;
+    margin: 1.25rem 0 1.5rem;
+}
+
+.doc-grid--cards {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.doc-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 1rem 1.05rem;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid rgba(27, 77, 62, 0.1);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    min-height: 132px;
+}
+
+.doc-card strong {
+    color: var(--tibl-heading);
+    font-size: 1rem;
+}
+
+.doc-card span {
+    color: #576b7d;
+    font-size: 0.94rem;
+    font-weight: 500;
+}
+
+.doc-card:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+}
+
+/* ---- Code blocks ---- */
+pre, code {
+    font-size: 0.875rem;
+    border-radius: 10px;
+}
+
+pre {
+    background: #f8fafc;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 1rem;
+}
+
+code {
+    background: #eef5f0;
+    color: #16352b;
+    padding: 0.12rem 0.35rem;
+}
+
+/* ---- Blockquotes ---- */
+blockquote {
+    border-left: 4px solid #2d6a4f;
+    background: var(--tibl-surface-soft);
+    margin: 1.25rem 0;
+    padding: 0.9rem 1rem;
+    border-radius: 0 12px 12px 0;
+}
+
+blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* ---- Admonition / Note boxes ---- */
+.admonition {
+    border-radius: 14px;
+    border-left: 4px solid #2d6a4f;
+    background: #f0fdf4;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    box-shadow: inset 0 0 0 1px rgba(45, 106, 79, 0.06);
+}
+
+.admonition.note {
+    border-left-color: #2d6a4f;
+    background: #eef8f1;
+}
+
+.admonition.tip {
+    border-left-color: #2563eb;
+    background: #eff6ff;
+}
+
+.admonition.tip .admonition-title {
+    color: #1d4ed8;
+}
+
+.admonition-title {
+    font-weight: 700;
+    color: #1b4d3e;
+    margin-bottom: 0.5rem;
+}
+
+.admonition.warning {
+    border-left-color: #a16207;
+    background: #fefce8;
+}
+
+.admonition.warning .admonition-title { color: #a16207; }
+
+.admonition.danger {
+    border-left-color: #be123c;
+    background: #fff1f2;
+}
+
+.admonition.danger .admonition-title { color: #be123c; }
+
+/* ---- Tables ---- */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.25rem 0;
+    font-size: 0.95rem;
+    overflow: hidden;
+    border-radius: 14px;
+}
+
+th {
+    background: #1b4d3e;
+    color: #ffffff;
+    padding: 0.65rem 1rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    vertical-align: top;
+}
+
+tr:nth-child(even) td {
+    background: #f0fdf4;
+}
+
+tr:hover td {
+    background: #dcfce7;
+}
+
+/* ---- Footer ---- */
+footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 1.5rem 0;
+    color: #8fa3b1;
+    font-size: 0.8rem;
+}
+
+/* ---- Content polish ---- */
+[role="main"] > p:first-of-type {
+    font-size: 1.08rem;
+    color: #3c5165;
+}
+
+[role="main"] h2 + p,
+[role="main"] h3 + p {
+    color: #485d70;
+}
+
+[role="main"] ul li::marker,
+[role="main"] ol li::marker {
+    color: #2d6a4f;
+    font-weight: 700;
+}
+
+@media (max-width: 991.98px) {
+    .doc-hero {
+        grid-template-columns: 1fr;
+        padding: 1.35rem;
+    }
+
+    .doc-hero__media {
+        order: -1;
+    }
+
+    .doc-hero__actions {
+        flex-direction: column;
+    }
+
+    .doc-pill {
+        width: 100%;
+    }
+}
+
+/* ---- Buttons (nav arrows etc.) ---- */
+.btn-primary {
+    background-color: #1b4d3e;
+    border-color: #1b4d3e;
+}
+
+.btn-primary:hover {
+    background-color: #164032;
+    border-color: #164032;
+}
+
+/* ---- Search modal ---- */
+.modal-header {
+    background: #0f172a;
+    color: #ffffff;
+}
+
+.modal-header .btn-close {
+    filter: invert(1);
+}
