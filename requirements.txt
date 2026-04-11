@@ -25,3 +25,4 @@ django-crontab == 0.7.1
 celery == 5.4.0
 django-celery-beat==2.8.1
 python-dotenv==1.0.0
+Markdown==3.7

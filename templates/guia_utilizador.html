@@ -1,0 +1,713 @@
+{% extends "base_modern.html" %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Guia do Utilizador{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manual-wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding-bottom: 3rem;
+    }
+
+    .manual-cover {
+        margin-bottom: 2rem;
+        padding: 2.2rem 2.4rem;
+        border-radius: var(--radius-xl);
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .manual-cover::before {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        right: -80px;
+        top: -90px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .manual-cover > div {
+        position: relative;
+        z-index: 1;
+    }
+
+    .manual-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        opacity: 0.75;
+        margin-bottom: 0.45rem;
+    }
+
+    .manual-cover h1 {
+        margin: 0 0 0.55rem;
+        color: white;
+        font-family: 'Outfit', sans-serif;
+        font-size: 2rem;
+    }
+
+    .manual-cover p {
+        margin: 0;
+        max-width: 720px;
+        line-height: 1.8;
+        opacity: 0.92;
+    }
+
+    .manual-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--radius-lg);
+        padding: 1.4rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .manual-card h2,
+    .manual-card h3 {
+        margin-top: 0;
+        color: var(--primary-dark);
+        font-family: 'Outfit', sans-serif;
+    }
+
+    .manual-card h2 {
+        font-size: 1.15rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .manual-card h3 {
+        font-size: 1rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .manual-card p {
+        color: var(--text-muted);
+        line-height: 1.8;
+        margin: 0 0 0.85rem;
+    }
+
+    .manual-index {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.7rem;
+    }
+
+    .manual-index a {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        color: var(--text-main);
+        font-size: 0.88rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .manual-index a:hover {
+        text-decoration: none;
+        border-color: var(--primary);
+        background: var(--primary-50);
+        color: var(--primary-dark);
+    }
+
+    .manual-index i {
+        color: var(--primary);
+        width: 18px;
+        text-align: center;
+    }
+
+    .manual-section {
+        scroll-margin-top: 1.5rem;
+    }
+
+    .manual-section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .manual-section-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--primary);
+        flex-shrink: 0;
+    }
+
+    .manual-section-header h2 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .manual-steps {
+        margin: 0.7rem 0 1rem 0;
+        padding-left: 1.2rem;
+        color: var(--text-muted);
+    }
+
+    .manual-steps li {
+        margin-bottom: 0.55rem;
+        line-height: 1.75;
+        padding-left: 0.2rem;
+    }
+
+    .manual-list {
+        margin: 0.65rem 0 1rem 0;
+        padding-left: 1.2rem;
+        color: var(--text-muted);
+    }
+
+    .manual-list li {
+        margin-bottom: 0.45rem;
+        line-height: 1.7;
+    }
+
+    .manual-note,
+    .manual-warning {
+        padding: 0.8rem 0.95rem;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+        margin-top: 0.9rem;
+        font-size: 0.86rem;
+        line-height: 1.65;
+    }
+
+    .manual-note {
+        background: rgba(16, 185, 129, 0.08);
+        border-left: 3px solid #10b981;
+        color: #065f46;
+    }
+
+    .manual-warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-left: 3px solid #f59e0b;
+        color: #78350f;
+    }
+
+    .manual-subsection {
+        margin-top: 1.15rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .manual-subsection:first-of-type {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+
+    .manual-flow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        align-items: center;
+        margin: 0.75rem 0 1rem;
+    }
+
+    .manual-flow-step {
+        padding: 0.38rem 0.7rem;
+        border: 1px solid #cbd5e1;
+        border-radius: var(--radius-sm);
+        background: #fff;
+        color: var(--text-main);
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+
+    .manual-flow-arrow {
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 640px) {
+        .manual-cover {
+            padding: 1.6rem;
+        }
+
+        .manual-cover h1 {
+            font-size: 1.6rem;
+        }
+
+        .manual-card {
+            padding: 1.15rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manual-wrap">
+    <div class="manual-cover modern-card animate-fade-in">
+        <div>
+            <div class="manual-label">Sistema TIBL</div>
+            <h1>Guia do Utilizador</h1>
+            <p>Este manual apresenta, de forma pratica e organizada, os passos para utilizar o sistema no trabalho diario. O objectivo e ajudar o utilizador a consultar informacoes, registar dados e executar tarefas sem depender de orientacao tecnica.</p>
+        </div>
+    </div>
+
+    <div class="manual-card animate-fade-in-up">
+        <h2><i class="fas fa-compass" style="margin-right: 0.45rem; color: var(--primary);"></i>Como usar este manual</h2>
+        <ol class="manual-steps">
+            <li>Leia a introducao para entender o objectivo do sistema.</li>
+            <li>Use o indice para ir directamente ao modulo que deseja consultar.</li>
+            <li>Siga os passos pela ordem apresentada.</li>
+            <li>Leia com atencao as notas e avisos antes de executar operacoes sensiveis.</li>
+        </ol>
+        <div class="manual-note">
+            <i class="fas fa-lightbulb"></i>
+            <div>Algumas opcoes podem nao aparecer no seu menu. Isso significa, na maioria dos casos, que o seu utilizador nao tem permissao para essa funcionalidade.</div>
+        </div>
+    </div>
+
+    <div class="manual-card animate-fade-in-up">
+        <h2><i class="fas fa-list-ul" style="margin-right: 0.45rem; color: var(--primary);"></i>Indice</h2>
+        <div class="manual-index">
+            <a href="#introducao"><i class="fas fa-book"></i> Introducao</a>
+            <a href="#acesso"><i class="fas fa-sign-in-alt"></i> Acesso ao Sistema</a>
+            <a href="#dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="#actividades"><i class="fas fa-calendar-check"></i> Actividades</a>
+            <a href="#escalas"><i class="fas fa-clipboard-list"></i> Escalas</a>
+            <a href="#irmaos"><i class="fas fa-users"></i> Irmaos</a>
+            <a href="#departamentos"><i class="fas fa-sitemap"></i> Departamentos</a>
+            <a href="#mandatos"><i class="fas fa-handshake"></i> Mandatos</a>
+            <a href="#financeiro"><i class="fas fa-coins"></i> Financeiro</a>
+            <a href="#ajudas"><i class="fas fa-hands-helping"></i> Ajudas</a>
+            <a href="#cestas"><i class="fas fa-shopping-basket"></i> Cestas Basicas</a>
+            <a href="#celulas"><i class="fas fa-book-open"></i> Relatorio de Celulas</a>
+            <a href="#ensino"><i class="fas fa-graduation-cap"></i> Conteudo de Ensino</a>
+            <a href="#mensagens"><i class="fas fa-envelope"></i> Envio de Mensagens</a>
+            <a href="#patrimonio"><i class="fas fa-boxes-stacked"></i> Patrimonio</a>
+            <a href="#relatorios"><i class="fas fa-file-pdf"></i> Relatorios PDF</a>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="introducao">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-book"></i></div>
+            <h2>1. Introducao</h2>
+        </div>
+        <p>O Sistema TIBL foi criado para apoiar a gestao integrada da igreja. A plataforma centraliza o registo de membros, departamentos, actividades, operacoes financeiras, conteudos de ensino, relatorios e comunicacoes.</p>
+        <p>Ao utilizar o sistema, o utilizador consegue acompanhar informacoes importantes, introduzir novos registos e consultar dados ja existentes de acordo com as permissoes atribuidas ao seu perfil.</p>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="acesso">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-sign-in-alt"></i></div>
+            <h2>2. Como aceder ao sistema</h2>
+        </div>
+        <div class="manual-subsection">
+            <h3>2.1. Iniciar sessao</h3>
+            <ol class="manual-steps">
+                <li>Abra o navegador de internet.</li>
+                <li>Introduza o endereco do sistema TIBL.</li>
+                <li>Na pagina de autenticacao, escreva o nome de utilizador.</li>
+                <li>Introduza a palavra-passe.</li>
+                <li>Clique em <strong>Entrar no Sistema</strong>.</li>
+            </ol>
+            <p>Depois da autenticacao, o sistema abre o Dashboard principal.</p>
+        </div>
+        <div class="manual-subsection">
+            <h3>2.2. Terminar sessao</h3>
+            <ol class="manual-steps">
+                <li>Localize o menu lateral esquerdo.</li>
+                <li>Desca ate ao final do menu.</li>
+                <li>Clique em <strong>Terminar Sessao</strong>.</li>
+            </ol>
+            <div class="manual-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>Sempre que utilizar um computador partilhado, deve terminar a sessao antes de sair.</div>
+            </div>
+        </div>
+        <div class="manual-subsection">
+            <h3>2.3. Actualizar o perfil</h3>
+            <ol class="manual-steps">
+                <li>Clique no avatar com a sua inicial no canto superior direito.</li>
+                <li>Abra a pagina <strong>O Meu Perfil</strong>.</li>
+                <li>Actualize os dados desejados.</li>
+                <li>Guarde as alteracoes.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="dashboard">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-chart-line"></i></div>
+            <h2>3. Dashboard</h2>
+        </div>
+        <p>O Dashboard e a pagina inicial do sistema. Nele, o utilizador encontra um resumo rapido da informacao mais importante.</p>
+        <ol class="manual-steps">
+            <li>Veja os cartoes com indicadores gerais da comunidade.</li>
+            <li>Consulte as proximas actividades.</li>
+            <li>Verifique as suas escalas pessoais.</li>
+            <li>Acompanhe resumos financeiros, quando tiver permissao.</li>
+            <li>Clique em <strong>Atualizar</strong> para recarregar os dados.</li>
+        </ol>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="actividades">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-calendar-check"></i></div>
+            <h2>4. Modulo de Actividades</h2>
+        </div>
+        <div class="manual-subsection">
+            <h3>4.1. Consultar actividades</h3>
+            <ol class="manual-steps">
+                <li>No menu lateral, clique em <strong>Actividades</strong>.</li>
+                <li>Visualize o calendario mensal apresentado na pagina.</li>
+                <li>Navegue entre os meses usando as opcoes do calendario.</li>
+                <li>Clique sobre uma actividade para consultar os detalhes.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>4.2. Criar uma actividade</h3>
+            <ol class="manual-steps">
+                <li>Entre em <strong>Actividades</strong>.</li>
+                <li>Clique em <strong>Nova Actividade</strong>.</li>
+                <li>Preencha designacao, data, hora, local e responsavel.</li>
+                <li>Clique em <strong>Guardar</strong>.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="escalas">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-clipboard-list"></i></div>
+            <h2>5. Modulo de Escalas</h2>
+        </div>
+        <div class="manual-subsection">
+            <h3>5.1. Ver as suas escalas</h3>
+            <ol class="manual-steps">
+                <li>No menu lateral, clique em <strong>As Minhas Escalas</strong>.</li>
+                <li>Consulte a lista das actividades em que esta escalado.</li>
+                <li>Verifique a data, hora e funcao atribuida.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>5.2. Criar ou actualizar escalas</h3>
+            <ol class="manual-steps">
+                <li>Abra a actividade pretendida.</li>
+                <li>Clique em <strong>Escalar em Massa</strong> ou na opcao de gestao de escalas.</li>
+                <li>Escolha os irmaos participantes.</li>
+                <li>Defina a funcao de cada um.</li>
+                <li>Guarde as alteracoes.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="irmaos">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-users"></i></div>
+            <h2>6. Modulo de Irmaos</h2>
+        </div>
+        <div class="manual-subsection">
+            <h3>6.1. Registar um novo membro</h3>
+            <ol class="manual-steps">
+                <li>Clique em <strong>Irmaos</strong> no menu lateral.</li>
+                <li>Clique em <strong>Novo Irmao</strong>.</li>
+                <li>Preencha os dados pessoais.</li>
+                <li>Preencha os contactos e a morada.</li>
+                <li>Defina a celula, o estado de baptismo e outras informacoes.</li>
+                <li>Clique em <strong>Guardar</strong>.</li>
+            </ol>
+            <div class="manual-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>O numero de telefone deve conter exactamente 9 digitos.</div>
+            </div>
+        </div>
+        <div class="manual-subsection">
+            <h3>6.2. Pesquisar um membro</h3>
+            <ol class="manual-steps">
+                <li>Abra a pagina de <strong>Irmaos</strong>.</li>
+                <li>Use os campos de pesquisa disponiveis.</li>
+                <li>Introduza nome, apelido, celula ou outro criterio.</li>
+                <li>Clique em <strong>Buscar</strong>.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="departamentos">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-sitemap"></i></div>
+            <h2>7. Modulo de Departamentos</h2>
+        </div>
+        <div class="manual-subsection">
+            <h3>7.1. Criar um departamento</h3>
+            <ol class="manual-steps">
+                <li>Clique em <strong>Departamentos</strong>.</li>
+                <li>Escolha <strong>Novo Departamento</strong>.</li>
+                <li>Preencha a designacao, a abreviatura, o lider e o vice-lider.</li>
+                <li>Clique em <strong>Guardar</strong>.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>7.2. Consultar os membros de um departamento</h3>
+            <ol class="manual-steps">
+                <li>Aceda a lista de departamentos.</li>
+                <li>Clique em <strong>Ver</strong> no departamento desejado.</li>
+                <li>Consulte os membros e cargos associados.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="mandatos">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-handshake"></i></div>
+            <h2>8. Modulo de Mandatos</h2>
+        </div>
+        <p>O modulo de Mandatos serve para registar os cargos ocupados pelos irmaos nos departamentos.</p>
+        <ol class="manual-steps">
+            <li>Clique em <strong>Mandatos</strong>.</li>
+            <li>Clique em <strong>Novo Mandato</strong>.</li>
+            <li>Seleccione o irmao, o departamento e o cargo.</li>
+            <li>Defina a data de inicio e a data de fim.</li>
+            <li>Clique em <strong>Guardar</strong>.</li>
+        </ol>
+        <div class="manual-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>O sistema nao permite mandatos duplicados com a mesma combinacao de irmao, departamento, cargo e data inicial.</div>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="financeiro">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-coins"></i></div>
+            <h2>9. Modulo Financeiro</h2>
+        </div>
+        <p>O modulo Financeiro centraliza as operacoes monetarias da igreja. Inclui contas bancarias, dizimos e ofertas, entradas, saidas, pedidos de saida e orcamentos.</p>
+        <div class="manual-subsection">
+            <h3>9.1. Registar um dizimo ou oferta</h3>
+            <ol class="manual-steps">
+                <li>Clique em <strong>Dizimos e Ofertas</strong>.</li>
+                <li>Clique em <strong>Novo Registo</strong>.</li>
+                <li>Seleccione o membro.</li>
+                <li>Introduza o valor, a data e a conta de destino.</li>
+                <li>Clique em <strong>Guardar</strong>.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>9.2. Usar pedidos de saida</h3>
+            <div class="manual-flow">
+                <div class="manual-flow-step">Criacao</div>
+                <i class="fas fa-arrow-right manual-flow-arrow"></i>
+                <div class="manual-flow-step">Aprovacao</div>
+                <i class="fas fa-arrow-right manual-flow-arrow"></i>
+                <div class="manual-flow-step">Pagamento</div>
+            </div>
+            <ol class="manual-steps">
+                <li>Clique em <strong>Pedidos de Saida</strong>.</li>
+                <li>Crie um novo pedido com beneficiario, valor e justificacao.</li>
+                <li>Aguarde a aprovacao pelo responsavel autorizado.</li>
+                <li>Apos aprovacao, registe a saida correspondente em banco ou caixa.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>9.3. Gerir contas bancarias</h3>
+            <ol class="manual-steps">
+                <li>Entre em <strong>Contas Bancarias</strong>.</li>
+                <li>Consulte, crie ou actualize contas.</li>
+                <li>Se uma conta deixar de ser utilizada, inative-a em vez de elimina-la.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="ajudas">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-hands-helping"></i></div>
+            <h2>10. Modulo de Ajudas</h2>
+        </div>
+        <p>O modulo de Ajudas serve para registar apoios sociais e financeiros prestados pela igreja. Cada registo pode incluir beneficiario, patrocinador, tipo de ajuda, valor, data, observacao, origem do pagamento e ligacao a cesta basica.</p>
+        <div class="manual-subsection">
+            <h3>10.1. Consultar ajudas</h3>
+            <ol class="manual-steps">
+                <li>Clique em <strong>Ajudas</strong>.</li>
+                <li>Veja a lista de registos disponiveis.</li>
+                <li>Use os filtros no topo da pagina.</li>
+                <li>Clique em <strong>Ver</strong> para abrir o detalhe de um registo.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>10.2. Filtrar ajudas</h3>
+            <ol class="manual-steps">
+                <li>Preencha nome ou apelido do beneficiario.</li>
+                <li>Seleccione o tipo de ajuda.</li>
+                <li>Escolha mes e ano, se necessario.</li>
+                <li>Clique em <strong>Buscar</strong>.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>10.3. Registar uma nova ajuda</h3>
+            <ol class="manual-steps">
+                <li>Na pagina de Ajudas, clique em <strong>Novo Apoio</strong>.</li>
+                <li>Seleccione o beneficiario.</li>
+                <li>Indique o tipo de ajuda.</li>
+                <li>Introduza o valor e a data.</li>
+                <li>Associe a origem do pagamento.</li>
+                <li>Preencha os restantes campos necessarios.</li>
+                <li>Clique em <strong>Guardar</strong>.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>10.4. Editar ou eliminar uma ajuda</h3>
+            <ol class="manual-steps">
+                <li>Abra o registo usando o botao <strong>Ver</strong>.</li>
+                <li>Clique em <strong>Editar</strong> para alterar os dados.</li>
+                <li>Clique em <strong>Eliminar</strong> apenas se o registo tiver sido criado por engano.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="cestas">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-shopping-basket"></i></div>
+            <h2>11. Modulo de Cestas Basicas</h2>
+        </div>
+        <ol class="manual-steps">
+            <li>Clique em <strong>Cestas Basicas</strong>.</li>
+            <li>Clique em <strong>Nova Cesta</strong>.</li>
+            <li>Preencha o codigo e a data.</li>
+            <li>Associe a origem financeira.</li>
+            <li>Clique em <strong>Guardar</strong>.</li>
+        </ol>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="celulas">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-book-open"></i></div>
+            <h2>12. Relatorio Semanal de Celulas</h2>
+        </div>
+        <ol class="manual-steps">
+            <li>Clique em <strong>Relatorio Celulas</strong>.</li>
+            <li>Clique em <strong>Novo Relatorio</strong>.</li>
+            <li>Introduza os dados da reuniao.</li>
+            <li>Registe presencas, visitantes, conversoes e observacoes.</li>
+            <li>Clique em <strong>Guardar</strong>.</li>
+        </ol>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="ensino">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-graduation-cap"></i></div>
+            <h2>13. Conteudo de Ensino</h2>
+        </div>
+        <div class="manual-subsection">
+            <h3>13.1. Publicar conteudo</h3>
+            <ol class="manual-steps">
+                <li>Clique em <strong>Conteudo Ensino</strong>.</li>
+                <li>Clique em <strong>Novo Conteudo</strong>.</li>
+                <li>Preencha o titulo e a descricao.</li>
+                <li>Anexe o ficheiro.</li>
+                <li>Clique em <strong>Guardar</strong>.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>13.2. Consultar conteudo</h3>
+            <ol class="manual-steps">
+                <li>Abra <strong>Conteudo Ensino</strong>.</li>
+                <li>Escolha o material pretendido.</li>
+                <li>Clique em <strong>Ver</strong> ou no ficheiro disponivel.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="mensagens">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-envelope"></i></div>
+            <h2>14. Envio de Mensagens</h2>
+        </div>
+        <ol class="manual-steps">
+            <li>Clique em <strong>Envio de Mensagens</strong>.</li>
+            <li>Clique em <strong>Nova Mensagem</strong>.</li>
+            <li>Escreva o assunto.</li>
+            <li>Escreva a mensagem.</li>
+            <li>Escolha os destinatarios.</li>
+            <li>Seleccione o canal de envio.</li>
+            <li>Clique em <strong>Enviar</strong>.</li>
+        </ol>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="patrimonio">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-boxes-stacked"></i></div>
+            <h2>15. Patrimonio</h2>
+        </div>
+        <ol class="manual-steps">
+            <li>Clique em <strong>Patrimonio</strong>.</li>
+            <li>Clique em <strong>Novo Bem</strong>.</li>
+            <li>Preencha o nome, codigo, localizacao, quantidade e valor.</li>
+            <li>Guarde o registo.</li>
+        </ol>
+    </div>
+
+    <div class="manual-card manual-section animate-fade-in-up" id="relatorios">
+        <div class="manual-section-header">
+            <div class="manual-section-icon"><i class="fas fa-file-pdf"></i></div>
+            <h2>16. Relatorios PDF</h2>
+        </div>
+        <div class="manual-subsection">
+            <h3>16.1. Gerar um relatorio</h3>
+            <ol class="manual-steps">
+                <li>Clique em <strong>Relatorios PDF</strong>.</li>
+                <li>Escolha o tipo de relatorio pretendido.</li>
+                <li>Clique no botao correspondente.</li>
+                <li>O ficheiro sera descarregado automaticamente.</li>
+            </ol>
+        </div>
+        <div class="manual-subsection">
+            <h3>16.2. Gerar um recibo de dizimo</h3>
+            <ol class="manual-steps">
+                <li>Abra um registo em <strong>Dizimos e Ofertas</strong>.</li>
+                <li>Clique em <strong>Gerar Recibo PDF</strong>.</li>
+                <li>O recibo sera descarregado.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="manual-card animate-fade-in-up">
+        <h2><i class="fas fa-shield-alt" style="margin-right: 0.45rem; color: var(--primary);"></i>17. Permissoes de acesso</h2>
+        <p>Nem todos os utilizadores tem acesso as mesmas funcionalidades. O que aparece no menu depende do perfil e das permissoes atribuidas.</p>
+        <p>Se uma opcao nao estiver visivel:</p>
+        <ol class="manual-steps">
+            <li>Verifique se esta na conta correcta.</li>
+            <li>Contacte o administrador do sistema.</li>
+            <li>Solicite a permissao necessaria, se aplicavel.</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.manual-index a').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            var href = this.getAttribute('href');
+            if (href && href.charAt(0) === '#') {
+                e.preventDefault();
+                var target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

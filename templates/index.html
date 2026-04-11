@@ -355,6 +355,11 @@
             {% endif %}
         {% endif %}
 
+        <a href="{% url 'guia_utilizador' %}"
+          class="{% if request.resolver_match.url_name == 'guia_utilizador' %}active{% endif %}">
+          Guia do Utilizador
+        </a>&nbsp;&nbsp;
+
     </div>
 {% endif %}
 {% if user.is_authenticated %}

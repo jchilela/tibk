@@ -1,0 +1,127 @@
+{% extends "index.html" %}
+
+{% block title %}Guia do Utilizador{% endblock %}
+
+{% block content %}
+<style>
+  .manual-page {
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 0 1rem 2rem;
+  }
+
+  .manual-card {
+    background: #ffffff;
+    border: 1px solid #d9e2d0;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(49, 78, 28, 0.08);
+    overflow: hidden;
+  }
+
+  .manual-hero {
+    background: linear-gradient(135deg, #3f6b24 0%, #548c2f 100%);
+    color: #ffffff;
+    padding: 2rem;
+  }
+
+  .manual-hero h1 {
+    margin: 0;
+    font-size: 2rem;
+  }
+
+  .manual-hero p {
+    margin: 0.75rem 0 0;
+    line-height: 1.7;
+    opacity: 0.95;
+  }
+
+  .manual-body {
+    padding: 2rem;
+    color: #243224;
+    line-height: 1.75;
+  }
+
+  .manual-body h2,
+  .manual-body h3,
+  .manual-body h4 {
+    color: #33571d;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .manual-body h2 {
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid #e5ecdf;
+  }
+
+  .manual-body p,
+  .manual-body li,
+  .manual-body blockquote {
+    font-size: 1rem;
+  }
+
+  .manual-body ol,
+  .manual-body ul {
+    padding-left: 1.4rem;
+  }
+
+  .manual-body li {
+    margin-bottom: 0.5rem;
+  }
+
+  .manual-body a {
+    color: #3f6b24;
+    font-weight: 600;
+  }
+
+  .manual-body blockquote {
+    margin: 1rem 0;
+    padding: 0.9rem 1rem;
+    border-left: 4px solid #548c2f;
+    background: #f6faf2;
+    color: #355126;
+  }
+
+  .manual-body code {
+    background: #f2f5ef;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+  }
+
+  .manual-body pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #f8faf7;
+    border: 1px solid #e5ecdf;
+    border-radius: 10px;
+    padding: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .manual-page {
+      margin-top: 1rem;
+    }
+
+    .manual-hero,
+    .manual-body {
+      padding: 1.25rem;
+    }
+
+    .manual-hero h1 {
+      font-size: 1.6rem;
+    }
+  }
+</style>
+
+<section class="manual-page">
+  <article class="manual-card">
+    <header class="manual-hero">
+      <h1>Guia do Utilizador</h1>
+      <p>Roteiro carregado a partir da documentacao Markdown do sistema.</p>
+    </header>
+    <div class="manual-body">
+      {{ guia_html }}
+    </div>
+  </article>
+</section>
+{% endblock %}

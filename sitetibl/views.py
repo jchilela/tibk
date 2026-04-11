@@ -27,10 +27,18 @@ from django.contrib.auth.decorators import login_required
 from django.db.models.functions import TruncMonth
 import json
 from django.http import JsonResponse
+from django.utils.html import escape
 from django.utils.timezone import now
+from django.utils.safestring import mark_safe
 from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
+from pathlib import Path
+
+try:
+    import markdown
+except ImportError:
+    markdown = None
 
 #from django.db.models import Count
 
@@ -1589,6 +1597,39 @@ def dashboard(request):
         'titulo': 'Dashboard',
     }
     return render(request, 'dashboard.html', context)
+
+
+@login_required
+def guia_utilizador(request, modulo=None):
+    docs_dir = (Path(settings.BASE_DIR) / 'docs').resolve()
+
+    if modulo:
+        guia_path = (docs_dir / modulo).resolve()
+        if guia_path.suffix.lower() != '.md':
+            return HttpResponse('Modulo do guia nao encontrado.', status=404)
+        if docs_dir not in guia_path.parents or not guia_path.exists():
+            return HttpResponse('Modulo do guia nao encontrado.', status=404)
+    else:
+        guia_path = docs_dir / 'GUIA_UTILIZADOR.md'
+
+    if guia_path.exists():
+        conteudo_markdown = guia_path.read_text(encoding='utf-8')
+    else:
+        conteudo_markdown = '# Guia do Utilizador\n\nO ficheiro de documentacao nao foi encontrado.'
+
+    if markdown is not None:
+        guia_html = markdown.markdown(
+            conteudo_markdown,
+            extensions=['extra', 'toc', 'sane_lists'],
+        )
+    else:
+        guia_html = '<pre>{}</pre>'.format(escape(conteudo_markdown))
+
+    context = {
+        'titulo': 'Guia do Utilizador' if modulo is None else f'Guia do Utilizador - {modulo.replace("_", " ").title()}',
+        'guia_html': mark_safe(guia_html),
+    }
+    return render(request, 'guia_utilizador_markdown.html', context)
 
 def root_redirect(request):
     return redirect('dashboard')

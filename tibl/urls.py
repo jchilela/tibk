@@ -20,7 +20,6 @@ from django.contrib import admin
 from django.urls import path
 import sitetibl.views
 from django.conf.urls import include
-from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/clearcache/', include('clearcache.urls')),
@@ -55,6 +54,8 @@ urlpatterns = [
 
     #endpoints para dashboard
     path('dashboard/', sitetibl.views.dashboard, name='dashboard'),
+    path('guia-utilizador/', sitetibl.views.guia_utilizador, name='guia_utilizador'),
+    path('guia-utilizador/<path:modulo>', sitetibl.views.guia_utilizador, name='guia_utilizador_modulo'),
     path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos),
     path('dashboard/orcamento-departamento', sitetibl.views.dashboardOrcamentoDepartamento),
     path('dashboard/pedido-saida-semana', sitetibl.views.dashboardPedidosSaidaSemana),
