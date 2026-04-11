@@ -24,10 +24,10 @@ function applyTopPadding() {
 
 document.addEventListener("DOMContentLoaded", function () {
     var search_term = getSearchTerm();
-    var search_modal = new bootstrap.Modal(document.getElementById('properdocs_search_modal'));
-    var keyboard_modal = new bootstrap.Modal(document.getElementById('properdocs_keyboard_modal'));
+    var search_modal = new bootstrap.Modal(document.getElementById('mkdocs_search_modal'));
+    var keyboard_modal = new bootstrap.Modal(document.getElementById('mkdocs_keyboard_modal'));
 
-    document.querySelectorAll('.navbar a[data-bs-target="#properdocs_search_modal"]').forEach(function(item) {
+    document.querySelectorAll('.navbar a[data-bs-target="#mkdocs_search_modal"]').forEach(function(item) {
         item.innerHTML = '<i class="fa fa-search"></i> Pesquisar';
     });
 
@@ -48,13 +48,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // make sure search input gets autofocus every time modal opens.
-    document.getElementById('properdocs_search_modal').addEventListener('shown.bs.modal', function() {
-        document.getElementById('properdocs-search-query').focus();
+    document.getElementById('mkdocs_search_modal').addEventListener('shown.bs.modal', function() {
+        document.getElementById('mkdocs-search-query').focus();
     });
 
     // Close search modal when result is selected
     // The links get added later so listen to parent
-    document.getElementById('properdocs-search-results').addEventListener('click', function(e) {
+    document.getElementById('mkdocs-search-results').addEventListener('click', function(e) {
         if (e.target.tagName === 'A') {
             search_modal.hide();
         }
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
               e.preventDefault();
               keyboard_modal.hide();
               search_modal.show();
-              document.getElementById('properdocs-search-query').focus();
+              document.getElementById('mkdocs-search-query').focus();
               break;
           case shortcuts.help:
               search_modal.hide();
