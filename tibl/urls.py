@@ -17,7 +17,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 import sitetibl.views
 from django.conf.urls import include
 
@@ -54,6 +54,7 @@ urlpatterns = [
 
     #endpoints para dashboard
     path('dashboard/', sitetibl.views.dashboard, name='dashboard'),
+    re_path(r'^documentacao/(?P<path>.*)$', sitetibl.views.serve_documentacao, name='documentacao'),
     path('guia-utilizador/', sitetibl.views.guia_utilizador, name='guia_utilizador'),
     path('guia-utilizador/<path:modulo>', sitetibl.views.guia_utilizador, name='guia_utilizador_modulo'),
     path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos),

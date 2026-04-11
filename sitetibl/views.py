@@ -2,7 +2,7 @@
 from django.contrib import admin, messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaulttags import register
-from django.http import HttpResponseRedirect
+from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
@@ -34,6 +34,7 @@ from collections import OrderedDict
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
 from pathlib import Path
+import mimetypes
 
 try:
     import markdown
@@ -1597,6 +1598,23 @@ def dashboard(request):
         'titulo': 'Dashboard',
     }
     return render(request, 'dashboard.html', context)
+
+
+def serve_documentacao(request, path=''):
+    site_dir = Path(settings.BASE_DIR) / 'docs' / 'site'
+    file_path = site_dir / path if path else site_dir / 'index.html'
+
+    if file_path.is_dir():
+        file_path = file_path / 'index.html'
+
+    if not file_path.exists() or not file_path.is_file():
+        raise Http404
+
+    content_type, _ = mimetypes.guess_type(str(file_path))
+    return FileResponse(
+        open(file_path, 'rb'),
+        content_type=content_type or 'application/octet-stream',
+    )
 
 
 @login_required
