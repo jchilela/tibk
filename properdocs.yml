@@ -1,0 +1,47 @@
+site_name: TIBL — Guia do Utilizador
+# site_url: defina o URL completo da sua instalação, ex: https://gestao.tibl.ao/documentacao/
+site_description: >-
+  Guia oficial de utilização da plataforma de gestão da
+  Terceira Igreja Baptista de Luanda (TIBL).
+site_author: Equipa TIBL
+
+docs_dir: docs/utilizador
+site_dir: docs/site
+
+# ---------------------------------------------------------------------------
+# Tema
+# ---------------------------------------------------------------------------
+theme:
+  name: mkdocs  # fornecido pelo pacote properdocs-theme-mkdocs
+  custom_dir: docs/overrides
+
+# ---------------------------------------------------------------------------
+# Navegação — edite à vontade para reorganizar ou adicionar páginas
+# ---------------------------------------------------------------------------
+nav:
+  - Início: index.md
+  - Membros: membros.md
+  - Finanças: financas.md
+  - Actividades e Escalas: actividades.md
+  - Departamentos: departamentos.md
+  - Células: celulas.md
+  - Património: patrimonio.md
+  - Comunicação: comunicacao.md
+  - Relatórios: relatorios.md
+  - Perfis e Permissões: perfis.md
+
+# ---------------------------------------------------------------------------
+# Extensões Markdown
+# ---------------------------------------------------------------------------
+extra_css:
+  - tibl.css
+
+markdown_extensions:
+  - admonition         # caixas de nota/aviso
+  - tables             # tabelas GitHub-style
+  - toc:
+      permalink: true  # âncoras clicáveis nos títulos
+
+# Não expõe "Made with ProperDocs" no rodapé
+extra:
+  generator: false

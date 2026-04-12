@@ -23,3 +23,5 @@ django-celery-beat==2.8.1
 python-dotenv==1.0.0
 crispy-bootstrap4==2024.1
 django-scheduler==0.12.0
+properdocs
+properdocs-theme-mkdocs

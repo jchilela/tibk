@@ -31,6 +31,9 @@ urlpatterns = [
     # django-scheduler (iCal + JSON feeds)
     path('schedule/', include('schedule.urls')),
 
+    # Documentação do utilizador
+    re_path(r'^documentacao/(?P<path>.*)$', sitetibl.views.serve_documentacao, name='documentacao'),
+
     # Root redirect
     path('', sitetibl.views.root_redirect, name='index'),
 

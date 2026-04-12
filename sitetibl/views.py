@@ -2,7 +2,7 @@
 from django.contrib import admin, messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaulttags import register
-from django.http import FileResponse, Http404, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
@@ -38,8 +38,9 @@ from django.shortcuts import redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from pathlib import Path
 import mimetypes
+from pathlib import Path
+from django.http import FileResponse, Http404
 
 #from django.db.models import Count
 
@@ -173,7 +174,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'actividade__departamento', 'funcao', 'funcao__departamento'), 
              'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
              'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
-             'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'), 
+             'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'), 
              'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
              'bancos': Banco.objects, 
              'contasbancarias' : Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'), 
@@ -444,7 +445,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
 
     lista_qs = {
         'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'),
-        'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'),
+        'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'),
         'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'),
         'bancos': Banco.objects,
         'contasbancarias': Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'),
@@ -1165,19 +1166,15 @@ def encontraIrmao(request):
 
 @login_required
 def encontraRelatorioSemanalCelula(request):
-    nomev = request.GET.get('nomev', '').strip()
-    liderv = request.GET.get('liderv', '').strip()
-    localv = request.GET.get('localv', '').strip()
-    temav = request.GET.get('temav', '').strip()
-
-    if not any([nomev, liderv, localv, temav]):
-        return redirect('/tibl/gestao/relatoriosemanalcelula/1')
-
-    kwargs= {'nome_celula__designacao__icontains': nomev, 
-             'lider_responsavel__nome__icontains': liderv, 
+    nomev = request.GET['nomev']
+    liderv = request.GET['liderv']
+    localv = request.GET['localv']
+    temav = request.GET['temav']
+    kwargs= {'nome_celula__icontains':nomev, 
+             'lider_responsavel__icontains' : liderv, 
              'local_reuniao__icontains' : localv, 
              'tema_palavra__icontains' : temav }
-    pagina= request.GET.get('pagina', 1)
+    pagina= request.GET['pagina']
     resultado = RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
@@ -1733,7 +1730,7 @@ def encontraAjudas(request):
         del kwargs['data__year']
     if (tipoajudav == 0):
         del kwargs['ajuda_id']
-    resultado = Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta').filter(**kwargs)
+    resultado = Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -1994,31 +1991,6 @@ def encontraConteudoEnsino(request):
     del dd['pagina']
     cc = request.META['QUERY_STRING']
     return render(request,'conteudoensinofiltrados.html', {'bb':paginaresultado})
-
-
-@login_required
-def criarEnvioMensagem(request):
-    if not request.user.has_perm('sitetibl.add_enviomensagem'):
-        messages.error(request, 'Acesso negado! Você não tem permissão para enviar mensagens.')
-        return redirect('index')
-
-    departamentos = Departamento.objects.all().order_by('designacao')
-    irmaos = Irmao.objects.all().order_by('nome', 'apelido')
-
-    if request.method == 'POST':
-        formulario = EnvioMensagemForm(request.POST)
-        if formulario.is_valid():
-            obj = formulario.save()
-            messages.success(request, 'Mensagem registada com sucesso!')
-            return redirect('/tibl/gestao/enviomensagem/1')
-    else:
-        formulario = EnvioMensagemForm()
-
-    return render(request, 'enviomensagem_criar.html', {
-        'formulario': formulario,
-        'departamentos': departamentos,
-        'irmaos': irmaos,
-    })
 
 
 @login_required
@@ -3051,21 +3023,9 @@ def relatorio_saida_caixa_pdf(request):
 @login_required
 def dashboard(request):
     from datetime import date as dt_date, timedelta
+    import random
     hoje = dt_date.today()
     user = request.user
-
-    def _safe_birthday_for_year(birth_date, year):
-        try:
-            return birth_date.replace(year=year)
-        except ValueError:
-            # Ajuste para datas como 29/02 em anos não bissextos.
-            return birth_date.replace(year=year, day=28)
-
-    def _next_birthday_date(birth_date, today):
-        this_year = _safe_birthday_for_year(birth_date, today.year)
-        if this_year < today:
-            return _safe_birthday_for_year(birth_date, today.year + 1)
-        return this_year
 
     # --- Versículo do dia (roda pela data para variar diariamente) ---
     VERSICULOS = [
@@ -3093,8 +3053,6 @@ def dashboard(request):
     ]
     idx_versiculo = hoje.toordinal() % len(VERSICULOS)
     versiculo_do_dia = VERSICULOS[idx_versiculo]
-    temas_versiculo = ['verse-theme-blue', 'verse-theme-green', 'verse-theme-orange']
-    versiculo_tema_class = temas_versiculo[idx_versiculo % len(temas_versiculo)]
 
     # --- Dados visíveis para TODOS ---
     anuncios = Anuncio.objects.order_by('-data')[:5]
@@ -3107,27 +3065,6 @@ def dashboard(request):
         .distinct()
         .order_by('data', 'inicio')[:5]
     )
-
-    # Lembretes de atividades (1 a 7 dias antes)
-    lembretes_actividades = []
-    atividades_com_lembrete = (
-        Actividade.objects
-        .filter(data__gte=hoje + timedelta(days=1), data__lte=hoje + timedelta(days=7))
-        .exclude(is_recorrente=True, parent_event__isnull=True)
-        .select_related('designacao', 'localactividade')
-        .distinct()
-        .order_by('data', 'inicio')
-    )
-    for atividade in atividades_com_lembrete:
-        dias_faltam = (atividade.data - hoje).days
-        designacao = str(atividade.designacao) if atividade.designacao else atividade.get_display_designacao()
-        lembretes_actividades.append({
-            'designacao': designacao,
-            'dias_faltam': dias_faltam,
-            'data': atividade.data,
-            'hora_inicio': atividade.inicio,
-            'local': str(atividade.localactividade) if atividade.localactividade else 'Local não definido',
-        })
 
     # Escalas do membro logado + verificação de célula
     minhas_escalas_list = []
@@ -3144,58 +3081,12 @@ def dashboard(request):
         minhas_escalas_futuras, _ = _normalizar_escalas_por_ocorrencia(minhas_escalas_base, hoje)
         minhas_escalas_list = minhas_escalas_futuras[:5]
 
-    # Aniversariantes do mês (apenas de hoje em diante)
-    aniversariantes_qs = (
+    # Aniversariantes do mês
+    aniversariantes = (
         Irmao.objects
-        .filter(datanascimento__month=hoje.month, datanascimento__day__gte=hoje.day)
-        .order_by('datanascimento__day')
+        .filter(datanascimento__month=hoje.month)
+        .order_by('datanascimento__day')[:10]
     )
-    aniversariantes_total_mes = aniversariantes_qs.count()
-    aniversariantes = aniversariantes_qs
-
-    aniversarios_alerta = []
-    aniversarios_alerta_por_id = {}
-    for irm in Irmao.objects.filter(datanascimento__isnull=False):
-        proximo_aniversario = _next_birthday_date(irm.datanascimento, hoje)
-        dias = (proximo_aniversario - hoje).days
-        if dias < 0 or dias > 2:
-            continue
-
-        nome_completo = f"{irm.nome} {irm.apelido}".strip()
-        tratamento = 'da irmã' if getattr(irm, 'sexo', 'M') == 'F' else 'do irmão'
-        if dias == 0:
-            aniversarios_alerta.append({
-                'tipo': 'today',
-                'mensagem': f"Hoje é aniversário {tratamento} {nome_completo}! 🎉",
-                'data_iso': proximo_aniversario.isoformat(),
-            })
-            aniversarios_alerta_por_id[irm.id] = {
-                'tipo': 'today',
-                'data_iso': proximo_aniversario.isoformat(),
-            }
-        else:
-            sufixo = 'dia' if dias == 1 else 'dias'
-            aniversarios_alerta.append({
-                'tipo': 'soon',
-                'mensagem': f"Aniversário {tratamento} {nome_completo} é daqui a {dias} {sufixo}.",
-                'data_iso': proximo_aniversario.isoformat(),
-            })
-            aniversarios_alerta_por_id[irm.id] = {
-                'tipo': 'soon',
-                'data_iso': proximo_aniversario.isoformat(),
-            }
-
-    aniversarios_alerta.sort(key=lambda a: 0 if a['tipo'] == 'today' else 1)
-
-    aniversariantes_display = [
-        {
-            'irmao': irm,
-            'mes_pt': MESES.get(str(irm.datanascimento.month), irm.datanascimento.strftime('%B')) if irm.datanascimento else '',
-            'alerta_tipo': aniversarios_alerta_por_id.get(irm.id, {}).get('tipo', ''),
-            'alerta_data_iso': aniversarios_alerta_por_id.get(irm.id, {}).get('data_iso', ''),
-        }
-        for irm in aniversariantes
-    ]
 
     # --- Dados financeiros (passados apenas se utilizador tem permissão) ---
     pedidos_pendentes = None
@@ -3224,16 +3115,12 @@ def dashboard(request):
     context = {
         'titulo': 'Dashboard',
         'versiculo': versiculo_do_dia,
-        'versiculo_tema_class': versiculo_tema_class,
         'tem_celula': tem_celula,
         'tem_perfil': irmao_obj is not None,
-        'aniversarios_alerta': aniversarios_alerta,
         'anuncios': anuncios,
         'proximas_actividades': proximas_actividades,
-        'lembretes_actividades': lembretes_actividades,
         'minhas_escalas': minhas_escalas_list,
-        'aniversariantes': aniversariantes_display,
-        'aniversariantes_total_mes': aniversariantes_total_mes,
+        'aniversariantes': aniversariantes,
         'pedidos_pendentes': pedidos_pendentes,
         'saldos_bancarios': saldos_bancarios,
         'total_membros': total_membros,
@@ -3317,23 +3204,6 @@ def _normalizar_escalas_por_ocorrencia(escalas, hoje):
     )
 
     return escalas_futuras, escalas_passadas
-
-def serve_documentacao(request, path=''):
-    site_dir = Path(settings.BASE_DIR) / 'docs' / 'site'
-    file_path = site_dir / path if path else site_dir / 'index.html'
-
-    if file_path.is_dir():
-        file_path = file_path / 'index.html'
-
-    if not file_path.exists() or not file_path.is_file():
-        raise Http404
-
-    content_type, _ = mimetypes.guess_type(str(file_path))
-    return FileResponse(
-        open(file_path, 'rb'),
-        content_type=content_type or 'application/octet-stream',
-    )
-
 
 @login_required
 def minhas_escalas(request):
@@ -3558,3 +3428,24 @@ def actividades_calendario(request):
         return redirect('sitetibl:comeco')
     feed_url = '/tibl/api/actividades/feed/'
     return render(request, 'actividades_calendario.html', {'feed_url': feed_url})
+
+# ---------------------------------------------------------------------------
+# Documentação do utilizador — serve o site estático gerado pelo ProperDocs
+# ---------------------------------------------------------------------------
+def serve_documentacao(request, path=''):
+    site_dir = Path(settings.BASE_DIR) / 'docs' / 'site'
+
+    file_path = site_dir / path if path else site_dir / 'index.html'
+
+    # Directórios → tentar index.html dentro deles
+    if file_path.is_dir():
+        file_path = file_path / 'index.html'
+
+    if not file_path.exists() or not file_path.is_file():
+        raise Http404
+
+    content_type, _ = mimetypes.guess_type(str(file_path))
+    return FileResponse(
+        open(file_path, 'rb'),
+        content_type=content_type or 'application/octet-stream',
+    )
