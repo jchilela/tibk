@@ -174,7 +174,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'actividade__departamento', 'funcao', 'funcao__departamento'), 
              'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
              'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
-             'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'), 
+             'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'), 
              'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
              'bancos': Banco.objects, 
              'contasbancarias' : Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'), 
@@ -251,6 +251,24 @@ def mostraGestao(request,gestaoescolhida,pagina):
                 output_field=IntegerField(),
             )
         ).order_by('is_passado', 'data')
+    elif gestaoescolhida == 'dizimosofertas':
+        _do_nomev = request.GET.get('nomev', '').strip()
+        _do_apelidov = request.GET.get('apelidov', '').strip()
+        _do_mesv = request.GET.get('mesv', '0')
+        _do_anov = request.GET.get('anov', '0')
+        _do_tipov = request.GET.get('tipov', '0')
+        _do_qs = lista[gestaoescolhida].all()
+        if _do_nomev:
+            _do_qs = _do_qs.filter(irmao__nome__icontains=_do_nomev)
+        if _do_apelidov:
+            _do_qs = _do_qs.filter(irmao__apelido__icontains=_do_apelidov)
+        if _do_mesv != '0':
+            _do_qs = _do_qs.filter(datacorrespondente__month=_do_mesv)
+        if _do_anov != '0':
+            _do_qs = _do_qs.filter(datacorrespondente__year=_do_anov)
+        if _do_tipov != '0':
+            _do_qs = _do_qs.filter(tipooferta_id=_do_tipov)
+        resultado = _do_qs.order_by('-datacorrespondente', 'id')
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
@@ -296,6 +314,36 @@ def mostraGestao(request,gestaoescolhida,pagina):
             'departamentos': Departamento.objects.order_by('designacao'),
             'departamentov_sel': request.GET.get('departamentov', ''),
             'hoje': date.today(),
+        }
+    elif gestaoescolhida == 'dizimosofertas':
+        pagina_get = request.GET.get('pagina', pagina)
+        paginador_do = Paginator(resultado, 20)
+        paginaresultado = paginador_do.get_page(pagina_get)
+        _do_agg = resultado.aggregate(total=Sum('valor'), contribuintes=Count('irmao', distinct=True))
+        _do_total_periodo = _do_agg['total'] or 0
+        _do_contribuintes = _do_agg['contribuintes'] or 0
+        _do_ano_atual = date.today().year
+        _do_total_ano = (
+            lista['dizimosofertas']
+            .filter(datacorrespondente__year=_do_ano_atual)
+            .aggregate(total=Sum('valor'))['total'] or 0
+        )
+        _do_moedas = list(resultado.values_list('moeda', flat=True).distinct())
+        _do_moeda_kpi = _do_moedas[0] if len(_do_moedas) == 1 else ('MULTI' if _do_moedas else '---')
+        context = {
+            'bb': paginaresultado,
+            'listameses': MESES,
+            'lista_tipos': TipoOferta.objects.order_by('designacao'),
+            'filtro_nomev': _do_nomev,
+            'filtro_apelidov': _do_apelidov,
+            'filtro_mesv': _do_mesv,
+            'filtro_anov': _do_anov,
+            'filtro_tipov': _do_tipov,
+            'kpi_total_periodo': _do_total_periodo,
+            'kpi_contribuintes': _do_contribuintes,
+            'kpi_total_ano': _do_total_ano,
+            'kpi_moeda': _do_moeda_kpi,
+            'kpi_ano_atual': _do_ano_atual,
         }
     else:
         context = { 'bb':paginaresultado, 'listameses' : MESES }
@@ -445,7 +493,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
 
     lista_qs = {
         'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'),
-        'ajudas': Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta'),
+        'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'),
         'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'),
         'bancos': Banco.objects,
         'contasbancarias': Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'),
@@ -876,11 +924,30 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             .filter(irmao_id=identificador)
             .order_by('departamento__designacao')
         )
+        _contrib_qs = Dizimooferta.objects.filter(irmao_id=identificador)
+        _contrib_agg = _contrib_qs.aggregate(
+            total_historico=Sum('valor'),
+            total_registos=Count('id'),
+        )
+        _contrib_ano_atual = date.today().year
+        _contrib_total_ano = (
+            _contrib_qs.filter(datacorrespondente__year=_contrib_ano_atual)
+            .aggregate(total=Sum('valor'))['total'] or 0
+        )
+        _contrib_ultimo = _contrib_qs.order_by('-datacorrespondente').first()
+        _contrib_moedas = list(_contrib_qs.values_list('moeda', flat=True).distinct())
+        _contrib_moeda = _contrib_moedas[0] if len(_contrib_moedas) == 1 else ('MULTI' if _contrib_moedas else None)
         context = {
             'registoachado': registoachado,
             'gestaoescolhida': gestaoescolhida,
             'mandatos_irmao': mandatos_irmao,
             'pode_gerir_user': pode_gerir_user,
+            'contrib_total_historico': _contrib_agg['total_historico'] or 0,
+            'contrib_total_registos': _contrib_agg['total_registos'] or 0,
+            'contrib_total_ano': _contrib_total_ano,
+            'contrib_ultimo': _contrib_ultimo,
+            'contrib_moeda': _contrib_moeda,
+            'contrib_ano_atual': _contrib_ano_atual,
         }
     elif gestaoescolhida == 'pedidosaida':
         pode_aprovar = request.user.has_perm('sitetibl.change_pedidosaida')
@@ -1256,78 +1323,6 @@ def contasbancariasinativas(request):
     })
 
 
-def _get_relatorio_dizimos_membro_context(params):
-    q = params.get('q', '').strip()
-    mesv = params.get('mesv', '0')
-    anov = params.get('anov', '0')
-    datainicio = params.get('datainicio', '').strip()
-    datafim = params.get('datafim', '').strip()
-
-    filtros = {}
-    if mesv != '0':
-        filtros['datacorrespondente__month'] = mesv
-    if anov != '0':
-        filtros['datacorrespondente__year'] = anov
-    if datainicio:
-        filtros['datacorrespondente__gte'] = datainicio
-    if datafim:
-        filtros['datacorrespondente__lte'] = datafim
-
-    queryset = Dizimooferta.objects.select_related('irmao').filter(**filtros)
-    if q:
-        queryset = queryset.filter(
-            Q(irmao__nome__icontains=q)
-            | Q(irmao__apelido__icontains=q)
-            | Q(irmao__outrosnomes__icontains=q)
-            | Q(irmao__email__icontains=q)
-        )
-
-    agregados = list(
-        queryset.values('irmao_id', 'moeda')
-        .annotate(total_registos=Count('id'), total_valor=Sum('valor'))
-        .order_by('-total_valor')
-    )
-
-    irmaos_ids = [item['irmao_id'] for item in agregados]
-    irmaos_map = {
-        irmao.id: irmao
-        for irmao in Irmao.objects.filter(id__in=irmaos_ids)
-    }
-
-    relatorio = []
-    contribuinte_ids = set()
-    for item in agregados:
-        irmao = irmaos_map.get(item['irmao_id'])
-        if not irmao:
-            continue
-        contribuinte_ids.add(irmao.id)
-        relatorio.append({
-            'irmao': irmao,
-            'total_registos': item['total_registos'],
-            'total_valor': item['total_valor'] or 0,
-            'moeda': item['moeda'],
-        })
-
-    total_contribuintes = len(contribuinte_ids)
-    total_geral = queryset.aggregate(total=Sum('valor'))['total'] or 0
-    moedas_distintas = list(queryset.values_list('moeda', flat=True).distinct())
-    moeda_resumo = moedas_distintas[0] if len(moedas_distintas) == 1 else 'MULTI'
-    media_por_membro = (total_geral / total_contribuintes) if total_contribuintes and len(moedas_distintas) == 1 else None
-
-    return {
-        'relatorio': relatorio,
-        'q': q,
-        'mesv': mesv,
-        'anov': anov,
-        'datainicio': datainicio,
-        'datafim': datafim,
-        'listameses': MESES,
-        'total_contribuintes': total_contribuintes,
-        'total_geral': total_geral,
-        'media_por_membro': media_por_membro,
-        'moeda_resumo': moeda_resumo,
-        'query_string': params.urlencode(),
-    }
 
 
 def _desenhar_rodape_pdf(canvas_obj, doc):
@@ -1336,167 +1331,6 @@ def _desenhar_rodape_pdf(canvas_obj, doc):
     canvas_obj.setFillColor(colors.HexColor('#666666'))
     canvas_obj.drawRightString(doc.pagesize[0] - 40, 20, f'Pagina {canvas_obj.getPageNumber()}')
     canvas_obj.restoreState()
-
-
-@login_required
-def relatoriodizimosmembro(request):
-    return render(request, 'relatoriodizimosmembro.html', _get_relatorio_dizimos_membro_context(request.GET))
-
-
-@login_required
-def relatoriodizimosmembro_pdf(request):
-    context = _get_relatorio_dizimos_membro_context(request.GET)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="relatorio_dizimos_por_membro.pdf"'
-
-    doc = SimpleDocTemplate(
-        response,
-        pagesize=A4,
-        rightMargin=40,
-        leftMargin=40,
-        topMargin=40,
-        bottomMargin=40,
-        title="Relatorio de Dizimos por Membro",
-        author="Sistema TIBL"
-    )
-
-    styles = getSampleStyleSheet()
-    header_style = ParagraphStyle(
-        'RelatorioHeaderMembro',
-        parent=styles['Heading2'],
-        alignment=1,
-        textColor=colors.HexColor('#1f3d1f'),
-        spaceAfter=4,
-    )
-    subtitle_style = ParagraphStyle(
-        'RelatorioSubtitleMembro',
-        parent=styles['Normal'],
-        alignment=1,
-        textColor=colors.HexColor('#4f4f4f'),
-        fontSize=9,
-        spaceAfter=6,
-    )
-    meta_style = ParagraphStyle(
-        'RelatorioMetaMembro',
-        parent=styles['Normal'],
-        fontSize=9,
-        textColor=colors.HexColor('#555555'),
-        leading=12,
-        spaceAfter=4,
-    )
-    elements = []
-
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
-    if os.path.exists(logo_path):
-        logo = Image(logo_path, width=80, height=80)
-        logo.hAlign = 'CENTER'
-        elements.append(logo)
-
-    elements.append(Paragraph("<br/>", styles['Normal']))
-    elements.append(Paragraph("<b>Terceira Igreja Baptista de Luanda</b>", header_style))
-    elements.append(Paragraph("Sistema TIBL | Relatorio Financeiro", subtitle_style))
-    elements.append(Paragraph("<b>Relatorio de Dizimos por Membro</b>", styles['Title']))
-
-    filtros_aplicados = []
-    if context['q']:
-        filtros_aplicados.append(f"Pesquisa: {context['q']}")
-    if context['mesv'] != '0':
-        filtros_aplicados.append(f"Mes: {MESES.get(context['mesv'], context['mesv'])}")
-    if context['anov'] != '0':
-        filtros_aplicados.append(f"Ano: {context['anov']}")
-    if context['datainicio']:
-        filtros_aplicados.append(f"De: {context['datainicio']}")
-    if context['datafim']:
-        filtros_aplicados.append(f"Ate: {context['datafim']}")
-
-    periodo = 'Todos os periodos'
-    if context['datainicio'] and context['datafim']:
-        periodo = f"{context['datainicio']} ate {context['datafim']}"
-    elif context['datainicio']:
-        periodo = f"A partir de {context['datainicio']}"
-    elif context['datafim']:
-        periodo = f"Ate {context['datafim']}"
-    elif context['mesv'] != '0' and context['anov'] != '0':
-        periodo = f"{MESES.get(context['mesv'], context['mesv'])} de {context['anov']}"
-    elif context['mesv'] != '0':
-        periodo = MESES.get(context['mesv'], context['mesv'])
-    elif context['anov'] != '0':
-        periodo = f"Ano de {context['anov']}"
-
-    moeda_label = 'Multimoeda' if context['moeda_resumo'] == 'MULTI' else context['moeda_resumo']
-
-    elements.append(Paragraph(f"<b>Periodo:</b> {periodo}", meta_style))
-    elements.append(Paragraph(f"<b>Emitido em:</b> {date.today().strftime('%d/%m/%Y')}", meta_style))
-    if filtros_aplicados:
-        elements.append(Paragraph(f"<b>Filtros:</b> {' | '.join(filtros_aplicados)}", meta_style))
-    else:
-        elements.append(Paragraph("<b>Filtros:</b> Nenhum filtro adicional aplicado", meta_style))
-
-    resumo = Table([
-        ['Contribuintes', 'Total arrecadado', 'Moeda', 'Media por membro'],
-        [
-            str(context['total_contribuintes']),
-            f"{context['total_geral']:,.2f}",
-            moeda_label,
-            f"{context['media_por_membro']:,.2f}" if context['media_por_membro'] is not None else '--',
-        ],
-    ], colWidths=[100, 130, 90, 110])
-    resumo.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d9ead3')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#1f3d1f')),
-        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f4fbf1')),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#a8c79d')),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    elements.append(Paragraph("<br/>", styles['Normal']))
-    elements.append(resumo)
-    elements.append(Paragraph("<br/><br/>", styles['Normal']))
-
-    data = [['Membro', 'Email', 'Moeda', 'Total Contribuido', 'N. Registos']]
-    for item in context['relatorio']:
-        data.append([
-            f"{item['irmao'].nome} {item['irmao'].apelido}",
-            item['irmao'].email or '-',
-            item['moeda'],
-            f"{item['total_valor']:,.2f}",
-            str(item['total_registos'])
-        ])
-
-    if len(data) == 1:
-        data.append(['Nenhum registo encontrado', '-', '-', '-', '-'])
-
-    data.append([
-        'Total Geral',
-        '',
-        moeda_label,
-        f"{context['total_geral']:,.2f}",
-        ''
-    ])
-
-    table = LongTable(data, colWidths=[150, 130, 60, 100, 70], repeatRows=1)
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#548c2f')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('TOPPADDING', (0, 0), (-1, -1), 7),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
-        ('ALIGN', (2, 1), (2, -1), 'CENTER'),
-        ('ALIGN', (3, 1), (4, -1), 'RIGHT'),
-        ('BACKGROUND', (0, 1), (-1, -2), colors.whitesmoke),
-        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f3e0')),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ]))
-
-    elements.append(table)
-    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
-    return response
 
 
 def _get_relatorio_ofertas_por_tipo_context(params):
@@ -1546,6 +1380,83 @@ def _get_relatorio_ofertas_por_tipo_context(params):
         'moeda_resumo': moeda_resumo,
         'query_string': params.urlencode(),
     }
+
+
+@login_required
+def insightsdizimosofertas(request):
+    from django.core.exceptions import PermissionDenied
+    if not request.user.has_perm('sitetibl.view_dizimooferta'):
+        raise PermissionDenied
+
+    ano_sel = int(request.GET.get('anov', date.today().year))
+    qs_ano = Dizimooferta.objects.filter(datacorrespondente__year=ano_sel)
+
+    # Top 15 contributors
+    top_contribuintes = list(
+        qs_ano.values('irmao_id', 'irmao__nome', 'irmao__apelido')
+        .annotate(total=Sum('valor'), registos=Count('id'))
+        .order_by('-total')[:15]
+    )
+
+    # Monthly trend
+    tendencia_raw = list(
+        qs_ano
+        .annotate(mes=TruncMonth('datacorrespondente'))
+        .values('mes')
+        .annotate(total=Sum('valor'), contribuintes=Count('irmao_id', distinct=True))
+        .order_by('mes')
+    )
+    MESES_PT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    tendencia = [
+        {
+            'mes_label': MESES_PT[t['mes'].month - 1],
+            'total': float(t['total'] or 0),
+            'contribuintes': t['contribuintes'],
+        }
+        for t in tendencia_raw
+    ]
+
+    # By tipo
+    por_tipo = list(
+        qs_ano.values('tipooferta__designacao')
+        .annotate(total=Sum('valor'), registos=Count('id'))
+        .order_by('-total')
+    )
+
+    # Non-contributors (baptized members with no record this year)
+    contribuintes_ids = set(qs_ano.values_list('irmao_id', flat=True).distinct())
+    nao_contribuintes = (
+        Irmao.objects
+        .filter(batizado=True)
+        .exclude(id__in=contribuintes_ids)
+        .order_by('nome', 'apelido')
+    )
+
+    # Summary KPIs
+    total_baptizados = Irmao.objects.filter(batizado=True).count()
+    total_contribuintes_ano = len(contribuintes_ids)
+    taxa_participacao = round(total_contribuintes_ano / total_baptizados * 100) if total_baptizados else 0
+    total_arrecadado = float(qs_ano.aggregate(t=Sum('valor'))['t'] or 0)
+
+    anos_disponiveis = (
+        Dizimooferta.objects
+        .dates('datacorrespondente', 'year', order='DESC')
+    )
+
+    context = {
+        'ano_sel': ano_sel,
+        'anos_disponiveis': anos_disponiveis,
+        'top_contribuintes': top_contribuintes,
+        'tendencia': tendencia,
+        'tendencia_json': json.dumps(tendencia),
+        'por_tipo': por_tipo,
+        'nao_contribuintes': nao_contribuintes,
+        'total_baptizados': total_baptizados,
+        'total_contribuintes_ano': total_contribuintes_ano,
+        'taxa_participacao': taxa_participacao,
+        'total_arrecadado': total_arrecadado,
+    }
+    return render(request, 'insightsdizimosofertas.html', context)
 
 
 @login_required
@@ -1730,7 +1641,7 @@ def encontraAjudas(request):
         del kwargs['data__year']
     if (tipoajudav == 0):
         del kwargs['ajuda_id']
-    resultado = Ajuda.objects.select_related('ajuda', 'beneficiario', 'patrocinador', 'cesta').filter(**kwargs)
+    resultado = Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())

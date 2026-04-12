@@ -1,4 +1,4 @@
-﻿{% extends 'index.html' %}
+{% extends 'index.html' %}
 {% block content %}
 <div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
     <div style="background-image: url('/static/fotos/2022/homepage1.jpeg'); background-size: cover; background-position: center; min-height: 120px; position: relative; border-radius: var(--radius-md);">
@@ -28,7 +28,7 @@
         <div style="flex-grow: 1; position: relative; z-index: 1;">
             <div
                 style="font-size: 0.85rem; color: var(--primary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.1em; font-family: 'Outfit', sans-serif;">
-                <i class="fas fa-certificate mr-2"></i>Recibo de ContribuiÃ§Ã£o
+                <i class="fas fa-certificate mr-2"></i>Recibo de Contribuição
             </div>
             <h1
                 style="font-size: clamp(2rem, 5vw, 3rem); color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif; letter-spacing: -1px; line-height: 1;">
@@ -64,7 +64,7 @@
         style="animation-delay: 0.15s; position: relative; overflow: hidden; padding: 0;">
         <div style="background: var(--bg-main); padding: 1.5rem 2.5rem; border-bottom: 1px solid var(--border-color);">
             <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.25rem; color: var(--text-main);">
-                <i class="fas fa-file-invoice-dollar mr-2" style="color: var(--primary);"></i> Detalhes da OperaÃ§Ã£o
+                <i class="fas fa-file-invoice-dollar mr-2" style="color: var(--primary);"></i> Detalhes da Operação
             </h3>
         </div>
 
@@ -75,7 +75,7 @@
                     style="margin-bottom: 1.5rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 1rem;">
                     <label
                         style="display: block; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
-                        <i class="fas fa-tag mr-2" style="color: var(--primary-light);"></i>Tipo de ContribuiÃ§Ã£o
+                        <i class="fas fa-tag mr-2" style="color: var(--primary-light);"></i>Tipo de Contribuição
                     </label>
                     <span
                         style="font-weight: 600; color: var(--primary-dark); font-size: 1.1rem; background: var(--primary-50); padding: 0.3rem 0.8rem; border-radius: 6px;">
@@ -86,7 +86,7 @@
                     style="margin-bottom: 1.5rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 1rem;">
                     <label
                         style="display: block; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
-                        <i class="fas fa-calendar-alt mr-2" style="color: var(--primary-light);"></i>PerÃ­odo
+                        <i class="fas fa-calendar-alt mr-2" style="color: var(--primary-light);"></i>Período
                         Correspondente
                     </label>
                     <span style="font-weight: 600; color: var(--text-main); font-size: 1.1rem;">{{ x.datacorrespondente|date:"d/m/Y"|default:x.datacorrespondente }}</span>
@@ -109,7 +109,7 @@
                     style="margin-bottom: 1.5rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 1rem;">
                     <label
                         style="display: block; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
-                        <i class="fas fa-coins mr-2" style="color: var(--primary-light);"></i>Moeda de OperaÃ§Ã£o
+                        <i class="fas fa-coins mr-2" style="color: var(--primary-light);"></i>Moeda de Operação
                     </label>
                     <span style="font-weight: 600; color: var(--text-main); font-size: 1.1rem;">{{ x.get_moeda_display|default:x.moeda }}</span>
                 </div>
@@ -126,7 +126,7 @@
                 <div class="detail-row" style="margin-bottom: 0; padding-bottom: 0;">
                     <label
                         style="display: block; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
-                        <i class="fas fa-barcode mr-2" style="color: var(--primary-light);"></i>Sistema ID / ReferÃªncia
+                        <i class="fas fa-barcode mr-2" style="color: var(--primary-light);"></i>Sistema ID / Referência
                     </label>
                     <span
                         style="font-family: 'Courier New', Courier, monospace; font-size: 1.15rem; color: var(--primary); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 0.2rem 0.6rem; border-radius: 4px;">
@@ -140,7 +140,7 @@
             <div style="border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(255, 255, 255, 0.96));">
                 <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); background: rgba(16, 185, 129, 0.08);">
                     <h4 style="margin: 0; font-size: 1rem; color: var(--text-main); font-family: 'Outfit', sans-serif;">
-                        <i class="fas fa-link mr-2" style="color: var(--primary);"></i>VÃ­nculo Financeiro
+                        <i class="fas fa-link mr-2" style="color: var(--primary);"></i>Vínculo Financeiro
                     </h4>
                 </div>
 
@@ -151,8 +151,8 @@
                             <i class="fas fa-university"></i>
                         </div>
                         <div>
-                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do VÃ­nculo</div>
-                            <div style="font-size: 1.05rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.35rem;">Entrada BancÃ¡ria</div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do Vínculo</div>
+                            <div style="font-size: 1.05rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.35rem;">Entrada Bancária</div>
                             <div style="font-size: 0.95rem; color: var(--text-secondary);">Registo ID: #{{ x.entradabanco.id }}</div>
                             <div style="font-size: 0.95rem; color: var(--text-secondary);">Data: {{ x.entradabanco.data|date:"d/m/Y" }}</div>
                             <div style="font-size: 0.95rem; color: var(--text-secondary);">Valor: {{ x.entradabanco.valor|floatformat:2 }} {{ x.entradabanco.moeda }}</div>
@@ -164,7 +164,7 @@
                             <i class="fas fa-cash-register"></i>
                         </div>
                         <div>
-                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do VÃ­nculo</div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do Vínculo</div>
                             <div style="font-size: 1.05rem; font-weight: 700; color: #92400e; margin-bottom: 0.35rem;">Entrada de Caixa</div>
                             <div style="font-size: 0.95rem; color: var(--text-secondary);">Registo ID: #{{ x.entradacaixa.id }}</div>
                             <div style="font-size: 0.95rem; color: var(--text-secondary);">Data: {{ x.entradacaixa.data|date:"d/m/Y" }}</div>
@@ -177,9 +177,9 @@
                             <i class="fas fa-unlink"></i>
                         </div>
                         <div>
-                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do VÃ­nculo</div>
-                            <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Sem vÃ­nculo registado</div>
-                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Este dÃ­zimo/oferta ainda nÃ£o estÃ¡ associado a uma entrada de banco nem a uma entrada de caixa.</div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do Vínculo</div>
+                            <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Sem vínculo registado</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Este dízimo/oferta ainda não está associado a uma entrada de banco nem a uma entrada de caixa.</div>
                         </div>
                     </div>
                     {% endif %}
@@ -200,7 +200,7 @@
 <div style="text-align: center; margin-top: 2rem;">
     <a href="/tibl/gestao/dizimosofertas/1" class="bt-primary"
         style="background: transparent; color: var(--primary); border: 2px solid var(--primary); box-shadow: none;">
-        <i class="fas fa-chevron-left"></i> Voltar Ã s Ofertas
+        <i class="fas fa-chevron-left"></i> Voltar às Ofertas
     </a>
 </div>
 

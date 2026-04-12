@@ -1,13 +1,18 @@
-﻿{% extends 'index.html' %}
+{% extends 'index.html' %}
 {% load static %}
 
 {% block Irmaodetalhado %}
 <div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
     <div style="background-image: url('/static/fotos/2022/homepage1.jpeg'); background-size: cover; background-position: center; min-height: 120px; position: relative; border-radius: var(--radius-md);">
         <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%);"></div>
-        <div style="position: relative; z-index: 1; padding: 1.4rem 1.6rem;">
-            <h2 style="margin: 0; color: #ffffff; font-size: 1.25rem;"><i class="fas fa-info-circle" style="margin-right: 0.45rem; color: #93c5fd;"></i> Detalhes de Irmao</h2>
-            <p style="margin: 0.35rem 0 0 0; color: rgba(255,255,255,0.84); font-size: 0.9rem;">Informacao detalhada para consulta e acompanhamento.</p>
+        <div style="position: relative; z-index: 1; padding: 1.4rem 1.6rem; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h2 style="margin: 0; color: #ffffff; font-size: 1.25rem;"><i class="fas fa-info-circle" style="margin-right: 0.45rem; color: #93c5fd;"></i> Detalhes de Irmão</h2>
+                <p style="margin: 0.35rem 0 0 0; color: rgba(255,255,255,0.84); font-size: 0.9rem;">Informação detalhada para consulta e acompanhamento.</p>
+            </div>
+            <a href="/tibl/gestao/irmaos/1/" class="bt-primary" style="padding: 0.45rem 1rem; font-size: 0.85rem; background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px); white-space: nowrap; margin-top: 0.1rem;">
+                <i class="fas fa-arrow-left" style="margin-right: 0.4rem;"></i> Voltar
+            </a>
         </div>
     </div>
 </div>
@@ -47,7 +52,7 @@
                 </h1>
                 <p
                     style="font-size: 1.1rem; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem;">
-                    <i class="fas fa-church mr-2"></i>{{ x.localcongregacao|default:"Sem congregaÃ§Ã£o" }}
+                    <i class="fas fa-church mr-2"></i>{{ x.localcongregacao|default:"Sem congregação" }}
                     {% if x.batizado %}<span style="margin-left: 0.8rem; background: #dcfce7; color: #166534; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; text-transform: none; letter-spacing: 0;"><i class="fas fa-water mr-1"></i>Batizado</span>{% endif %}
                     {% if x.celula %}<span style="margin-left: 0.4rem; background: #fef3c7; color: #92400e; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; text-transform: none; letter-spacing: 0;"><i class="fas fa-home mr-1"></i>{{ x.celula }}</span>{% endif %}
                 </p>
@@ -85,7 +90,7 @@
                     {% endif %}
                     <a href="/tibl/gestao/irmaos/1" class="bt-secondary"
                         style="padding: 0.75rem 1.5rem; font-weight: 600;">
-                        <i class="fas fa-arrow-left mr-2"></i> Voltar Ã  Lista
+                        <i class="fas fa-arrow-left mr-2"></i> Voltar à Lista
                     </a>
                 </div>
             </div>
@@ -140,7 +145,7 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
                     <span
-                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">ProfissÃ£o</span>
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Profissão</span>
                     <span style="font-weight: 600; color: var(--text-main);">{{ x.profissao|default:"â€”" }}</span>
                 </div>
                 {% endfor %}
@@ -152,7 +157,7 @@
             style="animation-delay: 0.2s; border-top: 4px solid var(--primary-light);">
             <h3
                 style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; color: var(--text-main); font-size: 1.1rem; font-family: 'Outfit', sans-serif;">
-                <i class="fas fa-address-book mr-2" style="color: var(--primary);"></i> Contacto e LocalizaÃ§Ã£o
+                <i class="fas fa-address-book mr-2" style="color: var(--primary);"></i> Contacto e Localização
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 1rem;">
@@ -180,13 +185,13 @@
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
-                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">MunicÃ­pio</span>
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Município</span>
                     <span style="font-weight: 600; color: var(--text-main);">{{ x.municipio|default:"â€”" }}</span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
-                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">ProvÃ­ncia</span>
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Província</span>
                     <span style="font-weight: 600; color: var(--text-main);">{{ x.provincia|default:"â€”" }}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
@@ -217,16 +222,52 @@
             {% endfor %}
         </div>
         {% else %}
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Este membro nÃ£o estÃ¡ associado a nenhum departamento.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Este membro não está associado a nenhum departamento.</p>
         {% endif %}
     </div>
+
+    <!-- Contribuições Financeiras -->
+    {% if perms.sitetibl.view_dizimooferta %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.28s; margin-bottom: 1.5rem; border-top: 4px solid #27ae60;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+            <h3 style="color: var(--text-main); font-size: 1.1rem; font-family: 'Outfit', sans-serif; margin: 0;">
+                <i class="fas fa-coins mr-2" style="color: #27ae60;"></i> Contribuições Financeiras
+            </h3>
+            <a href="/tibl/gestao/dizimosofertas/1/?nomev={{ x.nome }}&apelidov={{ x.apelido }}" class="bt-primary" style="padding: 0.35rem 0.9rem; font-size: 0.8rem; background: #27ae60; color: white;">
+                <i class="fas fa-search"></i> Ver registos
+            </a>
+        </div>
+        {% if contrib_total_registos %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+            <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color);">
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Total Histórico</p>
+                <p style="font-size: 1.4rem; font-weight: 700; color: #27ae60; margin: 0;">{{ contrib_total_historico|floatformat:2 }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">{{ contrib_moeda }}</span></p>
+            </div>
+            <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color);">
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Total {{ contrib_ano_atual }}</p>
+                <p style="font-size: 1.4rem; font-weight: 700; color: var(--primary); margin: 0;">{{ contrib_total_ano|floatformat:2 }}</p>
+            </div>
+            <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color);">
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Registos Totais</p>
+                <p style="font-size: 1.4rem; font-weight: 700; color: var(--text-main); margin: 0;">{{ contrib_total_registos }}</p>
+            </div>
+            <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color);">
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Último Registo</p>
+                <p style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0;">{{ contrib_ultimo|default:"—" }}</p>
+            </div>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Nenhuma contribuição registada para este membro.</p>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- System Info Card -->
     <div class="modern-card animate-fade-in-up"
         style="animation-delay: 0.3s; background: var(--bg-main); border: 1px solid var(--border-color);">
         <h3
             style="margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-secondary); font-family: 'Outfit', sans-serif;">
-            <i class="fas fa-info-circle mr-2" style="color: var(--primary-light);"></i> InformaÃ§Ãµes do Sistema
+            <i class="fas fa-info-circle mr-2" style="color: var(--primary-light);"></i> Informações do Sistema
         </h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
             <div
@@ -242,7 +283,7 @@
                 style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                 <p
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
-                    Ãšltima AtualizaÃ§Ã£o</p>
+                    Ãšltima Atualização</p>
                 <p style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
                     <i class="far fa-clock mr-2" style="color: var(--primary-light);"></i>{{ x.data_atualizacao|date:"d/m/Y H:i"|default:"â€”" }}
                 </p>
@@ -251,7 +292,7 @@
                 style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                 <p
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
-                    CongregaÃ§Ã£o</p>
+                    Congregação</p>
                 <p style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
                     <i class="fas fa-church mr-2" style="color: var(--primary-light);"></i>{{ x.localcongregacao|default:"â€”" }}
                 </p>
@@ -268,12 +309,12 @@
         style="width: 80px; height: 80px; background: var(--bg-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
         <i class="fas fa-user-slash" style="font-size: 2rem; color: var(--text-muted);"></i>
     </div>
-    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Registo nÃ£o
+    <h3 style="color: var(--text-main); margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">Registo não
         encontrado</h3>
-    <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;">O irmÃ£o solicitado nÃ£o existe ou foi
+    <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;">O irmão solicitado não existe ou foi
         recentemente removido do sistema.</p>
     <div style="margin-top: 2rem;">
-        <a href="/tibl/gestao/irmaos/1" class="bt-primary"><i class="fas fa-arrow-left mr-2"></i> Voltar Ã  Lista</a>
+        <a href="/tibl/gestao/irmaos/1" class="bt-primary"><i class="fas fa-arrow-left mr-2"></i> Voltar à Lista</a>
     </div>
 </div>
 {% endif %}
