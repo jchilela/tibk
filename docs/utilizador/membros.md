@@ -2,9 +2,6 @@
 
 Nesta secção encontra tudo o que precisa para gerir os membros da igreja.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 

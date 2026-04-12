@@ -2,9 +2,6 @@
 
 Gere relatórios em PDF para gestão e prestação de contas.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 

@@ -140,40 +140,177 @@ pedidos de saída e orçamentos por departamento.</p>
 <hr />
 <h2 id="caixa">Caixa<a class="headerlink" href="#caixa" title="Permanent link">&para;</a></h2>
 <h3 id="registar-uma-entrada-de-caixa">Registar uma entrada de caixa<a class="headerlink" href="#registar-uma-entrada-de-caixa" title="Permanent link">&para;</a></h3>
-<!-- Campos: valor, moeda, data, responsável, rubrica, observações. -->
+<ol>
+<li>Aceda ao menu <strong>Finanças → Entradas de Caixa</strong></li>
+<li>Clique em <strong>Nova Entrada de Caixa</strong></li>
+<li>Preencha os seguintes campos:
+  <ul>
+    <li><strong>Valor</strong> — montante recebido</li>
+    <li><strong>Moeda</strong> — AKZ, USD, EUR, GBP, ZAR ou Dólar Namibiano</li>
+    <li><strong>Data</strong> e <strong>Hora</strong> da entrada</li>
+    <li><strong>Responsável</strong> — irmão que efectuou o recebimento</li>
+    <li><strong>Rubrica</strong> — categoria contabilística da entrada</li>
+    <li><strong>Observação</strong> — notas adicionais (opcional)</li>
+  </ul>
+</li>
+<li>Clique em <strong>Guardar</strong></li>
+</ol>
 
 <h3 id="registar-uma-saida-de-caixa">Registar uma saída de caixa<a class="headerlink" href="#registar-uma-saida-de-caixa" title="Permanent link">&para;</a></h3>
-<!-- Campos: valor, moeda, data, responsável, rubrica, observações. -->
+<ol>
+<li>Aceda ao menu <strong>Finanças → Saídas de Caixa</strong></li>
+<li>Clique em <strong>Nova Saída de Caixa</strong></li>
+<li>Preencha os seguintes campos:
+  <ul>
+    <li><strong>Valor</strong> — montante pago</li>
+    <li><strong>Moeda</strong> — seleccione a moeda correspondente</li>
+    <li><strong>Data</strong> e <strong>Hora</strong> da saída</li>
+    <li><strong>Responsável</strong> — irmão que autorizou ou realizou o pagamento</li>
+    <li><strong>Rubrica</strong> — categoria contabilística da despesa</li>
+    <li><strong>Observação</strong> — notas adicionais (opcional)</li>
+  </ul>
+</li>
+<li>Clique em <strong>Guardar</strong></li>
+</ol>
 
 <hr />
 <h2 id="banco">Banco<a class="headerlink" href="#banco" title="Permanent link">&para;</a></h2>
 <h3 id="registar-uma-entrada-bancaria">Registar uma entrada bancária<a class="headerlink" href="#registar-uma-entrada-bancaria" title="Permanent link">&para;</a></h3>
-<!-- Campos: conta, valor, moeda, via (depósito/transferência/multicaixa), rubrica, responsável. -->
+<ol>
+<li>Aceda ao menu <strong>Finanças → Entradas Bancárias</strong></li>
+<li>Clique em <strong>Nova Entrada Bancária</strong></li>
+<li>Preencha os seguintes campos:
+  <ul>
+    <li><strong>Conta a Creditar</strong> — conta bancária da igreja que receberá o valor</li>
+    <li><strong>Valor</strong> e <strong>Moeda</strong></li>
+    <li><strong>Data</strong> e <strong>Hora</strong> da operação</li>
+    <li><strong>Via</strong> — Depósito, Transferência ou Multicaixa</li>
+    <li><strong>Rubrica</strong> — categoria contabilística</li>
+    <li><strong>Conta Origem</strong> — apenas para transferências internas (opcional)</li>
+    <li><strong>Responsável</strong> — irmão que efectuou o depósito</li>
+    <li><strong>Observação</strong> — notas adicionais (opcional)</li>
+  </ul>
+</li>
+<li>Clique em <strong>Guardar</strong></li>
+</ol>
+<blockquote>
+<p>Em caso de transferência interna, o sistema valida automaticamente se a conta origem tem saldo suficiente e impede que a conta origem e a conta destino sejam a mesma.</p>
+</blockquote>
 
 <h3 id="registar-uma-saida-bancaria">Registar uma saída bancária<a class="headerlink" href="#registar-uma-saida-bancaria" title="Permanent link">&para;</a></h3>
-<!-- Campos: conta de débito, valor, moeda, rubrica, conta destino, responsável. -->
+<ol>
+<li>Aceda ao menu <strong>Finanças → Saídas Bancárias</strong></li>
+<li>Clique em <strong>Nova Saída Bancária</strong></li>
+<li>Preencha os seguintes campos:
+  <ul>
+    <li><strong>Conta</strong> — conta bancária a debitar</li>
+    <li><strong>Valor</strong> e <strong>Moeda</strong></li>
+    <li><strong>Data</strong> e <strong>Hora</strong> da operação</li>
+    <li><strong>Rubrica</strong> — categoria contabilística da despesa</li>
+    <li><strong>Responsável</strong> — irmão que autorizou ou realizou a saída</li>
+    <li><strong>Conta a Creditar</strong> — conta destino em transferências internas (opcional)</li>
+    <li><strong>Observação</strong> — notas adicionais (opcional)</li>
+  </ul>
+</li>
+<li>Clique em <strong>Guardar</strong></li>
+</ol>
+<blockquote>
+<p>O sistema verifica se existe saldo disponível na conta antes de gravar. Se o saldo for insuficiente, a operação é bloqueada.</p>
+</blockquote>
 
 <hr />
 <h2 id="dizimos-e-ofertas">Dízimos e Ofertas<a class="headerlink" href="#dizimos-e-ofertas" title="Permanent link">&para;</a></h2>
 <h3 id="registar-um-dizimo-oferta">Registar um dízimo / oferta<a class="headerlink" href="#registar-um-dizimo-oferta" title="Permanent link">&para;</a></h3>
-<!-- Campos: irmão, valor, moeda, tipo de oferta, data. -->
+<ol>
+<li>Aceda ao menu <strong>Finanças → Dízimos e Ofertas</strong></li>
+<li>Clique em <strong>Novo Dízimo / Oferta</strong></li>
+<li>Preencha os seguintes campos:
+  <ul>
+    <li><strong>Irmão Dizimista</strong> — membro que realizou a contribuição</li>
+    <li><strong>Valor</strong> e <strong>Moeda</strong></li>
+    <li><strong>Tipo de Oferta</strong> — dízimo, oferta especial, etc.</li>
+    <li><strong>Data Correspondente</strong> — data a que o dízimo/oferta diz respeito</li>
+    <li><strong>Actividade</strong> — culto ou evento associado (opcional)</li>
+    <li><strong>Entrada Bancária</strong> <em>ou</em> <strong>Entrada de Caixa</strong> — vincule a uma entrada financeira já registada (obrigatório vincular a um dos dois; não é possível vincular a ambos)</li>
+  </ul>
+</li>
+<li>Clique em <strong>Guardar</strong></li>
+</ol>
 
 <h3 id="gerar-recibo-em-pdf">Gerar recibo em PDF<a class="headerlink" href="#gerar-recibo-em-pdf" title="Permanent link">&para;</a></h3>
-<p>Após registar um dízimo, aceda ao detalhe do registo e clique em <strong>Gerar Recibo</strong>.
-O sistema produz um recibo profissional com logo da igreja.</p>
-<!-- Adicione screenshot ou passos adicionais. -->
+<ol>
+<li>Na listagem de Dízimos e Ofertas, localize o registo pretendido</li>
+<li>Clique em <strong>Ver</strong> para abrir o detalhe</li>
+<li>Clique no botão <strong>Gerar Recibo</strong></li>
+<li>O sistema produz automaticamente um recibo em PDF com o logo da igreja, o nome do membro, o valor, a moeda, o tipo de oferta e a data</li>
+<li>O ficheiro é descarregado directamente para o seu dispositivo</li>
+</ol>
 
 <hr />
 <h2 id="pedidos-de-saida">Pedidos de Saída<a class="headerlink" href="#pedidos-de-saida" title="Permanent link">&para;</a></h2>
 <h3 id="criar-um-pedido-de-saida">Criar um pedido de saída<a class="headerlink" href="#criar-um-pedido-de-saida" title="Permanent link">&para;</a></h3>
-<!-- Preenchimento: departamento, projecto, montante, IBAN, justificativa, documento. -->
+<ol>
+<li>Aceda ao menu <strong>Finanças → Pedidos de Saída</strong></li>
+<li>Clique em <strong>Novo Pedido</strong></li>
+<li>Preencha os seguintes campos:
+  <ul>
+    <li><strong>Departamento</strong> — departamento que solicita o pagamento</li>
+    <li><strong>Projecto / Finalidade</strong> — descrição curta da finalidade</li>
+    <li><strong>Montante</strong> e <strong>Moeda</strong></li>
+    <li><strong>IBAN</strong> — conta bancária do beneficiário para transferência</li>
+    <li><strong>Centro de Custo</strong> e <strong>Tipificação de Custo</strong> (opcionais)</li>
+    <li><strong>Justificativa</strong> — fundamentação detalhada do pedido</li>
+    <li><strong>Documento Justificativo</strong> — ficheiro de suporte (factura, orçamento, etc.) — opcional</li>
+  </ul>
+</li>
+<li>Clique em <strong>Guardar</strong> — o pedido fica com estado <strong>Pendente</strong> e o requerente é registado automaticamente</li>
+</ol>
 
 <h3 id="aprovar-rejeitar-um-pedido">Aprovar / Rejeitar um pedido<a class="headerlink" href="#aprovar-rejeitar-um-pedido" title="Permanent link">&para;</a></h3>
-<!-- Apenas utilizadores com perfil Financeiro ou superior podem aprovar. -->
+<ol>
+<li>Aceda à listagem de <strong>Pedidos de Saída</strong></li>
+<li>Localize o pedido com estado <em>Pendente</em> ou <em>Em Análise</em></li>
+<li>Clique em <strong>Ver</strong> para abrir o detalhe</li>
+<li>Reveja os dados e o documento justificativo</li>
+<li>Clique em <strong>Aprovar</strong> ou <strong>Rejeitar</strong></li>
+<li>Preencha a <strong>Observação do Aprovador</strong> se necessário</li>
+<li>Clique em <strong>Confirmar</strong> — o estado é actualizado e a data de aprovação registada</li>
+</ol>
+<blockquote>
+<p>Apenas utilizadores com perfil <strong>Financeiro</strong>, <strong>Pastor</strong> ou <strong>Administrador</strong> têm permissão para aprovar ou rejeitar pedidos.</p>
+</blockquote>
+<h3 id="registar-pagamento">Registar pagamento efectuado<a class="headerlink" href="#registar-pagamento" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Após aprovação, abra o detalhe do pedido</li>
+<li>Clique em <strong>Editar</strong></li>
+<li>Altere o <strong>Estado de Pagamento</strong> para <em>Pago</em></li>
+<li>Anexe o <strong>Comprovativo de Pagamento</strong></li>
+<li>Clique em <strong>Guardar</strong></li>
+</ol>
 
 <hr />
 <h2 id="orcamentos-por-departamento">Orçamentos por Departamento<a class="headerlink" href="#orcamentos-por-departamento" title="Permanent link">&para;</a></h2>
-<!-- Como consultar e actualizar o orçamento anual de cada departamento. -->
+<h3 id="definir-orcamento">Definir o orçamento anual<a class="headerlink" href="#definir-orcamento" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Aceda ao menu <strong>Finanças → Orçamentos por Departamento</strong></li>
+<li>Clique em <strong>Novo Orçamento</strong></li>
+<li>Preencha os seguintes campos:
+  <ul>
+    <li><strong>Departamento</strong> — seleccione o departamento a orçamentar</li>
+    <li><strong>Orçamento</strong> — valor total previsto</li>
+    <li><strong>Moeda</strong> — moeda do orçamento</li>
+    <li><strong>Ano</strong> — ano fiscal correspondente</li>
+  </ul>
+</li>
+<li>Clique em <strong>Guardar</strong></li>
+</ol>
+<h3 id="actualizar-orcamento">Actualizar um orçamento existente<a class="headerlink" href="#actualizar-orcamento" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Na listagem, localize o orçamento do departamento e ano pretendidos</li>
+<li>Clique em <strong>Editar</strong></li>
+<li>Ajuste o valor ou a moeda conforme necessário</li>
+<li>Clique em <strong>Guardar</strong></li>
+</ol>
 
 <hr />
 <h2 id="perguntas-frequentes">Perguntas frequentes<a class="headerlink" href="#perguntas-frequentes" title="Permanent link">&para;</a></h2>

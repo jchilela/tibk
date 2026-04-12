@@ -2,9 +2,6 @@
 
 Envie mensagens para os membros da igreja por email e/ou SMS.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 

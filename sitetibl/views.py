@@ -2013,6 +2013,33 @@ def encontraEnvioMensagem(request):
     return render(request,'enviomensagemfiltrados.html', {'bb':paginaresultado})
 
 @login_required
+def criarEnvioMensagem(request):
+    if not request.user.has_perm('sitetibl.add_enviomensagem'):
+        messages.error(request, 'Acesso negado! Você não tem permissão para enviar mensagens.')
+        return redirect('index')
+
+    irmaos = Irmao.objects.select_related('celula').prefetch_related('integrantes_departamento').order_by('nome', 'apelido')
+    departamentos = Departamento.objects.order_by('designacao')
+
+    if request.method == 'POST':
+        formulario = EnvioMensagemForm(request.POST)
+        if formulario.is_valid():
+            formulario.save()
+            messages.success(request, 'Mensagem enviada com sucesso!')
+            return redirect('index')
+        else:
+            messages.error(request, 'Foram encontrados erros ao preencher o formulário.')
+    else:
+        formulario = EnvioMensagemForm()
+
+    return render(request, 'enviomensagem_criar.html', {
+        'formulario': formulario,
+        'irmaos': irmaos,
+        'departamentos': departamentos,
+    })
+
+
+@login_required
 def encontraBancos(request):
     designacao = request.GET['designacao']
     abreviatura = request.GET['abreviatura']

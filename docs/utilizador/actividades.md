@@ -2,9 +2,6 @@
 
 Gerencie cultos, eventos e a escala de serviço dos membros.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 

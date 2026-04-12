@@ -3,9 +3,6 @@
 Gestão completa das movimentações financeiras da igreja: caixa, banco, dízimos, ofertas,
 pedidos de saída e orçamentos por departamento.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 
