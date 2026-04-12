@@ -1,0 +1,95 @@
+{% extends 'index.html' %}
+{% block OrcamentoDepartamento %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">Orçamentos por Departamento</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Dotações orçamentais atribuídas a cada departamento.</p>
+        </div>
+        {% if perms.sitetibl.add_orcamentodepartamento %}
+        <a href="/tibl/orcamentodepartamento/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
+            <i class="fas fa-plus-circle"></i> Novo Orçamento
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Busca rápida -->
+    <div class="filter-bar" style="margin-bottom: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem 1.5rem;">
+        <form action="/tibl/buscaorcamentodepartamento" method="GET" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Departamento</label>
+                <input type="text" name="departamentov" placeholder="Pesquisar..." style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Orçamento</label>
+                <input type="text" name="orcamentov" placeholder="Valor..." style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Ano</label>
+                <input type="text" name="anov" placeholder="Ex: 2026" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 1rem;">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </form>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Departamento</th>
+                    <th style="text-align: center;">Ano Fiscal</th>
+                    <th style="text-align: right;">Orçamento</th>
+                    <th style="text-align: center;">Moeda</th>
+                    <th style="text-align: right;">Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--primary-dark);">{% if x.departamento %}{{ x.departamento.designacao }}{% else %}&mdash;{% endif %}</div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span style="display: inline-block; background: var(--primary-light); color: white; padding: 4px 14px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">{{ x.ano }}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-main);">{{ x.orcamento|floatformat:2 }}</div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">{% if x.moeda %}{{ x.moeda.designacao }}{% else %}&mdash;{% endif %}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/orcamentodepartamento/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-chart-bar"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-calculator" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum orçamento registado</h3>
+        <p style="color: var(--text-muted);">Ainda não existem dotações orçamentais definidas.</p>
+        {% if perms.sitetibl.add_orcamentodepartamento %}
+        <a href="/tibl/orcamentodepartamento/criar/" class="bt-primary" style="margin-top: 1rem; padding: 0.6rem 1.5rem;">
+            <i class="fas fa-plus-circle"></i> Criar Primeiro Orçamento
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

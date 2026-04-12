@@ -1,49 +1,79 @@
 {% extends 'index.html' %}
-{% block Actividadesfiltradas%}
+{% block Actividadesfiltradas %}
 
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Programação
+                Encontrada</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Registos de atividades compatíveis com a sua busca.
+            </p>
+        </div>
+        <a href="/tibl/gestao/actividades/1" class="bt-primary"
+            style="background-color: var(--info); color: white;">
+            <i class="fas fa-undo"></i> Voltar ao Cronograma
+        </a>
+    </div>
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Resgistros encontrados</b></font>
-</p>
-{% if bb %}
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Actividade</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Data</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Função</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Irmão</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Local</b></font></a></td>
-</td>
-</tr>
+    {% if bb %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+        {% for x in bb %}
+        <div class="modern-card"
+            style="border-top: 5px solid var(--primary); padding: 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+            <div style="padding: 1.5rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <span
+                        style="background: var(--primary-50); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="far fa-calendar-alt"></i>
+                        {{ x.actividade__data|date:"d M Y"|default:x.actividade__data }}
+                    </span>
+                    <span
+                        style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; background: #f1f5f9; padding: 0.2rem 0.6rem; border-radius: 12px;">
+                        <i class="fas fa-user-tag" style="color: var(--primary);"></i> {{ x.funcao__designacao }}
+                    </span>
+                </div>
 
-{% for x in bb %}
-{% if forloop.counter|divisibleby:2 %}
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
+                <h3 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 1.35rem; line-height: 1.3;">
+                    {{ x.actividade__designacao__designacao }}
+                </h3>
 
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/actividades/detalhe/{{ x.actividade_id }}" class = 'aa'>{{ x.actividade__designacao__designacao }}</a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.actividade__data }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.funcao__designacao }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.irmao__nome }} {{ x.irmao__apelido }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.actividade__local__designacao }}</font></td>
-</tr>
-{% endfor %}
+                <p
+                    style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
+                    {{ x.actividade__localactividade__designacao|default:"Sede Principal" }}
+                </p>
 
-</table>
-<br>
-{% include 'paginacao' %}
+                <div
+                    style="background: #f8fafc; padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                    <div
+                        style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-light); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
+                        {{ x.irmao__nome|first }}{{ x.irmao__apelido|first }}
+                    </div>
+                    <span style="font-weight: 600;">{{ x.irmao__nome }} {{ x.irmao__apelido }}</span>
+                </div>
+            </div>
 
-{% else %}
+            <div style="padding: 1rem 1.5rem; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+                <a href="/tibl/actividades/detalhe/{{ x.actividade_id }}" class="bt-primary"
+                    style="display: block; width: 100%; text-align: center; padding: 0.6rem; background: var(--primary); color: white !important; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; border-radius: var(--radius-sm);">
+                    <i class="fas fa-info-circle mr-1"></i> Detalhes da Actividade
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
-
-<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
-
-
-{% endif %}
-<br>
-<br>
-
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-calendar-times" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhuma atividade encontrada</h3>
+        <p style="color: var(--text-muted);">Não existem registos compatíveis com os filtros aplicados.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
-

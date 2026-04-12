@@ -1,43 +1,94 @@
 {% extends 'index.html' %}
 {% block EscalasFiltrados %}
 
+<div class="list-container">
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtro de Escalas</h3>
+        <form action="/tibl/buscaescalas/" method="GET" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: flex-end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Departamento</label>
+                <select name="departamentov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Todos os departamentos</option>
+                    {% for d in departamentos %}
+                    <option value="{{ d.id }}" {% if departamentov_sel == d.id|stringformat:"i" %}selected{% endif %}>{{ d.designacao }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome do Irmão</label>
+                <input type="text" name="nomev" value="{{ request.GET.nomev }}" placeholder="Pesquisar por nome..."
+                    style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <button type="submit" class="bt-primary" style="padding: 0.6rem 1.5rem; color: white; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </form>
+    </div>
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3">[ <b>Resgistos encontrados</b>]</font>
-</p>
-{% if bb %}
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Irmão</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Função</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Actividade</b></font></a></td>
-</td>
-</tr>
+    {% if bb %}
+    <div class="modern-card" style="overflow: hidden; padding: 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+                <tr style="background: var(--primary-light); color: white;">
+                    <th style="padding: 1rem 1.25rem; text-align: left; font-weight: 600;">Irmão</th>
+                    <th style="padding: 1rem 1.25rem; text-align: left; font-weight: 600;">Função</th>
+                    <th style="padding: 1rem 1.25rem; text-align: left; font-weight: 600;">Actividade</th>
+                    <th style="padding: 1rem 1.25rem; text-align: left; font-weight: 600;">Departamento</th>
+                    <th style="padding: 1rem 1.25rem; text-align: left; font-weight: 600;">Data</th>
+                    <th style="padding: 1rem 1.25rem; text-align: center; font-weight: 600;">Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr style="border-bottom: 1px solid #f1f5f9; {% if forloop.counter|divisibleby:2 %}background: #f8fafc;{% else %}background: white;{% endif %}">
+                    <td style="padding: 0.9rem 1.25rem;">
+                        <a href="/tibl/escalas/detalhe/{{ x.id }}" style="font-weight: 600; color: var(--primary); text-decoration: none;">
+                            {{ x.irmao.nome }} {{ x.irmao.apelido }}
+                        </a>
+                    </td>
+                    <td style="padding: 0.9rem 1.25rem; color: var(--text-muted);">{{ x.funcao }}</td>
+                    <td style="padding: 0.9rem 1.25rem; color: var(--text-main);">{{ x.actividade.designacao }}</td>
+                    <td style="padding: 0.9rem 1.25rem; color: var(--text-muted);">
+                        {% if x.actividade.departamento %}{{ x.actividade.departamento.designacao }}{% else %}—{% endif %}
+                    </td>
+                    <td style="padding: 0.9rem 1.25rem; color: var(--text-muted);">
+                        {{ x.actividade.data|date:"d M Y"|default:"—" }}
+                    </td>
+                    <td style="padding: 0.9rem 1.25rem; text-align: center;">
+                        {% if perms.sitetibl.change_escala %}
+                        <a href="/tibl/escalas/actualizar/{{ x.id }}" title="Editar"
+                            style="color: var(--text-muted); padding: 0.4rem; border-radius: 4px; transition: background 0.2s;"
+                            onmouseover="this.style.background='#f1f5f9'"
+                            onmouseout="this.style.background='transparent'">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        {% endif %}
+                        {% if perms.sitetibl.delete_escala %}
+                        <a href="/tibl/escalas/eliminar/{{ x.id }}" title="Eliminar"
+                            style="color: #ef4444; padding: 0.4rem; border-radius: 4px; transition: background 0.2s;"
+                            onmouseover="this.style.background='#fee2e2'"
+                            onmouseout="this.style.background='transparent'">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-{% for x in bb %}
-{% if forloop.counter|divisibleby:2 %}
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
-
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/escalas/detalhe/{{ x.id }}" class = 'aa'>{{ x.irmao.nome }} {{ x.irmao.apelido }}</a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.funcao }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.actividade }}</font></td>
-</tr>
-{% endfor %}
-
-</table>
-<br>
-{% include 'paginacao' %}
-
-{% else %}
-
-<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
-
-{% endif %}
-<br>
-<br>
-
+    <div style="margin-top: 1.5rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum Registo Encontrado</h3>
+        <p style="color: var(--text-muted);">Tente ajustar os filtros de pesquisa.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
 

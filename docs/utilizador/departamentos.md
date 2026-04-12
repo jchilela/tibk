@@ -2,9 +2,6 @@
 
 Organize a estrutura orgânica da igreja: departamentos, cargos e mandatos.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 

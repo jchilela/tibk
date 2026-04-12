@@ -58,9 +58,9 @@ def enviar_notificacoes_escala():
                 sms_url = 'https://telcosms.co.ao/send_message'
                 sms_data = {
                     "message": {
-                        "api_key_app": "prdc4b5a87b97d15edf8aa0cb5929",
+                        "api_key_app": settings.TELCOSMS_API_KEY,
                         "phone_number": irmao.telefone,  # campo para passar o numero de telefone do User
-                        "message_body": f"{irmao.nome} {irmao.apelido}, Este é um lembrete de que você está escalado para uma actividade {actividade.designacao}, no dia {actividade.data}, na hora {actividade.inicio}, com a função {escala.funcao}."
+                        "message_body": f"{irmao.nome} {irmao.apelido}, Este e um lembrete de que você está escalado para uma actividade {actividade.designacao}, no dia {actividade.data}, na hora {actividade.inicio}, com a função {escala.funcao}."
                     }
                 }
                 

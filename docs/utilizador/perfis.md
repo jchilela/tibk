@@ -2,9 +2,6 @@
 
 Cada utilizador do sistema tem um perfil que define o que pode ver e fazer.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 

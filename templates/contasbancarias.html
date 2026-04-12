@@ -1,0 +1,139 @@
+{% extends 'index.html' %}
+
+{% block extra_css %}
+<style>
+  .cb-filter-btn {
+    padding: 0.65rem 0.9rem;
+    font-size: 0.86rem;
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    text-align: center;
+  }
+  .cb-filter-btn:hover {
+    filter: none;
+    box-shadow: none;
+  }
+</style>
+{% endblock %}
+
+{% block Contasbancarias %}
+
+<div class="list-container">
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-search-dollar mr-2"></i> Procurar Contas</h3>
+        <form action="/tibl/gestao/contasbancarias/1/" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome Proprietário</label>
+                <input type="text" name="nomev" value="{{ filtro_nomev }}" placeholder="Ex: João" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Apelido Proprietário</label>
+                <input type="text" name="apelidov" value="{{ filtro_apelidov }}" placeholder="Ex: Silva" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Banco</label>
+                <input type="text" name="bancov" value="{{ filtro_bancov }}" placeholder="Ex: BFA" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Número da Conta</label>
+                <input type="text" name="numerocontav" value="{{ filtro_numerocontav }}" placeholder="Ex: 123456789" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">IBAN</label>
+                <input type="text" name="ibanv" value="{{ filtro_ibanv }}" placeholder="Ex: AO06..." style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Moeda</label>
+                <select name="moedav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="">Todas</option>
+                    {% for codigo, nome in listamoedas %}
+                    <option value="{{ codigo }}" {% if filtro_moedav == codigo %}selected{% endif %}>{{ nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary cb-filter-btn">
+                <i class="fas fa-search"></i> Buscar Contas
+            </button>
+        </form>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main); margin: 0;">Contas Bancárias Registadas</h2>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="/tibl/contasbancarias/inativas/" class="bt-primary" style="background-color: #dc3545; color: white;">
+                <i class="fas fa-archive"></i> Histórico Inativas
+            </a>
+            <a href="/tibl/gestao/contasbancarias/1/" class="bt-primary" style="background-color: #6c757d; color: white;">
+                <i class="fas fa-filter-circle-xmark"></i> Limpar Filtros
+            </a>
+            {% if perms.sitetibl.add_contabancaria %}
+            <a href="/tibl/contasbancarias/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white;">
+                <i class="fas fa-plus"></i> Nova Conta
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Instituição / Banco</th>
+                    <th>Proprietário</th>
+                    <th>Nº Conta / IBAN</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 36px; height: 36px; background: var(--bg-body); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary); border: 1px solid var(--primary-light);">
+                                {{ x.banco.abreviacao|first }}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--primary-dark);">{{ x.banco.abreviacao }}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">{{ x.banco.designacao }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500;">{{ x.proprietario.nome }} {{ x.proprietario.apelido }}</div>
+                    </td>
+                    <td>
+                        <div style="font-family: monospace; font-size: 0.9rem; color: var(--text-main);">{{ x.numeroconta }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">IBAN: {{ x.iban }}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/contasbancarias/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-eye"></i> Detalhes
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-university" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhuma Conta Encontrada</h3>
+        <p style="color: var(--text-muted);">Não existem contas bancárias que correspondam aos seus critérios de busca.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+

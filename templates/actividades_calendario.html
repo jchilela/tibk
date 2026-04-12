@@ -1,0 +1,178 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Calendário de Actividades — TIBL{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+<style>
+  #calendar-wrapper {
+    background: white;
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    padding: 1.5rem;
+  }
+  .fc-event.recorrente {
+    font-weight: 500;
+  }
+  .fc-toolbar-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2rem !important;
+  }
+  .fc-button-primary {
+    background-color: var(--primary, #1b4d3e) !important;
+    border-color: var(--primary, #1b4d3e) !important;
+  }
+  .fc-button-primary:hover {
+    background-color: var(--primary-dark, #163d31) !important;
+  }
+  .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: var(--primary-dark, #163d31) !important;
+  }
+  .fc-day-today {
+    background-color: rgba(27,77,62,0.06) !important;
+  }
+
+  /* ── Mobile optimizations ── */
+  @media (max-width: 768px) {
+    #calendar-wrapper {
+      padding: 0.5rem;
+      border-radius: 8px;
+    }
+    .fc-toolbar {
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .fc-toolbar-title {
+      font-size: 1rem !important;
+      text-align: center;
+    }
+    .fc-button {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.75rem !important;
+    }
+    .fc-button-group {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .fc-col-header-cell-cushion,
+    .fc-daygrid-day-number {
+      font-size: 0.75rem;
+    }
+    .fc-event-title,
+    .fc-event-time {
+      font-size: 0.72rem;
+    }
+    .fc-timegrid-slot {
+      height: 2rem !important;
+    }
+    .fc-list-event td {
+      padding: 0.4rem 0.5rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block Actividades %}
+<div class="list-container">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">
+      <i class="fas fa-calendar-alt" style="margin-right: 0.5rem;"></i>Calendário de Actividades
+    </h2>
+    <div style="display: flex; gap: 0.75rem;">
+      {% if perms.sitetibl.add_actividade %}
+      <a href="/tibl/actividades/criar/" class="bt-primary"
+        style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
+        <i class="fas fa-plus"></i> Nova Actividade
+      </a>
+      {% endif %}
+      <a href="{% url 'sitetibl:mostra_gestao' gestaoescolhida='actividades' pagina=1 %}" class="bt-secondary"
+        style="padding: 0.5rem 1.2rem; font-size: 0.9rem;">
+        <i class="fas fa-list"></i> Lista
+      </a>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center; font-size: 0.85rem; color: #555;">
+    <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#1b4d3e;margin-right:4px;"></span>Actividade normal</span>
+    <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#0369a1;margin-right:4px;"></span>Ocorrência recorrente</span>
+  </div>
+
+  <div id="calendar-wrapper">
+    <div id="calendar"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var calendarEl = document.getElementById('calendar');
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    locale: 'pt',
+    initialView: window.innerWidth < 768 ? 'listWeek' : 'timeGridWeek',
+    headerToolbar: window.innerWidth < 768
+      ? { left: 'prev,next', center: 'title', right: 'today' }
+      : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
+    footerToolbar: window.innerWidth < 768
+      ? { center: 'dayGridMonth,timeGridWeek,listWeek' }
+      : false,
+    buttonText: {
+      today: 'Hoje',
+      month: 'Mês',
+      week: 'Semana',
+      day: 'Dia',
+      list: 'Lista'
+    },
+    views: {
+      listWeek: { buttonText: 'Lista' },
+      timeGridWeek: { buttonText: 'Semana' },
+      dayGridMonth: { buttonText: 'Mês' }
+    },
+    height: 'auto',
+    windowResize: function (view) {
+      var mobile = window.innerWidth < 768;
+      calendar.setOption('headerToolbar', mobile
+        ? { left: 'prev,next', center: 'title', right: 'today' }
+        : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' }
+      );
+      calendar.setOption('footerToolbar', mobile
+        ? { center: 'dayGridMonth,timeGridWeek,listWeek' }
+        : false
+      );
+      if (mobile && calendar.view.type === 'timeGridDay') {
+        calendar.changeView('listWeek');
+      }
+    },
+    events: {
+      url: '{{ feed_url }}',
+      method: 'GET',
+      failure: function () {
+        alert('Erro ao carregar os eventos do calendário.');
+      }
+    },
+    eventClassNames: function (info) {
+      if (info.event.extendedProps.recorrente) {
+        return ['recorrente'];
+      }
+      return [];
+    },
+    eventClick: function (info) {
+      info.jsEvent.preventDefault();
+      if (info.event.url) {
+        window.location.href = info.event.url;
+      }
+    },
+    eventTimeFormat: {
+      hour: '2-digit',
+      minute: '2-digit',
+      meridiem: false
+    }
+  });
+  calendar.render();
+});
+</script>
+{% endblock %}

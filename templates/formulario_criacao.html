@@ -1,40 +1,463 @@
 {% extends 'index.html' %}
+{% load static %}
+<!-- htmlhint inline-style-disabled:false -->
 {% block Formulariocriacao %}
 
-<form  method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-<table align="center"  class="styled-table" >
-{{ formulario.non_field_errors }}
+<div class="modern-form-container form-shell">
+  <div class="modern-card form-shell-card">
 
-  {% for hidden_field in formulario.hidden_fields %}
-    {{ hidden_field.errors }}
-    {{ hidden_field }}
-  {% endfor %}
+    <!-- Banner com imagem da Igreja -->
+    <div class="form-banner">
+      <div class="form-banner-overlay"></div>
+      <div class="form-banner-content">
+        <h2 class="form-banner-title">
+          <i class="fas fa-magic mr-2 form-banner-icon"></i> Novo Registo
+        </h2>
+        <p class="form-banner-subtitle">Complete as informações abaixo para adicionar um novo registo ao ecossistema TIBL.</p>
+      </div>
+    </div>
 
+    <div class="form-content-wrap">
 
-    {% for field in formulario.visible_fields %}
-      <tr>
-        <th align ="Right" bgcolor="#548c2f" >{{ field.label_tag }}</th>
-        <td bgcolor="">
-          {{ field.errors }}
+    <form method="post" enctype="multipart/form-data" class="modern-form" id="dynamic-form">
+      {% csrf_token %}
 
-          {% if field.name == "momentos_realizados" %}
-              {% for subwidget in field.subwidgets %}
-                  <label style="display:block; color:black;">
-                    {{ subwidget.tag }} {{ subwidget.choice_label }}
-                  </label>
-              {% endfor %}
-          {% else %}
+      {% if formulario.non_field_errors %}
+      <div class="modern-card form-error-box">
+        {% for error in formulario.non_field_errors %}
+        <p class="form-error-text"><i class="fas fa-exclamation-circle mr-2"></i>
+          {{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% for hidden_field in formulario.hidden_fields %}
+      {{ hidden_field }}
+      {% endfor %}
+
+      <!-- Section: Dados Principais -->
+      <div class="form-section" id="section-main">
+        <h3 class="form-section-title">
+          <span class="form-section-line"></span> Informações Mandatórias
+        </h3>
+
+        <div class="form-grid-main">
+          {% for field in formulario.visible_fields %}
+          <div class="form-group {% if field.errors %}has-error{% endif %} {% if field.name == 'observacoes' or field.name == 'descricao' or 'nomes' in field.name %}form-group-full{% endif %}">
+
+            <label for="{{ field.id_for_label }}" class="form-label form-label-strong">
+              {{ field.label }} {% if field.field.required %}<span class="required-mark">*</span>{% endif %}
+            </label>
+
+            <div class="field-wrapper field-wrapper-relative">
+              {% if field.name == "momentos_realizados" %}
+              <div class="checkbox-grid-box">
+                {% for subwidget in field.subwidgets %}
+                <label class="checkbox-custom checkbox-inline-label">
+                  {{ subwidget.tag }} <span>{{ subwidget.choice_label }}</span>
+                </label>
+                {% endfor %}
+              </div>
+              {% else %}
               {{ field }}
-          {% endif %}
-          
-          {{ field.help_text }}
-        </td>
-      </tr>
-    {% endfor %}
- </table>
-<p align="center">    <input type="submit" value="Save" class = "button"></p>
-</form>
+              {% endif %}
+
+              {% if field.errors %}
+              <div class="error-feedback form-field-error">
+                {% for error in field.errors %}
+                <i class="fas fa-info-circle"></i> {{ error }}
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              {% if field.help_text %}
+              <p class="help-text form-help-text">
+                <i class="fas fa-question-circle"></i> {{ field.help_text|safe }}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-actions form-actions-layout">
+        <button type="button" onclick="window.history.back()" class="bt-primary btn-cancel-muted">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <button type="submit" class="bt-primary" id="btn-submit">
+          <i class="fas fa-check-circle"></i> Finalizar Registro
+        </button>
+      </div>
+    </form>
+  </div>
+  </div>
+</div>
+
+<style>
+  .form-shell {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+  }
+
+  .form-shell-card {
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-banner {
+    background-image: url('{% static 'fotos/2022/homepage1.jpeg' %}');
+    background-size: cover;
+    background-position: center;
+    min-height: 180px;
+    position: relative;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .form-banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .form-banner-content {
+    position: relative;
+    z-index: 1;
+    padding: 2.5rem 2.5rem 2rem;
+  }
+
+  .form-banner-title {
+    font-size: 2rem;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  .form-banner-icon {
+    color: #93c5fd;
+  }
+
+  .form-banner-subtitle {
+    color: rgba(255,255,255,0.82);
+    font-size: 1rem;
+  }
+
+  .form-content-wrap {
+    padding: 2.5rem;
+  }
+
+  .form-error-box {
+    background: #fee2e2;
+    border: 1px solid #ef4444;
+    margin-bottom: 2.5rem;
+    padding: 1.25rem;
+  }
+
+  .form-error-text {
+    color: #991b1b;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .form-section-title {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .form-section-line {
+    width: 24px;
+    height: 2px;
+    background: var(--primary);
+  }
+
+  .form-grid-main {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .form-group-full {
+    grid-column: 1 / -1;
+  }
+
+  .form-label-strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+    color: var(--text-main);
+  }
+
+  .required-mark {
+    color: #ef4444;
+  }
+
+  .field-wrapper-relative {
+    position: relative;
+  }
+
+  .checkbox-grid-box {
+    background: rgba(0,0,0,0.02);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid #e2e8f0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+
+  .checkbox-inline-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .form-field-error {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+    font-weight: 500;
+  }
+
+  .form-help-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    opacity: 0.8;
+  }
+
+  .form-actions-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 3rem;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 2rem;
+  }
+
+  .btn-cancel-muted {
+    background: #f1f5f9;
+    color: var(--text-main);
+    box-shadow: none;
+  }
+
+  .btn-cancel-muted:hover {
+    filter: none;
+    background: #e2e8f0;
+    color: var(--text-main);
+    box-shadow: none;
+  }
+
+  .modern-form input[type="text"],
+  .modern-form input[type="number"],
+  .modern-form input[type="email"],
+  .modern-form input[type="password"],
+  .modern-form input[type="date"],
+  .modern-form select,
+  .modern-form textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    background: white;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    color: var(--text-main);
+  }
+
+  .modern-form input:focus,
+  .modern-form select:focus,
+  .modern-form textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(84, 140, 47, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .form-group.has-error input {
+    border-color: #ef4444;
+    background: #fffafa;
+  }
+
+  .checkbox-custom input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary);
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('dynamic-form');
+    const submitBtn = document.getElementById('btn-submit');
+    const viaSelect = document.getElementById('id_via');
+    const contaOrigemSelect = document.getElementById('id_contaorigem');
+    const valorInput = document.getElementById('id_valor');
+    const contaDebitoSelect = document.getElementById('id_conta');
+
+    function parseBalanceFromOption(optionText) {
+      if (!optionText) {
+        return null;
+      }
+      const balanceMatch = optionText.match(/Saldo:\s*([\d.,]+)/i);
+      if (!balanceMatch) {
+        return null;
+      }
+      const numeric = balanceMatch[1].replace(/\./g, '').replace(',', '.');
+      const value = parseFloat(numeric);
+      return Number.isNaN(value) ? null : value;
+    }
+
+    function parseInputAmount(raw) {
+      if (!raw) {
+        return null;
+      }
+      const normalized = String(raw).replace(/\./g, '').replace(',', '.');
+      const value = parseFloat(normalized);
+      return Number.isNaN(value) ? null : value;
+    }
+
+    function getOrCreateWarningBox() {
+      let box = document.getElementById('saldo-warning-box');
+      if (!box && valorInput && valorInput.parentElement) {
+        box = document.createElement('div');
+        box.id = 'saldo-warning-box';
+        box.style.marginTop = '0.45rem';
+        box.style.padding = '0.65rem 0.75rem';
+        box.style.border = '1px solid #fca5a5';
+        box.style.background = '#fff1f2';
+        box.style.color = '#9f1239';
+        box.style.borderRadius = '10px';
+        box.style.fontSize = '0.8rem';
+        box.style.display = 'none';
+        valorInput.parentElement.appendChild(box);
+      }
+      return box;
+    }
+
+    function toggleContaOrigemField() {
+      if (!viaSelect || !contaOrigemSelect) {
+        return;
+      }
+      const group = contaOrigemSelect.closest('.form-group');
+      if (!group) {
+        return;
+      }
+      const viaText = (viaSelect.options[viaSelect.selectedIndex] || {}).text || '';
+      const transferSelected = /transfer/i.test(viaText);
+      group.style.display = transferSelected ? '' : 'none';
+      if (!transferSelected) {
+        contaOrigemSelect.value = '';
+      }
+    }
+
+    function updateSaldoWarning() {
+      if (!valorInput || !contaDebitoSelect) {
+        return;
+      }
+      const selectedOption = contaDebitoSelect.options[contaDebitoSelect.selectedIndex];
+      const saldo = parseBalanceFromOption(selectedOption ? selectedOption.text : '');
+      const valor = parseInputAmount(valorInput.value);
+      const warningBox = getOrCreateWarningBox();
+      if (!warningBox) {
+        return;
+      }
+      if (saldo !== null && valor !== null && valor > saldo) {
+        warningBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Valor acima do saldo actual da conta seleccionada. A validação final será feita no servidor.';
+        warningBox.style.display = 'block';
+      } else {
+        warningBox.style.display = 'none';
+      }
+    }
+
+    form.addEventListener('submit', function () {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    });
+
+    // Auto-detect date fields and improve them
+    form.querySelectorAll('input[type="date"]').forEach(input => {
+      input.style.cursor = 'pointer';
+    });
+
+    toggleContaOrigemField();
+    updateSaldoWarning();
+
+    if (viaSelect) {
+      viaSelect.addEventListener('change', toggleContaOrigemField);
+    }
+    if (valorInput) {
+      valorInput.addEventListener('input', updateSaldoWarning);
+      valorInput.addEventListener('change', updateSaldoWarning);
+    }
+    if (contaDebitoSelect) {
+      contaDebitoSelect.addEventListener('change', updateSaldoWarning);
+    }
+
+    // ── Cascading: Província → Município ──
+    const provinciaSelect = document.getElementById('id_provincia');
+    const municipioSelect = document.getElementById('id_municipio');
+    if (provinciaSelect && municipioSelect) {
+      provinciaSelect.addEventListener('change', function () {
+        const provId = this.value;
+        municipioSelect.innerHTML = '<option value="">---------</option>';
+        if (!provId) return;
+        fetch('/tibl/api/municipios/' + provId + '/')
+          .then(r => r.json())
+          .then(data => {
+            data.forEach(m => {
+              const opt = document.createElement('option');
+              opt.value = m.id;
+              opt.textContent = m.nome;
+              municipioSelect.appendChild(opt);
+            });
+          });
+      });
+    }
+    // ── Cascading: Actividade → Função (para escalas) ──
+    const actividadeSelect = document.getElementById('id_actividade');
+    const funcaoSelect = document.getElementById('id_funcao');
+    if (actividadeSelect && funcaoSelect) {
+      // Guardar valor actual da função para re-seleccionar após refresh
+      const funcaoActualVal = funcaoSelect.value;
+      actividadeSelect.addEventListener('change', function () {
+        const actId = this.value;
+        if (!actId) {
+          // Sem actividade seleccionada: mostrar todas as opções originais
+          return;
+        }
+        fetch('/tibl/api/funcoes-actividade/' + actId + '/')
+          .then(r => r.json())
+          .then(data => {
+            const selectedVal = funcaoSelect.value;
+            funcaoSelect.innerHTML = '<option value="">---------</option>';
+            if (data.length > 0) {
+              data.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.designacao;
+                if (String(f.id) === String(selectedVal)) opt.selected = true;
+                funcaoSelect.appendChild(opt);
+              });
+            }
+          });
+      });
+    }
+  });
+</script>
 
 {% endblock %}
-

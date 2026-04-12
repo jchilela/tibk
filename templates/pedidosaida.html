@@ -1,0 +1,146 @@
+{% extends 'index.html' %}
+{% block PedidoSaida %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">Pedidos de Saída</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão de requisições financeiras e aprovações.</p>
+        </div>
+        {% if perms.sitetibl.add_pedidosaida %}
+        <a href="/tibl/pedidosaida/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
+            <i class="fas fa-plus-circle"></i> Novo Pedido
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filtros por estado (tabs) -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <a href="/tibl/gestao/pedidosaida/1" style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {% if not estado_filtro %}background: var(--primary); color: white;{% else %}background: #f1f5f9; color: var(--text-muted);{% endif %}">
+            Todos <span style="opacity: 0.7;">({{ total_pedidos|default:"0" }})</span>
+        </a>
+        {% for val, label, contagem in estado_choices_com_contagem %}
+        <a href="/tibl/gestao/pedidosaida/1?estado={{ val }}" style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {% if estado_filtro == val %}background: {% if val == 'pendente' %}#f59e0b{% elif val == 'em_analise' %}#3b82f6{% elif val == 'aprovado' %}#10b981{% elif val == 'rejeitado' %}#ef4444{% endif %}; color: white;{% else %}background: #f1f5f9; color: var(--text-muted);{% endif %}">
+            {{ label }} <span style="opacity: 0.7;">({{ contagem }})</span>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Busca rápida -->
+    <div class="filter-bar" style="margin-bottom: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem 1.5rem;">
+        <form action="/tibl/buscapedidosaida" method="GET" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Projecto</label>
+                <input type="text" name="projectov" placeholder="Pesquisar..." style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Montante</label>
+                <input type="text" name="montantev" placeholder="Valor..." style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">IBAN</label>
+                <input type="text" name="ibanv" placeholder="IBAN..." style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 1rem;">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </form>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Projecto</th>
+                    <th>Requerente</th>
+                    <th>Departamento</th>
+                    <th style="text-align: right;">Montante</th>
+                    <th style="text-align: center;">Estado</th>
+                    <th style="text-align: center;">Pagamento</th>
+                    <th style="text-align: center;">Data</th>
+                    <th style="text-align: right;">Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.projecto }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                            {% if x.tipificacao_custo %}{{ x.tipificacao_custo }}{% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if x.requerente %}
+                        <div style="font-weight: 500;">{{ x.requerente.nome }} {{ x.requerente.apelido }}</div>
+                        {% else %}
+                        <span style="color: var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if x.departamento %}{{ x.departamento.designacao }}{% else %}<span style="color: var(--text-muted);">—</span>{% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="font-weight: 700; font-size: 1rem;">{{ x.montante|floatformat:2 }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">{% if x.moeda %}{{ x.moeda }}{% endif %}</div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 100px; font-size: 0.75rem; font-weight: 700;
+                            {% if x.estado == 'pendente' %}background: #fef3c7; color: #92400e;
+                            {% elif x.estado == 'em_analise' %}background: #dbeafe; color: #1e40af;
+                            {% elif x.estado == 'aprovado' %}background: #dcfce7; color: #166534;
+                            {% elif x.estado == 'rejeitado' %}background: #fee2e2; color: #991b1b;
+                            {% endif %}">
+                            {{ x.get_estado_display }}
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        {% if x.estado == 'aprovado' %}
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 100px; font-size: 0.75rem; font-weight: 700;
+                            {% if x.estado_pagamento == 'pago' %}background: #dcfce7; color: #166534;
+                            {% elif x.estado_pagamento == 'aguardando' %}background: #fef3c7; color: #92400e;
+                            {% else %}background: #f1f5f9; color: #64748b;{% endif %}">
+                            {{ x.get_estado_pagamento_display }}
+                        </span>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <div style="font-size: 0.85rem;">{{ x.data_criacao|date:"d/m/Y" }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">{{ x.data_criacao|time:"H:i" }}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/pedidosaida/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-file-invoice-dollar" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum pedido encontrado</h3>
+        <p style="color: var(--text-muted);">
+            {% if estado_filtro %}Sem pedidos com o estado "{{ estado_filtro }}".{% else %}Ainda não existem pedidos de saída registados.{% endif %}
+        </p>
+        {% if perms.sitetibl.add_pedidosaida %}
+        <a href="/tibl/pedidosaida/criar/" class="bt-primary" style="margin-top: 1rem; padding: 0.6rem 1.5rem;">
+            <i class="fas fa-plus-circle"></i> Criar Primeiro Pedido
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

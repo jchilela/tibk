@@ -1,56 +1,501 @@
 {% extends 'index.html' %}
-{% block Formularioactualizacao %}
+{% load static %}
+<!-- htmlhint inline-style-disabled:false -->
 
-<form  method="post" enctype="multipart/form-data" novalidate>
-    {% csrf_token %}
-<table align="center"  class="styled-table" >
-{{ formulario.non_field_errors }}
-
-  {% for hidden_field in formulario.hidden_fields %}
-    {{ hidden_field.errors }}
-    {{ hidden_field }}
-  {% endfor %}
-
-
-    {% for field in formulario.visible_fields %}
-      <tr>
-        <th align ="Right" bgcolor="#548c2f" >{{ field.label_tag }}</th>
-        <td bgcolor="">
-          {{ field.errors }}
-          {% if field.name == "momentos_realizados" %}
-              {% for checkbox in field %}
-                  <label style="display:block; color:black;">
-                      {{ checkbox.tag }} {{ checkbox.choice_label }}
-                  </label>
-              {% endfor %}
-          {% elif field.name == "documento_justificativo" %}
-              {% if field.value %}
-                  <p>
-                      <a href="{{ field.value.url }}" target="_blank" style="color:blue; font-weight:bold;">
-                          Abrir arquivo atual
-                      </a>
-                  </p>
-              {% endif %}
-              {{field}}
-          {% elif field.name == "foto" %}
-              {% if field.value %}
-                  <p>
-                      <a href="{{ field.value.url }}" target="_blank" style="color:blue; font-weight:bold;">
-                          Abrir arquivo atual
-                      </a>
-                  </p>
-              {% endif %}
-              {{field}}
-          {% else %}
-              {{ field }}
-          {% endif %}
-          {{ field.help_text }}
-        </td>
-      </tr>
-    {% endfor %}
- </table>
-<p align="center">    <input type="submit" value="Save" class = "button"></p>
-</form>
-
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<style>
+  .ts-wrapper { flex: 1; }
+  .ts-control { border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; padding: 0.45rem 0.75rem; background: white; }
+  .ts-control:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46,125,50,0.15); }
+  .ts-dropdown { background: white; border: 1.5px solid #d1d5db; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 9999; }
+  .ts-dropdown .option:hover, .ts-dropdown .option.active { background: var(--primary-50, #f0fdf4); color: var(--primary-dark, #166534); }
+</style>
 {% endblock %}
 
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('select.tomselect').forEach(function (el) {
+      new TomSelect(el, {
+        allowEmptyOption: true,
+        placeholder: 'Pesquisar...',
+      });
+    });
+  });
+</script>
+{% endblock %}
+
+{% block Formularioactualizacao %}
+
+<div class="modern-form-container upd-shell">
+    <div class="modern-card upd-shell-card">
+        <div class="upd-banner">
+            <div class="upd-banner-overlay"></div>
+            <div class="upd-banner-content">
+                <h2 class="upd-banner-title">
+                    <i class="fas fa-sync-alt mr-2 upd-banner-icon"></i> Atualizar Registo
+                </h2>
+                <p class="upd-banner-subtitle">Revise e modifique os detalhes deste registo. As alterações serão salvas no banco de dados central.</p>
+            </div>
+        </div>
+
+        <div class="upd-content-wrap">
+
+        <form method="post" enctype="multipart/form-data" class="modern-form" id="update-form" novalidate>
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+            <div class="modern-card upd-error-box">
+                {% for error in formulario.non_field_errors %}
+                <p class="upd-error-text"><i
+                        class="fas fa-exclamation-circle mr-2"></i> {{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% for hidden_field in formulario.hidden_fields %}
+            {{ hidden_field }}
+            {% endfor %}
+
+            <div class="upd-form-grid">
+                {% for field in formulario.visible_fields %}
+                <div class="form-group {% if field.errors %}has-error{% endif %} {% if field.name == 'observacoes' or field.name == 'descricao' or 'nomes' in field.name %}upd-form-full{% endif %}">
+
+                    <label for="{{ field.id_for_label }}" class="form-label upd-form-label">
+                        {{ field.label }} {% if field.field.required %}<span class="upd-required">*</span>{% endif %}
+                    </label>
+
+                    <div class="field-container">
+                        {% if field.name == "momentos_realizados" %}
+                        <div class="upd-checkbox-grid">
+                            {% for checkbox in field %}
+                            <label class="checkbox-custom upd-checkbox-label">
+                                {{ checkbox.tag }} <span>{{ checkbox.choice_label }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% elif field.name == "documento_justificativo" or field.name == "foto" %}
+                        <div class="upd-file-zone">
+                            {% if field.value %}
+                            <div class="upd-file-current">
+                                <div class="upd-file-icon">
+                                    <i
+                                        class="fas {% if field.name == 'foto' %}fa-image{% else %}fa-file-pdf{% endif %}"></i>
+                                </div>
+                                <div class="upd-file-meta">
+                                    <p class="upd-file-meta-label">Arquivo Atual:
+                                    </p>
+                                    <a href="{{ field.value.url }}" target="_blank"
+                                        class="upd-file-link">
+                                        Visualizar Anexo <i class="fas fa-external-link-alt upd-file-link-icon"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="file-input-wrapper">
+                                {{ field }}
+                            </div>
+                        </div>
+                        {% else %}
+                        {{ field }}
+                        {% endif %}
+
+                        {% if field.errors %}
+                        <div class="upd-field-error">
+                            {% for error in field.errors %}
+                            <p class="upd-field-error-item"><i class="fas fa-times-circle mr-1"></i> {{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if field.help_text %}
+                        <p class="upd-help-text">
+                            <i class="fas fa-info-circle upd-help-icon"></i> {{ field.help_text|safe }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-actions upd-form-actions">
+                <button type="button" onclick="window.history.back()" class="bt-primary upd-cancel-btn">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" class="bt-primary" id="btn-save">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+    </div>
+</div>
+
+<style>
+    .upd-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+    }
+
+    .upd-shell-card {
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upd-banner {
+        background-image: url('{% static 'fotos/2022/homepage1.jpeg' %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 180px;
+        position: relative;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+
+    .upd-banner-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%);
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+
+    .upd-banner-content {
+        position: relative;
+        z-index: 1;
+        padding: 2.5rem 2.5rem 2rem;
+    }
+
+    .upd-banner-title {
+        font-size: 2rem;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .upd-banner-icon {
+        color: #93c5fd;
+    }
+
+    .upd-banner-subtitle {
+        color: rgba(255,255,255,0.82);
+        font-size: 1rem;
+    }
+
+    .upd-content-wrap {
+        padding: 2.5rem;
+    }
+
+    .upd-error-box {
+        background: #fee2e2;
+        border: 1px solid #ef4444;
+        margin-bottom: 2.5rem;
+        padding: 1.25rem;
+    }
+
+    .upd-error-text {
+        color: #991b1b;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .upd-form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .upd-form-full {
+        grid-column: 1 / -1;
+    }
+
+    .upd-form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.6rem;
+        font-size: 0.95rem;
+        color: var(--text-main);
+    }
+
+    .upd-required {
+        color: #ef4444;
+    }
+
+    .upd-checkbox-grid {
+        background: rgba(0,0,0,0.02);
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        border: 1px solid #e2e8f0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .upd-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .upd-file-zone {
+        border: 1.5px dashed var(--primary-light);
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        background: #f8fafc;
+        transition: var(--transition);
+    }
+
+    .upd-file-current {
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: white;
+        padding: 0.75rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid #e2e8f0;
+    }
+
+    .upd-file-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-light);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .upd-file-meta {
+        flex: 1;
+    }
+
+    .upd-file-meta-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .upd-file-link {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .upd-file-link-icon {
+        font-size: 0.7rem;
+    }
+
+    .upd-field-error {
+        color: #ef4444;
+        font-size: 0.825rem;
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+
+    .upd-field-error-item {
+        margin: 2px 0;
+    }
+
+    .upd-help-text {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .upd-help-icon {
+        opacity: 0.5;
+    }
+
+    .upd-form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 4rem;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 2rem;
+    }
+
+    .upd-cancel-btn {
+        background: #f1f5f9;
+        color: var(--text-main);
+        box-shadow: none;
+    }
+
+    .modern-form input[type="text"],
+    .modern-form input[type="number"],
+    .modern-form input[type="email"],
+    .modern-form input[type="password"],
+    .modern-form input[type="date"],
+    .modern-form select,
+    .modern-form textarea {
+        width: 100%;
+        padding: 0.85rem 1.1rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: var(--radius-md);
+        background: white;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        color: var(--text-main);
+    }
+
+    .modern-form input:focus,
+    .modern-form select:focus,
+    .modern-form textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(84, 140, 47, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .checkbox-custom input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary);
+    }
+
+    .form-group.has-error input {
+        border-color: #ef4444 !important;
+        background: #fff8f8 !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('update-form');
+        const saveBtn = document.getElementById('btn-save');
+        const viaSelect = document.getElementById('id_via');
+        const contaOrigemSelect = document.getElementById('id_contaorigem');
+        const valorInput = document.getElementById('id_valor');
+        const contaDebitoSelect = document.getElementById('id_conta');
+
+        function parseBalanceFromOption(optionText) {
+            if (!optionText) {
+                return null;
+            }
+            const balanceMatch = optionText.match(/Saldo:\s*([\d.,]+)/i);
+            if (!balanceMatch) {
+                return null;
+            }
+            const numeric = balanceMatch[1].replace(/\./g, '').replace(',', '.');
+            const value = parseFloat(numeric);
+            return Number.isNaN(value) ? null : value;
+        }
+
+        function parseInputAmount(raw) {
+            if (!raw) {
+                return null;
+            }
+            const normalized = String(raw).replace(/\./g, '').replace(',', '.');
+            const value = parseFloat(normalized);
+            return Number.isNaN(value) ? null : value;
+        }
+
+        function getOrCreateWarningBox() {
+            let box = document.getElementById('saldo-warning-box');
+            if (!box && valorInput && valorInput.parentElement) {
+                box = document.createElement('div');
+                box.id = 'saldo-warning-box';
+                box.style.marginTop = '0.45rem';
+                box.style.padding = '0.65rem 0.75rem';
+                box.style.border = '1px solid #fca5a5';
+                box.style.background = '#fff1f2';
+                box.style.color = '#9f1239';
+                box.style.borderRadius = '10px';
+                box.style.fontSize = '0.8rem';
+                box.style.display = 'none';
+                valorInput.parentElement.appendChild(box);
+            }
+            return box;
+        }
+
+        function toggleContaOrigemField() {
+            if (!viaSelect || !contaOrigemSelect) {
+                return;
+            }
+            const group = contaOrigemSelect.closest('.form-group');
+            if (!group) {
+                return;
+            }
+            const viaText = (viaSelect.options[viaSelect.selectedIndex] || {}).text || '';
+            const transferSelected = /transfer/i.test(viaText);
+            group.style.display = transferSelected ? '' : 'none';
+            if (!transferSelected) {
+                contaOrigemSelect.value = '';
+            }
+        }
+
+        function updateSaldoWarning() {
+            if (!valorInput || !contaDebitoSelect) {
+                return;
+            }
+            const selectedOption = contaDebitoSelect.options[contaDebitoSelect.selectedIndex];
+            const saldo = parseBalanceFromOption(selectedOption ? selectedOption.text : '');
+            const valor = parseInputAmount(valorInput.value);
+            const warningBox = getOrCreateWarningBox();
+            if (!warningBox) {
+                return;
+            }
+            if (saldo !== null && valor !== null && valor > saldo) {
+                warningBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Valor acima do saldo actual da conta seleccionada. A validação final será feita no servidor.';
+                warningBox.style.display = 'block';
+            } else {
+                warningBox.style.display = 'none';
+            }
+        }
+
+        form.addEventListener('submit', function () {
+            if (form.checkValidity()) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Atualizando...';
+            }
+        });
+
+        toggleContaOrigemField();
+        updateSaldoWarning();
+
+        if (viaSelect) {
+            viaSelect.addEventListener('change', toggleContaOrigemField);
+        }
+        if (valorInput) {
+            valorInput.addEventListener('input', updateSaldoWarning);
+            valorInput.addEventListener('change', updateSaldoWarning);
+        }
+        if (contaDebitoSelect) {
+            contaDebitoSelect.addEventListener('change', updateSaldoWarning);
+        }
+
+        // ── Cascading: Província → Município ──
+        const provinciaSelect = document.getElementById('id_provincia');
+        const municipioSelect = document.getElementById('id_municipio');
+        if (provinciaSelect && municipioSelect) {
+            provinciaSelect.addEventListener('change', function () {
+                const provId = this.value;
+                municipioSelect.innerHTML = '<option value="">---------</option>';
+                if (!provId) return;
+                fetch('/tibl/api/municipios/' + provId + '/')
+                    .then(r => r.json())
+                    .then(data => {
+                        data.forEach(m => {
+                            const opt = document.createElement('option');
+                            opt.value = m.id;
+                            opt.textContent = m.nome;
+                            municipioSelect.appendChild(opt);
+                        });
+                    });
+            });
+        }
+    });
+</script>
+
+{% endblock %}

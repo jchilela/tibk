@@ -1,24 +1,118 @@
-{% extends 'index.html' %}
-{% block EnvioMensagemDetalhado %}
+﻿{% extends 'index.html' %}
+{% block content %}
+<div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
+    <div style="background-image: url('/static/fotos/2022/homepage1.jpeg'); background-size: cover; background-position: center; min-height: 120px; position: relative; border-radius: var(--radius-md);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%);"></div>
+        <div style="position: relative; z-index: 1; padding: 1.4rem 1.6rem;">
+            <h2 style="margin: 0; color: #ffffff; font-size: 1.25rem;"><i class="fas fa-envelope-open-text" style="margin-right: 0.45rem; color: #93c5fd;"></i> Detalhes de Envio de Mensagem</h2>
+            <p style="margin: 0.35rem 0 0 0; color: rgba(255,255,255,0.84); font-size: 0.9rem;">Informação detalhada para consulta e acompanhamento.</p>
+        </div>
+    </div>
+</div>
 {% load static %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}"> <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Mensagem:</td><td class="a4">{{ x.mensagem}}</td></tr>
-<tr class="fortexto"><td class="a4">Quem enviou:</td><td class="a4">{{ x.quemenviou.nome }}</td></tr>
-<tr class="fortexto"><td class="a4">SMS:</td><td class="a4">{{ x.sms }}</td></tr>
-<tr class="fortexto"><td class="a4">Email:</td><td class="a4">{{ x.email }}</td></tr>
-<tr class="fortexto"><td class="a4">Data de envio:</td><td class="a4">{{ x.data_criacao }}</td></tr>
-<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
-</div>
-<br>
+<div class="profile-container" style="max-width: 800px; margin: 0 auto; padding-bottom: 3rem;">
+    {% for x in registoachado %}
 
+    <!-- Message Header Card -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; border-left: 6px solid var(--primary); background: linear-gradient(135deg, white, #f1f8ed); display: flex; justify-content: space-between; align-items: center;">
+        <div style="flex-grow: 1;">
+            <div
+                style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
+                Detalhes da Comunicação</div>
+            <h1 style="font-size: 1.5rem; color: var(--primary-dark); margin-bottom: 0.25rem;">Remetente: {{ x.quemenviou.nome|default:x.quemenviou }}</h1>
+            <p style="font-size: 1rem; color: var(--text-muted); font-weight: 500;">
+                <i class="far fa-clock mr-1"></i> Enviado em: {{ x.data_criacao|date:"d/m/Y H:i"|default:x.data_criacao }}
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            {% if perms.sitetibl.change_enviomensagem %}
+            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                style="padding: 0.6rem 1rem;">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            {% endif %}
+            {% if perms.sitetibl.delete_enviomensagem %}
+            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                style="background-color: #ef4444; padding: 0.6rem 1rem;">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recipients Card -->
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.25rem;">
+            <i class="fas fa-users mr-2"></i> Destinatários
+            {% if x.destinatarios.all %}
+            <span style="background: #f0fdf4; color: #166534; padding: 0.15rem 0.6rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; margin-left: 0.5rem;">{{ x.destinatarios.count }}</span>
+            {% endif %}
+        </h3>
+        {% if x.destinatarios.all %}
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            {% for dest in x.destinatarios.all %}
+            <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.35rem 0.75rem; border-radius: 100px; font-size: 0.85rem; font-weight: 500; color: var(--text-main);">
+                <i class="fas fa-user-circle" style="color: var(--primary); font-size: 0.9rem;"></i> {{ dest.nome }} {{ dest.apelido }}
+            </span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;"><i class="fas fa-info-circle"></i> Nenhum destinatário registado para esta mensagem.</p>
+        {% endif %}
+    </div>
+
+    <!-- Message Content Card -->
+    <div class="modern-card" style="position: relative; overflow: hidden;">
+        <div
+            style="position: absolute; right: -20px; bottom: -20px; opacity: 0.05; font-size: 10rem; transform: rotate(-15deg); pointer-events: none;">
+            <i class="fas fa-quote-right"></i>
+        </div>
+
+        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
+            <i class="fas fa-comment-alt mr-2"></i> Conteúdo da Mensagem
+        </h3>
+
+        <div
+            style="background: #f8fafc; border-radius: 16px; padding: 2rem; border: 1px solid #e2e8f0; position: relative; z-index: 1; margin-bottom: 2rem;">
+            <p style="font-size: 1.1rem; line-height: 1.8; color: var(--text-main); margin: 0; white-space: pre-wrap;">
+                {{ x.mensagem }}</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; position: relative; z-index: 1;">
+            <div class="modern-card"
+                style="background: rgba(var(--primary-rgb), 0.05); border: 1px solid var(--primary-light); text-align: center; padding: 1rem;">
+                <i class="fas fa-sms" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
+                    Status SMS</div>
+                <div style="font-weight: 600; color: var(--text-main);">{% if x.sms %}<i
+                        class="fas fa-check-circle text-success"></i> Enviado{% else %}<i
+                        class="fas fa-times-circle text-muted"></i> Não enviado{% endif %}</div>
+            </div>
+            <div class="modern-card"
+                style="background: rgba(var(--primary-rgb), 0.05); border: 1px solid var(--primary-light); text-align: center; padding: 1rem;">
+                <i class="fas fa-envelope" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
+                    Status Email</div>
+                <div style="font-weight: 600; color: var(--text-main);">{% if x.email %}<i
+                        class="fas fa-check-circle text-success"></i> Enviado{% else %}<i
+                        class="fas fa-times-circle text-muted"></i> Não enviado{% endif %}</div>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/tibl/gestao/enviomensagem/1" class="bt-primary"
+        style="background: transparent; color: var(--primary); border: 2px solid var(--primary); box-shadow: none;">
+        <i class="fas fa-chevron-left"></i> Voltar ao Histórico
+    </a>
+</div>
 
 {% endblock %}
 

@@ -1,0 +1,87 @@
+﻿{% extends 'index.html' %}
+{% block RelatorioSemanalCelula %}
+
+<div class="list-container">
+    <!-- Header Section -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Relatórios de Células</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão e acompanhamento das atividades semanais das células.</p>
+        </div>
+        {% if perms.sitetibl.add_relatoriosemanalcelula %}
+        <a href="/tibl/relatoriosemanalcelula/criar/" class="bt-primary">
+            <i class="fas fa-plus"></i> Novo Relatório
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filter Section (Simplified & Modern) -->
+    <div class="modern-card" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);">
+        <form action="/tibl/buscarelatoriosemanalcelula" method="GET">
+            <div style="display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
+                    <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Nome da Célula</label>
+                    <input type="text" name="nomev" class="modern-input" placeholder="Célula Betel..." style="padding: 0.5rem 0.75rem;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
+                    <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Líder</label>
+                    <input type="text" name="liderv" class="modern-input" placeholder="Nome do líder..." style="padding: 0.5rem 0.75rem;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
+                    <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Local / Tema</label>
+                    <input type="text" name="localv" class="modern-input" placeholder="Local ou tema..." style="padding: 0.5rem 0.75rem;">
+                </div>
+                <input type="hidden" name="pagina" value="1">
+                <button type="submit" class="bt-primary" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
+                    <i class="fas fa-search" style="margin-right: 0.4rem;"></i> Pesquisar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Nome da Célula</th>
+                    <th>Líder Responsável</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--primary-dark);">
+                            <i class="fas fa-users-cog" style="margin-right: 0.5rem; opacity: 0.5;"></i> {{ x.nome_celula }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500; color: var(--text-main);">{{ x.lider_responsavel }}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/relatoriosemanalcelula/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-file-alt"></i> Ver Relatório
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum relatório registado</h3>
+        <p style="color: var(--text-muted);">Comece criando o primeiro relatório semanal da célula.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

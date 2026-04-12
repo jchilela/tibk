@@ -1,0 +1,160 @@
+{% extends "base_modern.html" %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}O Meu Perfil{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto; padding-bottom: 3rem;">
+
+    <!-- Header -->
+    <div class="modern-card animate-fade-in-up"
+        style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; padding: 2.5rem; position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -30px; top: -40px; opacity: 0.07; font-size: 16rem; pointer-events: none;">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; border: 3px solid rgba(255,255,255,0.4);">
+                {{ request.user.username|first|upper }}
+            </div>
+            <div>
+                <h1 style="margin: 0; font-size: 1.8rem; font-family: 'Outfit', sans-serif; font-weight: 800; color: white;">
+                    {% if request.user.first_name %}{{ request.user.first_name }} {{ request.user.last_name }}
+                    {% else %}{{ request.user.username }}{% endif %}
+                </h1>
+                <p style="margin: 0.25rem 0 0; opacity: 0.85; font-size: 0.95rem;">
+                    <i class="fas fa-at" style="margin-right: 0.4rem;"></i>{{ request.user.username }}
+                    &nbsp;·&nbsp;
+                    {% if request.user|has_group:"Administrador" %}<i class="fas fa-shield-alt"></i> Administrador
+                    {% elif request.user|has_group:"Pastor" %}<i class="fas fa-cross"></i> Pastor
+                    {% elif request.user|has_group:"Financeiro" %}<i class="fas fa-coins"></i> Financeiro
+                    {% elif request.user|has_group:"Secretaria" %}<i class="fas fa-briefcase"></i> Secretaria
+                    {% elif request.user|has_group:"Líder de Departamento" %}<i class="fas fa-users"></i> Líder de Departamento
+                    {% elif request.user|has_group:"Vice-Líder de Departamento" %}<i class="fas fa-users"></i> Vice-Líder
+                    {% elif request.user|has_group:"Líder de Célula" %}<i class="fas fa-home"></i> Líder de Célula
+                    {% elif request.user|has_group:"Membros Baptizados" %}<i class="fas fa-water"></i> Membro Baptizado
+                    {% elif request.user|has_group:"Membro Geral" %}<i class="fas fa-church"></i> Membro Geral
+                    {% elif request.user.is_superuser %}<i class="fas fa-shield-alt"></i> Administrador
+                    {% else %}Utilizador{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+
+        <!-- Secção: Dados de Contacto -->
+        {% if perfil_form %}
+        <div class="modern-card animate-fade-in-up" style="animation-delay: 0.05s;">
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary-50); padding-bottom: 0.75rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-address-card" style="color: var(--primary);"></i> Dados de Contacto
+            </h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                Para alteração de dados pessoais (nome, morada, estado civil, etc.) contacte a Secretaria.
+            </p>
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="perfil">
+
+                {% if irmao.foto %}
+                <div style="margin-bottom: 1rem; text-align: center;">
+                    <img src="{{ irmao.foto.url }}" alt="Foto" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-50);">
+                </div>
+                {% endif %}
+
+                {% for field in perfil_form %}
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem;">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="bt-primary" style="width: 100%; margin-top: 0.5rem;">
+                    <i class="fas fa-save mr-2"></i> Guardar Contactos
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div class="modern-card animate-fade-in-up" style="animation-delay: 0.05s; text-align: center; padding: 2rem;">
+            <i class="fas fa-user-slash" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Não tem um perfil de irmão associado a esta conta.</p>
+        </div>
+        {% endif %}
+
+        <!-- Secção: Alterar Senha -->
+        <div class="modern-card animate-fade-in-up" style="animation-delay: 0.1s;">
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary-50); padding-bottom: 0.75rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-lock" style="color: var(--primary);"></i> Alterar Senha
+            </h3>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="senha">
+
+                {% for field in senha_form %}
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem;">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% if field.errors %}
+                    <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="bt-primary" style="width: 100%; margin-top: 0.5rem; background: var(--primary-dark);">
+                    <i class="fas fa-key mr-2"></i> Alterar Senha
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Informação não editável -->
+    {% if irmao %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.15s; margin-top: 1.5rem;">
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary-50); padding-bottom: 0.75rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-info-circle" style="color: var(--primary);"></i> Informação do Perfil
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Nome Completo</span>
+                <p style="font-weight: 600; margin: 0.2rem 0 0;">{{ irmao.nome }} {{ irmao.apelido }}</p>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Data de Nascimento</span>
+                <p style="font-weight: 600; margin: 0.2rem 0 0;">{{ irmao.datanascimento|date:"d/m/Y"|default:"—" }}</p>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Género</span>
+                <p style="font-weight: 600; margin: 0.2rem 0 0;">{{ irmao.get_sexo_display }}</p>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Estado Civil</span>
+                <p style="font-weight: 600; margin: 0.2rem 0 0;">{{ irmao.get_estadocivil_display|default:"—" }}</p>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Célula</span>
+                <p style="font-weight: 600; margin: 0.2rem 0 0;">{{ irmao.celula.designacao|default:"—" }}</p>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Congregação</span>
+                <p style="font-weight: 600; margin: 0.2rem 0 0;">{{ irmao.localcongregacao.designacao|default:"—" }}</p>
+            </div>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <i class="fas fa-info-circle mr-1"></i> Para alterar estes dados, contacte a Secretaria da Igreja.
+        </p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

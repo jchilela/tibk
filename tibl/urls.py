@@ -17,63 +17,49 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path, include, re_path
 import sitetibl.views
-from django.conf.urls import include
 
 urlpatterns = [
     path('admin/clearcache/', include('clearcache.urls')),
-    path('tibl/', sitetibl.views.comeco),
-    path('tibl/gestao/<gestaoescolhida>/<int:pagina>/', sitetibl.views.mostraGestao),
-    path('tibl/<gestaoescolhida>/detalhe/<int:identificador>/', sitetibl.views.mostraDetalhe),
-    path('tibl/<gestaoescolhida>/criar/', sitetibl.views.mostraCriacao),
-    path('tibl/<gestaoescolhida>/actualizar/<int:id>/', sitetibl.views.mostraActualizacao),
-    path('tibl/<gestaoescolhida>/eliminar/<int:id>/', sitetibl.views.mostraEliminacao),
-    path('tibl/buscairmao/', sitetibl.views.encontraIrmao),
-    path('tibl/buscacontasbancarias/', sitetibl.views.encontraContasbancarias),
-    path('tibl/buscaajudas/', sitetibl.views.encontraAjudas),
-    path('tibl/buscacestas/', sitetibl.views.encontraCestas),
-    path('tibl/buscaactividades/', sitetibl.views.encontraActividades),
-    path('tibl/buscadepartamentos/', sitetibl.views.encontraDepartamentos),
-    path('tibl/buscadizimosofertas/', sitetibl.views.encontraDizimosofertas),
-    path('tibl/buscasaidascaixa/', sitetibl.views.encontraSaidascaixa),
-    path('tibl/buscaentradascaixa/', sitetibl.views.encontraEntradascaixa),
-    path('tibl/buscasaidasbanco/', sitetibl.views.encontraSaidasbanco),
-    path('tibl/buscaentradasbanco/', sitetibl.views.encontraEntradasbanco),
-    path('tibl/buscarelatoriosemanalcelula/', sitetibl.views.encontraRelatorioSemanalCelula),
-    path('tibl/buscapedidosaida/', sitetibl.views.encontraPedidoSaida),
-    path('tibl/buscaorcamentodepartamento/', sitetibl.views.encontraOrcamentoDepartamento),
-    path('tibl/buscainventariopatrimonio/', sitetibl.views.encontraInventarioPatrimonio),
-    path('tibl/buscaconteudoensino/', sitetibl.views.encontraConteudoEnsino),
-    path('tibl/buscaenviomensagem/', sitetibl.views.encontraEnvioMensagem),
-    path('tibl/buscabancos/', sitetibl.views.encontraBancos),
-    path('tibl/buscaescalas/', sitetibl.views.encontraEscalas),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('', sitetibl.views.root_redirect, name='index'), # redireciona para o menu de dashboards
 
-    #endpoints para dashboard
+    # App sitetibl
+    path('tibl/', include('sitetibl.urls')),
+
+    # django-scheduler (iCal + JSON feeds)
+    path('schedule/', include('schedule.urls')),
+
+    # Documentação do utilizador
+    re_path(r'^documentacao/(?P<path>.*)$', sitetibl.views.serve_documentacao, name='documentacao'),
+
+    # Root redirect
+    path('', sitetibl.views.root_redirect, name='index'),
+
+    # Dashboards
     path('dashboard/', sitetibl.views.dashboard, name='dashboard'),
     re_path(r'^documentacao/(?P<path>.*)$', sitetibl.views.serve_documentacao, name='documentacao'),
-    path('guia-utilizador/', sitetibl.views.guia_utilizador, name='guia_utilizador'),
-    path('guia-utilizador/<path:modulo>', sitetibl.views.guia_utilizador, name='guia_utilizador_modulo'),
-    path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos),
-    path('dashboard/orcamento-departamento', sitetibl.views.dashboardOrcamentoDepartamento),
-    path('dashboard/pedido-saida-semana', sitetibl.views.dashboardPedidosSaidaSemana),
-    path('dashboard/conteudo-ensino-mensal', sitetibl.views.dashboardConteudoEnsinoMensal),
-    path('dashboard/dizimo-oferta', sitetibl.views.dashboardDizimoOferta),
-    path('dashboard/crescimento-membros', sitetibl.views.dashboardCrescimentoMembros),
+    path('dashboard/as-minhas-escalas/', sitetibl.views.minhas_escalas, name='minhas_escalas'),
+    path('dashboard/numero-irmaos-cadastrados-mensalmente', sitetibl.views.dashboardIrmaos, name='dashboard_irmaos'),
+    path('dashboard/orcamento-departamento', sitetibl.views.dashboardOrcamentoDepartamento, name='dashboard_orcamento_departamento'),
+    path('dashboard/pedido-saida-semana', sitetibl.views.dashboardPedidosSaidaSemana, name='dashboard_pedidos_saida_semana'),
+    path('dashboard/conteudo-ensino-mensal', sitetibl.views.dashboardConteudoEnsinoMensal, name='dashboard_conteudo_ensino_mensal'),
+    path('dashboard/dizimo-oferta', sitetibl.views.dashboardDizimoOferta, name='dashboard_dizimo_oferta'),
+    path('dashboard/crescimento-membros', sitetibl.views.dashboardCrescimentoMembros, name='dashboard_crescimento_membros'),
+    path('dashboard/departamentos-membros', sitetibl.views.dashboardDepartamentosMembros, name='dashboard_departamentos_membros'),
 
-    #endpoints para baixar relatórios
+    # Relatórios
     path('relatorios/', sitetibl.views.pagina_relatorios, name='pagina_relatorios'),
-    path('relatorios/irmaos/pdf/', sitetibl.views.relatorio_irmaos_pdf, name="relatorio_irmaos_pdf"),
+    path('relatorios/irmaos/pdf/', sitetibl.views.relatorio_irmaos_pdf, name='relatorio_irmaos_pdf'),
     path('relatorios/dizimos/pdf/', sitetibl.views.relatorio_dizimos_pdf, name='relatorio_dizimos_pdf'),
     path('relatorios/departamentos/pdf/', sitetibl.views.relatorio_departamentos_pdf, name='relatorio_departamentos_pdf'),
     path('relatorios/escalas/pdf/', sitetibl.views.relatorio_escalas_pdf, name='relatorio_escalas_pdf'),
     path('relatorios/actividades/pdf/', sitetibl.views.relatorio_actividades_pdf, name='relatorio_actividades_pdf'),
     path('relatorios/inventario_patrimonio/pdf/', sitetibl.views.relatorio_inventario_patrimonio_pdf, name='relatorio_inventario_patrimonio_pdf'),
     path('relatorios/saida_caixa/pdf/', sitetibl.views.relatorio_saida_caixa_pdf, name='relatorio_saida_caixa_pdf'),
-    ]
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])

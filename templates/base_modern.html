@@ -1,0 +1,458 @@
+{% load static %}
+{% load verificagrupo %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="pt-pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Gestão Integrada - Terceira Igreja Baptista de Luanda">
+    <meta name="theme-color" content="#2e7d32">
+    <title>{% block title %}TIB Luanda{% endblock %} | Sistema de Gestão</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&family=Outfit:wght@700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Modern Styles -->
+    <link rel="stylesheet" href="{% static 'estilos/modern.css' %}?v=20260309">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'fotos/2022/cba.png' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- Mobile overlay -->
+    <div id="sidebar-overlay"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; backdrop-filter:blur(2px);"
+        onclick="closeSidebar()"></div>
+
+    <div class="modern-layout">
+        {% if request.user.is_authenticated %}
+        <!-- Sidebar -->
+        <aside class="modern-sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon" style="background: transparent; box-shadow: none;">
+                    <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL Logo"
+                        style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4));">
+                </div>
+                <div class="logo-text">TIBL</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-line fa-fw"></i> <span>Dashboard</span>
+                </a>
+
+                <a href="{% url 'minhas_escalas' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'minhas_escalas' %}active{% endif %}">
+                    <i class="fas fa-user-clock fa-fw"></i> <span>As Minhas Escalas</span>
+                </a>
+
+                {% if perms.sitetibl.view_actividade %}
+                <a href="/tibl/actividades/calendario/"
+                    class="nav-item {% if 'actividades' in request.path %}active{% endif %}">
+                    <i class="fas fa-calendar-check fa-fw"></i> Actividades
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_escala %}
+                <a href="/tibl/gestao/escalas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
+                    <i class="fas fa-clipboard-list fa-fw"></i> Escalas
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.change_irmao %}
+                <a href="/tibl/gestao/irmaos/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'irmaos' %}active{% endif %}">
+                    <i class="fas fa-users fa-fw"></i> <span>Irmãos</span>
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_departamento %}
+                <a href="/tibl/gestao/departamentos/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'departamentos' %}active{% endif %}">
+                    <i class="fas fa-sitemap fa-fw"></i> Departamentos
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_mandato %}
+                <a href="/tibl/gestao/mandatos/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'mandatos' %}active{% endif %}">
+                    <i class="fas fa-handshake fa-fw"></i> Mandatos
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco or perms.sitetibl.view_pedidosaida %}
+                <div class="nav-section-title">Financeiro</div>
+
+                {% if perms.sitetibl.view_contabancaria %}
+                <a href="/tibl/gestao/contasbancarias/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'contasbancarias' %}active{% endif %}">
+                    <i class="fas fa-university fa-fw"></i> Contas Bancárias
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_dizimooferta %}
+                <a href="/tibl/gestao/dizimosofertas/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'dizimosofertas' %}active{% endif %}">
+                    <i class="fas fa-hand-holding-heart fa-fw"></i> Dízimos e Ofertas
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_entradabanco %}
+                <a href="/tibl/gestao/entradabancos/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradabancos' %}active{% endif %}">
+                    <i class="fas fa-arrow-circle-right fa-fw"></i> Entrada (Banco)
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_saidabanco %}
+                <a href="/tibl/gestao/saidabancos/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidabancos' %}active{% endif %}">
+                    <i class="fas fa-arrow-circle-left fa-fw"></i> Saída (Banco)
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_entradacaixa %}
+                <a href="/tibl/gestao/entradascaixa/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradascaixa' %}active{% endif %}">
+                    <i class="fas fa-coins fa-fw"></i> Entrada (Caixa)
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_saidacaixa %}
+                <a href="/tibl/gestao/saidascaixa/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
+                    <i class="fas fa-money-bill-wave fa-fw"></i> Saída (Caixa)
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_pedidosaida %}
+                <a href="/tibl/gestao/pedidosaida/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
+                    <i class="fas fa-file-invoice-dollar fa-fw"></i> Pedidos de Saída
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_orcamentodepartamento %}
+                <a href="/tibl/gestao/orcamentodepartamento/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'orcamentodepartamento' %}active{% endif %}">
+                    <i class="fas fa-chart-pie fa-fw"></i> Orçamento Dept.
+                </a>
+                {% endif %}
+                {% endif %}
+
+                {% if perms.sitetibl.view_ajuda or perms.sitetibl.view_cesta or perms.sitetibl.view_relatoriosemanalcelula or perms.sitetibl.view_conteudoensino or perms.sitetibl.view_enviomensagem %}
+                <div class="nav-section-title">Social & Comunidade</div>
+
+                {% if perms.sitetibl.view_ajuda %}
+                <a href="/tibl/gestao/ajudas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'ajudas' %}active{% endif %}">
+                    <i class="fas fa-hands-helping fa-fw"></i> Ajudas
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_cesta %}
+                <a href="/tibl/gestao/cestas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'cestas' %}active{% endif %}">
+                    <i class="fas fa-shopping-basket fa-fw"></i> Cestas Básicas
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_relatoriosemanalcelula %}
+                <a href="/tibl/gestao/relatoriosemanalcelula/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'relatoriosemanalcelula' %}active{% endif %}">
+                    <i class="fas fa-book fa-fw"></i> Relatório Células
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_conteudoensino %}
+                <a href="/tibl/gestao/conteudoensino/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'conteudoensino' %}active{% endif %}">
+                    <i class="fas fa-graduation-cap fa-fw"></i> Conteúdo Ensino
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_enviomensagem %}
+                <a href="/tibl/gestao/enviomensagem/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'enviomensagem' %}active{% endif %}">
+                    <i class="fas fa-envelope fa-fw"></i> Envio Mensagem
+                </a>
+                {% endif %}
+                {% endif %}
+
+                {% if perms.sitetibl.view_inventariopatrimonio %}
+                <div class="nav-section-title">Administração</div>
+
+                <a href="/tibl/gestao/inventariopatrimonio/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
+                    <i class="fas fa-boxes-stacked fa-fw"></i> Património
+                </a>
+                {% endif %}
+
+                <a href="{% url 'pagina_relatorios' %}" class="nav-item">
+                    <i class="fas fa-file-pdf fa-fw"></i> Relatórios PDF
+                </a>
+
+                {% if request.user.is_staff %}
+                <a href="/admin/" class="nav-item" target="_blank">
+                    <i class="fas fa-cog fa-fw"></i> Admin Django
+                </a>
+                {% endif %}
+
+            </nav>
+
+            <div style="padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-item"
+                        style="background:none; border:none; width:100%; cursor:pointer; text-align:left; color: rgba(255,255,255,0.5);">
+                        <i class="fas fa-sign-out-alt fa-fw"></i> Terminar Sessão
+                    </button>
+                </form>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- Main Content -->
+        <main class="modern-main {% if not request.user.is_authenticated %}no-sidebar{% endif %}" id="main-content">
+            {% if request.user.is_authenticated %}
+            <header class="modern-topbar">
+                <button class="sidebar-toggle" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="breadcrumb-nav d-none d-md-flex"
+                    style="flex: 1; margin-left: 1.5rem; gap: 0.5rem; align-items: center; font-size: 0.825rem; color: var(--text-muted); font-weight: 500;">
+                    <a href="{% url 'dashboard' %}" style="color: var(--primary); text-decoration: none;">TIBL</a>
+                    <i class="fas fa-chevron-right" style="font-size: 0.65rem; opacity: 0.5;"></i>
+                    <span style="color: var(--text-main); font-weight: 600;">{% if request.resolver_match.kwargs.gestaoescolhida %}{{ request.resolver_match.kwargs.gestaoescolhida|title|replace:"_, " }}{% elif request.resolver_match.url_name %}{{ request.resolver_match.url_name|title|replace:"_, " }}{% endif %}</span>
+                </div>
+
+                <div class="user-info" style="gap: 1.5rem; margin-left: auto;">
+                    <!-- Table Export -->
+                    <button class="d-none d-md-flex" id="global-export-btn"
+                        style="background:none; border:none; cursor:pointer; color:var(--primary); font-size:1.1rem; display:none;"
+                        title="Exportar Tabela (Excel)">
+                        <i class="fas fa-file-excel"></i>
+                    </button>
+
+                    <!-- Dark Mode Toggle -->
+                    <button id="dark-mode-toggle"
+                        style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:1.1rem;"
+                        title="Modo Noturno">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    <div style="text-align: right; margin-right: 0.5rem;">
+                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">
+                            {% firstof request.user.first_name request.user.username %}
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                            {% if request.user|has_group:"Administrador" %}Administrador
+                            {% elif request.user|has_group:"Financeiro" %}Financeiro
+                            {% elif request.user|has_group:"Secretaria" %}Secretaria
+                            {% elif request.user|has_group:"Membros Baptizados" %}Membros Baptizados
+                            {% elif request.user|has_group:"Membro Geral" %}Membro Geral
+                            {% elif request.user.is_superuser %}Administrador
+                            {% else %}Usuário{% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'sitetibl:meu_perfil' %}" title="O meu perfil"
+                        style="text-decoration: none;">
+                        <div class="user-avatar">{{ request.user.username|first|upper }}</div>
+                    </a>
+                </div>
+            </header>
+            {% endif %}
+
+            {% if messages %}
+            <div class="messages-container" style="padding: 0.75rem 1.25rem 0;">
+                {% for message in messages %}
+                <div
+                    class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
+                    <i
+                        class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+
+                <!-- Compatibility Blocks -->
+                {% block Titulo %}{% endblock %}
+                {% block Irmaos %}{% endblock %}
+                {% block irmaosdetalhe %}{% endblock %}
+                {% block Irmaosfiltrados %}{% endblock %}
+                {% block Escalas %}{% endblock %}
+                {% block EscalasFiltrados %}{% endblock %}
+                {% block Mandatos %}{% endblock %}
+                {% block Ajudas %}{% endblock %}
+                {% block ajudasdetalhe %}{% endblock %}
+                {% block Ajudasfiltradas %}{% endblock %}
+                {% block Cestas %}{% endblock %}
+                {% block cestasdetalhe %}{% endblock %}
+                {% block Cestasfiltradas %}{% endblock %}
+                {% block Bancos %}{% endblock %}
+                {% block Contasbancarias %}{% endblock %}
+                {% block contasbancariasfiltradas %}{% endblock %}
+                {% block Actividades %}{% endblock %}
+                {% block actividadesdetalhe %}{% endblock %}
+                {% block Actividadesfiltradas %}{% endblock %}
+                {% block Departamentos %}{% endblock %}
+                {% block departamentosdetalhe %}{% endblock %}
+                {% block Departamentosfiltrados %}{% endblock %}
+                {% block Dizimosofertas %}{% endblock %}
+                {% block dizimosofertasdetalhe %}{% endblock %}
+                {% block Dizimosofertasfiltradas %}{% endblock %}
+                {% block RelatorioSemanalCelula %}{% endblock %}
+                {% block relatoriosemanalceluladetalhe %}{% endblock %}
+                {% block Relatoriosemanalcelulafiltrados %}{% endblock %}
+                {% block Saidabancos %}{% endblock %}
+                {% block saidabancosdetalhe %}{% endblock %}
+                {% block Saidasbancofiltradas %}{% endblock %}
+                {% block Entradasbanco %}{% endblock %}
+                {% block entradabancosdetalhe %}{% endblock %}
+                {% block Entradasbancofiltradas %}{% endblock %}
+                {% block Saidascaixa %}{% endblock %}
+                {% block saidascaixadetalhe %}{% endblock %}
+                {% block Saidascaixafiltradas %}{% endblock %}
+                {% block Entradascaixa %}{% endblock %}
+                {% block entradascaixadetalhe %}{% endblock %}
+                {% block Entradascaixafiltradas %}{% endblock %}
+                {% block OrcamentoDepartamento %}{% endblock %}
+                {% block orcamentodepartamentodetalhe %}{% endblock %}
+                {% block Orcamentodepartamentofiltrados %}{% endblock %}
+                {% block PedidoSaida %}{% endblock %}
+                {% block pedidosaidadetalhe %}{% endblock %}
+                {% block Pedidosaidafiltrados %}{% endblock %}
+                {% block Irmaodetalhado %}{% endblock %}
+                {% block InventarioPatrimonio %}{% endblock %}
+                {% block inventariopatrimoniodetalhe %}{% endblock %}
+                {% block Inventariopatrimoniofiltrados %}{% endblock %}
+                {% block ConteudoEnsino %}{% endblock %}
+                {% block conteudoensinodetalhe %}{% endblock %}
+                {% block Conteudoensinofiltrados %}{% endblock %}
+                {% block EnvioMensagem %}{% endblock %}
+                {% block enviomensagemdetalhe %}{% endblock %}
+                {% block Enviomensagemfiltrados %}{% endblock %}
+                {% block Formularioactualizacao %}{% endblock %}
+                {% block Formulariocriacao %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Core JS -->
+    <script src="{% static 'js/tibl-core.js' %}?v=20260325"></script>
+
+    <script>
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (toggle && sidebar) {
+                toggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const isOpen = sidebar.classList.toggle('open');
+                    if (overlay) overlay.style.display = isOpen ? 'block' : 'none';
+                });
+            }
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+
+            if (sidebar) {
+                sidebar.querySelectorAll('.nav-item').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        if (window.innerWidth < 1024) closeSidebar();
+                    });
+                });
+            }
+
+            const collapseBtn = document.getElementById('sidebar-collapse');
+            if (collapseBtn && sidebar) {
+                if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    const icon = collapseBtn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-chevron-right';
+                }
+                collapseBtn.addEventListener('click', function () {
+                    sidebar.classList.toggle('collapsed');
+                    const icon = collapseBtn.querySelector('i');
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+                    if (icon) icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                    localStorage.setItem('sidebar-collapsed', isCollapsed);
+                });
+            }
+
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            if (darkModeToggle) {
+                const currentTheme = localStorage.getItem('tibl-theme');
+                const icon = darkModeToggle.querySelector('i');
+
+                if (currentTheme) {
+                    document.documentElement.setAttribute('data-theme', currentTheme);
+                    if (currentTheme === 'dark') {
+                        icon.classList.replace('fa-moon', 'fa-sun');
+                        icon.style.color = '#f59e0b';
+                    }
+                }
+
+                darkModeToggle.addEventListener('click', function () {
+                    let theme = document.documentElement.getAttribute('data-theme');
+                    if (theme === 'dark') {
+                        document.documentElement.removeAttribute('data-theme');
+                        localStorage.setItem('tibl-theme', 'light');
+                        icon.classList.replace('fa-sun', 'fa-moon');
+                        icon.style.color = 'var(--text-muted)';
+                    } else {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('tibl-theme', 'dark');
+                        icon.classList.replace('fa-moon', 'fa-sun');
+                        icon.style.color = '#f59e0b';
+                    }
+                });
+            }
+
+            setTimeout(function () {
+                const globalExportBtn = document.getElementById('global-export-btn');
+                const hasTable = document.querySelector('.modern-table');
+                if (globalExportBtn && hasTable) {
+                    globalExportBtn.style.display = 'block';
+                    globalExportBtn.addEventListener('click', function () {
+                        const pageTitle = document.title.split('|')[0].trim() || 'TIBL_Export';
+                        const timeStr = new Date().toISOString().slice(0, 10);
+                        if (window.TIBL && window.TIBL.exportTableToCSV) {
+                            window.TIBL.exportTableToCSV('.modern-table', `${pageTitle}_${timeStr}`);
+                        }
+                    });
+                }
+            }, 500);
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

@@ -1,34 +1,146 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Departamentos %}
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Registos encontrados:</b></font>
-</p>
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Departamento</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Cargo</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Irmão</b></font></a></td>
-</td>
-</tr>
-{% if bb %}
-{% for x in bb %}
-{% if forloop.counter|divisibleby:2 %}
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
+<style>
+    .depf-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
 
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/departamentos/detalhe/{{ x.departamento_id }}" class = 'aa'>{{ x.departamento__designacao }} </a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.cargo__designacao }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.irmao__nome }} {{ x.irmao__apelido}}</font></td>
-</tr>
-{% endfor %}
-{% endif %}
-</table>
-<br>
-<br>
+    .depf-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        color: var(--text-main);
+    }
 
-{% include 'paginacao' %}
+    .depf-subtitle {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .depf-back {
+        background-color: var(--info);
+        color: white;
+    }
+
+    .depf-th-right,
+    .depf-td-right {
+        text-align: right;
+    }
+
+    .depf-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+
+    .depf-badge {
+        background: var(--primary-light);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .depf-irmao {
+        font-weight: 500;
+    }
+
+    .depf-view {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        background: var(--primary-light);
+        color: white;
+    }
+
+    .depf-pagination {
+        margin-top: 2rem;
+    }
+
+    .depf-empty {
+        text-align: center;
+        padding: 4rem;
+    }
+
+    .depf-empty-icon {
+        font-size: 4rem;
+        color: #e2e8f0;
+        margin-bottom: 1.5rem;
+    }
+
+    .depf-empty-title {
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+    }
+
+    .depf-empty-text {
+        color: var(--text-muted);
+    }
+</style>
+
+<div class="list-container">
+    <div class="depf-header">
+        <div>
+            <h2 class="depf-title">Estrutura
+                HierÃ¡rquica Encontrada</h2>
+            <p class="depf-subtitle">Registos de cargos e departamentos compatÃ­veis com a
+                sua busca.</p>
+        </div>
+        <a href="/tibl/gestao/departamentos/1" class="bt-primary depf-back">
+            <i class="fas fa-undo"></i> Voltar à Estrutura
+        </a>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Departamento</th>
+                    <th>Cargo</th>
+                    <th>Irmão Responsável</th>
+                    <th class="depf-th-right">Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div class="depf-name">{{ x.departamento__designacao }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge depf-badge">
+                            {{ x.cargo_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="depf-irmao">{{ x.irmao__nome }} {{ x.irmao__apelido }}</div>
+                    </td>
+                    <td class="depf-td-right">
+                        <a href="/tibl/departamentos/detalhe/{{ x.departamento_id }}" class="bt-primary depf-view">
+                            <i class="fas fa-sitemap"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="depf-pagination">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card depf-empty">
+        <i class="fas fa-users-slash depf-empty-icon"></i>
+        <h3 class="depf-empty-title">Nenhum cargo encontrado</h3>
+        <p class="depf-empty-text">A sua pesquisa não retornou atribuições de cargos para os critérios
+            informados.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
-

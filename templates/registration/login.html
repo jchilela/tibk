@@ -1,78 +1,55 @@
-<!-- templates/registration/login.html -->
 {% extends 'index.html' %}
+{% load static %}
 
 {% block title %}Login{% endblock %}
 
-
 {% block content %}
+<div class="landing-hero">
+    <div class="login-card">
+        <div class="login-header">
+            <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL"
+                style="width: 72px; margin-bottom: 0.75rem; filter: drop-shadow(0 2px 8px rgba(84,140,47,0.15));">
+            <h2>Acesso ao Sistema</h2>
+            <p>Identifique-se para continuar</p>
+        </div>
 
-<style>
-  body {
-      background: white; 
-  }
+        <form method="post" class="modern-form">
+            {% csrf_token %}
 
-  .login-card {
-      width: 350px;
-      margin: 10px auto;
-      padding: 40px;
-      border-radius: 25px;
-      background: linear-gradient(90deg, #548c2f, #548c2f);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      color: white;
-  }
+            {% if form.errors %}
+            <div class="non-field-errors">
+                <i class="fas fa-exclamation-circle"></i>
+                Usuário ou senha inválidos. Por favor, tente novamente.
+            </div>
+            {% endif %}
 
-  .login-card h2 {
-      text-align: center;
-      font-weight: 300;
-      margin-bottom: 25px;
-      font-size: 28px;
-  }
+            <div class="form-group">
+                <label for="id_username">
+                    <i class="fas fa-user" style="margin-right: 0.35rem; color: var(--text-muted);"></i> Usuário
+                </label>
+                <input type="text" name="username" id="id_username" required autofocus
+                    placeholder="Digite o seu nome de utilizador">
+            </div>
 
-  .login-card label {
-      font-size: 14px;
-      opacity: 0.9;
-  }
+            <div class="form-group">
+                <label for="id_password">
+                    <i class="fas fa-lock" style="margin-right: 0.35rem; color: var(--text-muted);"></i> Senha
+                </label>
+                <input type="password" name="password" id="id_password" required placeholder="Digite a sua senha">
+            </div>
 
-  .login-card input {
-      width: 100%;
-      padding: 12px;
-      margin-top: 5px;
-      margin-bottom: 18px;
-      border: none;
-      border-radius: 25px;
-      background: #e0e0e0;
-      outline: none;
-  }
+            <button type="submit" class="bt-primary"
+                style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-top: 0.5rem; justify-content: center;">
+                Entrar <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
+            </button>
+        </form>
 
-  .login-btn {
-      width: 100%;
-      padding: 14px;
-      background: #52b5ff;
-      border: none;
-      border-radius: 25px;
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
-  }
-
-  .login-btn:hover {
-      opacity: 0.9;
-  }
-</style>
-
-<div class="login-card">
-
-  <h2>Login</h2>
-
-  <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-
-      <button type="submit" class="login-btn">Login</button>
-  </form>
-
+        <div style="margin-top: 1.5rem; border-top: 1px solid #f1f5f9; padding-top: 1.25rem; text-align: center;">
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+                Esqueceu a sua palavra-passe?
+                <a href="{% url 'password_reset' %}" style="color: var(--primary); font-weight: 600;">Recuperar acesso</a>
+            </p>
+        </div>
+    </div>
 </div>
 {% endblock %}
-
-
-

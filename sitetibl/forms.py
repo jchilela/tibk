@@ -6,7 +6,9 @@ from sitetibl.models import Contabancaria
 from sitetibl.models import Actividade
 from sitetibl.models import Departamento
 from sitetibl.models import Mandato
+from sitetibl.models import Cargo
 from sitetibl.models import Escala
+from sitetibl.models import Funcao
 from sitetibl.models import Saidacaixa
 from sitetibl.models import Saidabanco
 from sitetibl.models import Entradacaixa
@@ -16,20 +18,70 @@ from sitetibl.models import Pagamentoservico
 from sitetibl.models import Gruporubrica
 from sitetibl.models import Servico
 from sitetibl.models import Sitio
+from sitetibl.models import Municipio
 from sitetibl.models import RelatorioSemanalCelula
 from sitetibl.models import PedidoSaida
 from sitetibl.models import OrcamentoDepartamento
 from sitetibl.models import InventarioPatrimonio
 from sitetibl.models import ConteudoEnsino
 from sitetibl.models import EnvioMensagem
+from sitetibl.models import TipoOferta
+from sitetibl.models import Listaactividades
 
 from django.forms import ModelForm , CheckboxSelectMultiple
+from django.utils import timezone as tz
+from schedule.models import Calendar, Rule, Event as ScheduleEvent
 from django import forms
+from datetime import date, datetime, timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import re
+from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
 
+
+class MeuPerfilForm(ModelForm):
+    """Campos que o próprio utilizador pode alterar no seu perfil."""
+    class Meta:
+        model = Irmao
+        fields = ['foto', 'telefone', 'telefonewhatsapp', 'email']
+        widgets = {
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 923000000'}),
+            'telefonewhatsapp': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 923000000'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'foto': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+
+class MeuPerfilPasswordForm(DjangoPasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+        self.fields['old_password'].label = 'Senha actual'
+        self.fields['old_password'].help_text = ''
+        self.fields['new_password1'].label = 'Nova senha'
+        self.fields['new_password1'].help_text = (
+            'A senha deve ter pelo menos 8 caracteres. '
+            'Não pode ser apenas números nem semelhante ao nome de utilizador.'
+        )
+        self.fields['new_password2'].label = 'Confirmar nova senha'
+        self.fields['new_password2'].help_text = 'Repita a nova senha para confirmar.'
+
+
+class ContabancariaForm(forms.ModelForm):
+    class Meta:
+        model = Contabancaria
+        fields = ['banco','numeroconta','iban','moeda','proprietario','instituicao']
+        #Estilos bootstrap
+        widgets = {
+            'banco': forms.Select(attrs={'class': 'form-control'}),
+            'numeroconta': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Nº da Conta'}),
+            'iban': forms.TextInput(attrs={'class': 'form-control','placeholder': 'AO06...'}),
+            'moeda': forms.Select(attrs={'class': 'form-control'}),
+            'proprietario': forms.Select(attrs={'class': 'form-control'}),
+            'instituicao': forms.Select(attrs={'class': 'form-control'}),
+        }
 
 class IrmaoForm(ModelForm):
     telefone = forms.CharField(
@@ -42,24 +94,70 @@ class IrmaoForm(ModelForm):
         ]
     )
 
+    departamentos = forms.ModelMultipleChoiceField(
+        queryset=Departamento.objects.order_by('designacao'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label='Departamentos',
+        help_text='Seleccione um ou mais departamentos (opcional).',
+    )
+
     class Meta:
         model = Irmao
-        fields = '__all__'
+        fields = [
+            # --- Identificação pessoal ---
+            'nome', 'apelido', 'outrosnomes', 'sexo', 'foto',
+            'datanascimento', 'estadocivil',
+            # --- Contactos ---
+            'telefone', 'telefonewhatsapp', 'email',
+            # --- Localização ---
+            'ruaenumero', 'bairro', 'provincia', 'municipio',
+            # --- Vida eclesiástica ---
+            'localcongregacao', 'celula', 'culto', 'batizado', 'dizimista',
+            # --- Profissão e trabalho ---
+            'profissao', 'especialidade', 'grauescolaridade', 'localdetrabalho',
+            # --- Outros ---
+            'observacao',
+        ]
         widgets = {
-            'datanascimento': forms.DateInput(attrs={'type': 'date'})
+            'datanascimento': forms.DateInput(attrs={'type': 'date'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        #filtrar as dropdown para aparecer ou celula ou igreja
+        # Filtrar dropdowns: só células ou só igrejas
         self.fields['celula'].queryset = Sitio.objects.filter(tipo='2')
         self.fields['localcongregacao'].queryset = Sitio.objects.filter(tipo='1')
+
+        # Cascading: município depende da província seleccionada
+        if self.instance and self.instance.pk and self.instance.provincia_id:
+            # Edição: mostrar municípios da província do registo
+            self.fields['municipio'].queryset = Municipio.objects.filter(
+                provincia_id=self.instance.provincia_id
+            )
+        elif 'provincia' in self.data:
+            # POST: filtrar pela província enviada
+            try:
+                provincia_id = int(self.data.get('provincia'))
+                self.fields['municipio'].queryset = Municipio.objects.filter(
+                    provincia_id=provincia_id
+                )
+            except (ValueError, TypeError):
+                self.fields['municipio'].queryset = Municipio.objects.none()
+        else:
+            # Criação: município vazio até escolher província
+            self.fields['municipio'].queryset = Municipio.objects.none()
 
 class AjudaForm(ModelForm):
     class Meta:
         model = Ajuda
         fields = '__all__'
+        widgets = {
+            'ajuda': forms.TextInput(attrs={'placeholder': 'Descreva o tipo de ajuda'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+            'data': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class CestabasicaForm(ModelForm):
     class Meta:
@@ -117,6 +215,9 @@ class ContabancariaForm(ModelForm):
     class Meta:
         model = Contabancaria
         fields = '__all__'
+        labels = {
+            'is_active': 'Está activo',
+        }
         widgets = {
             'numeroconta': forms.TextInput(attrs={
                 'placeholder': '1XXXXXXXX'
@@ -124,6 +225,7 @@ class ContabancariaForm(ModelForm):
             'iban': forms.TextInput(attrs={
                 'placeholder': 'AO06 XXXX XXXX XXXX XXXX XXXX X'
             }),
+            'saldo': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
     
     def clean_numeroconta(self):
@@ -162,37 +264,366 @@ class ContabancariaForm(ModelForm):
         return iban
 
 class ActividadeForm(ModelForm):
+    designacao = forms.CharField(
+        label='Designação',
+        max_length=200,
+        widget=forms.TextInput(attrs={'placeholder': 'Nome da actividade...'}),
+    )
+    dias_semana = forms.MultipleChoiceField(
+        choices=[
+            ('6', 'Domingo'),
+            ('0', 'Segunda-feira'),
+            ('1', 'Terça-feira'),
+            ('2', 'Quarta-feira'),
+            ('3', 'Quinta-feira'),
+            ('4', 'Sexta-feira'),
+            ('5', 'Sábado'),
+        ],
+        label='Dias da Semana',
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    frequencia = forms.ChoiceField(
+        choices=[
+            ('WEEKLY', 'Semanal'),
+            ('DAILY', 'Diária'),
+            ('MONTHLY', 'Mensal'),
+        ],
+        label='Frequência',
+        required=False,
+        initial='WEEKLY',
+    )
+
     class Meta:
         model = Actividade
-        exclude = ('participantes',)
+        exclude = ('participantes', 'criado_por', 'event', 'parent_event')
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'inicio': forms.DateInput(attrs={'type': 'time'}),
             'fim': forms.DateInput(attrs={'type': 'time'}),
+            'recorrencia_fim': forms.DateInput(attrs={'type': 'date'}),
+            'is_recorrente': forms.CheckboxInput,
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pré-preencher com o valor actual ao editar
+        if self.instance and self.instance.pk and self.instance.designacao_id:
+            self.initial['designacao'] = self.instance.designacao.designacao
+        # Pré-preencher os dias ao editar
+        if self.instance and self.instance.pk and self.instance.dias_semana:
+            self.initial['dias_semana'] = self.instance.dias_semana.split(',')
+        # Pré-preencher frequência pelo evento existente
+        if self.instance and self.instance.pk and self.instance.event_id:
+            self.initial['frequencia'] = self.instance.event.rule.frequency if self.instance.event.rule else 'WEEKLY'
+
+        # Labels legíveis
+        self.fields['inicio'].label = 'Hora de Início'
+        self.fields['fim'].label = 'Hora de Fim'
+        self.fields['data'].label = 'Data'
+        self.fields['tema'].label = 'Tema'
+        self.fields['localactividade'].label = 'Local'
+        self.fields['versosbiblicos'].label = 'Versos Bíblicos'
+        self.fields['hinos'].label = 'Hinos'
+        self.fields['totalpresentes'].label = 'Total de Presentes'
+        self.fields['departamento'].label = 'Departamento'
+        self.fields['is_recorrente'].label = 'É Recorrente?'
+        self.fields['recorrencia_fim'].label = 'Recorrência até'
+        self.fields['frequencia'].label = 'Frequência'
+
+        # Campos opcionais
+        self.fields['totalpresentes'].required = False
+        self.fields['totalpresentes'].initial = 0
+        self.fields['tema'].required = False
+        self.fields['versosbiblicos'].required = False
+        self.fields['hinos'].required = False
+        self.fields['localactividade'].required = False
+        self.fields['departamento'].required = False
+        self.fields['is_recorrente'].required = False
+        self.fields['recorrencia_fim'].required = False
+
+    def clean_designacao(self):
+        """Converte a string para instância Listaactividades durante a validação,
+        antes de _post_clean() tentar atribuí-la ao campo FK do modelo."""
+        nome = self.cleaned_data.get('designacao', '').strip()
+        if not nome:
+            raise forms.ValidationError('Este campo é obrigatório.')
+        lista_obj, _ = Listaactividades.objects.get_or_create(designacao=nome)
+        return lista_obj
+
+    def clean(self):
+        import datetime
+        cleaned = super().clean()
+        data = cleaned.get('data')
+        recorrencia_fim = cleaned.get('recorrencia_fim')
+        is_recorrente = cleaned.get('is_recorrente')
+        if data and data < datetime.date.today():
+            self.add_error('data', 'Não é possível criar actividades com data no passado.')
+        if is_recorrente and recorrencia_fim:
+            if data and recorrencia_fim <= data:
+                self.add_error('recorrencia_fim', 'A data de fim da recorrência deve ser posterior à data da actividade.')
+        return cleaned
+
+    def save(self, commit=True):
+        import datetime
+        # clean_designacao() já devolveu um Listaactividades, super().save() atribui-o correctamente
+        instance = super().save(commit=False)
+        if instance.totalpresentes is None:
+            instance.totalpresentes = 0
+        # Guardar dias da semana como string separada por vírgula
+        dias = self.cleaned_data.get('dias_semana') or []
+        instance.dias_semana = ','.join(sorted(dias))
+
+        # Criar / actualizar evento no django-scheduler se recorrente
+        if instance.is_recorrente:
+            nome = instance.designacao.designacao
+            frequencia = self.cleaned_data.get('frequencia') or 'WEEKLY'
+            # Params: byweekday apenas faz sentido para WEEKLY com dias seleccionados
+            rule_params = ''
+            if frequencia == 'WEEKLY' and dias:
+                rule_params = 'byweekday:' + ','.join(sorted(dias))
+            rule_name = f'{nome} ({frequencia})'
+            # Reutilizar ou criar Rule
+            if instance.event and instance.event.rule:
+                rule = instance.event.rule
+                rule.frequency = frequencia
+                rule.params = rule_params
+                rule.name = rule_name
+                rule.description = rule_name
+                rule.save()
+            else:
+                rule = Rule.objects.create(
+                    name=rule_name,
+                    description=rule_name,
+                    frequency=frequencia,
+                    params=rule_params,
+                )
+            # Combinar data + horas para DateTimeField do django-scheduler
+            data_inicio = instance.data
+            hora_inicio = instance.inicio or datetime.time(0, 0)
+            hora_fim = instance.fim or datetime.time(23, 59)
+            start_dt = datetime.datetime.combine(data_inicio, hora_inicio)
+            end_dt = datetime.datetime.combine(data_inicio, hora_fim)
+            # end_recurring_period: respeitar recorrencia_fim ou usar horizonte de 10 anos
+            if instance.recorrencia_fim:
+                end_recurring = datetime.datetime.combine(instance.recorrencia_fim, datetime.time(23, 59))
+            else:
+                end_recurring = datetime.datetime.combine(
+                    data_inicio + datetime.timedelta(days=3650), datetime.time(23, 59)
+                )
+            calendar, _ = Calendar.objects.get_or_create(slug='tibl', defaults={'name': 'TIBL'})
+            if instance.event:
+                ev = instance.event
+                ev.title = instance.designacao.designacao
+                ev.start = start_dt
+                ev.end = end_dt
+                ev.rule = rule
+                ev.end_recurring_period = end_recurring
+                ev.save()
+            else:
+                ev = ScheduleEvent.objects.create(
+                    title=instance.designacao.designacao,
+                    start=start_dt,
+                    end=end_dt,
+                    rule=rule,
+                    end_recurring_period=end_recurring,
+                    calendar=calendar,
+                )
+            instance.event = ev
+
+        if commit:
+            instance.save()
+            self._save_m2m()
+        return instance
+
+
+DIAS_SEMANA_CHOICES = [
+    (6, 'Domingo'),
+    (0, 'Segunda-feira'),
+    (1, 'Terça-feira'),
+    (2, 'Quarta-feira'),
+    (3, 'Quinta-feira'),
+    (4, 'Sexta-feira'),
+    (5, 'Sábado'),
+]
+
+
+class ActividadesRecorrentesForm(forms.Form):
+    """Cria múltiplas actividades de uma vez para uma série semanal."""
+    nome_actividade = forms.CharField(
+        label='Designação da Actividade',
+        max_length=200,
+        widget=forms.TextInput(attrs={'placeholder': 'Ex.: Culto de Oracao, Estudo Bíblico...'}),
+    )
+    departamento = forms.ModelChoiceField(
+        queryset=Departamento.objects.all().order_by('designacao'),
+        label='Departamento',
+        required=False,
+        empty_label='Geral (sem departamento)',
+    )
+    localactividade = forms.ModelChoiceField(
+        queryset=Sitio.objects.all().order_by('designacao'),
+        label='Local',
+        required=False,
+        empty_label='Seleccione...',
+    )
+    inicio = forms.TimeField(
+        label='Hora de Início',
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+    )
+    fim = forms.TimeField(
+        label='Hora de Fim',
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+    )
+    data_inicio = forms.DateField(
+        label='Data de Início',
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    data_fim = forms.DateField(
+        label='Data de Fim',
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    dias_semana = forms.MultipleChoiceField(
+        choices=DIAS_SEMANA_CHOICES,
+        label='Dias da Semana',
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        data_inicio = cleaned.get('data_inicio')
+        data_fim = cleaned.get('data_fim')
+        inicio = cleaned.get('inicio')
+        fim = cleaned.get('fim')
+        dias = cleaned.get('dias_semana')
+
+        if data_inicio and data_fim and data_fim < data_inicio:
+            raise forms.ValidationError('A data de fim deve ser igual ou posterior à data de início.')
+        if inicio and fim and fim <= inicio:
+            raise forms.ValidationError('A hora de fim deve ser posterior à hora de início.')
+        if not dias:
+            raise forms.ValidationError('Seleccione pelo menos um dia da semana.')
+        return cleaned
+
+
 class DepartamentoForm(ModelForm):
+    lider_departamento = forms.ModelChoiceField(
+        queryset=Irmao.objects.order_by('nome', 'apelido'),
+        required=False,
+        label='Líder do Departamento',
+        widget=forms.Select(attrs={'class': 'tomselect'}),
+    )
+    vice_lider_departamento = forms.ModelChoiceField(
+        queryset=Irmao.objects.order_by('nome', 'apelido'),
+        required=False,
+        label='Vice-Líder do Departamento',
+        widget=forms.Select(attrs={'class': 'tomselect'}),
+    )
+
     class Meta:
         model = Departamento
         exclude = ('integrantes',)
 
 class MandatoForm(ModelForm):
+    irmao = forms.ModelChoiceField(
+        queryset=Irmao.objects.order_by('nome', 'apelido'),
+        label='Irmão',
+        widget=forms.Select(attrs={'class': 'tomselect'}),
+    )
+
     class Meta:
         model = Mandato
-        fields = '__all__'
+        fields = ['irmao', 'departamento', 'funcao', 'inicio', 'fim']
+        widgets = {
+            'inicio': forms.DateInput(attrs={'type': 'date'}),
+            'fim': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class EscalaForm(ModelForm):
     class Meta:
         model = Escala
-        fields = '__all__'
+        fields = ('irmao', 'actividade', 'funcao')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['irmao'].label = 'Irmão'
+        self.fields['irmao'].queryset = (
+            Irmao.objects.select_related('celula').order_by('nome', 'apelido')
+        )
+        self.fields['actividade'].label = 'Actividade'
+        self.fields['actividade'].queryset = (
+            Actividade.objects.select_related('designacao', 'departamento')
+            .filter(parent_event__isnull=True)
+            .order_by('data', 'designacao__designacao')
+        )
+        self.fields['funcao'].label = 'Função'
+        self.fields['funcao'].required = False
+        self.fields['funcao'].queryset = (
+            Funcao.objects.select_related('departamento')
+            .order_by('departamento__designacao', 'designacao')
+        )
 
 class DizimoofertaForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Evita N+1 ao montar as opções de actividade (usa Actividade.__str__).
+        if 'actividade' in self.fields:
+            self.fields['actividade'].queryset = (
+                Actividade.objects
+                .select_related('designacao')
+                .order_by('-data', 'inicio')
+            )
+
+        if 'irmao' in self.fields:
+            self.fields['irmao'].queryset = Irmao.objects.order_by('nome', 'apelido')
+
     class Meta:
         model = Dizimooferta
-        fields = '__all__'
+        exclude = ('entradabanco', 'entradacaixa')
+        labels = {
+            'datacorrespondente': 'Data correspondente',
+            'dataregisto': 'Data registo',
+        }
         widgets = {
             'dataregisto': forms.DateInput(attrs={'type': 'date'}),
-            'datacorrespondente': forms.DateInput(attrs={'type': 'date'})
+            'datacorrespondente': forms.DateInput(attrs={'type': 'date'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
+
+class DizimoForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if 'actividade' in self.fields:
+            self.fields['actividade'].queryset = (
+                Actividade.objects
+                .select_related('designacao')
+                .order_by('-data', 'inicio')
+            )
+
+        if 'irmao' in self.fields:
+            self.fields['irmao'].queryset = Irmao.objects.order_by('nome', 'apelido')
+
+    class Meta:
+        model = Dizimooferta
+        exclude = ('entradabanco', 'entradacaixa')
+        widgets = {
+            'valor': forms.TextInput(attrs={'class': 'form-control money-input', 'placeholder': '0,00'}),
+            'moeda': forms.Select(attrs={'class': 'form-control'}),
+            'tipooferta': forms.Select(attrs={'class': 'form-control'}),
+            'datacorrespondente': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'irmao': forms.Select(attrs={'class': 'form-control'}),
+            'actividade': forms.Select(attrs={'class': 'form-control'}),
+            'dataregisto': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+class OfertaForm(ModelForm):
+    class Meta:
+        model = TipoOferta
+        fields = '__all__'
+        widgets = {
+            'designacao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Designação da Oferta'}),
         }
 
 class SaidacaixaForm(ModelForm):
@@ -202,8 +633,17 @@ class SaidacaixaForm(ModelForm):
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+
+       
+        if valor < 0:
+            raise forms.ValidationError("O valor digitado não pode ser negativo.")
         
+        return valor
 
 class EntradacaixaForm(ModelForm):
     class Meta:
@@ -211,28 +651,67 @@ class EntradacaixaForm(ModelForm):
         fields = '__all__'
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'})
+            'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+
+       
+        if valor < 0:
+            raise forms.ValidationError("O valor digitado não pode ser negativo.")
         
+        return valor
 
 class SaidabancoForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Show real-time balance in account dropdowns for safer bank operations.
+        if 'conta' in self.fields:
+            self.fields['conta'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+        if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label = 'Conta a creditar'
+            self.fields['contaaacreditar'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+
     class Meta:
         model = Saidabanco
         fields = '__all__'
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'})
+            'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
         
 
 
 class EntradabancoForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Show real-time balance in account dropdowns for safer bank operations.
+        if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label = 'Conta a creditar'
+            self.fields['contaaacreditar'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+        if 'contaorigem' in self.fields:
+            self.fields['contaorigem'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+
     class Meta:
         model = Entradabanco
         fields = '__all__'
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'})
+            'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
         
 
@@ -242,6 +721,9 @@ class PagamentoservicoForm(ModelForm):
     class Meta:
         model = Pagamentoservico
         fields = '__all__'
+        widgets = {
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
 
 class GruporubricaForm(ModelForm):
     class Meta:
@@ -267,19 +749,35 @@ class  RelatorioSemanalCelulaForm(ModelForm):
 class PedidoSaidaForm(ModelForm):
     class Meta:
         model = PedidoSaida
-        fields = '__all__'
-        exclude = ['status_de_aprovacao', 'aprovador']
+        fields = [
+            'departamento', 'projecto', 'montante', 'moeda',
+            'centro_custo', 'tipificacao_custo', 'iban',
+            'justificativa_custo', 'documento_justificativo',
+        ]
+        widgets = {
+            'montante': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
 
 class PedidoSaidaUpdateForm(ModelForm):
     class Meta:
         model = PedidoSaida
-        fields = '__all__'
-        exclude = ['aprovador']
+        fields = [
+            'departamento', 'projecto', 'montante', 'moeda',
+            'centro_custo', 'tipificacao_custo', 'iban',
+            'justificativa_custo', 'documento_justificativo',
+        ]
+        widgets = {
+            'montante': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
 
 class OrcamentoDepartamentoForm(ModelForm):
     class Meta:
         model = OrcamentoDepartamento
         fields = '__all__'
+        widgets = {
+            'ano': forms.Select(choices=[('', '---------')] + [(y, y) for y in range(datetime.now().year - 2, datetime.now().year + 6)]),
+            'orcamento': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
 
 class InventarioPatrimonioForm(ModelForm):
     class Meta:
@@ -289,6 +787,7 @@ class InventarioPatrimonioForm(ModelForm):
             'data_aquisicao': forms.DateInput(attrs={'type': 'date'}),
             'data_ultima_manutencao': forms.DateInput(attrs={'type': 'date'}),
             'data_proxima_manutencao': forms.DateInput(attrs={'type': 'date'}),
+            'preco': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
 
 class ConteudoEnsinoForm(ModelForm):
@@ -300,3 +799,12 @@ class EnvioMensagemForm(ModelForm):
     class Meta:
         model = EnvioMensagem
         fields = '__all__'
+        labels = {
+            'quemenviou': 'Quem enviou',
+            'destinatarios': 'Destinatários',
+            'mensagem': 'Mensagem',
+        }
+        widgets = {
+            'mensagem': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Escreva a sua mensagem aqui...'}),
+            'destinatarios': forms.CheckboxSelectMultiple(),
+        }

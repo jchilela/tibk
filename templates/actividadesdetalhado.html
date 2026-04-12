@@ -1,27 +1,366 @@
-{% extends 'index.html' %}
-{% block Actividadesdetalhado %}
+﻿{% extends 'index.html' %}
+{% block actividadesdetalhe %}
+<div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
+    <div style="background-image: url('/static/fotos/2022/homepage1.jpeg'); background-size: cover; background-position: center; min-height: 120px; position: relative; border-radius: var(--radius-md);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%);"></div>
+        <div style="position: relative; z-index: 1; padding: 1.4rem 1.6rem;">
+            <h2 style="margin: 0; color: #ffffff; font-size: 1.25rem;"><i class="fas fa-info-circle" style="margin-right: 0.45rem; color: #93c5fd;"></i> Detalhes de Actividade</h2>
+            <p style="margin: 0.35rem 0 0 0; color: rgba(255,255,255,0.84); font-size: 0.9rem;">Informacao detalhada para consulta e acompanhamento.</p>
+        </div>
+    </div>
+</div>
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a> |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Designacao:</td><td class="a4">{{ x.designacao }}</td></tr>
-<tr class="fortexto"><td class="a4">Início:</td><td class="a4">{{ x.inicio }}</td></tr>
-<tr class="fortexto"><td class="a4">Fim:</td><td class="a4">{{ x.fim }} </td></tr>
-<tr class="fortexto"><td class="a4">Data:</td><td class="a4">{{ x.data }} </td></tr>
-<tr class="fortexto"><td class="a4">Local:</td><td class="a4">{{ x.local }} </td></tr>
-<tr class="fortexto"><td class="a4">Tema:</td><td class="a4">{{ x.tema }} </td></tr>
-<tr class="fortexto"><td class="a4">Versos bíblicos:</td><td class="a4">{{ x.versosbiblicos }} </td></tr>
-<tr class="fortexto"><td class="a4">Hinos:</td><td class="a4">{{ x.hinos }} </td></tr>
-<tr class="fortexto"><td class="a4">Total de participantes:</td><td class="a4">{{ x.totalpresentes }} </td></tr>
-<tr class="fortexto"><td class="a4">Observacao:</td><td class="a4">{{ x.observacao }} </td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
+<div class="profile-container" style="max-width: 1200px; margin: 0 auto;">
+    {% for x in registoachado %}
+
+    <!-- Event Banner -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; overflow: hidden; position: relative;">
+        <div style="position: relative; z-index: 2; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                <span
+                    style="background: rgba(255,255,255,0.2); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(5px);">
+                    <i class="fas fa-church"></i> Evento de Culto / Actividade
+                </span>
+                <div style="display: flex; gap: 0.5rem;">
+                    {% if perms.sitetibl.change_actividade %}
+                    <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                        style="background: white; color: var(--primary-dark); padding: 0.5rem 1rem;">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    {% endif %}
+                    {% if perms.sitetibl.delete_actividade %}
+                    <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                        style="background: #ef4444; color: white; padding: 0.5rem 1rem;">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h1 style="font-size: 2.8rem; color: white; margin-bottom: 0.5rem;">
+                {{ x.designacao }}
+            </h1>
+            <p style="font-size: 1.25rem; opacity: 0.9; font-weight: 400;">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ x.localactividade|default:"Sede" }}
+            </p>
+        </div>
+
+        <div style="position: absolute; right: -30px; bottom: -30px; opacity: 0.1; font-size: 15rem;">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+        <!-- Time and Stats -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="modern-card" style="text-align: center; padding: 2rem;">
+                <div
+                    style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">
+                    Data da Actividade</div>
+                <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary);">
+                    {{ x.data|date:"d"|default:x.data }}
+                </div>
+                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">
+                    {{ x.data|date:"F Y"|default:"" }}
+                </div>
+                <div
+                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; color: var(--text-muted);">
+                    <i class="far fa-clock"></i> {{ x.inicio }} Ã s {{ x.fim }}
+                </div>
+            </div>
+
+            <div class="modern-card" style="text-align: center; background: #f0fdf4; border: 1px solid #dcfce7;">
+                <div style="font-size: 2.5rem; color: var(--primary); font-weight: 800;">
+                    {{ x.totalpresentes|default:"0" }}
+                </div>
+                <div
+                    style="font-size: 0.8rem; color: var(--primary-dark); font-weight: 600; text-transform: uppercase;">
+                    Participantes</div>
+            </div>
+        </div>
+
+        <!-- Spiritual Details -->
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-bible mr-2"></i> ConteÃºdo Espiritual
+            </h3>
+
+            <div style="margin-bottom: 2rem;">
+                <h4
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                    Tema Central</h4>
+                <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-dark);">
+                    {{ x.tema|default:"NÃ£o especificado" }}
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                <div>
+                    <h4
+                        style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Versos BÃ­blicos</h4>
+                    <p style="font-size: 0.95rem; font-style: italic;">
+                        "{{ x.versosbiblicos|default:"Consultar BÃ­blia" }}"
+                    </p>
+                </div>
+                <div>
+                    <h4
+                        style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Hinos</h4>
+                    <p style="font-size: 0.95rem;">
+                        {{ x.hinos|default:"SelecÃ§Ã£o de louvor" }}
+                    </p>
+                </div>
+            </div>
+
+            <div style="padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
+                <h4
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                    ObservaÃ§Ãµes / RelatÃ³rio</h4>
+                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+                    {{ x.observacao|default:"Nenhuma observaÃ§Ã£o adicional registrada para esta actividade." }}
+            </div>
+        </div>
+    </div> <!-- /End of 1fr 2fr grid -->
+
+    <!-- Escalas Section -->
+    <div style="margin-top: 3rem;">
+        <div
+            style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; color: var(--text-main);">
+                <i class="fas fa-users-cog mr-2"></i> Pessoas Escaladas
+            </h3>
+            {% if perms.sitetibl.add_escala %}
+            <button type="button" class="bt-primary"
+                onclick="document.getElementById('modal-escalar').style.display = 'flex'"
+                style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-layer-group"></i> Escalar IrmÃ£os
+            </button>
+            {% endif %}
+        </div>
+
+        {% if escalas_da_actividade %}
+        {% regroup escalas_da_actividade by funcao.departamento.designacao as escalas_por_dept %}
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; align-items: start;">
+        {% for dept_grp in escalas_por_dept %}
+        <div class="modern-card" style="padding: 0; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); overflow: hidden;">
+            <!-- CabeÃ§alho departamento -->
+            <div style="background: var(--primary); padding: 0.6rem 1rem;">
+                <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: white;">
+                    <i class="fas fa-sitemap" style="margin-right: 0.4rem;"></i>
+                    {% if dept_grp.grouper %}{{ dept_grp.grouper }}{% else %}Sem Departamento{% endif %}
+                </span>
+            </div>
+
+            {% regroup dept_grp.list by funcao.designacao as escalas_agrupadas %}
+
+            <div style="padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            {% for grupo in escalas_agrupadas %}
+                <div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.4rem; padding-bottom: 0.25rem; border-bottom: 1px solid #f1f5f9;">
+                        <i class="fas fa-user-tag" style="opacity: 0.5; margin-right: 0.3rem;"></i>{{ grupo.grouper }}
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.3rem;">
+                        {% for escala in grupo.list %}
+                        <li style="display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; flex-shrink: 0;">
+                                {{ escala.irmao.nome|first }}{{ escala.irmao.apelido|first }}
+                            </div>
+                            <div style="flex: 1;">
+                                <span style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ escala.irmao.nome }} {{ escala.irmao.apelido }}</span>
+                                {% if escala.irmao.celula %}
+                                <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">CÃ©lula: {{ escala.irmao.celula }}</span>
+                                {% endif %}
+                            </div>
+                            {% if perms.sitetibl.delete_escala %}
+                            <a href="/tibl/escalas/eliminar/{{ escala.id }}?next=/tibl/actividades/detalhe/{{ escala.actividade_id }}/" title="Remover da escala" style="color: #ef4444; opacity: 0.7; font-size: 0.75rem; line-height: 1; flex-shrink: 0; text-decoration: none;">
+                                <i class="fas fa-times-circle"></i>
+                            </a>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <div class="modern-card"
+            style="text-align: center; padding: 3rem; background: #f8fafc; border: 1px dashed #cbd5e1;">
+            <i class="fas fa-user-clock" style="font-size: 3rem; color: #94a3b8; margin-bottom: 1rem;"></i>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">NÃ£o existem escalas registadas para esta
+                actividade.</p>
+            <a href="/tibl/escalas/criar/" class="bt-primary"
+                style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary); color: white !important;">
+                <i class="fas fa-plus"></i> Adicionar Escala
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% endfor %}
 </div>
-<br>
+{% endif %}
 
+<div style="text-align: center; margin-top: 3rem;">
+    <a href="/tibl/gestao/actividades/1" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+        <i class="fas fa-chevron-left"></i> Voltar para Cronograma
+    </a>
+</div>
 
+<!-- Modal Escala em Massa -->
+<div id="modal-escalar"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 1rem;">
+    <div
+        style="background: white; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+        <div
+            style="padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white;">
+            <h3 style="margin: 0; font-size: 1.25rem;"><i class="fas fa-users-cog mr-2"></i> Escalar IrmÃ£os</h3>
+            <button type="button" onclick="document.getElementById('modal-escalar').style.display = 'none'"
+                style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+        </div>
+
+        <div style="padding: 1.5rem; overflow-y: auto;">
+            {% for x in registoachado %}
+            <form action="{% url 'sitetibl:escalar_em_massa' x.id %}" method="POST" id="form-escala-massa">
+                {% csrf_token %}
+                {% endfor %}
+                <div style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">0.
+                        Filtrar por Departamento <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(opcional)</span></label>
+                    <select id="modal-filtro-dept"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 1rem;"
+                        onchange="filtrarPorDept(this.value)">
+                        <option value="">-- Todos os Departamentos --</option>
+                        {% for d in departamentos %}
+                        <option value="{{ d.id }}">{{ d.designacao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">1.
+                        Selecione a FunÃ§Ã£o</label>
+                    <select name="funcao" id="modal-select-funcao" required
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 1rem;">
+                        <option value="">-- Escolha uma funÃ§Ã£o --</option>
+                        {% for f in todas_funcoes %}
+                        <option value="{{ f.id }}" data-dept="{{ f.departamento.id|default:'' }}">{% if f.departamento %}{{ f.departamento.designacao }} â€” {% endif %}{{ f.designacao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="font-weight: 600; color: var(--primary-dark); margin: 0;">2. Selecione os
+                            IrmÃ£os</label>
+                        <input type="text" id="filtro-irmaos" placeholder="Pesquisar IrmÃ£o ou CÃ©lula..."
+                            style="padding: 0.25rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem;"
+                            onkeyup="filtrarIrmaos()">
+                    </div>
+
+                    <div
+                        style="border: 1px solid #cbd5e1; border-radius: var(--radius-sm); max-height: 300px; overflow-y: auto; padding: 0.5rem; background: #f8fafc;">
+                        <div
+                            style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 0.5rem;">
+                            <label
+                                style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem;">
+                                <input type="checkbox" onchange="toggleAll(this)" style="width: 1rem; height: 1rem;">
+                                Seleccionar Todos
+                            </label>
+                        </div>
+
+                        <div id="lista-irmaos">
+                            {% for irmao in todos_irmaos %}
+                            <label class="irmao-item"
+                                data-id="{{ irmao.id }}"
+                                style="display: flex; align-items: center; padding: 0.5rem; cursor: pointer; border-radius: 4px; border-bottom: 1px solid #f1f5f9;">
+                                <input type="checkbox" name="irmaos" value="{{ irmao.id }}"
+                                    style="margin-right: 1rem; width: 1.2rem; height: 1.2rem;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <span class="irmao-nome" style="font-weight: 500;">
+                                        {{ irmao.nome }} {{ irmao.apelido }}
+                                    </span>
+                                    {% if irmao.celula %}
+                                    <span class="irmao-celula" style="font-size: 0.75rem; color: var(--text-muted);">
+                                        CÃ©lula: {{ irmao.celula }}
+                                    </span>
+                                    {% else %}
+                                    <span class="irmao-celula" style="display: none;"></span>
+                                    {% endif %}
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;"><i
+                            class="fas fa-info-circle"></i> O sistema ignora automaticamente quem jÃ¡ estiver
+                        escalado para a respectiva funÃ§Ã£o.</p>
+                </div>
+
+                <div
+                    style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
+                    <button type="button" onclick="document.getElementById('modal-escalar').style.display = 'none'"
+                        style="padding: 0.75rem 1.5rem; border: 1px solid #cbd5e1; background: white; color: var(--text-main); border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">Cancelar</button>
+                    <button type="submit"
+                        style="padding: 0.75rem 1.5rem; border: none; background: var(--primary); color: white; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-save"></i> Confirmar Escala
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const IRMAO_DEPTS = {{ irmao_depts_json|safe }};
+
+    function filtrarPorDept(deptId) {
+        const nodes = document.getElementsByClassName("irmao-item");
+        const funcaoOpts = document.querySelectorAll('#modal-select-funcao option[data-dept]');
+        const txtFiltro = (document.getElementById("filtro-irmaos").value || '').toLowerCase();
+
+        // Filtra irmÃ£os
+        for (let i = 0; i < nodes.length; i++) {
+            const iid = nodes[i].dataset.id;
+            const depts = IRMAO_DEPTS[iid] || [];
+            const deptOk = !deptId || depts.map(String).includes(String(deptId));
+            const nome = nodes[i].querySelector(".irmao-nome").innerText.toLowerCase();
+            const celulaSpan = nodes[i].querySelector(".irmao-celula");
+            const celula = celulaSpan ? celulaSpan.innerText.toLowerCase() : "";
+            const txtOk = !txtFiltro || nome.includes(txtFiltro) || celula.includes(txtFiltro);
+            nodes[i].style.display = (deptOk && txtOk) ? "flex" : "none";
+        }
+
+        // Filtra funÃ§Ãµes
+        funcaoOpts.forEach(opt => {
+            const optDept = opt.dataset.dept;
+            opt.style.display = (!deptId || optDept === String(deptId)) ? '' : 'none';
+        });
+    }
+
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('input[name="irmaos"]:not(:disabled)');
+        for (let i = 0, n = checkboxes.length; i < n; i++) {
+            if (checkboxes[i].closest('.irmao-item').style.display !== 'none') {
+                checkboxes[i].checked = source.checked;
+            }
+        }
+    }
+
+    function filtrarIrmaos() {
+        const deptId = document.getElementById("modal-filtro-dept").value;
+        filtrarPorDept(deptId);
+    }
+</script>
 {% endblock %}
 

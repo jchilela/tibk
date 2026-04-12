@@ -1,41 +1,138 @@
 {% extends 'index.html' %}
 {% block ConteudoEnsinoFiltrados %}
 
+<style>
+    .cef-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .cef-header-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        color: var(--text-main);
+    }
+    .cef-result-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #f0fdf4;
+        color: #166534;
+        padding: 0.35rem 0.9rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .cef-author {
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+    .cef-title-text {
+        font-weight: 500;
+        color: var(--text-main);
+    }
+    .cef-file-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: #f0fdf4;
+        color: #166534;
+        padding: 0.2rem 0.7rem;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        font-weight: 500;
+    }
+    .cef-no-file {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+    .cef-view-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        background: var(--primary-light);
+        color: #ffffff !important;
+    }
+    .cef-view-btn i { color: #ffffff !important; }
+    .cef-td-center { text-align: center; }
+    .cef-td-right { text-align: right; }
+    .cef-pagination { margin-top: 2rem; }
+    .cef-empty-card { text-align: center; padding: 3rem; }
+    .cef-empty-icon { font-size: 3rem; color: #ddd; margin-bottom: 1rem; }
+    .cef-empty-text { color: var(--text-muted); }
+    .cef-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 1.5rem;
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+    .cef-back:hover { text-decoration: underline; }
+</style>
 
+<div class="list-container">
+    <div class="cef-header">
+        <h2 class="cef-header-title"><i class="fas fa-search" style="margin-right: 0.5rem; color: var(--primary);"></i> Resultados da Pesquisa</h2>
+        {% if bb %}
+        <span class="cef-result-badge"><i class="fas fa-check-circle"></i> Registos encontrados</span>
+        {% endif %}
+    </div>
 
-</p>
-{% if bb %}
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Autor</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Titulo</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Ficheiro</b></font></a></td>
-</td>
-</tr>
-{% for x in bb %}
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Registos encontrados</font>
-{% if forloop.counter|divisibleby:2 %}
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/conteudoensino/detalhe/{{ x.id }}" class = 'aa'>{{ x.autor.nome }} </a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.titulo }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.ficheiro }}</font></td>
-</tr>
-{% endfor %}
-</table>
-<br>
-{% include 'paginacao' %}
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Autor</th>
+                    <th>Título</th>
+                    <th class="cef-td-center">Ficheiro</th>
+                    <th class="cef-td-right">Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <span class="cef-author">{{ x.autor.nome }}</span>
+                    </td>
+                    <td>
+                        <span class="cef-title-text">{{ x.titulo }}</span>
+                    </td>
+                    <td class="cef-td-center">
+                        {% if x.ficheiro %}
+                        <span class="cef-file-badge"><i class="fas fa-file-alt"></i> Disponível</span>
+                        {% else %}
+                        <span class="cef-no-file">Sem ficheiro</span>
+                        {% endif %}
+                    </td>
+                    <td class="cef-td-right">
+                        <a href="/tibl/conteudoensino/detalhe/{{ x.id }}" class="bt-primary cef-view-btn">
+                            <i class="fas fa-eye"></i> Ver Detalhes
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-{% else %}
+    <div class="cef-pagination">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card cef-empty-card">
+        <i class="fas fa-search cef-empty-icon"></i>
+        <p class="cef-empty-text">Nenhum registo encontrado para os critérios indicados.</p>
+    </div>
+    {% endif %}
 
-<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
-
-{% endif %}
-<br>
-<br>
-
+    <a href="/tibl/gestao/conteudoensino/1" class="cef-back">
+        <i class="fas fa-arrow-left"></i> Voltar à listagem
+    </a>
+</div>
 
 {% endblock %}
 

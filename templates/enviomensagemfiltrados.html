@@ -1,38 +1,65 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block EnvioMensagemFiltrados %}
 
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Mensagens
+                Encontradas</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Resultados da pesquisa no histÃ³rico de comunicaÃ§Ãµes.
+            </p>
+        </div>
+        <a href="/tibl/gestao/enviomensagem/1" class="bt-primary"
+            style="background-color: var(--info); color: white;">
+            <i class="fas fa-undo"></i> Voltar à Lista
+        </a>
+    </div>
 
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>ConteÃºdo da Mensagem</th>
+                    <th>Remetente</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div
+                            style="font-weight: 600; color: var(--text-main); max-width: 450px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            {{ x.mensagem }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500; color: var(--primary-dark);">{{
+                            x.quemenviou.nome|default:x.quemenviou }}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/enviomensagem/detalhe/{{ x.id }}" class="bt-primary"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-envelope-open"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-</p>
-{% if bb %}
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="40%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><b>Mensagem</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Quem enviou</b></font></a></td>
-</td>
-</tr>
-{% for x in bb %}
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Registos encontrados</font>
-{% if forloop.counter|divisibleby:2 %}
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/enviomensagem/detalhe/{{ x.id }}" class = 'aa'>{{ x.mensagem }} </a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.quemenviou.nome }}</font></td></tr>
-{% endfor %}
-</table>
-<br>
-{% include 'paginacao' %}
-
-{% else %}
-
-<p align = "center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">Nenhum registo encontrado!!!</font></p>
-
-{% endif %}
-<br>
-<br>
-
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-search" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhum registo encontrado</h3>
+        <p style="color: var(--text-muted);">A sua busca nas mensagens não retornou resultados.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
-

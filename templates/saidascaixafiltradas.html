@@ -1,36 +1,69 @@
-{% extends 'index.html' %}
+﻿{% extends 'index.html' %}
 {% block Saidascaixafiltradas %}
 
-<p align="center"><font face="arial,helvetica,verdana" color="#afa3a3"  size="3"> <b>Saidas via caixa -- Registos encontrados</b></font>
-</p>
-<table  cellpadding="3" cellspacing="2" align="center" class = "a6" width="60%">
-<tr bgcolor="#548c2f">
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Valor</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Data</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>Rubrica</b></font></a></td>
-<td align="center"><a href=""><font face="verdana,arial,helvetica" size="3" color="#FFFFFF"><b>O responsavel</b></font></a></td>
-</td>
-</tr>
-{% if bb %}
-{% for x in bb %}
-{% if forloop.counter|divisibleby:2 %}
-<tr bgcolor="f8f9fa">
-{% else %}
-<tr bgcolor="#d8f3dc">
-{% endif %}
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Saídas de Caixa
+                Encontradas</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Resultados da pesquisa de despesas em numerário.</p>
+        </div>
+        <a href="/tibl/gestao/saidascaixa/1" class="bt-primary"
+            style="background-color: var(--info); color: white;">
+            <i class="fas fa-undo"></i> Voltar à Gestão
+        </a>
+    </div>
 
-<td><font face="verdana,arial,helvetica" size="3"><a href="/tibl/saidascaixa/detalhe/{{ x.id }}" class = 'aa'>{{ x.valor }} {{ x.moeda }} </a></font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.data }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.rubrica.designacao }}</font></td>
-<td align="center"><font face="verdana,arial,helvetica" size="3" color = "#6E684F">{{ x.responsavel }}</font></td>
-</tr>
-{% endfor %}
-{% endif %}
-</table>
-<br>
-<br>
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Rubrica / Despesa</th>
+                    <th>ResponsÃ¡vel</th>
+                    <th style="text-align: right;">Valor</th>
+                    <th style="text-align: right;">AÃ§Ãµes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">{{ x.data|date:"d/m/Y"|default:x.data }}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500; color: #991b1b;">{{ x.rubrica.designacao }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Ref: #SC-{{ x.id }}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.9rem;">{{ x.responsavel|default:"---" }}</div>
+                    </td>
+                    <td style="text-align: right; color: #ef4444; font-weight: 700;">
+                        - {{ x.valor|floatformat:2|default:x.montante }}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/saidascaixa/detalhe/{{ x.id }}" class="bt-primary"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-{% include 'paginacao' %}
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-wallet" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Pesquisa sem resultados</h3>
+        <p style="color: var(--text-muted);">Não encontramos saídas de caixa para o período solicitado.</p>
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
-

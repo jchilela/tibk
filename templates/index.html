@@ -1,546 +1,90 @@
+{% extends 'base_modern.html' %}
 {% load static %}
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma TIB Luanda</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="{% static 'estilos/header-alter.css' %}" rel="stylesheet">
-    <link href="{% static 'estilos/footer-alter.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'estilos/messages.css' %}">
-    <link rel="stylesheet" href="{% static 'estilos/relatorios.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-<body class="fullscreen-bg">
-
-<!-- =========================
-     HEADER PÚBLICO
-========================= -->
-
-
-<header class="public-header">
-    {% if not user.is_authenticated %}
-    <button class="menu-toggle header-toggle" aria-expanded="false" aria-controls="header-nav" id="header-toggle" aria-label="Mostrar menu">☰</button>
-    <nav class="header-nav" id="header-nav">
-        <a href="https://www.tibl.ao" target="_blank">Sobre</a>
-        <a href="https://www.tibl.ao/contactos" target="_blank">Contactos</a>
-    </nav>
-    {% endif %}
-</header> 
 {% load i18n %}
 
-{% language 'pt' %}
-{% load verificagrupo %}
-
-<tr>
-<td valign="TOP">
-<!-- <div style="border:0px; padding-left:11px;font:14px verdana,arial,sans-serif;"><br>
-<img src="{% static 'fotos/2022/cba.png' %}" alt="CBA"  width="100" height="100"> -->
-<!-- <h1 class="a1"> CBA </h1>
-<h1 class="a1"> Terceira Igreja Baptista de Luanda </h1><br> -->
-<!-- </div> -->
-
-
-{%  if user.is_authenticated and 'login' not in request.path  %}
-    <button class="menu-toggle" aria-expanded="false" aria-controls="menu-bar" id="menu-toggle" aria-label="Mostrar menu" style="background-color: #548c2f;">☰ Menu</button>
-    <div class="menu-bar" id="menu-bar">
-        {% if user.is_authenticated %}
-            {% if request.user|has_group:'Administrador' %}
-              <a href="{% url 'dashboard' %}"
-                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                Dashboards
-              </a>
-
-              <a href="/tibl/gestao/irmaos/1"
-                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
-                Irmãos
-              </a> &nbsp;&nbsp;
-
-              <a href="/tibl/gestao/actividades/1"
-                class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
-                Actividades
-              </a> &nbsp;
-
-              <a href="/tibl/gestao/escalas/1"
-                class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
-                Escalas
-              </a> &nbsp;
-
-              <a href="/tibl/gestao/departamentos/1"
-                class="{% if '/tibl/gestao/departamentos/' in request.path %}active{% endif %}">
-                Departamentos
-              </a> &nbsp;
-
-              <a href="/tibl/gestao/cestas/1"
-                class="{% if '/tibl/gestao/cestas/' in request.path %}active{% endif %}">
-                Cestas básicas
-              </a> &nbsp;&nbsp;
-
-              <a href="/tibl/gestao/contasbancarias/1"
-                class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
-                Contas Bancárias
-              </a> &nbsp;&nbsp;
-
-              <a href="/tibl/gestao/bancos/1"
-                class="{% if '/tibl/gestao/bancos/' in request.path %}active{% endif %}">
-                Bancos
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/entradabancos/1"
-                class="{% if '/tibl/gestao/entradabancos/' in request.path %}active{% endif %}">
-                Entrada via banco
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/saidabancos/1"
-                class="{% if '/tibl/gestao/saidabancos/' in request.path %}active{% endif %}">
-                Saida via banco
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/entradascaixa/1"
-                class="{% if '/tibl/gestao/entradascaixa/' in request.path %}active{% endif %}">
-                Entrada via caixa
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/saidascaixa/1"
-                class="{% if '/tibl/gestao/saidascaixa/' in request.path %}active{% endif %}">
-                Saida via caixa
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/dizimosofertas/1"
-                class="{% if '/tibl/gestao/dizimosofertas/' in request.path %}active{% endif %}">
-                Dízimos e ofertas
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
-                Relatório semanal da Célula
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/pedidosaida/1"
-                class="{% if '/tibl/gestao/pedidosaida/' in request.path %}active{% endif %}">
-                Pedido de Saida
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/orcamentodepartamento/1"
-                class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
-                Orçamento de Departamentos
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/inventariopatrimonio/1"
-                class="{% if '/tibl/gestao/inventariopatrimonio/' in request.path %}active{% endif %}">
-                Inventário de Património
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/conteudoensino/1"
-                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
-                Conteúdos de Ensino
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/enviomensagem/1"
-                class="{% if '/tibl/gestao/enviomensagem/' in request.path %}active{% endif %}">
-                Envio de Mensagem Massiva
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/ajudas/1"
-                class="{% if '/tibl/gestao/ajudas/' in request.path %}active{% endif %}">
-                Apoios
-              </a> &nbsp;&nbsp;
-
-              <a href="/tibl/gestao/mandatos/1"
-                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
-                Mandatos
-              </a>&nbsp;&nbsp;
-
-              <a href="{% url 'pagina_relatorios' %}" target="_blank"
-                class="{% if '/tibl/gestao/relatorios/' in request.path %}active{% endif %}">
-                Relatórios
-              </a>
-              &nbsp;&nbsp;
-
-              
-            
-            {% elif request.user|has_group:'Financeiro' %}
-                <a href="{% url 'dashboard' %}"
-                    class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    Dashboards
-                </a>
-
-                <a href="/tibl/gestao/cestas/1"
-                    class="{% if '/tibl/gestao/cestas/' in request.path %}active{% endif %}">
-                    Cestas básicas
-                </a> &nbsp;&nbsp;
-                
-                <a href="/tibl/gestao/contasbancarias/1"
-                    class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
-                    Contas Bancárias
-                </a> &nbsp;&nbsp;
-                
-                <a href="/tibl/gestao/bancos/1"
-                    class="{% if '/tibl/gestao/bancos/' in request.path %}active{% endif %}">
-                    Bancos
-                </a>&nbsp;&nbsp;
-                
-                <a href="/tibl/gestao/entradabancos/1"
-                    class="{% if '/tibl/gestao/entradabancos/' in request.path %}active{% endif %}">
-                    Entrada via banco
-                </a>&nbsp;&nbsp;
-                
-                <a href="/tibl/gestao/saidabancos/1"
-                    class="{% if '/tibl/gestao/saidabancos/' in request.path %}active{% endif %}">
-                    Saida via banco
-                </a>&nbsp;&nbsp;
-                
-                <a href="/tibl/gestao/entradascaixa/1"
-                    class="{% if '/tibl/gestao/entradascaixa/' in request.path %}active{% endif %}">
-                    Entrada via caixa
-                </a>&nbsp;&nbsp;
-                
-                <a href="/tibl/gestao/saidascaixa/1"
-                    class="{% if '/tibl/gestao/saidascaixa/' in request.path %}active{% endif %}">
-                    Saida via caixa
-                </a>&nbsp;&nbsp;
-                
-                <a href="/tibl/gestao/dizimosofertas/1"
-                    class="{% if '/tibl/gestao/dizimosofertas/' in request.path %}active{% endif %}">
-                    Dízimos e ofertas
-                </a>&nbsp;&nbsp;
-                <a href="/tibl/gestao/orcamentodepartamento/1"
-                    class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
-                    Orçamento de Departamentos
-                </a>&nbsp;&nbsp;
-                  
-                <a href="/tibl/gestao/inventariopatrimonio/1"
-                    class="{% if '/tibl/gestao/inventariopatrimonio/' in request.path %}active{% endif %}">
-                    Inventário de Património
-                </a>&nbsp;&nbsp;
-
-
-            {% elif request.user|has_group:'Secretaria' %}
-              <a href="{% url 'dashboard' %}"
-                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                Dashboards
-              </a>
-
-              <a href="/tibl/gestao/irmaos/1"
-                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
-                Irmãos
-              </a> &nbsp;&nbsp;
-          
-              <a href="/tibl/gestao/actividades/1"
-                  class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
-                  Actividades
-              </a> &nbsp;
-              
-              <a href="/tibl/gestao/escalas/1"
-                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
-                  Escalas
-              </a> &nbsp;
-              
-              <a href="/tibl/gestao/departamentos/1"
-                  class="{% if '/tibl/gestao/departamentos/' in request.path %}active{% endif %}">
-                  Departamentos
-              </a> &nbsp;
-              <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
-                Relatório semanal da Célula
-              </a>&nbsp;&nbsp;
-            
-              <a href="/tibl/gestao/pedidosaida/1"
-                class="{% if '/tibl/gestao/pedidosaida/' in request.path %}active{% endif %}">
-                Pedido de Saida
-              </a>&nbsp;&nbsp;
-                  
-              <a href="/tibl/gestao/conteudoensino/1"
-                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
-                Conteúdos de Ensino
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/enviomensagem/1"
-                class="{% if '/tibl/gestao/enviomensagem/' in request.path %}active{% endif %}">
-                Envio de Mensagem Massiva
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/ajudas/1"
-                class="{% if '/tibl/gestao/ajudas/' in request.path %}active{% endif %}">
-                Apoios
-              </a> &nbsp;&nbsp;
-
-              <a href="/tibl/gestao/mandatos/1"
-                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
-                Mandatos
-              </a>&nbsp;&nbsp;
-            
-            {% elif request.user|has_group:'Membros Baptizados' %}
-              <a href="{% url 'dashboard' %}"
-                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                Dashboards
-              </a>
-              
-              <a href="/tibl/gestao/irmaos/1"
-                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
-                Irmãos
-              </a> &nbsp;&nbsp;
-      
-              <a href="/tibl/gestao/actividades/1"
-                  class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
-                  Actividades
-              </a> &nbsp;
-          
-              <a href="/tibl/gestao/escalas/1"
-                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
-                  Escalas
-              </a> &nbsp;
-
-              <a href="/tibl/gestao/orcamentodepartamento/1"
-                class="{% if '/tibl/gestao/orcamentodepartamento/' in request.path %}active{% endif %}">
-                Orçamento de Departamentos
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/contasbancarias/1"
-                class="{% if '/tibl/gestao/contasbancarias/' in request.path %}active{% endif %}">
-                Contas Bancárias
-              </a> &nbsp;&nbsp;
-
-              <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
-                Relatório semanal da Célula
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/conteudoensino/1"
-                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
-                Conteúdos de Ensino
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/mandatos/1"
-                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
-                Mandatos
-              </a>&nbsp;&nbsp
-            
-            {% elif request.user|has_group:'Membro Geral' %}
-              <a href="{% url 'dashboard' %}"
-                class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                Dashboards
-              </a>  
-
-              <a href="/tibl/gestao/irmaos/1"
-                class="{% if '/tibl/gestao/irmaos/' in request.path %}active{% endif %}">
-                Irmãos
-              </a> &nbsp;&nbsp;
-         
-              <a href="/tibl/gestao/actividades/1"
-                class="{% if '/tibl/gestao/actividades/' in request.path %}active{% endif %}">
-                Actividades
-              </a> &nbsp;
-         
-              <a href="/tibl/gestao/escalas/1"
-                  class="{% if '/tibl/gestao/escalas/' in request.path %}active{% endif %}">
-                  Escalas
-              </a> &nbsp;
-
-              <a href="/tibl/gestao/relatoriosemanalcelula/1"
-                class="{% if '/tibl/gestao/relatoriosemanalcelula/' in request.path %}active{% endif %}">
-                Relatório semanal da Célula
-              </a>&nbsp;&nbsp;
-                
-              <a href="/tibl/gestao/conteudoensino/1"
-                class="{% if '/tibl/gestao/conteudoensino/' in request.path %}active{% endif %}">
-                Conteúdos de Ensino
-              </a>&nbsp;&nbsp;
-
-              <a href="/tibl/gestao/mandatos/1"
-                class="{% if '/tibl/gestao/mandatos/' in request.path %}active{% endif %}">
-                Mandatos
-              </a>&nbsp;&nbsp;
-
-            {% endif %}
-        {% endif %}
-
-        <a href="{% url 'guia_utilizador' %}"
-          class="{% if request.resolver_match.url_name == 'guia_utilizador' %}active{% endif %}">
-          Guia do Utilizador
-        </a>&nbsp;&nbsp;
-
-    </div>
-{% endif %}
-{% if user.is_authenticated %}
-
-<div class="user-online">
-  Usuário on-line: <strong>{{ user.username }}</strong> |
-  Grupo:
-  <strong>{{ user.groups.first.name|default:"Sem grupo" }}</strong>
-  |
-  <form method="post" action="{% url 'logout' %}" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit" style="background:none;border:none;color:#ffb703;cursor:pointer;">
-        Sair
-    </button>
-</form>
-
-</div>
-
-
-{% else %}
-
-     
-<div style="text-align:center; padding: 80px 0; background-color:#548c2f; color:white; border-radius:15px; margin: 50;">
-   <img src="{% static 'fotos/2022/cba.png' %}" alt="TIB Luanda">
-        <div class="header-title">
-           <p><h1>Terceira Igreja Baptista de Luanda</h1> <p/>
-            <span class="tagline">Servir a Deus · Edificar Pessoas · Transformar Vidas</span>
-        </div>
-  
-    <h2 style="font-size:28px; margin-bottom:20px;">Bem-vindo à Plataforma de gestão</h2>
-    <p style="font-size:16px; margin-bottom:30px;">Acesse sua conta.</p>
-    
-    <!-- Botões Login e Cadastrar centralizados -->
-    <a href="{% url 'login' %}" class="button" style="margin-right:20px; padding:12px 25px; font-size:16px;">Login</a>
-    <!-- <a href="{% url 'login' %}" class="button" style="padding:12px 25px; font-size:16px;">Cadastrar</a> -->
-</div>
-{% endif %}
-
-
-
-{% if messages %}
-<div id="message-overlay">
-    {% for message in messages %}
-
-        {% if 'error' in message.tags %}
-            <div class="message-card error">
-        {% elif 'success' in message.tags %}
-            <div class="message-card success">
-        {% else %}
-            <div class="message-card info">
-        {% endif %}
-
-                <span class="close-btn"
-                      onclick="document.getElementById('message-overlay').style.display='none'">
-                    ×
-                </span>
-
-                <p>{{ message }}</p>
-            </div>
-
-    {% endfor %}
-</div>
-{% endif %}
-
-
-{% block Titulo %} {% endblock %} 
-
-{% block content %} {% endblock %}
-
-{% if user.is_authenticated %}
-
-{% block Irmaos %} {% endblock %}
-{% block irmaosdetalhe %} {% endblock %}
-{% block Escalas %} {% endblock %}
-{% block EscalasDetalhados %} {% endblock %}
-{% block EscalasFiltrados %} {% endblock %}
-{% block Mandatos %} {% endblock %}
-{% block Ajudas %} {% endblock %}
-{% block ajudasdetalhe %} {% endblock %}
-{% block Cestas %} {% endblock %}
-{% block Contasbancarias %}{% endblock %}
-{% block Actividades %} {% endblock %}
-{% block Departamentos %} {% endblock %}
-{% block Dizimosofertas %} {% endblock %}
-{% block RelatorioSemanalCelula %} {% endblock %}
-{% block RelatorioSemanalCelulaFiltrados %} {% endblock %}
-{% block RelatorioSemanalCelulaDetalhado %} {% endblock %}
-{% block Saidabancos %} {% endblock %}
-{% block Entradasbanco %} {% endblock %}
-{% block Saidascaixa %} {% endblock %}
-{% block Entradascaixa %} {% endblock %}
-{% block Irmaodetalhado %} {% endblock %}
-{% block Ajudasdetalhado %} {% endblock %}
-{% block Bancos %}{% endblock %}
-{% block Bancosdetalhado %} {% endblock %}
-{% block BancosFiltrados %}{% endblock %}
-{% block Contasbancariasdetalhado %} {% endblock %}
-{% block Actividadesdetalhado %} {% endblock %}
-{% block Cestasdetalhado %} {% endblock %}
-{% block Departamentosdetalhado %} {% endblock %}
-{% block Dizimosofertasfiltradas %} {% endblock %}
-{% block Dizimosofertasdetalhado %} {% endblock %}
-{% block Saidascaixadetalhado %} {% endblock %}
-{% block Saidascaixafiltradas %} {% endblock %}
-{% block Entradascaixafiltradas %} {% endblock %}
-{% block Saidabancosfiltradas %} {% endblock %}
-{% block Saidabancosdetalhado %} {% endblock %}
-{% block Entradascaixadetalhado %} {% endblock %}
-{% block Entradasbancofiltradas %} {% endblock %}
-{% block Entradabancosdetalhado %} {% endblock %}
-{% block PedidoSaida %} {% endblock %}
-{% block PedidoSaidaFiltrados %} {% endblock %}
-{% block PedidoSaidaDetalhado %} {% endblock %}
-{% block OrcamentoDepartamento %} {% endblock %}
-{% block OrcamentoDepartamentoFiltrados %} {% endblock %}
-{% block OrcamentoDepartamentoDetalhado %} {% endblock %}
-{% block InventarioPatrimonio %} {% endblock %}
-{% block InventarioPatrimonioFiltrados %} {% endblock %}
-{% block InventarioPatrimonioDetalhado %} {% endblock %}
-{% block ConteudoEnsino %} {% endblock %}
-{% block ConteudoEnsinoFiltrados %} {% endblock %}
-{% block ConteudoEnsinoDetalhado %} {% endblock %}
-
-{% block EnvioMensagem %} {% endblock %}
-{% block EnvioMensagemFiltrados %} {% endblock %}
-{% block EnvioMensagemDetalhado %} {% endblock %}
-
-
-
-{% block Irmaosfiltrados %} {% endblock %}
-{% block Contasbancariasfiltradas %} {% endblock %}
-{% block Actividadesfiltradas %} {% endblock %}
-
-{% block Formularioactualizacao %} {% endblock %}
-{% block Formulariocriacao %} {% endblock %}
-
-{% endif%}
-</td>
-</tr>
-
-{%  endlanguage %}
-
-
-
-<footer class="site-footer">
-    <div class="footer-container">
-
-        <!-- LEFT -->
-        <div class="footer-brand">
-            <img src="{% static 'fotos/2022/cba.png' %}" alt="TIB Luanda">
-            <h3>Terceira Igreja Baptista de Luanda</h3>
-            <p>Servir a Deus · Edificar Pessoas · Transformar Vidas</p>
-        </div>
-
-        <!-- CENTER -->
-        <div class="footer-info">
-            <h4>Informações</h4>
-            <p>📍 Luanda, Angola</p>
-            <p>📞 +244 924 265 968</p>
-            <p>✉️ info@tibl.ao</p>
-        </div>
-
-        <!-- RIGHT -->
-        <div class="footer-links">
-            <h4>Links Rápidos</h4>
-            <a href="https://www.tibl.ao" target="_blank">Sobre Nós</a>
-            <a href="https://www.tibl.ao/departamentos" target="_blank">Departamentos</a>
-            <a href="https://www.tibl.ao/programacao" target="_blank">Programação</a>
-            <a href="https://www.tibl.ao/ao-vivo" target="_blank">Ao Vivo</a>
-        </div>
-
+{% block content %}
+{% if not user.is_authenticated %}
+<div class="landing-hero"
+  style="text-align: center; padding: 5rem 2rem; background: radial-gradient(circle at top right, rgba(27,77,62,0.1) 0%, transparent 50%), radial-gradient(circle at bottom left, rgba(27,77,62,0.05) 0%, transparent 50%); border-radius: var(--radius-2xl); position: relative; overflow: hidden; margin-top: 1rem; border: 1px solid rgba(27,77,62,0.1); box-shadow: 0 20px 60px rgba(0,0,0,0.03);">
+
+  <div
+    style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: var(--primary-light); filter: blur(100px); opacity: 0.15; border-radius: 50%;">
+  </div>
+  <div
+    style="position: absolute; bottom: -50px; left: -50px; width: 300px; height: 300px; background: var(--primary); filter: blur(120px); opacity: 0.1; border-radius: 50%;">
+  </div>
+
+  <div style="position: relative; z-index: 10;">
+    <div
+      style="display: inline-flex; align-items: center; justify-content: center; background: white; width: 140px; height: 140px; border-radius: 50%; padding: 1.5rem; box-shadow: 0 10px 40px rgba(27,77,62,0.2); margin-bottom: 2.5rem; border: 4px solid var(--primary-50); animation: pulse-dot 3s ease-in-out infinite alternate;">
+      <img src="{% static 'fotos/2022/cba.png' %}" alt="TIB Luanda"
+        style="width: 100%; height: auto; object-fit: contain;">
     </div>
 
-    <div class="footer-bottom">
-        © 2026 Terceira Igreja Baptista de Luanda · Todos os direitos reservados
+    <h1
+      style="color: var(--text-main); font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; margin-bottom: 1.25rem; letter-spacing: -2px; line-height: 1.1;">
+      Terceira Igreja Baptista <br><span
+        style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); background-clip: text; -webkit-background-clip: text; color: transparent; -webkit-text-fill-color: transparent;">de
+        Luanda</span>
+    </h1>
+    <p
+      style="font-size: 1.35rem; color: #1e293b; margin-bottom: 3.5rem; max-width: 650px; margin-left: auto; margin-right: auto; line-height: 1.6; font-weight: 500;">
+      A plataforma definitiva para servir a Deus com excelência e conectar pessoas de forma centralizada e eficiente.
+    </p>
+
+    <div
+      style="background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 3rem; border-radius: var(--radius-xl); max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; box-shadow: 0 25px 50px rgba(0,0,0,0.08);">
+      <h2 style="color: var(--text-main); font-size: 1.75rem; margin-bottom: 0.75rem; font-weight: 800;">Portal do
+        Colaborador</h2>
+      <p style="font-size: 1.1rem; color: #475569; margin-bottom: 2.5rem; font-weight: 500;">Acesse com as suas
+        credenciais para gerir departamentos, finanças e dízimos de forma integrada.</p>
+
+      <a href="{% url 'login' %}" class="bt-primary"
+        style="padding: 1.15rem 4rem; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-radius: 100px; box-shadow: 0 10px 30px rgba(27,77,62,0.4); background: #2d6a4f; color: white !important;">
+        Entrar no Sistema <i class="fas fa-chevron-right ml-2" style="margin-left: 0.75rem;"></i>
+      </a>
     </div>
-</footer>
+  </div>
+</div>
 
+<div
+  style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; margin-top: 4rem; margin-bottom: 4rem;">
+  <div class="modern-card hover-lift"
+    style="text-align: center; border: 1px solid rgba(46,125,50,0.1); padding: 3rem 2rem; background: white; transition: all 0.3s ease; border-radius: var(--radius-xl); cursor: pointer;">
+    <div
+      style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; transition: transform 0.3s ease;">
+      <i class="fas fa-users"></i>
+    </div>
+    <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-main);">Gestão de Membros
+    </h3>
+    <p style="color: var(--text-muted); line-height: 1.6;">Acompanhamento completo da comunhão, discipulado e dados das
+      famílias.</p>
+  </div>
 
-<script src="{% static 'js/menu-toggle.js' %}"></script>
-</body>
+  <div class="modern-card hover-lift"
+    style="text-align: center; border: 1px solid rgba(46,125,50,0.1); padding: 3rem 2rem; background: white; transition: all 0.3s ease; border-radius: var(--radius-xl); cursor: pointer;">
+    <div
+      style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; transition: transform 0.3s ease;">
+      <i class="fas fa-chart-pie"></i>
+    </div>
+    <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-main);">Controlo
+      Financeiro</h3>
+    <p style="color: var(--text-muted); line-height: 1.6;">Transparência na gestão de dízimos, ofertas e controlo de
+      património.</p>
+  </div>
 
-</html>
-                                               
+  <div class="modern-card hover-lift"
+    style="text-align: center; border: 1px solid rgba(46,125,50,0.1); padding: 3rem 2rem; background: white; transition: all 0.3s ease; border-radius: var(--radius-xl); cursor: pointer;">
+    <div
+      style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; transition: transform 0.3s ease;">
+      <i class="fas fa-calendar-alt"></i>
+    </div>
+    <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-main);">Agenda &
+      Actividades</h3>
+    <p style="color: var(--text-muted); line-height: 1.6;">Organização eficiente de cultos, eventos integrados e escalas
+      de serviço.</p>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}

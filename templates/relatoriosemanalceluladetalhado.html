@@ -1,44 +1,186 @@
-{% extends 'index.html' %}
-{% block RelatorioSemanalCelulaDetalhado %}
+﻿{% extends 'index.html' %}
+{% block content %}
+<div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
+    <div style="background-image: url('/static/fotos/2022/homepage1.jpeg'); background-size: cover; background-position: center; min-height: 120px; position: relative; border-radius: var(--radius-md);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%);"></div>
+        <div style="position: relative; z-index: 1; padding: 1.4rem 1.6rem;">
+            <h2 style="margin: 0; color: #ffffff; font-size: 1.25rem;"><i class="fas fa-info-circle" style="margin-right: 0.45rem; color: #93c5fd;"></i> Detalhes de Relatorio Semanal da Celula</h2>
+            <p style="margin: 0.35rem 0 0 0; color: rgba(255,255,255,0.84); font-size: 0.9rem;">Informacao detalhada para consulta e acompanhamento.</p>
+        </div>
+    </div>
+</div>
 {% load static %}
 
 {% if registoachado %}
-<div align="center"><span class="a3">
-<table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#b9fbc0" >
-{% for x in registoachado %}
-<tr align="center" bgcolor="#548c2f" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a> | <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}"> <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Nome da Célula:</td><td class="a4">{{ x.nome_celula.designacao}}</td></tr>
-<tr class="fortexto"><td class="a4">Lider Responsável:</td><td class="a4">{{ x.lider_responsavel }}</td></tr>
-<tr class="fortexto"><td class="a4">Local Reuniao:</td><td class="a4">{{ x.local_reuniao }} </td></tr>
-<tr class="fortexto"><td class="a4">Numero de Membros:</td><td class="a4">{{ x.numero_participantes_membros }} </td></tr>
-<tr class="fortexto"><td class="a4">Numero de Visitantes:</td><td class="a4">{{ x.numero_participantes_visitantes }} </td></tr>
-<tr class="fortexto"><td class="a4">Numero de Crianças:</td><td class="a4">{{ x.numero_participantes_criancas}} </td></tr>
-<tr class="fortexto">
-    <td class="a4">Momentos Realizados:</td>
-    <td class="a4">
-        {% for m in x.momentos_realizados.all %}
-        • {{ m.designacao }} <br> {% if not forloop.last %} {% endif %}
-        {% empty %}
-            Nenhum
-        {% endfor %}
-    </td>
-</tr>
-<tr class="fortexto"><td class="a4">Tema da Palavra:</td><td class="a4">{{ x.tema_palavra }} </td></tr>
-<tr class="fortexto"><td class="a4">Versiculo Chave:</td><td class="a4">{{ x.versiculo_chave }} </td></tr>
-<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
-<tr class="fortexto"><td class="a4">Resumo da Mensagem:</td><td class="a4">{{ x.resumo_mensagem }} </td></tr>
-<tr class="fortexto"><td class="a4">Topicos de Oração:</td><td class="a4">{{ x.topicos_oracao }}</td></tr>
-<tr class="fortexto"><td class="a4">Alvos e acções para a proxima semana:</td><td class="a4">{{ x.alvos_e_accoes_para_proxima_semana }} </td></tr>
-<tr class="fortexto"><td class="a4">Observações e Necessidades:</td><td class="a4">{{ x.observacoes_e_necessidades }} </td></tr>
-<tr class="fortexto"><td class="a4">Assinatura do Líder:</td><td class="a4">{{ x.assinatura_lider }} </td></tr>
-<tr class="fortexto"><td class="a4">Data da Reunião:</td><td class="a4">{{ x.data_reuniao }} </td></tr>
-<tr align="center" bgcolor="#548c2f" ><td colspan=2></td></td></tr>
-{% endfor %}
-</table></span>
-{% endif %}
-</div>
-<br>
+<div class="profile-container" style="max-width: 950px; margin: 0 auto; padding-bottom: 4rem;">
+    {% for x in registoachado %}
 
+    <!-- Report Header Card -->
+    <div class="modern-card"
+        style="margin-bottom: 2rem; border-left: 6px solid var(--primary); background: linear-gradient(135deg, white, #f1f8ed); display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex-grow: 1;">
+            <div
+                style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
+                Relatório Semanal de Célula</div>
+            <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.nome_celula.designacao|default:x.nome_celula }}</h1>
+            <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
+                <i class="fas fa-calendar-alt mr-2" style="color: var(--primary);"></i> Reunião de {{ x.data_reuniao|date:"d/m/Y"|default:x.data_reuniao }}
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            {% if perms.sitetibl.change_relatoriosemanalcelula %}
+            <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
+                style="padding: 0.6rem 1rem;">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            {% endif %}
+            {% if perms.sitetibl.delete_relatoriosemanalcelula %}
+            <a href="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" class="bt-primary"
+                style="background-color: #ef4444; padding: 0.6rem 1rem;">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+        <!-- Stats and Basic Info -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <div class="modern-card" style="text-align: center; padding: 1.5rem;">
+                <h4
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    Participação</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="padding: 1rem; background: #f0fdf4; border-radius: 12px;">
+                        <span
+                            style="display: block; font-size: 0.7rem; color: var(--primary-dark); font-weight: 700;">MEMBROS</span>
+                        <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">{{ x.numero_participantes_membros }}</span>
+                    </div>
+                    <div style="padding: 1rem; background: #fffbe3; border-radius: 12px;">
+                        <span
+                            style="display: block; font-size: 0.7rem; color: #854d0e; font-weight: 700;">VISITANTES</span>
+                        <span style="font-size: 1.5rem; font-weight: 800; color: #ca8a04;">{{ x.numero_participantes_visitantes }}</span>
+                    </div>
+                    <div style="padding: 1rem; background: #eff6ff; border-radius: 12px; grid-column: span 2;">
+                        <span
+                            style="display: block; font-size: 0.7rem; color: #1e40af; font-weight: 700;">CRIANÇAS</span>
+                        <span style="font-size: 1.5rem; font-weight: 800; color: #3b82f6;">{{ x.numero_participantes_criancas }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modern-card">
+                <h4
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    Responsáveis</h4>
+                <div class="detail-row" style="margin-bottom: 1rem;">
+                    <label
+                        style="display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">LÍDER</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.lider_responsavel }}</span>
+                </div>
+                <div class="detail-row" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">LOCAL
+                        REUNIÃO</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.local_reuniao }}</span>
+                </div>
+            </div>
+
+            <div class="modern-card" style="background: var(--primary-light); color: white; color: white;">
+                <h4 style="font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin-bottom: 1rem;">
+                    Momentos Realizados</h4>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    {% for m in x.momentos_realizados.all %}
+                    <li style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--accent); font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.9rem;">{{ m.designacao }}</span>
+                    </li>
+                    {% empty %}
+                    <li style="opacity: 0.6; font-size: 0.8rem;">Nenhum momento registado.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Content and Details -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <div class="modern-card">
+                <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
+                    <i class="fas fa-bible mr-2"></i> Palavra Motivadora
+                </h3>
+                <div style="margin-bottom: 2rem;">
+                    <h4
+                        style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
+                        Tema da Palavra</h4>
+                    <p style="font-size: 1.25rem; font-weight: 700; color: var(--primary-dark);">{{ x.tema_palavra }}
+                    </p>
+                </div>
+                <div
+                    style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border-left: 4px solid var(--primary); font-style: italic; margin-bottom: 2rem;">
+                    <h4
+                        style="font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Versículo Chave</h4>
+                    <p style="font-size: 1.1rem; color: var(--text-main); margin: 0;">"{{ x.versiculo_chave }}"</p>
+                </div>
+                <div>
+                    <h4
+                        style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">
+                        Resumo da Mensagem</h4>
+                    <p style="line-height: 1.7; color: var(--text-main); text-align: justify;">{{ x.resumo_mensagem }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="modern-card">
+                <h3 style="border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; margin-bottom: 2rem;">
+                    <i class="fas fa-pray mr-2"></i> Vida da Célula
+                </h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h4
+                            style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-hand-holding-heart" style="color: #3b82f6;"></i> Tópicos de Oração
+                        </h4>
+                        <div
+                            style="background: rgba(59, 130, 246, 0.05); padding: 1rem; border-radius: 12px; min-height: 100px; font-size: 0.95rem;">
+                            {{ x.topicos_oracao|default:"Não especificado" }}
+                        </div>
+                    </div>
+                    <div>
+                        <h4
+                            style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-bullseye" style="color: #ef4444;"></i> Alvos e Ações
+                        </h4>
+                        <div
+                            style="background: rgba(239, 68, 68, 0.05); padding: 1rem; border-radius: 12px; min-height: 100px; font-size: 0.95rem;">
+                            {{ x.alvos_e_accoes_para_proxima_semana|default:"Não especificado" }}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 2rem; border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
+                    <h4
+                        style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">
+                        Observações e Necessidades</h4>
+                    <p style="font-size: 0.95rem; line-height: 1.6;">{{ x.observacoes_e_necessidades|default:"Sem necessidades registadas." }}</p>
+                </div>
+            </div>
+
+            <div style="text-align: right; opacity: 0.7; font-size: 0.9rem; font-style: italic;">
+                Assinatura Digital: {{ x.assinatura_lider }}
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/tibl/gestao/relatoriosemanalcelula/1" class="bt-primary"
+        style="background: transparent; color: var(--primary); border: 2px solid var(--primary); box-shadow: none;">
+        <i class="fas fa-undo"></i> Voltar à Lista de Relatórios
+    </a>
+</div>
 
 {% endblock %}
+
 

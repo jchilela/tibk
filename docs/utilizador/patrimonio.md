@@ -2,9 +2,6 @@
 
 Inventário e controlo dos bens patrimoniais da igreja.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 

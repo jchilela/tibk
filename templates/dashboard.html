@@ -1,53 +1,742 @@
-{% extends "index.html" %}
+{% extends 'index.html' %}
 {% load static %}
+{% load verificagrupo %}
 
-
-{% block title %}Dashboard{% endblock %}
+{% block title %}Painel | TIBL{% endblock %}
 
 {% block content %}
+<div style="padding: 0.5rem 0;">
 
-{% if user.is_authenticated and request.resolver_match.url_name == 'dashboard' %}
-
-<div class="dashboard-grid">
-  <div class="card">
-    <h3>Irmãos</h3>
-    <canvas id="irmaos"></canvas>
+  {# ═══════════════════════ HEADER ═══════════════════════ #}
+  <div class="modern-card animate-fade-in dashboard-header-card">
+    <div class="dashboard-header-main">
+      <div>
+        <h1 class="dashboard-header-title">
+          Olá, {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}
+        </h1>
+        <p class="dashboard-header-subtitle">Resumo rápido do dia na comunidade TIBL.</p>
+      </div>
+      <div class="dashboard-header-actions">
+        <button onclick="window.location.reload()" class="bt-primary dashboard-refresh-btn">
+          <i class="fas fa-sync-alt"></i> Atualizar
+        </button>
+        <div class="dashboard-clock" id="clock-container">
+          <div id="current-date" class="dashboard-clock-date"></div>
+          <div id="current-time" class="dashboard-clock-time"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <h3>Distribuição de Orçamento</h3>
-    <canvas id="pizzaOrcamento"></canvas>
+  {# ═══════════════════════ VERSÍCULO DO DIA ═══════════════════════ #}
+  {% if versiculo %}
+  <div id="versiculo-card" class="modern-card animate-fade-in verse-card {{ versiculo_tema_class }}">
+    <div class="verse-quote-mark">&#x201C;</div>
+    <p class="verse-text">
+      &#x201C;{{ versiculo.texto }}&#x201D;
+    </p>
+    <span class="verse-ref">
+      <i class="fas fa-bible verse-ref-icon"></i> {{ versiculo.ref }}
+    </span>
+  </div>
+  {% endif %}
+
+  {# ═══════════════════════ STAT CARDS ═══════════════════════ #}
+  <div class="dash-stats-grid">
+
+    {# Card: Comunidade — visível para todos #}
+    <div class="modern-card stat-card-v2 animate-fade-in-up" style="border-bottom: 4px solid #10b981; animation-delay: 0.1s;">
+      <div class="icon-box" style="background: rgba(16,185,129,0.1); color: #10b981;">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Comunidade</span>
+        <h2 class="stat-value">{{ total_membros }}</h2>
+        <span class="stat-trend positive"><i class="fas fa-chart-line"></i> Membros</span>
+      </div>
+    </div>
+
+    {# Card: Dízimos — apenas quem tem view_dizimooferta #}
+    {% if perms.sitetibl.view_dizimooferta %}
+    <div class="modern-card stat-card-v2 animate-fade-in-up" style="border-bottom: 4px solid #3b82f6; animation-delay: 0.2s;">
+      <div class="icon-box" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+        <i class="fas fa-coins"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Dízimos (Mês)</span>
+        <h2 id="totalDizimos" class="stat-value" style="font-size: 1.5rem;">--</h2>
+        <span class="stat-trend info"><i class="fas fa-wallet"></i> Kwanzas</span>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Card: Actividades — visível para todos com view_actividade #}
+    {% if perms.sitetibl.view_actividade %}
+    <div class="modern-card stat-card-v2 animate-fade-in-up" style="border-bottom: 4px solid #f59e0b; animation-delay: 0.3s;">
+      <div class="icon-box" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Próximas Actividades</span>
+        <h2 class="stat-value">{{ proximas_actividades|length }}</h2>
+        <span class="stat-trend neutral"><i class="fas fa-clock"></i> Próximos 14 dias</span>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Card: Pedidos Pendentes — apenas quem tem view_pedidosaida #}
+    {% if perms.sitetibl.view_pedidosaida %}
+    <div class="modern-card stat-card-v2 animate-fade-in-up" style="border-bottom: 4px solid #ef4444; animation-delay: 0.4s;">
+      <div class="icon-box" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+        <i class="fas fa-file-invoice-dollar"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Pedidos</span>
+        <h2 class="stat-value">{% if pedidos_pendentes %}{{ pedidos_pendentes|length }}{% else %}0{% endif %}</h2>
+        <span class="stat-trend danger"><i class="fas fa-clock"></i> Pendentes</span>
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 
-  <div class="card">
-    <h3>Pedido de saída de caixa (Semanal)</h3>
-    <canvas id="pedidoSaida"></canvas>
+  {# ═══════════════════════ SECÇÃO: WIDGETS DE CONTEXTO ═══════════════════════ #}
+  <div class="dash-widgets-grid">
+
+    {# Widget: Minhas Escalas — visível para todos com perfil de irmão #}
+    {% if minhas_escalas %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.2s;">
+      <div class="dash-widget-header">
+        <h3><i class="fas fa-clipboard-list" style="color: #3b82f6;"></i> As Minhas Escalas</h3>
+        <a href="{% url 'minhas_escalas' %}" class="dash-widget-link">Ver todas <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="dash-list">
+        {% for e in minhas_escalas %}
+        <div class="dash-list-item">
+          <div class="dash-list-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+            <i class="fas fa-calendar-day"></i>
+          </div>
+          <div class="dash-list-body">
+            <strong>{{ e.actividade.designacao }}</strong>
+            <span class="dash-list-meta">{{ e.actividade.data|date:"d M" }} · {{ e.actividade.inicio|time:"H:i" }}{% if e.funcao %} · {{ e.funcao }}{% endif %}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# Widget: Próximas Actividades — visível com view_actividade #}
+    {% if perms.sitetibl.view_actividade and proximas_actividades %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.3s;">
+      <div class="dash-widget-header">
+        <h3><i class="fas fa-calendar-alt" style="color: #f59e0b;"></i> Próximas Actividades</h3>
+        <a href="{% url 'sitetibl:actividades_calendario' %}" class="dash-widget-link">Ver todas <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="dash-list" style="max-height: 260px; overflow-y: auto;">
+        {% for act in proximas_actividades %}
+        <div class="dash-list-item">
+          <div class="dash-list-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+            <i class="fas fa-church"></i>
+          </div>
+          <div class="dash-list-body">
+            <strong>{{ act.designacao }}</strong>
+            <span class="dash-list-meta">{{ act.data|date:"d M Y" }} · {{ act.inicio|time:"H:i" }}-{{ act.fim|time:"H:i" }}{% if act.localactividade %} · {{ act.localactividade }}{% endif %}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# Widget: Anúncios Recentes — visível para todos #}
+    {% if anuncios %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.4s;">
+      <div class="dash-widget-header">
+        <h3><i class="fas fa-bullhorn" style="color: #8b5cf6;"></i> Anúncios Recentes</h3>
+      </div>
+      <div class="dash-list">
+        {% for a in anuncios %}
+        <div class="dash-list-item">
+          <div class="dash-list-icon" style="background: rgba(139,92,246,0.1); color: #8b5cf6;">
+            <i class="fas fa-megaphone"></i>
+          </div>
+          <div class="dash-list-body">
+            <strong>{{ a.texto|truncatewords:20 }}</strong>
+            <span class="dash-list-meta">{{ a.data|date:"d M Y" }} · {{ a.quemanuncia }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# Widget: Aniversariantes do Mês — visível para todos #}
+    {% if aniversariantes %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.5s;">
+      <div class="dash-widget-header">
+        <h3><i class="fas fa-birthday-cake" style="color: #ec4899;"></i> Aniversariantes do Mês</h3>
+      </div>
+      {% if aniversarios_alerta %}
+      <div id="aniversario-alerta-wrap" class="aniversario-alerta-wrap">
+        {% for alerta in aniversarios_alerta %}
+        <div class="aniversario-alerta-item {% if alerta.tipo == 'today' %}aniversario-alerta-hoje{% else %}aniversario-alerta-temporario{% endif %}" data-alerta-data="{{ alerta.data_iso }}" {% if alerta.tipo == 'soon' %}data-alerta-temporario="1"{% endif %}{% if alerta.tipo == 'today' %} data-alerta-hoje="1"{% endif %}>
+          <i class="fas fa-bell"></i>
+          <span>{{ alerta.mensagem }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="dash-list" style="max-height: 280px; overflow-y: auto;">
+        {% for item in aniversariantes %}
+        <div class="dash-list-item" {% if item.alerta_data_iso %}data-alerta-data="{{ item.alerta_data_iso }}"{% endif %}>
+          <div class="dash-list-icon" style="background: rgba(236,72,153,0.1); color: #ec4899;">
+            <i class="fas fa-gift"></i>
+          </div>
+          <div class="dash-list-body">
+            <strong>{{ item.irmao.nome }} {{ item.irmao.apelido }}</strong>
+            <span class="dash-list-meta">{{ item.irmao.datanascimento|date:"d" }} de {{ item.mes_pt }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# Widget: Pedidos Pendentes — apenas quem tem view_pedidosaida #}
+    {% if perms.sitetibl.view_pedidosaida and pedidos_pendentes %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.5s;">
+      <div class="dash-widget-header">
+        <h3><i class="fas fa-file-invoice-dollar" style="color: #ef4444;"></i> Pedidos de Saída Pendentes</h3>
+        <a href="/tibl/gestao/pedidosaida/1" class="dash-widget-link">Ver todos <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="dash-list">
+        {% for p in pedidos_pendentes %}
+        <div class="dash-list-item">
+          <div class="dash-list-icon" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+            <i class="fas fa-receipt"></i>
+          </div>
+          <div class="dash-list-body">
+            <strong>{{ p.projecto|truncatewords:12 }}</strong>
+            <span class="dash-list-meta">{{ p.montante|floatformat:0 }} Kz · {% if p.departamento %}{{ p.departamento }}{% endif %} · {{ p.get_estado_display }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# Widget: Saldos Bancários — apenas quem tem view_contabancaria #}
+    {% if perms.sitetibl.view_contabancaria and saldos_bancarios %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.6s;">
+      <div class="dash-widget-header">
+        <h3><i class="fas fa-university" style="color: #0ea5e9;"></i> Saldos Bancários</h3>
+        <a href="/tibl/gestao/contasbancarias/1" class="dash-widget-link">Ver contas <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="dash-list">
+        {% for s in saldos_bancarios %}
+        <div class="dash-list-item">
+          <div class="dash-list-icon" style="background: rgba(14,165,233,0.1); color: #0ea5e9;">
+            <i class="fas fa-piggy-bank"></i>
+          </div>
+          <div class="dash-list-body">
+            <strong>{{ s.banco }} (···{{ s.numero }})</strong>
+            <span class="dash-list-meta" style="font-size: 1rem; font-weight: 700; color: #0f172a;">{{ s.saldo|floatformat:2 }} {{ s.moeda }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# Widget: Incentivo a aderir a uma Célula — apenas para membros sem célula #}
+    {% if tem_perfil and not tem_celula %}
+    <div class="modern-card animate-fade-in-up" style="animation-delay: 0.6s; background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%); border: 1px solid #fde68a;">
+      <div style="text-align: center; padding: 0.75rem 0.5rem;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏠</div>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: #92400e;">Ainda não faz parte de uma célula?</h3>
+        <p style="font-size: 0.85rem; color: #78350f; line-height: 1.5; margin: 0 0 0.75rem 0;">
+          As células são pequenos grupos de comunhão, oração e estudo bíblico.
+          É onde criamos laços mais próximos com os irmãos e crescemos juntos na fé.
+          Fale com o seu pastor ou líder de célula para aderir!
+        </p>
+        <span style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 700; color: #92400e; background: rgba(146,64,14,0.1); padding: 0.35rem 0.75rem; border-radius: 6px;">
+          <i class="fas fa-hands-helping"></i> Junte-se a uma célula
+        </span>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  {# ═══════════════════════ GRÁFICOS ═══════════════════════ #}
+  <div id="charts-grid" class="animate-fade-in" style="animation-delay: 0.5s; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 1.5rem;">
+
+    {# Gráfico: Cadastro Mensal — visível para quem tem view_irmao #}
+    {% if perms.sitetibl.view_irmao %}
+    <div class="modern-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-chart-bar mr-2" style="color: var(--primary-light);"></i> Cadastro Mensal</h3>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Crescimento da comunidade este ano</p>
+        </div>
+      </div>
+      <canvas id="irmaos" height="220"></canvas>
+    </div>
+    {% endif %}
+
+    {# Gráfico: Membros por Departamento — visível para quem tem view_departamento #}
+    {% if perms.sitetibl.view_departamento %}
+    <div class="modern-card">
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-sitemap mr-2" style="color: var(--primary-light);"></i> Membros por Departamento</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Distribuição actual</p>
+      </div>
+      <canvas id="deptMembrosChart" height="220"></canvas>
+    </div>
+    {% endif %}
+
+    {# Gráfico: Orçamento Dept. — apenas quem tem view_orcamentodepartamento #}
+    {% if perms.sitetibl.view_orcamentodepartamento %}
+    <div class="modern-card">
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-chart-pie mr-2" style="color: var(--primary-light);"></i> Orçamento Dept.</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Divisão de recursos financeiros</p>
+      </div>
+      <div style="max-width: 260px; margin: 0 auto;">
+        <canvas id="pizzaOrcamento"></canvas>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Gráfico: Dízimos vs Ofertas — apenas quem tem view_dizimooferta #}
+    {% if perms.sitetibl.view_dizimooferta %}
+    <div class="modern-card">
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-wave-square mr-2" style="color: var(--primary-light);"></i> Entradas Financeiras</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Comparativo Dízimos vs Ofertas</p>
+      </div>
+      <canvas id="ofertasChart" height="220"></canvas>
+    </div>
+    {% endif %}
+
+    {# Gráfico: Células — apenas quem tem view_relatoriosemanalcelula #}
+    {% if perms.sitetibl.view_relatoriosemanalcelula %}
+    <div class="modern-card">
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-project-diagram mr-2" style="color: var(--primary-light);"></i> Células & Grupo</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Membros, Visitantes e Crianças</p>
+      </div>
+      <canvas id="membrosChart" height="220"></canvas>
+    </div>
+    {% endif %}
+
   </div>
 </div>
 
-<div class="dashboard-grid2">
-  <div class="card card2">
-    <h3>Conteúdos de Ensino Criados</h3>
-    <span id="fluxoTotalConteudos" class="stat-highlight stat-highlight2"></span>
-    <canvas id="fluxoCaixaChartConteudos"></canvas>
-  </div>
+<style>
+  .dashboard-header-card {
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #dbe3ec;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+    background: #ffffff;
+  }
+  .dashboard-header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .dashboard-header-title {
+    margin: 0;
+    font-size: clamp(1.1rem, 3vw, 1.45rem);
+    line-height: 1.2;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.3px;
+    color: #0f172a;
+  }
+  .dashboard-header-subtitle {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.92rem;
+    color: #334155;
+    font-weight: 500;
+  }
+  .dashboard-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .dashboard-refresh-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+    box-shadow: none;
+  }
+  .dashboard-clock {
+    text-align: right;
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    min-width: 190px;
+  }
+  .dashboard-clock-date {
+    font-size: 0.75rem;
+    color: #475569;
+    margin-bottom: 0.1rem;
+    font-weight: 600;
+  }
+  .dashboard-clock-time {
+    font-family: 'Inter', monospace;
+    font-size: 1.15rem;
+    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
 
-  <div class="card card2">
-    <h3>Dízimos vs. Ofertas</h3>
-    <canvas id="ofertasChart"></canvas>
-  </div>
+  .verse-card {
+    color: #fff;
+    border: none;
+    margin-bottom: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.45s ease;
+  }
 
-  <div class="card card2">
-    <h3>Crescimento de Membros (Células)</h3>
-    <canvas id="membrosChart"></canvas>
-  </div>
-</div>
+  .verse-theme-blue {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+  }
 
-{% load static %}
+  .verse-theme-green {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+  }
+
+  .verse-theme-orange {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+  }
+
+  .verse-quote-mark {
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    font-size: 4rem;
+    opacity: 0.1;
+    line-height: 1;
+  }
+
+  .verse-text {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-style: italic;
+    line-height: 1.6;
+    font-family: 'Georgia', serif;
+    position: relative;
+    z-index: 1;
+  }
+
+  .verse-ref {
+    font-size: 0.8rem;
+    font-weight: 700;
+    opacity: 0.85;
+    letter-spacing: 0.03em;
+  }
+
+  .verse-ref-icon {
+    margin-right: 0.3rem;
+  }
+
+  /* Stat cards grid */
+  .dash-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .stat-card-v2 {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem !important;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+  }
+  .stat-card-v2:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .icon-box {
+    width: 54px;
+    height: 54px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .stat-content { flex: 1; min-width: 0; }
+  .stat-label {
+    display: block;
+    font-size: 0.78rem;
+    color: #334155;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'Inter', sans-serif;
+  }
+  .stat-value {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .stat-trend {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0.4rem;
+  }
+  .stat-trend.positive { background: #e8f5e9; color: #1b5e20; }
+  .stat-trend.info { background: #eff6ff; color: #0d47a1; }
+  .stat-trend.neutral { background: #f3f4f6; color: #374151; }
+  .stat-trend.danger { background: #fef2f2; color: #991b1b; }
+
+  /* Widgets grid */
+  .dash-widgets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .dash-widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .dash-widget-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .dash-widget-link {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .dash-widget-link:hover { text-decoration: underline; }
+  .dash-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .dash-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .dash-list-item:last-child { border-bottom: none; }
+  .dash-list-item-aniversario-alerta {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+  }
+  .dash-list-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .dash-list-icon-aniversario-alerta {
+    background: rgba(245, 158, 11, 0.22) !important;
+    color: #c2410c !important;
+  }
+  .dash-list-body { flex: 1; min-width: 0; }
+  .dash-list-body strong {
+    display: block;
+    font-size: 0.85rem;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-list-meta {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.15rem;
+  }
+
+  .aniversario-alerta-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+  }
+  .aniversario-alerta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #9a3412;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .aniversario-alerta-hoje {
+    background: rgba(245, 158, 11, 0.18);
+    border-color: rgba(245, 158, 11, 0.55);
+  }
+  .aniversario-alerta-hoje-animado {
+    animation: alertaHojePulse 2.2s ease-in-out 3;
+  }
+
+  @keyframes alertaHojePulse {
+    0% {
+      transform: translateY(0);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.28);
+    }
+    50% {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.0);
+    }
+    100% {
+      transform: translateY(0);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.0);
+    }
+  }
+
+  .lembrete-item {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .lembrete-label {
+    display: block;
+    font-size: 0.68rem;
+    color: #b45309;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  @media (max-width: 600px) {
+    .dashboard-header-card { padding: 0.85rem 1rem; }
+    .dashboard-clock { min-width: auto; width: 100%; text-align: left; }
+    .dashboard-header-actions { width: 100%; }
+    .stat-card-v2 { gap: 0.875rem; }
+    .icon-box { width: 44px; height: 44px; font-size: 1.1rem; }
+    .stat-value { font-size: 1.4rem; }
+    #charts-grid { grid-template-columns: 1fr !important; }
+    .dash-widgets-grid { grid-template-columns: 1fr !important; }
+  }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-<script src="{% static 'js/dashboard.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}?v=2"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var dateEl = document.getElementById('current-date');
+    var timeEl = document.getElementById('current-time');
+    function updateDateTime() {
+      var now = new Date();
+      if (dateEl) dateEl.innerText = now.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      if (timeEl) timeEl.innerText = now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
 
-{% endif %}
+    var alertasTemporarios = document.querySelectorAll('[data-alerta-temporario="1"]');
+    if (alertasTemporarios.length > 0) {
+      setTimeout(function () {
+        alertasTemporarios.forEach(function (el) {
+          el.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-4px)';
+          setTimeout(function () {
+            if (el && el.parentNode) {
+              el.parentNode.removeChild(el);
+            }
+          }, 380);
+        });
+      }, 9000);
+    }
+
+    function limparAlertasAniversarioExpirados() {
+      var agora = new Date();
+      var hojeLocal = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+
+      var elementosComData = document.querySelectorAll('[data-alerta-data]');
+      elementosComData.forEach(function (el) {
+        var dataIso = el.getAttribute('data-alerta-data');
+        if (!dataIso) return;
+
+        var partes = dataIso.split('-');
+        if (partes.length !== 3) return;
+
+        var ano = parseInt(partes[0], 10);
+        var mes = parseInt(partes[1], 10) - 1;
+        var dia = parseInt(partes[2], 10);
+        var dataAlerta = new Date(ano, mes, dia);
+
+        if (isNaN(dataAlerta.getTime())) return;
+        if (dataAlerta >= hojeLocal) return;
+
+        if (el.classList.contains('aniversario-alerta-item')) {
+          if (el.parentNode) el.parentNode.removeChild(el);
+          return;
+        }
+
+        if (el.classList.contains('dash-list-item')) {
+          el.classList.remove('dash-list-item-aniversario-alerta');
+          var icone = el.querySelector('.dash-list-icon');
+          if (icone) {
+            icone.classList.remove('dash-list-icon-aniversario-alerta');
+          }
+          el.removeAttribute('data-alerta-data');
+        }
+      });
+    }
+
+    var alertasHoje = document.querySelectorAll('[data-alerta-hoje="1"]');
+    if (alertasHoje.length > 0) {
+      alertasHoje.forEach(function (el) {
+        el.classList.add('aniversario-alerta-hoje-animado');
+      });
+    }
+
+    limparAlertasAniversarioExpirados();
+    setInterval(limparAlertasAniversarioExpirados, 60000);
+
+    if (dateEl) { updateDateTime(); setInterval(updateDateTime, 1000); }
+  });
+</script>
 
 {% endblock %}

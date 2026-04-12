@@ -1,0 +1,213 @@
+﻿{% extends 'index.html' %}
+{% block Actividades%}
+{% load ajudatotal %}
+
+<div class="list-container">
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Actividades</h3>
+        <form action="/tibl/buscaactividades" method="GET"
+            style="display: grid; grid-template-columns: 1.15fr 1.15fr 1.45fr auto; gap: 1rem; align-items: flex-end;">
+            <div>
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
+                <input type="text" name="nomev"
+                    style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Designação</label>
+                <select name="actividadev"
+                    style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">------------</option>
+                    {% if listaactividades %}
+                    {% for x in listaactividades %}
+                    <option value="{{ x.id }}">{{ x.designacao }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div>
+                <label
+                    style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <select name="mesv"
+                        style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <option value="0">Mês</option>
+                        {% if listameses %}
+                        {% for x, y in listameses.items %}
+                        <option value="{{ x }}">{{ y }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select>
+                    <select name="anov"
+                        style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <option value="0">Ano</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 1.5rem; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 600; font-size: 0.9rem; color: white; white-space: nowrap;">
+                <i class="fas fa-search"></i><span>Filtrar</span>
+            </button>
+        </form>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de
+            Actividades</h2>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+            {% if perms.sitetibl.view_actividade %}
+            <a href="{% url 'sitetibl:actividades_calendario' %}" class="bt-secondary"
+                style="padding: 0.5rem 1.2rem; font-size: 0.9rem;">
+                <i class="fas fa-calendar-alt"></i> Calendário
+            </a>
+            {% endif %}
+            {% if perms.sitetibl.add_actividade %}
+            <a href="/tibl/actividades/criar/" class="bt-primary"
+                style="padding: 0.5rem 1.5rem; font-size: 0.9rem; background-color: var(--primary-light); color: white;">
+                <i class="fas fa-plus"></i> Nova Actividade
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if bb %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+        {% for x in bb %}
+        {% if x.data and x.data < hoje %}
+        {# ── ACTIVIDADE PASSADA ── #}
+        <div class="modern-card" data-past="true" style="border-top: 5px solid #cbd5e1; padding: 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; opacity: 0.65; filter: grayscale(40%);">
+            <div style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <span style="background: #f1f5f9; color: #64748b; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="far fa-calendar-check"></i>
+                        {{ x.data|date:"d M Y"|default:x.data }}
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="background: #f1f5f9; color: #94a3b8; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 700; font-size: 0.75rem;">
+                            <i class="fas fa-check-circle" style="font-size: 0.65rem;"></i> Realizada
+                        </span>
+                        {% if x.is_recorrente %}
+                        <span style="background: #f5f3ff; color: #a78bfa; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;">
+                            <i class="fas fa-redo" style="font-size: 0.65rem;"></i> Recorrente
+                        </span>
+                        {% endif %}
+                        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">
+                            <i class="far fa-clock"></i> {{ x.inicio }}
+                        </span>
+                    </div>
+                </div>
+                <h3 style="margin: 0 0 0.5rem 0; color: #64748b; font-size: 1.2rem; line-height: 1.3;">
+                    {{ x.designacao }}
+                </h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ x.localactividade|default:"Sede Principal" }}
+                </p>
+            </div>
+            <div style="padding: 0.75rem 1.5rem; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+                <a href="/tibl/actividades/detalhe/{{ x.id }}" style="display: block; width: 100%; text-align: center; padding: 0.5rem; background: #e2e8f0; color: #64748b !important; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.05em; border-radius: var(--radius-sm); text-decoration: none;">
+                    <i class="fas fa-info-circle mr-1"></i> Ver Detalhes
+                </a>
+            </div>
+        </div>
+        {% else %}
+        {# ── ACTIVIDADE FUTURA / EM CURSO ── #}
+        <div class="modern-card" style="border-top: 5px solid var(--primary); padding: 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+            <div style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <span style="background: var(--primary-50); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="far fa-calendar-alt"></i>
+                        {{ x.data|date:"d M Y"|default:x.data }}
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        {% if x.is_recorrente %}
+                        <span style="background: #ede9fe; color: #6d28d9; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;">
+                            <i class="fas fa-redo" style="font-size: 0.65rem;"></i> Recorrente
+                        </span>
+                        {% endif %}
+                        <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">
+                            <i class="far fa-clock"></i> {{ x.inicio }}
+                        </span>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 1.35rem; line-height: 1.3;">
+                    {{ x.designacao }}
+                </h3>
+                
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
+                    {{ x.localactividade|default:"Sede Principal" }}
+                </p>
+
+                {% if x.is_recorrente %}
+                <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: var(--radius-sm); padding: 0.6rem 0.85rem; font-size: 0.82rem; color: #5b21b6; margin-bottom: 1rem;">
+                    <i class="fas fa-redo" style="margin-right: 0.3rem;"></i>
+                    <strong>Até:</strong> {{ x.recorrencia_fim|date:"d M Y" }}
+                    {% if x.dias_semana %}
+                    &nbsp;·&nbsp; <strong>Dias:</strong> {{ x.get_dias_semana_display }}
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if x.tema %}
+                <div style="background: #f8fafc; padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0; font-size: 0.85rem; color: var(--text-muted);">
+                    <i class="fas fa-quote-left" style="opacity: 0.3; margin-right: 0.4rem;"></i>
+                    <span style="font-style: italic;">{{ x.tema|truncatechars:60 }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div style="padding: 1rem 1.5rem; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+                <a href="/tibl/actividades/detalhe/{{ x.id }}" class="bt-primary" style="display: block; width: 100%; text-align: center; padding: 0.6rem; background: var(--primary); color: white !important; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; border-radius: var(--radius-sm);">
+                    <i class="fas fa-info-circle mr-1"></i> Ver Detalhes Completos
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <div id="past-activities-toggle" style="display:none; text-align:center; margin: 1rem 0;">
+        <button id="btn-toggle-passadas" onclick="togglePassadas()"
+            style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 0.5rem 1.5rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+            <i class="fas fa-history" style="margin-right: 0.4rem;"></i>
+            <span id="btn-passadas-label">Mostrar actividades passadas</span>
+        </button>
+    </div>
+    <script>
+    (function() {
+        var cards = document.querySelectorAll('[data-past="true"]');
+        if (!cards.length) return;
+        cards.forEach(function(c) { c.style.display = 'none'; });
+        var btn = document.getElementById('past-activities-toggle');
+        if (btn) {
+            btn.style.display = 'block';
+            document.getElementById('btn-passadas-label').textContent = 'Mostrar ' + cards.length + ' actividade(s) passada(s)';
+        }
+    })();
+    function togglePassadas() {
+        var cards = document.querySelectorAll('[data-past="true"]');
+        var label = document.getElementById('btn-passadas-label');
+        var hidden = cards[0].style.display === 'none';
+        cards.forEach(function(c) { c.style.display = hidden ? '' : 'none'; });
+        label.textContent = hidden
+            ? 'Ocultar actividades passadas'
+            : 'Mostrar ' + cards.length + ' actividade(s) passada(s)';
+    }
+    </script>
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 3rem;">
+        <i class="fas fa-calendar-times" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+        <p style="color: var(--text-muted);">Nenhuma actividade encontrada para este perÃ­odo.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

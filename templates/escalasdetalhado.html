@@ -1,14 +1,23 @@
-{% extends 'index.html' %}
-{% block EscalasDetalhados %}
+﻿{% extends 'index.html' %}
+{% block content %}
+<div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
+    <div style="background-image: url('/static/fotos/2022/homepage1.jpeg'); background-size: cover; background-position: center; min-height: 120px; position: relative; border-radius: var(--radius-md);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,58,138,0.78) 0%, rgba(0,0,0,0.55) 100%);"></div>
+        <div style="position: relative; z-index: 1; padding: 1.4rem 1.6rem;">
+            <h2 style="margin: 0; color: #ffffff; font-size: 1.25rem;"><i class="fas fa-info-circle" style="margin-right: 0.45rem; color: #93c5fd;"></i> Detalhes de Escala</h2>
+            <p style="margin: 0.35rem 0 0 0; color: rgba(255,255,255,0.84); font-size: 0.9rem;">Informacao detalhada para consulta e acompanhamento.</p>
+        </div>
+    </div>
+</div>
 
 {% if registoachado %}
 <div align="center"><span class="a3">
 <table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
 {% for x in registoachado %}
-<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'><a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a>  |<a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a></td></td></tr>
-<tr class="fortexto"><td class="a4">Irmão</td><td class="a4">{{ x.irmao }}</td></tr>
+<tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'>{% if perms.sitetibl.delete_escala %}<a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a>{% endif %}  {% if perms.sitetibl.change_escala %}| <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a>{% endif %}</td></td></tr>
+<tr class="fortexto"><td class="a4">IrmÃ£o</td><td class="a4">{{ x.irmao }}</td></tr>
 <tr class="fortexto"><td class="a4">Actividade:</td><td class="a4">{{ x.actividade }}</td></tr>
-<tr class="fortexto"><td class="a4">Função:</td><td class="a4">{{ x.funcao }} </td></tr>
+<tr class="fortexto"><td class="a4">FunÃ§Ã£o:</td><td class="a4">{{ x.funcao }} </td></tr>
 {% endfor %}
 </table></span>
 {% endif %}
@@ -17,4 +26,6 @@
 
 
 {% endblock %}
+
+
 

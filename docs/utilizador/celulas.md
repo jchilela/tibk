@@ -2,9 +2,6 @@
 
 Acompanhe a actividade das células através dos relatórios semanais.
 
-![Imagem institucional da TIBL](/static/fotos/2022/cba.png)
-
-*Imagem institucional da TIBL.*
 
 ---
 
