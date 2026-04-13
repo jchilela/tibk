@@ -115,38 +115,38 @@
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ label }}</span>
-                    <span style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">{{ value|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">{{ value|default:"Não disponível" }}</span>
                 </div>
                 {% empty %}
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Sexo</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_sexo_display|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_sexo_display|default:"Não disponível" }}</span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Nascimento</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.datanascimento|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.datanascimento|default:"Não disponível" }}</span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Estado
                         Civil</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_estadocivil_display|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.get_estadocivil_display|default:"Não disponível" }}</span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Escolaridade</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.grauescolaridade|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.grauescolaridade|default:"Não disponível" }}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Profissão</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.profissao|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.profissao|default:"Não disponível" }}</span>
                 </div>
                 {% endfor %}
             </div>
@@ -167,38 +167,38 @@
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Telefone</span>
                     <span
                         style="background: var(--primary-50); padding: 0.35rem 0.8rem; border-radius: 100px; color: var(--primary-dark); font-weight: 600; font-size: 0.9rem;">
-                        <i class="fas fa-phone-alt mr-2" style="font-size: 0.75rem;"></i>{{ x.telefone|default:"â€”" }}
+                        <i class="fas fa-phone-alt mr-2" style="font-size: 0.75rem;"></i>{{ x.telefone|default:"Não disponível" }}
                     </span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Email</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.email|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.email|default:"Não disponível" }}</span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Bairro</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.bairro|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.bairro|default:"Não disponível" }}</span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Município</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.municipio|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.municipio|default:"Não disponível" }}</span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Província</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.provincia|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.provincia|default:"Não disponível" }}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
                     <span
                         style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Local
                         de Trabalho</span>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.localdetrabalho|default:"â€”" }}</span>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.localdetrabalho|default:"Não disponível" }}</span>
                 </div>
             </div>
         </div>
@@ -253,7 +253,7 @@
             </div>
             <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color);">
                 <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Último Registo</p>
-                <p style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0;">{{ contrib_ultimo|default:"—" }}</p>
+                <p style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0;">{{ contrib_ultimo|default:"Não disponível" }}</p>
             </div>
         </div>
         {% else %}
@@ -276,7 +276,7 @@
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
                     Criado em</p>
                 <p style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
-                    <i class="far fa-calendar-plus mr-2" style="color: var(--primary-light);"></i>{{ x.data_criacao|date:"d/m/Y H:i"|default:"â€”" }}
+                    <i class="far fa-calendar-plus mr-2" style="color: var(--primary-light);"></i>{{ x.data_criacao|date:"d/m/Y H:i"|default:"Não disponível" }}
                 </p>
             </div>
             <div
@@ -285,7 +285,7 @@
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
                     Ãšltima Atualização</p>
                 <p style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
-                    <i class="far fa-clock mr-2" style="color: var(--primary-light);"></i>{{ x.data_atualizacao|date:"d/m/Y H:i"|default:"â€”" }}
+                    <i class="far fa-clock mr-2" style="color: var(--primary-light);"></i>{{ x.data_atualizacao|date:"d/m/Y H:i"|default:"Não disponível" }}
                 </p>
             </div>
             <div
@@ -294,7 +294,7 @@
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
                     Congregação</p>
                 <p style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
-                    <i class="fas fa-church mr-2" style="color: var(--primary-light);"></i>{{ x.localcongregacao|default:"â€”" }}
+                    <i class="fas fa-church mr-2" style="color: var(--primary-light);"></i>{{ x.localcongregacao|default:"Não disponível" }}
                 </p>
             </div>
         </div>
