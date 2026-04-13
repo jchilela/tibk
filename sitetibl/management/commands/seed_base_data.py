@@ -148,7 +148,7 @@ class Command(BaseCommand):
         fin_grp.permissions.set(fin_perms)
         self.stdout.write(f'Financeiro: {fin_perms.count()} permissoes atribuidas')
 
-        # --- Secretaria: CRUD membros/actividades/comunicacao + view financeiro ---
+        # --- Secretaria: CRUD membros/actividades/comunicacao + pedido de saida (sem acesso financeiro) ---
         sec_grp = Group.objects.get(name='Secretaria')
         sec_perms = self._perms_for(app, [
             'irmao', 'pessoa', 'actividade', 'escala', 'mandato',
@@ -157,7 +157,6 @@ class Command(BaseCommand):
             'inventariopatrimonio', 'cestabasica', 'ajuda',
         ], crud)
         sec_perms |= self._perms_for(app, [
-            'dizimooferta', 'entradabanco', 'entradacaixa',
             'pedidosaida',
         ], ['view'])
         sec_grp.permissions.set(sec_perms)
