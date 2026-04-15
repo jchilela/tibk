@@ -540,6 +540,10 @@ class MandatoForm(ModelForm):
             'fim': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def validate_unique(self):
+        # Ignorar erro de unique_together — o view trata de actualizar o existente
+        pass
+
 class EscalaForm(ModelForm):
     class Meta:
         model = Escala
