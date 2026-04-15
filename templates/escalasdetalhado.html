@@ -15,9 +15,9 @@
 <table align="center" cellpadding="5" cellspacing="0" border = "0" bgcolor="#f4f1e5" >
 {% for x in registoachado %}
 <tr align="center" bgcolor="#362E6C" ><td colspan=2><font face="verdana,arial,helvetica" size="3" color='#FFFFFF'>{% if perms.sitetibl.delete_escala %}<a href ="/tibl/{{ gestaoescolhida }}/eliminar/{{ x.id }}" > <i>Eliminar</i></a>{% endif %}  {% if perms.sitetibl.change_escala %}| <a href ="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" > <i>editar</i></a>{% endif %}</td></td></tr>
-<tr class="fortexto"><td class="a4">IrmÃ£o</td><td class="a4">{{ x.irmao }}</td></tr>
+<tr class="fortexto"><td class="a4">Irmão</td><td class="a4">{{ x.irmao }}</td></tr>
 <tr class="fortexto"><td class="a4">Actividade:</td><td class="a4">{{ x.actividade }}</td></tr>
-<tr class="fortexto"><td class="a4">FunÃ§Ã£o:</td><td class="a4">{{ x.funcao }} </td></tr>
+<tr class="fortexto"><td class="a4">Função:</td><td class="a4">{{ x.funcao }} </td></tr>
 {% endfor %}
 </table></span>
 {% endif %}

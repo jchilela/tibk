@@ -23,7 +23,7 @@
                 Registo de Entrada em Caixa</div>
             <h1 style="font-size: 2rem; color: var(--primary-dark); margin-bottom: 0.25rem;">+ {{ x.valor|floatformat:2 }} {{ x.moeda }}</h1>
             <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
-                <i class="fas fa-coins mr-2" style="color: var(--primary);"></i> Fluxo de NumerÃ¡rio (Cash)
+                <i class="fas fa-coins mr-2" style="color: var(--primary);"></i> Fluxo de Numerário (Cash)
             </p>
         </div>
         <div style="display: flex; gap: 0.75rem;">
@@ -50,7 +50,7 @@
         </div>
 
         <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
-            <i class="fas fa-info-circle mr-2"></i> InformaÃ§Ãµes do LanÃ§amento
+            <i class="fas fa-info-circle mr-2"></i> Informações do Lançamento
         </h3>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; position: relative; z-index: 1;">
@@ -59,13 +59,13 @@
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <label
                         style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Data
-                        da OperaÃ§Ã£o</label>
-                    <span style="font-weight: 600; color: var(--text-main);">{{ x.data|date:"d/m/Y"|default:x.data }} Ã s {{ x.hora|time:"H:i"|default:"--:--" }}</span>
+                        da Operação</label>
+                    <span style="font-weight: 600; color: var(--text-main);">{{ x.data|date:"d/m/Y"|default:x.data }} às {{ x.hora|time:"H:i"|default:"--:--" }}</span>
                 </div>
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">ResponsÃ¡vel</label>
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Responsável</label>
                     <span style="font-weight: 600; color: var(--text-main);">{{ x.responsavel }}</span>
                 </div>
             </div>
@@ -74,7 +74,7 @@
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">RÃºbrica
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Rúbrica
                         de Entrada</label>
                     <span style="font-weight: 700; color: var(--primary-dark);">{{ x.rubrica.designacao|default:x.rubrica }}</span>
                 </div>
@@ -91,17 +91,17 @@
         <div style="margin-top: 2rem; position: relative; z-index: 1;">
             <label
                 style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Notas
-                / ObservaÃ§Ãµes</label>
+                / Observações</label>
             <div
                 style="background: rgba(0,0,0,0.02); padding: 1.25rem; border-radius: var(--radius-md); font-size: 0.95rem; min-height: 100px; border: 1px solid rgba(0,0,0,0.05); line-height: 1.5;">
-                {{ x.observacao|default:"Nenhuma observaÃ§Ã£o registada para esta entrada de caixa." }}
+                {{ x.observacao|default:"Nenhuma observação registada para esta entrada de caixa." }}
             </div>
         </div>
     </div>
 
     <div style="margin-top: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
         <div class="modern-card" style="border-left: 4px solid var(--primary);">
-            <p style="margin: 0 0 0.2rem 0; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Entradas por esta rÃºbrica</p>
+            <p style="margin: 0 0 0.2rem 0; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Entradas por esta rúbrica</p>
             <p style="margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">{{ total_entradas_rubrica|floatformat:2 }}</p>
         </div>
     </div>
@@ -109,7 +109,7 @@
     <div style="margin-top: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem;">
         <div class="modern-card">
             <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #166534;">
-                <i class="fas fa-layer-group mr-2"></i> Outras Entradas da Mesma RÃºbrica
+                <i class="fas fa-layer-group mr-2"></i> Outras Entradas da Mesma Rúbrica
             </h4>
             {% if entradas_relacionadas %}
             <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
@@ -117,7 +117,7 @@
                     <thead>
                         <tr>
                             <th>Data</th>
-                            <th>ResponsÃ¡vel</th>
+                            <th>Responsável</th>
                             <th>Valor</th>
                             <th style="text-align: right;">Ver</th>
                         </tr>
@@ -135,13 +135,13 @@
                 </table>
             </div>
             {% else %}
-            <p style="color: var(--text-muted); margin: 0;">Sem outras entradas para esta rÃºbrica.</p>
+            <p style="color: var(--text-muted); margin: 0;">Sem outras entradas para esta rúbrica.</p>
             {% endif %}
         </div>
 
         <div class="modern-card">
             <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #991b1b;">
-                <i class="fas fa-user-clock mr-2"></i> SaÃ­das do Mesmo ResponsÃ¡vel
+                <i class="fas fa-user-clock mr-2"></i> Saídas do Mesmo Responsável
             </h4>
             {% if saidas_relacionadas %}
             <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
@@ -149,7 +149,7 @@
                     <thead>
                         <tr>
                             <th>Data</th>
-                            <th>RÃºbrica</th>
+                            <th>Rúbrica</th>
                             <th>Valor</th>
                             <th style="text-align: right;">Ver</th>
                         </tr>
@@ -167,7 +167,7 @@
                 </table>
             </div>
             {% else %}
-            <p style="color: var(--text-muted); margin: 0;">Sem saÃ­das recentes deste responsÃ¡vel.</p>
+            <p style="color: var(--text-muted); margin: 0;">Sem saídas recentes deste responsável.</p>
             {% endif %}
         </div>
     </div>
@@ -179,7 +179,7 @@
 <div style="text-align: center; margin-top: 2rem;">
     <a href="/tibl/gestao/entradascaixa/1" class="bt-primary"
         style="background: transparent; color: var(--primary); border: 2px solid var(--primary); box-shadow: none;">
-        <i class="fas fa-chevron-left"></i> Voltar Ã s Entradas
+        <i class="fas fa-chevron-left"></i> Voltar às Entradas
     </a>
 </div>
 

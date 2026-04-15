@@ -24,7 +24,7 @@
             </div>
             <h1 style="font-size: 2.2rem; color: var(--primary-dark); margin-bottom: 0.5rem;">{{ x.designacao }}</h1>
             <p style="color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-university"></i> InstituiÃ§Ã£o BancÃ¡ria Registada
+                <i class="fas fa-university"></i> Instituição Bancária Registada
             </p>
         </div>
         <div style="display: flex; gap: 1rem;">
@@ -45,7 +45,7 @@
     <!-- Details Card -->
     <div class="modern-card">
         <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 2rem;">
-            <i class="fas fa-info-circle mr-2"></i> InformaÃ§Ãµes de Contacto
+            <i class="fas fa-info-circle mr-2"></i> Informações de Contacto
         </h3>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
@@ -55,7 +55,7 @@
                     <label
                         style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Gestor
                         de Conta</label>
-                    <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">{{ x.gestor|default:"NÃ£o especificado" }}</span>
+                    <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">{{ x.gestor|default:"Não especificado" }}</span>
                 </div>
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
@@ -69,7 +69,7 @@
                 <div class="detail-row"
                     style="margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <label
-                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">EndereÃ§o
+                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">Endereço
                         de Email</label>
                     <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);"><i class="fas fa-envelope mr-2" style="color: var(--primary);"></i> {{ x.email|default:"sem email" }}</span>
                 </div>
@@ -104,7 +104,7 @@
             <table class="modern-table">
                 <thead>
                     <tr>
-                        <th>NÃºmero</th>
+                        <th>Número</th>
                         <th>IBAN</th>
                         <th>Titular</th>
                         <th style="text-align: right;">Movimentos</th>
@@ -125,7 +125,7 @@
             </table>
         </div>
         {% else %}
-        <p style="color: var(--text-muted); margin: 0;">Este banco ainda nÃ£o possui contas registadas.</p>
+        <p style="color: var(--text-muted); margin: 0;">Este banco ainda não possui contas registadas.</p>
         {% endif %}
     </div>
 
@@ -162,7 +162,7 @@
 
         <div class="modern-card">
             <h3 style="margin-bottom: 0.8rem; color: #991b1b;">
-                <i class="fas fa-arrow-up mr-2"></i> SaÃ­das Recentes
+                <i class="fas fa-arrow-up mr-2"></i> Saídas Recentes
             </h3>
             {% if saidas_banco %}
             <div class="modern-table-container" style="box-shadow: none; border: 1px solid #e5e7eb;">
@@ -186,7 +186,7 @@
                 </table>
             </div>
             {% else %}
-            <p style="color: var(--text-muted); margin: 0;">Sem saÃ­das recentes neste banco.</p>
+            <p style="color: var(--text-muted); margin: 0;">Sem saídas recentes neste banco.</p>
             {% endif %}
         </div>
     </div>
@@ -198,7 +198,7 @@
 <div style="text-align: center; margin-top: 3rem;">
     <a href="/tibl/gestao/bancos/1"
         style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
-        <i class="fas fa-arrow-left"></i> Voltar Ã  Lista de Bancos
+        <i class="fas fa-arrow-left"></i> Voltar à Lista de Bancos
     </a>
 </div>
 

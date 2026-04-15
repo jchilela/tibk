@@ -53,7 +53,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
                     <div style="background: white; padding: 0.8rem; border-radius: 8px; border: 1px solid #f1f5f9;">
                         <span
-                            style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">CÃ³digo</span>
+                            style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Código</span>
                         <span style="font-weight: 700; font-family: monospace; font-size: 1.1rem;">{{ x.codigo }}</span>
                     </div>
                     <div style="background: white; padding: 0.8rem; border-radius: 8px; border: 1px solid #f1f5f9;">
@@ -71,7 +71,7 @@
         <!-- Technical Details -->
         <div class="modern-card">
             <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-info-circle mr-2"></i> Detalhes TÃ©cnicos
+                <i class="fas fa-info-circle mr-2"></i> Detalhes Técnicos
             </h3>
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
@@ -80,22 +80,22 @@
             </div>
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted);">Estado de ConservaÃ§Ã£o</span>
+                <span style="color: var(--text-muted);">Estado de Conservação</span>
                 <span style="font-weight: 600; color: {% if x.estado == 'Bom' %}#10b981{% else %}#f59e0b{% endif %};">{{ x.estado }}</span>
             </div>
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted);">LocalizaÃ§Ã£o</span>
+                <span style="color: var(--text-muted);">Localização</span>
                 <span style="font-weight: 600;">{{ x.localizacao }}</span>
             </div>
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted);">Valor de AquisiÃ§Ã£o</span>
+                <span style="color: var(--text-muted);">Valor de Aquisição</span>
                 <span style="font-weight: 600;">{{ x.preco }} {{ x.moeda }}</span>
             </div>
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted);">ResponsÃ¡vel</span>
+                <span style="color: var(--text-muted);">Responsável</span>
                 <span style="font-weight: 600;">{{ x.responsavel }}</span>
             </div>
         </div>
@@ -103,16 +103,16 @@
         <!-- Maintenance Info -->
         <div class="modern-card">
             <h3 style="border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-tools mr-2"></i> ManutenÃ§Ã£o
+                <i class="fas fa-tools mr-2"></i> Manutenção
             </h3>
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted);">Ãšltima ManutenÃ§Ã£o</span>
+                <span style="color: var(--text-muted);">Ãšltima Manutenção</span>
                 <span style="font-weight: 600;">{{ x.data_ultima_manutencao|default:"---" }}</span>
             </div>
             <div class="detail-row"
                 style="margin-bottom: 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <span style="color: var(--text-muted);">PrÃ³xima RevisÃ£o</span>
+                <span style="color: var(--text-muted);">Próxima Revisão</span>
                 <span style="font-weight: 600; color: #ef4444;">{{ x.data_proxima_manutencao|default:"---" }}</span>
             </div>
             <div style="margin-top: 1.5rem;">
@@ -129,9 +129,9 @@
 
     <div class="modern-card" style="margin-top: 1.5rem; background: #f8fafc;">
         <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
-            ObservaÃ§Ãµes Gerais</h4>
+            Observações Gerais</h4>
         <p style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6;">
-            {{ x.observacao|default:"NÃ£o hÃ¡ observaÃ§Ãµes complementares para este item." }}
+            {{ x.observacao|default:"Não há observações complementares para este item." }}
         </p>
     </div>
 
@@ -142,7 +142,7 @@
 <div style="text-align: center; margin-top: 3rem;">
     <a href="/tibl/gestao/inventariopatrimonio/1"
         style="color: var(--primary); font-weight: 600; text-decoration: none;">
-        <i class="fas fa-chevron-left"></i> Voltar para InventÃ¡rio
+        <i class="fas fa-chevron-left"></i> Voltar para Inventário
     </a>
 </div>
 

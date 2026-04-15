@@ -68,7 +68,7 @@
                 </div>
                 <div
                     style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; color: var(--text-muted);">
-                    <i class="far fa-clock"></i> {{ x.inicio }} Ã s {{ x.fim }}
+                    <i class="far fa-clock"></i> {{ x.inicio }} às {{ x.fim }}
                 </div>
             </div>
 
@@ -85,7 +85,7 @@
         <!-- Spiritual Details -->
         <div class="modern-card">
             <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-bible mr-2"></i> ConteÃºdo Espiritual
+                <i class="fas fa-bible mr-2"></i> Conteúdo Espiritual
             </h3>
 
             <div style="margin-bottom: 2rem;">
@@ -93,7 +93,7 @@
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
                     Tema Central</h4>
                 <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-dark);">
-                    {{ x.tema|default:"NÃ£o especificado" }}
+                    {{ x.tema|default:"Não especificado" }}
                 </p>
             </div>
 
@@ -101,9 +101,9 @@
                 <div>
                     <h4
                         style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
-                        Versos BÃ­blicos</h4>
+                        Versos Bíblicos</h4>
                     <p style="font-size: 0.95rem; font-style: italic;">
-                        "{{ x.versosbiblicos|default:"Consultar BÃ­blia" }}"
+                        "{{ x.versosbiblicos|default:"Consultar Bíblia" }}"
                     </p>
                 </div>
                 <div>
@@ -111,7 +111,7 @@
                         style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
                         Hinos</h4>
                     <p style="font-size: 0.95rem;">
-                        {{ x.hinos|default:"SelecÃ§Ã£o de louvor" }}
+                        {{ x.hinos|default:"Selecção de louvor" }}
                     </p>
                 </div>
             </div>
@@ -119,9 +119,9 @@
             <div style="padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
                 <h4
                     style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
-                    ObservaÃ§Ãµes / RelatÃ³rio</h4>
+                    Observações / Relatório</h4>
                 <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
-                    {{ x.observacao|default:"Nenhuma observaÃ§Ã£o adicional registrada para esta actividade." }}
+                    {{ x.observacao|default:"Nenhuma observação adicional registrada para esta actividade." }}
             </div>
         </div>
     </div> <!-- /End of 1fr 2fr grid -->
@@ -137,7 +137,7 @@
             <button type="button" class="bt-primary"
                 onclick="document.getElementById('modal-escalar').style.display = 'flex'"
                 style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-layer-group"></i> Escalar IrmÃ£os
+                <i class="fas fa-layer-group"></i> Escalar Irmãos
             </button>
             {% endif %}
         </div>
@@ -148,7 +148,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; align-items: start;">
         {% for dept_grp in escalas_por_dept %}
         <div class="modern-card" style="padding: 0; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); overflow: hidden;">
-            <!-- CabeÃ§alho departamento -->
+            <!-- Cabeçalho departamento -->
             <div style="background: var(--primary); padding: 0.6rem 1rem;">
                 <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: white;">
                     <i class="fas fa-sitemap" style="margin-right: 0.4rem;"></i>
@@ -173,7 +173,7 @@
                             <div style="flex: 1;">
                                 <span style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ escala.irmao.nome }} {{ escala.irmao.apelido }}</span>
                                 {% if escala.irmao.celula %}
-                                <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">CÃ©lula: {{ escala.irmao.celula }}</span>
+                                <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Célula: {{ escala.irmao.celula }}</span>
                                 {% endif %}
                             </div>
                             {% if perms.sitetibl.delete_escala %}
@@ -194,7 +194,7 @@
         <div class="modern-card"
             style="text-align: center; padding: 3rem; background: #f8fafc; border: 1px dashed #cbd5e1;">
             <i class="fas fa-user-clock" style="font-size: 3rem; color: #94a3b8; margin-bottom: 1rem;"></i>
-            <p style="color: var(--text-muted); font-size: 1.1rem;">NÃ£o existem escalas registadas para esta
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Não existem escalas registadas para esta
                 actividade.</p>
             <a href="/tibl/escalas/criar/" class="bt-primary"
                 style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary); color: white !important;">
@@ -221,7 +221,7 @@
         style="background: white; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
         <div
             style="padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white;">
-            <h3 style="margin: 0; font-size: 1.25rem;"><i class="fas fa-users-cog mr-2"></i> Escalar IrmÃ£os</h3>
+            <h3 style="margin: 0; font-size: 1.25rem;"><i class="fas fa-users-cog mr-2"></i> Escalar Irmãos</h3>
             <button type="button" onclick="document.getElementById('modal-escalar').style.display = 'none'"
                 style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
         </div>
@@ -248,10 +248,10 @@
                 <div style="margin-bottom: 1.5rem;">
                     <label
                         style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">1.
-                        Selecione a FunÃ§Ã£o</label>
+                        Selecione a Função</label>
                     <select name="funcao" id="modal-select-funcao" required
                         style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 1rem;">
-                        <option value="">-- Escolha uma funÃ§Ã£o --</option>
+                        <option value="">-- Escolha uma função --</option>
                         {% for f in todas_funcoes %}
                         <option value="{{ f.id }}" data-dept="{{ f.departamento.id|default:'' }}">{% if f.departamento %}{{ f.departamento.designacao }} â€” {% endif %}{{ f.designacao }}</option>
                         {% endfor %}
@@ -262,8 +262,8 @@
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <label style="font-weight: 600; color: var(--primary-dark); margin: 0;">2. Selecione os
-                            IrmÃ£os</label>
-                        <input type="text" id="filtro-irmaos" placeholder="Pesquisar IrmÃ£o ou CÃ©lula..."
+                            Irmãos</label>
+                        <input type="text" id="filtro-irmaos" placeholder="Pesquisar Irmão ou Célula..."
                             style="padding: 0.25rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem;"
                             onkeyup="filtrarIrmaos()">
                     </div>
@@ -292,7 +292,7 @@
                                     </span>
                                     {% if irmao.celula %}
                                     <span class="irmao-celula" style="font-size: 0.75rem; color: var(--text-muted);">
-                                        CÃ©lula: {{ irmao.celula }}
+                                        Célula: {{ irmao.celula }}
                                     </span>
                                     {% else %}
                                     <span class="irmao-celula" style="display: none;"></span>
@@ -303,8 +303,8 @@
                         </div>
                     </div>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;"><i
-                            class="fas fa-info-circle"></i> O sistema ignora automaticamente quem jÃ¡ estiver
-                        escalado para a respectiva funÃ§Ã£o.</p>
+                            class="fas fa-info-circle"></i> O sistema ignora automaticamente quem já estiver
+                        escalado para a respectiva função.</p>
                 </div>
 
                 <div
@@ -329,7 +329,7 @@
         const funcaoOpts = document.querySelectorAll('#modal-select-funcao option[data-dept]');
         const txtFiltro = (document.getElementById("filtro-irmaos").value || '').toLowerCase();
 
-        // Filtra irmÃ£os
+        // Filtra irmãos
         for (let i = 0; i < nodes.length; i++) {
             const iid = nodes[i].dataset.id;
             const depts = IRMAO_DEPTS[iid] || [];
@@ -341,7 +341,7 @@
             nodes[i].style.display = (deptOk && txtOk) ? "flex" : "none";
         }
 
-        // Filtra funÃ§Ãµes
+        // Filtra funções
         funcaoOpts.forEach(opt => {
             const optDept = opt.dataset.dept;
             opt.style.display = (!deptId || optDept === String(deptId)) ? '' : 'none';
