@@ -1183,6 +1183,19 @@ def mostraCriacao(request, gestaoescolhida):
                         'Se for num local diferente, pode prosseguir normalmente.'
                     )
 
+            # 🔄 Mandato: se já existe para este irmão+departamento, actualizar o cargo
+            if gestaoescolhida == 'mandatos':
+                existente = Mandato.objects.filter(
+                    irmao=obj.irmao, departamento=obj.departamento
+                ).first()
+                if existente:
+                    existente.funcao = obj.funcao
+                    existente.inicio = obj.inicio
+                    existente.fim = obj.fim
+                    existente.save()
+                    messages.success(request, f'Mandato actualizado: {existente.irmao} passou a {existente.get_funcao_display()} em {existente.departamento}.')
+                    return redirect('/tibl/gestao/mandatos/1')
+
             # 📋 Pedido de Saída: definir requerente e estado inicial antes do primeiro save
             if gestaoescolhida == 'pedidosaida':
                 irmao_req = Irmao.objects.filter(user=request.user).first()
