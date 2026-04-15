@@ -153,7 +153,7 @@
                 {% endif %}
                 {% endif %}
 
-                {% if perms.sitetibl.view_ajuda or perms.sitetibl.view_cesta or perms.sitetibl.view_relatoriosemanalcelula or perms.sitetibl.view_conteudoensino or perms.sitetibl.view_enviomensagem %}
+                {% if perms.sitetibl.view_ajuda or perms.sitetibl.view_cesta or perms.sitetibl.view_celula or perms.sitetibl.view_relatoriosemanalcelula or perms.sitetibl.view_conteudoensino or perms.sitetibl.view_enviomensagem %}
                 <div class="nav-section-title">Social & Comunidade</div>
 
                 {% if perms.sitetibl.view_ajuda %}
@@ -165,6 +165,13 @@
                 {% if perms.sitetibl.view_cesta %}
                 <a href="/tibl/gestao/cestas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'cestas' %}active{% endif %}">
                     <i class="fas fa-shopping-basket fa-fw"></i> Cestas Básicas
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_celula %}
+                <a href="/tibl/gestao/celulas/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'celulas' %}active{% endif %}">
+                    <i class="fas fa-users fa-fw"></i> Células
                 </a>
                 {% endif %}
 
@@ -320,6 +327,9 @@
                 {% block RelatorioSemanalCelula %}{% endblock %}
                 {% block relatoriosemanalceluladetalhe %}{% endblock %}
                 {% block Relatoriosemanalcelulafiltrados %}{% endblock %}
+                {% block Celulas %}{% endblock %}
+                {% block celulasdetalhe %}{% endblock %}
+                {% block Celulasfiltradas %}{% endblock %}
                 {% block Saidabancos %}{% endblock %}
                 {% block saidabancosdetalhe %}{% endblock %}
                 {% block Saidasbancofiltradas %}{% endblock %}

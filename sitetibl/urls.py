@@ -29,6 +29,7 @@ urlpatterns = [
     path('buscasaidasbanco/', views.encontraSaidasbanco, name='busca_saidasbanco'),
     path('buscaentradasbanco/', views.encontraEntradasbanco, name='busca_entradasbanco'),
     path('buscarelatoriosemanalcelula/', views.encontraRelatorioSemanalCelula, name='busca_relatoriosemanalcelula'),
+    path('buscacelulas/', views.encontraCelulas, name='busca_celulas'),
     path('buscapedidosaida/', views.encontraPedidoSaida, name='busca_pedidosaida'),
     path('buscaorcamentodepartamento/', views.encontraOrcamentoDepartamento, name='busca_orcamentodepartamento'),
     path('buscainventariopatrimonio/', views.encontraInventarioPatrimonio, name='busca_inventariopatrimonio'),

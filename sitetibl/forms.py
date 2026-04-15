@@ -27,6 +27,7 @@ from sitetibl.models import ConteudoEnsino
 from sitetibl.models import EnvioMensagem
 from sitetibl.models import TipoOferta
 from sitetibl.models import Listaactividades
+from sitetibl.models import Celula
 
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django.utils import timezone as tz
@@ -735,6 +736,14 @@ class ServicoForm(ModelForm):
         model = Servico
         fields = '__all__'
 
+
+class CelulaForm(ModelForm):
+    class Meta:
+        model = Celula
+        fields = '__all__'
+        widgets = {
+            'hora_reuniao': forms.TimeInput(attrs={'type': 'time'}),
+        }
 
 class  RelatorioSemanalCelulaForm(ModelForm):
     class Meta:

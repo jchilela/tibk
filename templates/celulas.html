@@ -1,0 +1,201 @@
+{% extends 'index.html' %}
+{% block Celulas %}
+
+<style>
+    .cel-filter-card { margin-bottom: 2rem; }
+    .cel-filter-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+    .cel-filter-label {
+        display: block;
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+        color: var(--text-muted);
+    }
+    .cel-filter-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: var(--radius-sm);
+    }
+    .cel-filter-btn {
+        padding: 0.75rem 1.2rem;
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: white;
+        white-space: nowrap;
+    }
+    .cel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .cel-header-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        color: var(--text-main);
+    }
+    .cel-header-new {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        background-color: var(--primary-light);
+        color: white;
+    }
+    .cel-name { font-weight: 600; color: var(--primary-dark); }
+    .cel-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+    .cel-leader { font-weight: 500; }
+    .cel-empty-leader { color: var(--text-muted); font-size: 0.85rem; }
+    .cel-td-center { text-align: center; }
+    .cel-td-right { text-align: right; }
+    .cel-count {
+        background: #f1f5f9;
+        color: #334155;
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .cel-day-badge {
+        background: var(--primary-50);
+        color: var(--primary);
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .cel-view-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        background: var(--primary-light);
+        color: #ffffff !important;
+    }
+    .cel-view-btn i { color: #ffffff !important; }
+    .cel-empty-card { text-align: center; padding: 3rem; }
+    .cel-empty-icon { font-size: 3rem; color: #ddd; margin-bottom: 1rem; }
+    .cel-empty-text { color: var(--text-muted); }
+</style>
+
+<div class="list-container">
+    <div class="modern-card cel-filter-card">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Células</h3>
+        <form action="/tibl/buscacelulas" method="GET" class="cel-filter-form">
+            <div>
+                <label class="cel-filter-label" for="filtro_nome">Nome da Célula</label>
+                <input id="filtro_nome" type="text" name="nomev" class="cel-filter-control" placeholder="Ex: Célula Betel...">
+            </div>
+            <div>
+                <label class="cel-filter-label" for="filtro_lider">Líder</label>
+                <input id="filtro_lider" type="text" name="liderv" class="cel-filter-control" placeholder="Nome do líder...">
+            </div>
+            <div>
+                <label class="cel-filter-label" for="filtro_local">Local de Reunião</label>
+                <input id="filtro_local" type="text" name="localv" class="cel-filter-control" placeholder="Local...">
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary cel-filter-btn">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </form>
+    </div>
+
+    <div class="cel-header">
+        <div>
+            <h2 class="cel-header-title"><i class="fas fa-users mr-2"></i> Células</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão dos grupos de comunhão e discipulado.</p>
+        </div>
+        {% if perms.sitetibl.add_celula %}
+        <a href="/tibl/celulas/criar/" class="bt-primary cel-header-new">
+            <i class="fas fa-plus"></i> Nova Célula
+        </a>
+        {% endif %}
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Designação</th>
+                    <th>Líder</th>
+                    <th>Dia / Hora</th>
+                    <th>Local</th>
+                    <th class="cel-td-center">Relatórios</th>
+                    <th class="cel-td-right">Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div class="cel-name">
+                            <i class="fas fa-users-cog" style="margin-right: 0.5rem; opacity: 0.5;"></i> {{ x.designacao }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if x.lider %}
+                        <div class="cel-leader">{{ x.lider.nome }} {{ x.lider.apelido }}</div>
+                        {% else %}
+                        <div class="cel-empty-leader">Não definido</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if x.dia_reuniao %}
+                        <span class="cel-day-badge">{{ x.get_dia_reuniao_display }}</span>
+                        {% endif %}
+                        {% if x.hora_reuniao %}
+                        <span style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 0.3rem;">{{ x.hora_reuniao|time:"H:i" }}</span>
+                        {% endif %}
+                        {% if not x.dia_reuniao and not x.hora_reuniao %}
+                        <span class="cel-empty-leader">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if x.local_reuniao %}
+                        <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                            <i class="fas fa-map-marker-alt" style="font-size: 0.75rem; margin-right: 0.3rem; color: var(--primary);"></i>
+                            {{ x.local_reuniao }}
+                        </span>
+                        {% else %}
+                        <span class="cel-empty-leader">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="cel-td-center">
+                        <span class="cel-count">{{ x.total_relatorios|default:"0" }}</span>
+                    </td>
+                    <td class="cel-td-right">
+                        <a href="/tibl/celulas/detalhe/{{ x.id }}" class="bt-primary cel-view-btn">
+                            <i class="fas fa-eye"></i> Ver Detalhes
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card cel-empty-card">
+        <i class="fas fa-users cel-empty-icon"></i>
+        <p class="cel-empty-text">Nenhuma célula registada no sistema.</p>
+        {% if perms.sitetibl.add_celula %}
+        <a href="/tibl/celulas/criar/" class="bt-primary" style="margin-top: 1rem;">
+            <i class="fas fa-plus"></i> Criar a primeira célula
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

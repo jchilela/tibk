@@ -34,6 +34,7 @@ from sitetibl.models import RelatorioSemanalCelula
 from sitetibl.models import PedidoSaida
 from sitetibl.models import MomentosRealizados
 from sitetibl.models import Tipo_Celula
+from sitetibl.models import Celula
 from sitetibl.models import Centro_Custo
 from sitetibl.models import Tipificacao_Custo
 from sitetibl.models import Status_Aprovacao
@@ -85,6 +86,7 @@ admin.site.register(Tipoajuda)
 admin.site.register(PedidoSaida)
 admin.site.register(MomentosRealizados)
 admin.site.register(Tipo_Celula)
+admin.site.register(Celula)
 admin.site.register(Centro_Custo)
 admin.site.register(Tipificacao_Custo)
 admin.site.register(Status_Aprovacao)

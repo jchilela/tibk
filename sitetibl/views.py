@@ -72,6 +72,7 @@ from sitetibl.models import Gruporubrica
 from sitetibl.models import Servico
 from sitetibl.models import Tipoajuda
 from sitetibl.models import RelatorioSemanalCelula
+from sitetibl.models import Celula
 from sitetibl.models import PedidoSaida
 from sitetibl.models import Status_Aprovacao
 from sitetibl.models import Anuncio
@@ -100,6 +101,7 @@ from sitetibl.forms import PagamentoservicoForm
 from sitetibl.forms import GruporubricaForm
 from sitetibl.forms import ServicoForm
 from sitetibl.forms import RelatorioSemanalCelulaForm
+from sitetibl.forms import CelulaForm
 from sitetibl.forms import PedidoSaidaForm
 from sitetibl.forms import PedidoSaidaUpdateForm
 from sitetibl.forms import OrcamentoDepartamentoForm
@@ -185,7 +187,8 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'entradascaixa' : Entradacaixa.objects.select_related('responsavel', 'rubrica'), 
              'saidascaixa' : Saidacaixa.objects.select_related('responsavel', 'rubrica'), 
              'dizimosofertas' : Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade'),
-             'relatoriosemanalcelula' : RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel'), 
+             'relatoriosemanalcelula' : RelatorioSemanalCelula.objects.select_related('celula', 'nome_celula', 'lider_responsavel'), 
+             'celulas' : Celula.objects.select_related('lider', 'vice_lider'),
              'pedidosaida' : PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador'),
              'orcamentodepartamento': OrcamentoDepartamento.objects.select_related('departamento', 'moeda'),
              'inventariopatrimonio': InventarioPatrimonio.objects.select_related('categoria_patrimonio', 'responsavel', 'estado'),
@@ -269,6 +272,15 @@ def mostraGestao(request,gestaoescolhida,pagina):
         if _do_tipov != '0':
             _do_qs = _do_qs.filter(tipooferta_id=_do_tipov)
         resultado = _do_qs.order_by('-datacorrespondente', 'id')
+    elif gestaoescolhida == 'celulas':
+        resultado = (
+            lista[gestaoescolhida]
+            .filter(activa=True)
+            .annotate(
+                total_relatorios=Count('relatorios', distinct=True),
+            )
+            .order_by('designacao')
+        )
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
@@ -370,6 +382,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
              'saidascaixa' : Saidacaixa, 
              'dizimosofertas' : Dizimooferta,
              'relatoriosemanalcelula' : RelatorioSemanalCelula, 
+             'celulas' : Celula,
              'pedidosaida' : PedidoSaida,
              'orcamentodepartamento': OrcamentoDepartamento,
              'inventariopatrimonio': InventarioPatrimonio,
@@ -393,6 +406,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'saidascaixa' : SaidacaixaForm, 
                         'dizimosofertas' : DizimoofertaForm, 
                         'relatoriosemanalcelula' : RelatorioSemanalCelulaForm,
+                        'celulas' : CelulaForm,
                         'pedidosaida' : PedidoSaidaUpdateForm,
                         'orcamentodepartamento' : OrcamentoDepartamentoForm,
                         'inventariopatrimonio': InventarioPatrimonioForm,
@@ -504,7 +518,8 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         'entradascaixa': Entradacaixa.objects.select_related('responsavel', 'rubrica'),
         'saidascaixa': Saidacaixa.objects.select_related('responsavel', 'rubrica'),
         'dizimosofertas': Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade'),
-        'relatoriosemanalcelula': RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel'),
+        'relatoriosemanalcelula': RelatorioSemanalCelula.objects.select_related('celula', 'nome_celula', 'lider_responsavel'),
+        'celulas': Celula.objects.select_related('lider', 'vice_lider'),
         'pedidosaida': PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador'),
         'orcamentodepartamento': OrcamentoDepartamento.objects.select_related('departamento', 'moeda'),
         'inventariopatrimonio': InventarioPatrimonio.objects.select_related('categoria_patrimonio', 'responsavel', 'estado'),
@@ -1010,6 +1025,21 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'gestaoescolhida': gestaoescolhida,
             'pode_aprovar': pode_aprovar,
         }
+    elif gestaoescolhida == 'celulas':
+        membros_celula = Irmao.objects.filter(celula__designacao=registo.designacao).select_related('provincia', 'municipio').order_by('nome', 'apelido')
+        relatorios_celula = RelatorioSemanalCelula.objects.filter(
+            Q(celula=registo) | Q(nome_celula__designacao=registo.designacao)
+        ).select_related('lider_responsavel').order_by('-data_reuniao')[:10]
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'membros_celula': membros_celula,
+            'relatorios_celula': relatorios_celula,
+            'total_membros': membros_celula.count(),
+            'total_relatorios': RelatorioSemanalCelula.objects.filter(
+                Q(celula=registo) | Q(nome_celula__designacao=registo.designacao)
+            ).count(),
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
@@ -1029,6 +1059,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'saidascaixa' : Saidacaixa, 
              'dizimosofertas' : Dizimooferta,
              'relatoriosemanalcelula' : RelatorioSemanalCelula, 
+             'celulas' : Celula,
              'pedidosaida' : PedidoSaida,
              'orcamentodepartamento': OrcamentoDepartamento,
              'inventariopatrimonio': InventarioPatrimonio,
@@ -1101,6 +1132,7 @@ def mostraCriacao(request, gestaoescolhida):
                         'saidascaixa' : SaidacaixaForm, 
                         'dizimosofertas' : DizimoofertaForm,
                         'relatoriosemanalcelula' : RelatorioSemanalCelulaForm, 
+                        'celulas' : CelulaForm,
                         'pedidosaida':PedidoSaidaForm,
                         'orcamentodepartamento':OrcamentoDepartamentoForm,
                         'inventariopatrimonio': InventarioPatrimonioForm,
@@ -1250,6 +1282,27 @@ def encontraRelatorioSemanalCelula(request):
     cc = request.META['QUERY_STRING']
 
     return render(request,'relatoriosemanalcelulafiltrados.html', {'bb': paginaresultado, 'dd': cc[:-1] })
+
+@login_required
+def encontraCelulas(request):
+    nomev = request.GET.get('nomev', '')
+    liderv = request.GET.get('liderv', '')
+    localv = request.GET.get('localv', '')
+    pagina = request.GET.get('pagina', 1)
+    kwargs = {}
+    if nomev:
+        kwargs['designacao__icontains'] = nomev
+    if liderv:
+        kwargs['lider__nome__icontains'] = liderv
+    if localv:
+        kwargs['local_reuniao__icontains'] = localv
+    resultado = Celula.objects.select_related('lider', 'vice_lider').filter(activa=True, **kwargs).annotate(
+        total_relatorios=Count('relatorios', distinct=True),
+    ).order_by('designacao')
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    cc = request.META['QUERY_STRING']
+    return render(request, 'celulasfiltradas.html', {'bb': paginaresultado, 'dd': cc})
 
 @login_required
 def encontraPedidoSaida(request):

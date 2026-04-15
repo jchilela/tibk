@@ -64,6 +64,36 @@ class Tipo_Celula(models.Model):
     designacao = models.CharField(max_length = 200)
     def __str__(self):
         return self.designacao
+
+DIAS_REUNIAO = (
+    ('segunda', 'Segunda-feira'),
+    ('terca', 'Terça-feira'),
+    ('quarta', 'Quarta-feira'),
+    ('quinta', 'Quinta-feira'),
+    ('sexta', 'Sexta-feira'),
+    ('sabado', 'Sábado'),
+    ('domingo', 'Domingo'),
+)
+
+class Celula(models.Model):
+    designacao = models.CharField('Designação', max_length=200, unique=True)
+    lider = models.ForeignKey('Irmao', verbose_name='Líder', blank=True, null=True, on_delete=models.SET_NULL, related_name='celula_lider')
+    vice_lider = models.ForeignKey('Irmao', verbose_name='Vice-Líder', blank=True, null=True, on_delete=models.SET_NULL, related_name='celula_vice_lider')
+    local_reuniao = models.CharField('Local de Reunião', max_length=200, blank=True)
+    dia_reuniao = models.CharField('Dia de Reunião', max_length=10, choices=DIAS_REUNIAO, blank=True)
+    hora_reuniao = models.TimeField('Hora de Reunião', blank=True, null=True)
+    descricao = models.TextField('Descrição', blank=True)
+    activa = models.BooleanField('Activa', default=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Célula'
+        verbose_name_plural = 'Células'
+        ordering = ['designacao']
+
+    def __str__(self):
+        return self.designacao
     
 class Centro_Custo(models.Model):
     designacao = models.CharField(max_length = 200)
@@ -608,6 +638,7 @@ class InventarioPatrimonio(models.Model):
 
 
 class RelatorioSemanalCelula(models.Model):
+    celula = models.ForeignKey(Celula, verbose_name='Célula', blank=True, null=True, on_delete=models.CASCADE, related_name='relatorios')
     nome_celula = models.ForeignKey(Tipo_Celula, blank=True, null=True, on_delete=models.CASCADE)
     lider_responsavel = models.ForeignKey(Irmao, blank = True, null = True, on_delete = models.CASCADE)
     local_reuniao = models.CharField(max_length=50)
@@ -626,7 +657,11 @@ class RelatorioSemanalCelula(models.Model):
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
     def __str__(self):
-         return '%s' % (self.nome_celula1.designacao)
+         if self.celula:
+             return self.celula.designacao
+         if self.nome_celula:
+             return self.nome_celula.designacao
+         return f'Relatório #{self.pk}'
     
 
 class PedidoSaida(models.Model):

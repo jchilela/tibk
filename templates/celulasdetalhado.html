@@ -1,0 +1,260 @@
+{% extends 'index.html' %}
+{% block celulasdetalhe %}
+
+<style>
+    .cel-det-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+    }
+    .cel-det-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.6rem;
+        color: var(--text-main);
+    }
+    .cel-det-actions { display: flex; gap: 0.5rem; }
+    .cel-det-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        text-decoration: none;
+    }
+    .cel-det-btn-edit { background: var(--primary-light); color: white !important; }
+    .cel-det-btn-edit:hover { opacity: 0.9; }
+    .cel-det-btn-del { background: #ef4444; color: white !important; }
+    .cel-det-btn-del:hover { background: #dc2626; }
+    .cel-det-btn-back { background: #64748b; color: white !important; }
+    .cel-det-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    .cel-det-info-item {}
+    .cel-det-info-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.3rem;
+    }
+    .cel-det-info-value {
+        font-size: 1rem;
+        color: var(--text-main);
+        font-weight: 500;
+    }
+    .cel-det-section-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.15rem;
+        color: var(--text-main);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-50);
+    }
+    .cel-det-member-card {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: #f8fafc;
+        border-radius: var(--radius-sm);
+        margin-bottom: 0.5rem;
+    }
+    .cel-det-member-name { font-weight: 500; color: var(--text-main); }
+    .cel-det-member-role {
+        font-size: 0.75rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        margin-left: 0.5rem;
+    }
+    .cel-det-role-lider { background: #dbeafe; color: #1d4ed8; }
+    .cel-det-role-vice { background: #fef3c7; color: #92400e; }
+    .cel-det-empty { color: var(--text-muted); text-align: center; padding: 2rem; }
+    .cel-det-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .cel-det-stat-card {
+        text-align: center;
+        padding: 1rem;
+        background: #f1f5f9;
+        border-radius: var(--radius-sm);
+    }
+    .cel-det-stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+    .cel-det-stat-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+</style>
+
+<div class="list-container">
+    <div class="cel-det-header">
+        <div>
+            <a href="/tibl/celulas/1" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Voltar à lista
+            </a>
+            <h2 class="cel-det-title" style="margin-top: 0.5rem;">
+                <i class="fas fa-users-cog" style="margin-right: 0.5rem; opacity: 0.6;"></i>
+                {{ bb.designacao }}
+            </h2>
+        </div>
+        <div class="cel-det-actions">
+            {% if perms.sitetibl.change_celula %}
+            <a href="/tibl/celulas/actualizar/{{ bb.id }}" class="cel-det-btn cel-det-btn-edit">
+                <i class="fas fa-pen"></i> Editar
+            </a>
+            {% endif %}
+            {% if perms.sitetibl.delete_celula %}
+            <a href="/tibl/celulas/eliminar/{{ bb.id }}" class="cel-det-btn cel-det-btn-del">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="cel-det-stat-grid">
+        <div class="cel-det-stat-card">
+            <div class="cel-det-stat-number">{{ membros_celula|length }}</div>
+            <div class="cel-det-stat-label">Membros</div>
+        </div>
+        <div class="cel-det-stat-card">
+            <div class="cel-det-stat-number">{{ total_relatorios }}</div>
+            <div class="cel-det-stat-label">Relatórios</div>
+        </div>
+    </div>
+
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 class="cel-det-section-title"><i class="fas fa-info-circle mr-2"></i> Informações da Célula</h3>
+        <div class="cel-det-info-grid">
+            <div class="cel-det-info-item">
+                <div class="cel-det-info-label">Designação</div>
+                <div class="cel-det-info-value">{{ bb.designacao }}</div>
+            </div>
+            <div class="cel-det-info-item">
+                <div class="cel-det-info-label">Líder</div>
+                <div class="cel-det-info-value">
+                    {% if bb.lider %}{{ bb.lider.nome }} {{ bb.lider.apelido }}{% else %}Não definido{% endif %}
+                </div>
+            </div>
+            <div class="cel-det-info-item">
+                <div class="cel-det-info-label">Vice-Líder</div>
+                <div class="cel-det-info-value">
+                    {% if bb.vice_lider %}{{ bb.vice_lider.nome }} {{ bb.vice_lider.apelido }}{% else %}Não definido{% endif %}
+                </div>
+            </div>
+            <div class="cel-det-info-item">
+                <div class="cel-det-info-label">Dia de Reunião</div>
+                <div class="cel-det-info-value">
+                    {% if bb.dia_reuniao %}{{ bb.get_dia_reuniao_display }}{% else %}Não definido{% endif %}
+                </div>
+            </div>
+            <div class="cel-det-info-item">
+                <div class="cel-det-info-label">Hora de Reunião</div>
+                <div class="cel-det-info-value">
+                    {% if bb.hora_reuniao %}{{ bb.hora_reuniao|time:"H:i" }}{% else %}Não definida{% endif %}
+                </div>
+            </div>
+            <div class="cel-det-info-item">
+                <div class="cel-det-info-label">Local de Reunião</div>
+                <div class="cel-det-info-value">
+                    {% if bb.local_reuniao %}{{ bb.local_reuniao }}{% else %}Não definido{% endif %}
+                </div>
+            </div>
+            <div class="cel-det-info-item">
+                <div class="cel-det-info-label">Estado</div>
+                <div class="cel-det-info-value">
+                    {% if bb.activa %}
+                    <span style="color: #16a34a;"><i class="fas fa-check-circle"></i> Activa</span>
+                    {% else %}
+                    <span style="color: #dc2626;"><i class="fas fa-times-circle"></i> Inactiva</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="cel-det-info-item">
+                <div class="cel-det-info-label">Data de Criação</div>
+                <div class="cel-det-info-value">{{ bb.data_criacao|date:"d/m/Y" }}</div>
+            </div>
+        </div>
+        {% if bb.descricao %}
+        <div style="margin-top: 1.5rem;">
+            <div class="cel-det-info-label">Descrição</div>
+            <div class="cel-det-info-value" style="font-weight: 400;">{{ bb.descricao }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 class="cel-det-section-title"><i class="fas fa-user-friends mr-2"></i> Membros ({{ total_membros }})</h3>
+        {% if membros_celula %}
+            {% for m in membros_celula %}
+            <div class="cel-det-member-card">
+                <i class="fas fa-user" style="margin-right: 0.8rem; color: var(--primary); opacity: 0.6;"></i>
+                <span class="cel-det-member-name">{{ m.nome }} {{ m.apelido }}</span>
+                {% if bb.lider and m.id == bb.lider.id %}
+                <span class="cel-det-member-role cel-det-role-lider">Líder</span>
+                {% elif bb.vice_lider and m.id == bb.vice_lider.id %}
+                <span class="cel-det-member-role cel-det-role-vice">Vice-Líder</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="cel-det-empty">
+            <i class="fas fa-user-slash" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+            Nenhum membro associado a esta célula.
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="modern-card">
+        <h3 class="cel-det-section-title"><i class="fas fa-clipboard-list mr-2"></i> Relatórios Semanais ({{ total_relatorios }})</h3>
+        {% if relatorios_celula %}
+        <div class="modern-table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tema</th>
+                        <th>Líder Responsável</th>
+                        <th style="text-align: center;">Presentes</th>
+                        <th style="text-align: right;">Acções</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in relatorios_celula %}
+                    <tr>
+                        <td>{{ r.data_reuniao|date:"d/m/Y" }}</td>
+                        <td>{{ r.tema_palavra|default:"—" }}</td>
+                        <td>
+                            {% if r.lider_responsavel %}{{ r.lider_responsavel.nome }} {{ r.lider_responsavel.apelido }}{% else %}—{% endif %}
+                        </td>
+                        <td style="text-align: center;">{{ r.presentes_total|default:"—" }}</td>
+                        <td style="text-align: right;">
+                            <a href="/tibl/relatoriosemanalcelula/detalhe/{{ r.id }}" class="bt-primary cel-det-btn cel-det-btn-edit" style="font-size: 0.75rem;">
+                                <i class="fas fa-eye"></i> Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="cel-det-empty">
+            <i class="fas fa-clipboard" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+            Nenhum relatório semanal registado para esta célula.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
