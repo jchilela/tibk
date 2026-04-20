@@ -236,6 +236,11 @@
                 </a>
                 {% endif %}
 
+                <a href="{% url 'documentacao' path='' %}"
+                    class="nav-item {% if '/documentacao/' in request.path %}active{% endif %}">
+                    <i class="fas fa-book-open fa-fw"></i> Documentação
+                </a>
+
             </nav>
 
             <div style="padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08);">

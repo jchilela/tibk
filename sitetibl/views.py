@@ -25,7 +25,7 @@ from reportlab.lib import colors
 import os
 from django.contrib.auth.decorators import login_required
 
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import TruncMonth, ExtractDay
 import json
 from django.http import JsonResponse
 from django.utils.timezone import now
@@ -3575,8 +3575,30 @@ def dashboard(request):
     aniversariantes = (
         Irmao.objects
         .filter(datanascimento__month=hoje.month)
-        .order_by('datanascimento__day')[:10]
+        .annotate(
+            aniversario_dia=ExtractDay('datanascimento'),
+            aniversario_ja_passou=Case(
+                When(datanascimento__day__lt=hoje.day, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            ),
+        )
+        .order_by('aniversario_ja_passou', 'aniversario_dia', 'nome', 'apelido')[:10]
     )
+
+    # Alertas de aniversário de hoje
+    aniversarios_alerta = []
+    aniversariantes_hoje = Irmao.objects.filter(
+        datanascimento__month=hoje.month,
+        datanascimento__day=hoje.day,
+    )
+    for a in aniversariantes_hoje:
+        prefixo = 'da irmã' if a.sexo == 'F' else 'do irmão'
+        aniversarios_alerta.append({
+            'tipo': 'today',
+            'mensagem': f'🎂 Hoje é aniversário {prefixo} {a.nome} {a.apelido}!',
+            'data_iso': hoje.isoformat(),
+        })
 
     # --- Dados financeiros (passados apenas se utilizador tem permissão) ---
     pedidos_pendentes = None
@@ -3611,6 +3633,7 @@ def dashboard(request):
         'proximas_actividades': proximas_actividades,
         'minhas_escalas': minhas_escalas_list,
         'aniversariantes': aniversariantes,
+        'aniversarios_alerta': aniversarios_alerta,
         'pedidos_pendentes': pedidos_pendentes,
         'saldos_bancarios': saldos_bancarios,
         'total_membros': total_membros,
