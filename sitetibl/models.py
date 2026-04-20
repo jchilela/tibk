@@ -790,6 +790,25 @@ class HistoricoSolicitacao(models.Model):
         return f'{self.solicitacao.assunto}: {self.estado_anterior} → {self.estado_novo}'
 
 
+class ComentarioSolicitacao(models.Model):
+    solicitacao = models.ForeignKey(
+        SolicitacaoInterdepartamental, on_delete=models.CASCADE,
+        related_name='comentarios',
+    )
+    autor = models.ForeignKey(Irmao, on_delete=models.CASCADE, verbose_name='Autor')
+    texto = models.TextField('Comentário')
+    anexo = models.FileField('Anexo', upload_to='solicitacoes/comentarios/', blank=True)
+    data = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['data']
+        verbose_name = 'Comentário de Solicitação'
+        verbose_name_plural = 'Comentários de Solicitação'
+
+    def __str__(self):
+        return f'{self.autor} — {self.solicitacao.assunto}'
+
+
 class NotificacaoSistema(models.Model):
     destinatario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificacoes')
     titulo = models.CharField('Título', max_length=200)

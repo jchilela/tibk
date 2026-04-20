@@ -48,6 +48,7 @@ from sitetibl.models import Municipio
 from sitetibl.models import SolicitacaoInterdepartamental
 from sitetibl.models import HistoricoSolicitacao
 from sitetibl.models import NotificacaoSistema
+from sitetibl.models import ComentarioSolicitacao
 from .forms import IrmaoForm
 
 @admin.register(Irmao)
@@ -100,6 +101,7 @@ admin.site.register(TipoOferta)
 admin.site.register(SolicitacaoInterdepartamental)
 admin.site.register(HistoricoSolicitacao)
 admin.site.register(NotificacaoSistema)
+admin.site.register(ComentarioSolicitacao)
 
 
 class MunicipioInline(admin.TabularInline):

@@ -81,6 +81,7 @@ from sitetibl.models import Status_Aprovacao
 from sitetibl.models import Anuncio
 from sitetibl.models import SolicitacaoInterdepartamental
 from sitetibl.models import HistoricoSolicitacao
+from sitetibl.models import ComentarioSolicitacao
 from sitetibl.models import NotificacaoSistema
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
@@ -228,6 +229,81 @@ def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_a
         logger.info('Emails de solicitação #%s enviados para %s', solicitacao.id, emails_to)
     except Exception as e:
         logger.error('Falha ao enviar emails de solicitação #%s: %s', solicitacao.id, e)
+
+
+def _notificar_comentario_solicitacao(solicitacao, autor, texto):
+    """Cria notificação in-app e envia email quando alguém comenta numa solicitação."""
+    url = reverse('sitetibl:mostra_detalhe', args=['solicitacoes', solicitacao.id])
+    titulo = f'Novo comentário — Solicitação #{solicitacao.id}'
+    mensagem = f'{autor.nome} {autor.apelido} comentou na solicitação "{solicitacao.assunto}": {texto[:100]}'
+
+    # Recolher todos os líderes envolvidos
+    destinatarios = set()
+    if solicitacao.solicitante and solicitacao.solicitante.user_id:
+        destinatarios.add(solicitacao.solicitante.user_id)
+    dept_dest = solicitacao.departamento_destinatario
+    if dept_dest:
+        if dept_dest.lider_departamento and dept_dest.lider_departamento.user_id:
+            destinatarios.add(dept_dest.lider_departamento.user_id)
+        if dept_dest.vice_lider_departamento and dept_dest.vice_lider_departamento.user_id:
+            destinatarios.add(dept_dest.vice_lider_departamento.user_id)
+    dept_sol = solicitacao.departamento_solicitante
+    if dept_sol:
+        if dept_sol.lider_departamento and dept_sol.lider_departamento.user_id:
+            destinatarios.add(dept_sol.lider_departamento.user_id)
+        if dept_sol.vice_lider_departamento and dept_sol.vice_lider_departamento.user_id:
+            destinatarios.add(dept_sol.vice_lider_departamento.user_id)
+
+    # Excluir o autor do comentário
+    if autor.user_id:
+        destinatarios.discard(autor.user_id)
+
+    # Notificações in-app
+    notifs = [
+        NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
+        for uid in destinatarios
+    ]
+    if notifs:
+        NotificacaoSistema.objects.bulk_create(notifs)
+
+    # Email
+    if not destinatarios:
+        return
+    users = User.objects.filter(id__in=destinatarios, email__gt='').select_related()
+    emails_to = [u.email for u in users if u.email]
+    if not emails_to:
+        return
+
+    ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
+    context = {
+        'titulo': titulo,
+        'mensagem': mensagem,
+        'novo_estado': solicitacao.estado,
+        'estado_display': ESTADO_LABELS.get(solicitacao.estado, solicitacao.estado),
+        'assunto': solicitacao.assunto,
+        'categoria': solicitacao.get_categoria_display(),
+        'dept_solicitante': str(solicitacao.departamento_solicitante),
+        'dept_destinatario': str(solicitacao.departamento_destinatario),
+        'prioridade': solicitacao.get_prioridade_display(),
+        'data_necessidade': solicitacao.data_necessidade.strftime('%d/%m/%Y') if solicitacao.data_necessidade else '',
+        'observacao': texto,
+        'responsavel': f'{autor.nome} {autor.apelido}',
+    }
+    try:
+        html_content = render_to_string('emails/email_solicitacao_estado.html', context)
+        for email_addr in emails_to:
+            msg = EmailMultiAlternatives(
+                subject=titulo,
+                body=mensagem,
+                from_email=None,
+                to=[email_addr],
+            )
+            msg.attach_alternative(html_content, 'text/html')
+            msg.send()
+        logger.info('Emails de comentário solicitação #%s enviados para %s', solicitacao.id, emails_to)
+    except Exception as e:
+        logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
+
 
 def comeco(request):
     return render(request, 'index.html')
@@ -1137,80 +1213,102 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         irmao_logado = Irmao.objects.filter(user=request.user).first()
         pode_responder = request.user.has_perm('sitetibl.change_solicitacaointerdepartamental')
         historico = HistoricoSolicitacao.objects.filter(solicitacao=registo).select_related('responsavel').order_by('data')
+        comentarios = ComentarioSolicitacao.objects.filter(solicitacao=registo).select_related('autor').order_by('data')
 
-        if request.method == 'POST' and pode_responder:
+        if request.method == 'POST':
             action = request.POST.get('action', '').strip()
-            estado_anterior = registo.estado
-            anexo = request.FILES.get('documento_anexo')
 
-            if action == 'em_analise' and registo.pode_transitar_para('em_analise'):
-                registo.estado = 'em_analise'
-                registo.save(update_fields=['estado', 'data_atualizacao'])
-                HistoricoSolicitacao.objects.create(
-                    solicitacao=registo, estado_anterior=estado_anterior,
-                    estado_novo='em_analise', responsavel=irmao_logado,
-                    documento_anexo=anexo or '',
-                )
-                _notificar_solicitacao(registo, estado_anterior, 'em_analise', irmao_logado)
-                messages.info(request, 'Solicitação marcada como "Em Análise".')
-
-            elif action == 'aprovar' and registo.pode_transitar_para('aprovado'):
-                obs = request.POST.get('justificacao', '').strip()
-                registo.estado = 'aprovado'
-                registo.responsavel_resposta = irmao_logado
-                registo.justificacao_resposta = obs
-                registo.data_resposta = now()
-                registo.save()
-                HistoricoSolicitacao.objects.create(
-                    solicitacao=registo, estado_anterior=estado_anterior,
-                    estado_novo='aprovado', responsavel=irmao_logado, observacao=obs,
-                    documento_anexo=anexo or '',
-                )
-                _notificar_solicitacao(registo, estado_anterior, 'aprovado', irmao_logado)
-                messages.success(request, 'Solicitação aprovada com sucesso.')
-
-            elif action == 'rejeitar' and registo.pode_transitar_para('rejeitado'):
-                obs = request.POST.get('justificacao', '').strip()
-                if not obs:
-                    messages.error(request, 'É obrigatório indicar o motivo da rejeição.')
+            # Comentário — qualquer utilizador com view permission pode comentar
+            if action == 'comentar' and irmao_logado:
+                texto = request.POST.get('comentario_texto', '').strip()
+                if texto:
+                    anexo_coment = request.FILES.get('comentario_anexo')
+                    ComentarioSolicitacao.objects.create(
+                        solicitacao=registo, autor=irmao_logado,
+                        texto=texto, anexo=anexo_coment or '',
+                    )
+                    _notificar_comentario_solicitacao(registo, irmao_logado, texto)
+                    messages.success(request, 'Comentário adicionado.')
                 else:
-                    registo.estado = 'rejeitado'
+                    messages.error(request, 'O comentário não pode estar vazio.')
+                return HttpResponseRedirect(
+                    reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+                )
+
+            # Transições de estado — requer permissão change
+            if pode_responder:
+                estado_anterior = registo.estado
+                anexo = request.FILES.get('documento_anexo')
+
+                if action == 'em_analise' and registo.pode_transitar_para('em_analise'):
+                    registo.estado = 'em_analise'
+                    registo.save(update_fields=['estado', 'data_atualizacao'])
+                    HistoricoSolicitacao.objects.create(
+                        solicitacao=registo, estado_anterior=estado_anterior,
+                        estado_novo='em_analise', responsavel=irmao_logado,
+                        documento_anexo=anexo or '',
+                    )
+                    _notificar_solicitacao(registo, estado_anterior, 'em_analise', irmao_logado)
+                    messages.info(request, 'Solicitação marcada como "Em Análise".')
+
+                elif action == 'aprovar' and registo.pode_transitar_para('aprovado'):
+                    obs = request.POST.get('justificacao', '').strip()
+                    registo.estado = 'aprovado'
                     registo.responsavel_resposta = irmao_logado
                     registo.justificacao_resposta = obs
                     registo.data_resposta = now()
                     registo.save()
                     HistoricoSolicitacao.objects.create(
                         solicitacao=registo, estado_anterior=estado_anterior,
-                        estado_novo='rejeitado', responsavel=irmao_logado, observacao=obs,
+                        estado_novo='aprovado', responsavel=irmao_logado, observacao=obs,
                         documento_anexo=anexo or '',
                     )
-                    _notificar_solicitacao(registo, estado_anterior, 'rejeitado', irmao_logado)
-                    messages.success(request, 'Solicitação rejeitada.')
+                    _notificar_solicitacao(registo, estado_anterior, 'aprovado', irmao_logado)
+                    messages.success(request, 'Solicitação aprovada com sucesso.')
 
-            elif action == 'concluir' and registo.pode_transitar_para('concluido'):
-                obs = request.POST.get('justificacao', '').strip()
-                registo.estado = 'concluido'
-                registo.data_conclusao = now()
-                registo.save()
-                HistoricoSolicitacao.objects.create(
-                    solicitacao=registo, estado_anterior=estado_anterior,
-                    estado_novo='concluido', responsavel=irmao_logado, observacao=obs,
-                    documento_anexo=anexo or '',
+                elif action == 'rejeitar' and registo.pode_transitar_para('rejeitado'):
+                    obs = request.POST.get('justificacao', '').strip()
+                    if not obs:
+                        messages.error(request, 'É obrigatório indicar o motivo da rejeição.')
+                    else:
+                        registo.estado = 'rejeitado'
+                        registo.responsavel_resposta = irmao_logado
+                        registo.justificacao_resposta = obs
+                        registo.data_resposta = now()
+                        registo.save()
+                        HistoricoSolicitacao.objects.create(
+                            solicitacao=registo, estado_anterior=estado_anterior,
+                            estado_novo='rejeitado', responsavel=irmao_logado, observacao=obs,
+                            documento_anexo=anexo or '',
+                        )
+                        _notificar_solicitacao(registo, estado_anterior, 'rejeitado', irmao_logado)
+                        messages.success(request, 'Solicitação rejeitada.')
+
+                elif action == 'concluir' and registo.pode_transitar_para('concluido'):
+                    obs = request.POST.get('justificacao', '').strip()
+                    registo.estado = 'concluido'
+                    registo.data_conclusao = now()
+                    registo.save()
+                    HistoricoSolicitacao.objects.create(
+                        solicitacao=registo, estado_anterior=estado_anterior,
+                        estado_novo='concluido', responsavel=irmao_logado, observacao=obs,
+                        documento_anexo=anexo or '',
+                    )
+                    _notificar_solicitacao(registo, estado_anterior, 'concluido', irmao_logado)
+                    messages.success(request, 'Solicitação concluída.')
+                else:
+                    messages.error(request, 'Transição de estado inválida.')
+
+                return HttpResponseRedirect(
+                    reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
                 )
-                _notificar_solicitacao(registo, estado_anterior, 'concluido', irmao_logado)
-                messages.success(request, 'Solicitação concluída.')
-            else:
-                messages.error(request, 'Transição de estado inválida.')
-
-            return HttpResponseRedirect(
-                reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
-            )
 
         context = {
             'registoachado': registoachado,
             'gestaoescolhida': gestaoescolhida,
             'pode_responder': pode_responder,
             'historico': historico,
+            'comentarios': comentarios,
         }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
