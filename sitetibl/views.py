@@ -1303,14 +1303,16 @@ def mostraCriacao(request, gestaoescolhida):
             # 📋 Solicitação Interdepartamental: auto-preencher solicitante e dept
             if gestaoescolhida == 'solicitacoes':
                 irmao_sol = Irmao.objects.filter(user=request.user).first()
-                if irmao_sol:
-                    obj.solicitante = irmao_sol
-                    if not obj.departamento_solicitante_id:
-                        depts = Departamento.objects.filter(
-                            Q(lider_departamento=irmao_sol) | Q(vice_lider_departamento=irmao_sol)
-                        )
-                        if depts.count() == 1:
-                            obj.departamento_solicitante = depts.first()
+                if not irmao_sol:
+                    messages.error(request, 'O seu utilizador não está associado a nenhum registo de Irmão. Contacte o administrador.')
+                    return render(request, gestaoescolhida + '.html', {'formulario': formulario, 'is_update': False})
+                obj.solicitante = irmao_sol
+                if not obj.departamento_solicitante_id:
+                    depts = Departamento.objects.filter(
+                        Q(lider_departamento=irmao_sol) | Q(vice_lider_departamento=irmao_sol)
+                    )
+                    if depts.count() == 1:
+                        obj.departamento_solicitante = depts.first()
                 obj.estado = 'pendente'
 
             obj.save()
