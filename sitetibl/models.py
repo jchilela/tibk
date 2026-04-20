@@ -778,6 +778,7 @@ class HistoricoSolicitacao(models.Model):
     estado_novo = models.CharField('Estado Novo', max_length=20, choices=SolicitacaoInterdepartamental.ESTADO_CHOICES)
     responsavel = models.ForeignKey(Irmao, on_delete=models.CASCADE, verbose_name='Responsável')
     observacao = models.TextField('Observação', blank=True)
+    documento_anexo = models.FileField('Documento Anexo', upload_to='solicitacoes/historico/', blank=True)
     data = models.DateTimeField(auto_now_add=True)
 
     class Meta:

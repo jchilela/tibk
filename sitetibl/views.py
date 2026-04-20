@@ -33,6 +33,10 @@ from .signals import notificar_mudanca_estado_pedido, _atribuir_grupos_irmao, _e
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from collections import OrderedDict
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+import logging
+logger = logging.getLogger(__name__)
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
 from rest_framework.views import APIView
@@ -140,9 +144,10 @@ TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Cas
 
 
 def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel):
-    """Cria NotificacaoSistema para os envolvidos na mudança de estado."""
+    """Cria NotificacaoSistema e envia email para os envolvidos na mudança de estado."""
     ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
     label_novo = ESTADO_LABELS.get(estado_novo, estado_novo)
+    label_anterior = ESTADO_LABELS.get(estado_anterior, estado_anterior)
     url = reverse('sitetibl:mostra_detalhe', args=['solicitacoes', solicitacao.id])
     titulo = f'Solicitação #{solicitacao.id} — {label_novo}'
     mensagem = f'A solicitação "{solicitacao.assunto}" mudou de estado para {label_novo}.'
@@ -172,6 +177,50 @@ def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsave
     ]
     if notifs:
         NotificacaoSistema.objects.bulk_create(notifs)
+
+    # Enviar email para os líderes envolvidos
+    _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, destinatarios)
+
+
+def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, user_ids):
+    """Envia email HTML aos líderes envolvidos numa mudança de estado."""
+    if not user_ids:
+        return
+    users = User.objects.filter(id__in=user_ids, email__gt='').select_related()
+    emails_to = [u.email for u in users if u.email]
+    if not emails_to:
+        return
+
+    resp_nome = f'{responsavel.nome} {responsavel.apelido}' if responsavel else ''
+    context = {
+        'titulo': f'Solicitação #{solicitacao.id} — {label_novo}',
+        'mensagem': f'A solicitação "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.',
+        'novo_estado': estado_novo,
+        'estado_display': label_novo,
+        'assunto': solicitacao.assunto,
+        'categoria': solicitacao.get_categoria_display(),
+        'dept_solicitante': str(solicitacao.departamento_solicitante),
+        'dept_destinatario': str(solicitacao.departamento_destinatario),
+        'prioridade': solicitacao.get_prioridade_display(),
+        'data_necessidade': solicitacao.data_necessidade.strftime('%d/%m/%Y') if solicitacao.data_necessidade else '',
+        'observacao': solicitacao.justificacao_resposta or '',
+        'responsavel': resp_nome,
+    }
+
+    try:
+        html_content = render_to_string('emails/email_solicitacao_estado.html', context)
+        for email_addr in emails_to:
+            msg = EmailMultiAlternatives(
+                subject=context['titulo'],
+                body=context['mensagem'],
+                from_email=None,
+                to=[email_addr],
+            )
+            msg.attach_alternative(html_content, 'text/html')
+            msg.send()
+        logger.info('Emails de solicitação #%s enviados para %s', solicitacao.id, emails_to)
+    except Exception as e:
+        logger.error('Falha ao enviar emails de solicitação #%s: %s', solicitacao.id, e)
 
 def comeco(request):
     return render(request, 'index.html')
@@ -1083,6 +1132,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         if request.method == 'POST' and pode_responder:
             action = request.POST.get('action', '').strip()
             estado_anterior = registo.estado
+            anexo = request.FILES.get('documento_anexo')
 
             if action == 'em_analise' and registo.pode_transitar_para('em_analise'):
                 registo.estado = 'em_analise'
@@ -1090,6 +1140,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 HistoricoSolicitacao.objects.create(
                     solicitacao=registo, estado_anterior=estado_anterior,
                     estado_novo='em_analise', responsavel=irmao_logado,
+                    documento_anexo=anexo or '',
                 )
                 _notificar_solicitacao(registo, estado_anterior, 'em_analise', irmao_logado)
                 messages.info(request, 'Solicitação marcada como "Em Análise".')
@@ -1104,6 +1155,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 HistoricoSolicitacao.objects.create(
                     solicitacao=registo, estado_anterior=estado_anterior,
                     estado_novo='aprovado', responsavel=irmao_logado, observacao=obs,
+                    documento_anexo=anexo or '',
                 )
                 _notificar_solicitacao(registo, estado_anterior, 'aprovado', irmao_logado)
                 messages.success(request, 'Solicitação aprovada com sucesso.')
@@ -1121,6 +1173,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     HistoricoSolicitacao.objects.create(
                         solicitacao=registo, estado_anterior=estado_anterior,
                         estado_novo='rejeitado', responsavel=irmao_logado, observacao=obs,
+                        documento_anexo=anexo or '',
                     )
                     _notificar_solicitacao(registo, estado_anterior, 'rejeitado', irmao_logado)
                     messages.success(request, 'Solicitação rejeitada.')
@@ -1133,6 +1186,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 HistoricoSolicitacao.objects.create(
                     solicitacao=registo, estado_anterior=estado_anterior,
                     estado_novo='concluido', responsavel=irmao_logado, observacao=obs,
+                    documento_anexo=anexo or '',
                 )
                 _notificar_solicitacao(registo, estado_anterior, 'concluido', irmao_logado)
                 messages.success(request, 'Solicitação concluída.')

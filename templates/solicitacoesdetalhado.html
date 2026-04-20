@@ -118,6 +118,11 @@
                         {% if h.observacao %}
                         <p style="font-size: 0.8rem; color: var(--text-main); margin: 4px 0 0 0; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border-left: 3px solid #e2e8f0;">{{ h.observacao }}</p>
                         {% endif %}
+                        {% if h.documento_anexo %}
+                        <a href="{{ h.documento_anexo.url }}" target="_blank" style="display: inline-block; margin-top: 4px; font-size: 0.78rem; color: var(--primary); text-decoration: none;">
+                            <i class="fas fa-paperclip"></i> Ver ficheiro anexo
+                        </a>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -147,7 +152,7 @@
                 </h3>
 
                 {% if x.estado == 'pendente' %}
-                <form method="POST" style="margin-bottom: 0.75rem;">
+                <form method="POST" enctype="multipart/form-data" style="margin-bottom: 0.75rem;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="em_analise">
                     <button type="submit" class="bt-primary" style="width: 100%; padding: 0.6rem; background: #3b82f6;">
@@ -157,23 +162,31 @@
                 {% endif %}
 
                 {% if x.estado == 'em_analise' %}
-                <form method="POST" style="margin-bottom: 0.75rem;">
+                <form method="POST" enctype="multipart/form-data" style="margin-bottom: 0.75rem;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="aprovar">
                     <div style="margin-bottom: 0.5rem;">
                         <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Observação (opcional)</label>
                         <textarea name="justificacao" rows="2" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Comentário ao aprovar..."></textarea>
                     </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;"><i class="fas fa-paperclip"></i> Anexar ficheiro (opcional)</label>
+                        <input type="file" name="documento_anexo" style="width: 100%; padding: 0.4rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                    </div>
                     <button type="submit" class="bt-primary" style="width: 100%; padding: 0.6rem; background: #10b981;">
                         <i class="fas fa-check"></i> Aprovar
                     </button>
                 </form>
-                <form method="POST" style="margin-bottom: 0.75rem;">
+                <form method="POST" enctype="multipart/form-data" style="margin-bottom: 0.75rem;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="rejeitar">
                     <div style="margin-bottom: 0.5rem;">
                         <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Motivo da rejeição (obrigatório)</label>
                         <textarea name="justificacao" rows="2" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Indique o motivo..." required></textarea>
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;"><i class="fas fa-paperclip"></i> Anexar ficheiro (opcional)</label>
+                        <input type="file" name="documento_anexo" style="width: 100%; padding: 0.4rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
                     </div>
                     <button type="submit" class="bt-primary" style="width: 100%; padding: 0.6rem; background: #ef4444;">
                         <i class="fas fa-times"></i> Rejeitar
@@ -182,12 +195,16 @@
                 {% endif %}
 
                 {% if x.estado == 'aprovado' %}
-                <form method="POST" style="margin-bottom: 0.75rem;">
+                <form method="POST" enctype="multipart/form-data" style="margin-bottom: 0.75rem;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="concluir">
                     <div style="margin-bottom: 0.5rem;">
                         <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Observação de conclusão (opcional)</label>
                         <textarea name="justificacao" rows="2" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Detalhes da conclusão..."></textarea>
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;"><i class="fas fa-paperclip"></i> Anexar comprovativo (opcional)</label>
+                        <input type="file" name="documento_anexo" style="width: 100%; padding: 0.4rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
                     </div>
                     <button type="submit" class="bt-primary" style="width: 100%; padding: 0.6rem; background: #6366f1;">
                         <i class="fas fa-flag-checkered"></i> Marcar como Concluído
