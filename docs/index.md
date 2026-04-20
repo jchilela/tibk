@@ -17,6 +17,8 @@ Terceira Igreja Baptista de Luanda.
 | [Património](patrimonio.md) | Regista e acompanha os bens da igreja |
 | [Comunicação](comunicacao.md) | Envia mensagens por email e SMS |
 | [Relatórios](relatorios.md) | Gera PDFs para gestão e prestação de contas |
+| [Solicitações](guia/02_modulos_operacionais/12_solicitacoes_interdepartamentais.md) | Pedidos formais entre departamentos |
+| [Painel Pastoral](guia/02_modulos_operacionais/13_painel_pastoral.md) | Acompanhamento espiritual e pastoral da congregação |
 
 ## Como aceder
 

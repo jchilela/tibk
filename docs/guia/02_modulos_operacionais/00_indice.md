@@ -15,5 +15,7 @@ Esta secao agrupa os modulos usados no registo e acompanhamento das actividades 
 9. [09. Conteudo de ensino](09_conteudo_ensino.md)
 10. [10. Envio de mensagens](10_envio_de_mensagens.md)
 11. [11. Patrimonio](11_patrimonio.md)
+12. [12. Solicitacoes Interdepartamentais](12_solicitacoes_interdepartamentais.md)
+13. [13. Painel de Acompanhamento Pastoral](13_painel_pastoral.md)
 
 [Voltar ao guia principal](../../GUIA_UTILIZADOR.md)

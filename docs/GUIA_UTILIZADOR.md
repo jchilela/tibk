@@ -35,6 +35,8 @@ Este roteiro apresenta, de forma pratica e organizada, os passos para utilizar o
 9. [09. Conteudo de ensino](guia/02_modulos_operacionais/09_conteudo_ensino.md)
 10. [10. Envio de mensagens](guia/02_modulos_operacionais/10_envio_de_mensagens.md)
 11. [11. Patrimonio](guia/02_modulos_operacionais/11_patrimonio.md)
+12. [12. Solicitacoes Interdepartamentais](guia/02_modulos_operacionais/12_solicitacoes_interdepartamentais.md)
+13. [13. Painel de Acompanhamento Pastoral](guia/02_modulos_operacionais/13_painel_pastoral.md)
 
 ### [Financeiro e relatorios](guia/03_financeiro_e_relatorios/00_indice.md)
 
