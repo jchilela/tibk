@@ -1,0 +1,107 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-bell"></i> Alertas Pastorais</h2>
+        </div>
+        <a href="{% url 'sitetibl:pastoral_dashboard' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #64748b;">
+            <i class="fas fa-arrow-left"></i> Painel
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-bar" style="margin-bottom: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem 1.5rem;">
+        <form method="get" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <select name="tipo" style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                <option value="">Todos os Tipos</option>
+                {% for val, label in tipos %}
+                <option value="{{ val }}" {% if tipo_filtro == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="estado" style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                <option value="">Todos os Estados</option>
+                {% for val, label in estados %}
+                <option value="{{ val }}" {% if estado_filtro == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 1rem;">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+            <a href="{% url 'sitetibl:pastoral_alertas' %}" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: underline;">Limpar</a>
+        </form>
+    </div>
+
+    {% if alertas %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Título</th>
+                    <th>Membro/Célula</th>
+                    <th>Estado</th>
+                    <th>Data</th>
+                    <th>Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alerta in alertas %}
+                <tr>
+                    <td><span class="badge badge-info">{{ alerta.get_tipo_display }}</span></td>
+                    <td>{{ alerta.titulo }}</td>
+                    <td>
+                        {% if alerta.membro %}{{ alerta.membro }}{% endif %}
+                        {% if alerta.celula %}{{ alerta.celula }}{% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if alerta.estado == 'novo' %}badge-danger{% elif alerta.estado == 'visto' %}badge-warning{% elif alerta.estado == 'em_tratamento' %}badge-primary{% elif alerta.estado == 'resolvido' %}badge-success{% else %}badge-neutral{% endif %}">
+                            {{ alerta.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ alerta.data_criacao|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'sitetibl:pastoral_alerta_accao' alerta.id %}" style="display: inline-flex; gap: 0.25rem;">
+                            {% csrf_token %}
+                            {% if alerta.estado == 'novo' or alerta.estado == 'visto' %}
+                            <button type="submit" name="action" value="em_tratamento" class="bt-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Em tratamento"><i class="fas fa-eye"></i></button>
+                            <button type="submit" name="action" value="resolver" class="bt-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: #10b981;" title="Resolver"><i class="fas fa-check"></i></button>
+                            <button type="submit" name="action" value="ignorar" class="bt-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: #6b7280;" title="Ignorar"><i class="fas fa-times"></i></button>
+                            {% endif %}
+                            {% if alerta.membro and alerta.estado != 'resolvido' and alerta.estado != 'ignorado' %}
+                            <button type="submit" name="action" value="criar_caso" class="bt-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: #f59e0b;" title="Criar caso pastoral"><i class="fas fa-folder-plus"></i></button>
+                            {% endif %}
+                        </form>
+                        {% if alerta.caso_associado %}
+                        <a href="{% url 'sitetibl:mostra_detalhe' 'casospastorais' alerta.caso_associado.id %}" class="bt-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: #3b82f6;" title="Ver caso"><i class="fas fa-folder-open"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if alertas.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+        {% if alertas.has_previous %}
+        <a href="?pagina={{ alertas.previous_page_number }}&tipo={{ tipo_filtro }}&estado={{ estado_filtro }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #64748b;">← Anterior</a>
+        {% endif %}
+        <span style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--text-muted);">{{ alertas.number }} / {{ alertas.paginator.num_pages }}</span>
+        {% if alertas.has_next %}
+        <a href="?pagina={{ alertas.next_page_number }}&tipo={{ tipo_filtro }}&estado={{ estado_filtro }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #64748b;">Seguinte →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-bell-slash" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Sem alertas para mostrar.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -93,7 +93,34 @@
                 </a>
                 {% endif %}
 
-                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco or perms.sitetibl.view_pedidosaida %}
+                {% if perms.sitetibl.view_solicitacaointerdepartamental %}
+                <a href="/tibl/gestao/solicitacoes/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'solicitacoes' %}active{% endif %}">
+                    <i class="fas fa-exchange-alt fa-fw"></i> Solicitações
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_casopastoral %}
+                <div class="nav-section-title">Acompanhamento Pastoral</div>
+                <a href="/tibl/pastoral/"
+                    class="nav-item {% if request.resolver_match.url_name == 'pastoral_dashboard' %}active{% endif %}">
+                    <i class="fas fa-hand-holding-heart fa-fw"></i> Painel Pastoral
+                </a>
+                <a href="/tibl/gestao/casospastorais/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'casospastorais' %}active{% endif %}">
+                    <i class="fas fa-clipboard-list fa-fw"></i> Casos Pastorais
+                </a>
+                <a href="/tibl/pastoral/alertas/"
+                    class="nav-item {% if request.resolver_match.url_name == 'pastoral_alertas' %}active{% endif %}">
+                    <i class="fas fa-bell fa-fw"></i> Alertas
+                </a>
+                <a href="/tibl/gestao/visitantes/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'visitantes' %}active{% endif %}">
+                    <i class="fas fa-user-friends fa-fw"></i> Visitantes
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco %}
                 <div class="nav-section-title">Financeiro</div>
 
                 {% if perms.sitetibl.view_contabancaria %}
@@ -135,13 +162,6 @@
                 <a href="/tibl/gestao/saidascaixa/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
                     <i class="fas fa-money-bill-wave fa-fw"></i> Saída (Caixa)
-                </a>
-                {% endif %}
-
-                {% if perms.sitetibl.view_pedidosaida %}
-                <a href="/tibl/gestao/pedidosaida/1"
-                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
-                    <i class="fas fa-file-invoice-dollar fa-fw"></i> Pedidos de Saída
                 </a>
                 {% endif %}
 
@@ -246,6 +266,14 @@
                 </div>
 
                 <div class="user-info" style="gap: 1.5rem; margin-left: auto;">
+                    <!-- Notificações -->
+                    <a href="#" id="notif-bell" style="position: relative; color: var(--text-muted); font-size: 1.1rem; text-decoration: none;" title="Notificações">
+                        <i class="fas fa-bell"></i>
+                        {% if notificacoes_nao_lidas %}
+                        <span style="position: absolute; top: -6px; right: -8px; background: #ef4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 1px 5px; border-radius: 100px; min-width: 16px; text-align: center;">{{ notificacoes_nao_lidas }}</span>
+                        {% endif %}
+                    </a>
+
                     <!-- Table Export -->
                     <button class="d-none d-md-flex" id="global-export-btn"
                         style="background:none; border:none; cursor:pointer; color:var(--primary); font-size:1.1rem; display:none;"

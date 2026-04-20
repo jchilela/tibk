@@ -46,6 +46,10 @@ from sitetibl.models import EnvioMensagem
 from sitetibl.models import TipoOferta
 from sitetibl.models import Provincia
 from sitetibl.models import Municipio
+from sitetibl.models import SolicitacaoInterdepartamental
+from sitetibl.models import HistoricoSolicitacao
+from sitetibl.models import NotificacaoSistema
+from sitetibl.models import ComentarioSolicitacao
 from .forms import IrmaoForm
 
 @admin.register(Irmao)
@@ -96,6 +100,10 @@ admin.site.register(Estado_Patrimonio)
 admin.site.register(ConteudoEnsino)
 admin.site.register(EnvioMensagem)
 admin.site.register(TipoOferta)
+admin.site.register(SolicitacaoInterdepartamental)
+admin.site.register(HistoricoSolicitacao)
+admin.site.register(NotificacaoSistema)
+admin.site.register(ComentarioSolicitacao)
 
 
 class MunicipioInline(admin.TabularInline):
@@ -114,4 +122,35 @@ class ProvinciaAdmin(admin.ModelAdmin):
 class MunicipioAdmin(admin.ModelAdmin):
     list_display = ['nome', 'provincia']
     list_filter = ['provincia']
+    search_fields = ['nome']
+
+
+# ── Pastoral Care ──────────────────────────────────────────
+from sitetibl.models import CasoPastoral, RegistoAcompanhamento, AlertaPastoral, VisitanteRecorrente
+
+
+class RegistoAcompanhamentoInline(admin.TabularInline):
+    model = RegistoAcompanhamento
+    extra = 0
+
+
+@admin.register(CasoPastoral)
+class CasoPastoralAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'membro', 'tipo', 'prioridade', 'estado', 'responsavel', 'confidencial', 'data_abertura']
+    list_filter = ['estado', 'tipo', 'prioridade', 'confidencial']
+    search_fields = ['titulo', 'membro__nome', 'membro__apelido']
+    inlines = [RegistoAcompanhamentoInline]
+
+
+@admin.register(AlertaPastoral)
+class AlertaPastoralAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'tipo', 'estado', 'membro', 'celula', 'gerado_automaticamente', 'data_criacao']
+    list_filter = ['estado', 'tipo', 'gerado_automaticamente']
+    search_fields = ['titulo', 'membro__nome']
+
+
+@admin.register(VisitanteRecorrente)
+class VisitanteRecorrenteAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'celula', 'numero_visitas', 'estado', 'primeira_visita', 'ultima_visita']
+    list_filter = ['estado', 'celula']
     search_fields = ['nome']

@@ -1,0 +1,109 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+{% if registoachado %}
+{% for x in registoachado %}
+
+<div class="profile-container" style="max-width: 900px; margin: 0 auto; padding-bottom: 4rem;">
+
+    <!-- Header -->
+    <div class="modern-card" style="margin-bottom: 2rem; border-left: 6px solid {% if x.estado == 'visitante' %}#3b82f6{% elif x.estado == 'em_integracao' %}#f59e0b{% elif x.estado == 'integrado' %}#10b981{% else %}#6c757d{% endif %};">
+        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                    <span style="font-size: 0.7rem; background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700;">Visitante Recorrente</span>
+                    <span class="badge {% if x.estado == 'visitante' %}badge-info{% elif x.estado == 'em_integracao' %}badge-warning{% elif x.estado == 'integrado' %}badge-success{% else %}badge-danger{% endif %}">{{ x.get_estado_display }}</span>
+                </div>
+                <h1 style="font-size: 1.5rem; color: var(--primary-dark); margin-bottom: 0.25rem;">{{ x.nome }}</h1>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% if perms.sitetibl.change_visitanterecorrente %}
+                <a href="{% url 'sitetibl:mostra_actualizacao' 'visitantes' x.id %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-edit"></i> Editar</a>
+                {% endif %}
+                {% if perms.sitetibl.delete_visitanterecorrente %}
+                <a href="{% url 'sitetibl:mostra_eliminacao' 'visitantes' x.id %}" class="bt-primary" style="background-color: #ef4444; padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-trash"></i> Eliminar</a>
+                {% endif %}
+                <a href="{% url 'sitetibl:mostra_gestao' 'visitantes' 1 %}" class="bt-primary" style="background-color: #64748b; padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-arrow-left"></i> Voltar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1rem; font-size: 1rem;">
+                <i class="fas fa-address-card"></i> Informações de Contacto
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                {% if x.telefone %}
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500;">Telefone</span>
+                    <span style="font-weight: 600;">{{ x.telefone }}</span>
+                </div>
+                {% endif %}
+                {% if x.email %}
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500;">Email</span>
+                    <span style="font-weight: 600;">{{ x.email }}</span>
+                </div>
+                {% endif %}
+                <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500;">Célula</span>
+                    <span style="font-weight: 600;">{{ x.celula }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1rem; font-size: 1rem;">
+                <i class="fas fa-chart-bar"></i> Estatísticas
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500;">Total de visitas</span>
+                    <span class="badge badge-primary">{{ x.numero_visitas }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500;">Primeira visita</span>
+                    <span style="font-weight: 600;">{{ x.primeira_visita|date:"d/m/Y" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500;">Última visita</span>
+                    <span style="font-weight: 600;">{{ x.ultima_visita|date:"d/m/Y" }}</span>
+                </div>
+                {% if x.responsavel_integracao %}
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500;">Responsável</span>
+                    <span style="font-weight: 600;">{{ x.responsavel_integracao.nome }} {{ x.responsavel_integracao.apelido }}</span>
+                </div>
+                {% endif %}
+                {% if x.irmao_convertido %}
+                <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-weight: 500;">Membro integrado</span>
+                    <span style="font-weight: 600;">{{ x.irmao_convertido.nome }} {{ x.irmao_convertido.apelido }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if x.observacao %}
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1rem; font-size: 1rem;">
+            <i class="fas fa-sticky-note"></i> Observações
+        </h3>
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; font-size: 0.9rem; line-height: 1.6; border: 1px solid #e2e8f0; white-space: pre-wrap;">{{ x.observacao }}</div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endfor %}
+{% else %}
+<div class="modern-card" style="text-align: center; padding: 4rem; max-width: 600px; margin: 2rem auto;">
+    <p style="color: var(--text-muted); font-size: 1.1rem;">Visitante não encontrado.</p>
+    <a href="{% url 'sitetibl:mostra_gestao' 'visitantes' 1 %}" class="bt-primary" style="margin-top: 1rem; padding: 0.6rem 1.5rem;">Voltar à listagem</a>
+</div>
+{% endif %}
+
+{% endblock %}

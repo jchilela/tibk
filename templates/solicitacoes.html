@@ -1,0 +1,147 @@
+{% extends 'index.html' %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">Solicitações Interdepartamentais</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Pedidos formais entre departamentos da igreja.</p>
+        </div>
+        {% if perms.sitetibl.add_solicitacaointerdepartamental %}
+        <a href="/tibl/solicitacoes/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
+            <i class="fas fa-plus-circle"></i> Nova Solicitação
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filtros por estado (tabs) -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <a href="/tibl/gestao/solicitacoes/1" style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {% if not estado_filtro %}background: var(--primary); color: white;{% else %}background: #f1f5f9; color: var(--text-muted);{% endif %}">
+            Todos <span style="opacity: 0.7;">({{ total_solicitacoes|default:"0" }})</span>
+        </a>
+        {% for val, label, contagem in estado_choices_com_contagem %}
+        <a href="/tibl/gestao/solicitacoes/1?estado={{ val }}" style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; text-decoration: none; {% if estado_filtro == val %}background: {% if val == 'pendente' %}#f59e0b{% elif val == 'em_analise' %}#3b82f6{% elif val == 'aprovado' %}#10b981{% elif val == 'rejeitado' %}#ef4444{% elif val == 'concluido' %}#6366f1{% endif %}; color: white;{% else %}background: #f1f5f9; color: var(--text-muted);{% endif %}">
+            {{ label }} <span style="opacity: 0.7;">({{ contagem }})</span>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Busca rápida -->
+    <div class="filter-bar" style="margin-bottom: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem 1.5rem;">
+        <form action="/tibl/buscasolicitacoes/" method="GET" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Assunto</label>
+                <input type="text" name="assuntov" placeholder="Pesquisar..." style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Categoria</label>
+                <select name="categoriav" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                    <option value="">Todas</option>
+                    <option value="material_criativo">Material Criativo</option>
+                    <option value="equipamento">Equipamento</option>
+                    <option value="verba">Verba</option>
+                    <option value="cobertura_evento">Cobertura de Evento</option>
+                    <option value="apoio_logistico">Apoio Logístico</option>
+                    <option value="outro">Outro</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Estado</label>
+                <select name="estadov" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                    <option value="">Todos</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="em_analise">Em Análise</option>
+                    <option value="aprovado">Aprovado</option>
+                    <option value="rejeitado">Rejeitado</option>
+                    <option value="concluido">Concluído</option>
+                </select>
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 1rem;">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </form>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Assunto</th>
+                    <th>De</th>
+                    <th>Para</th>
+                    <th style="text-align: center;">Categoria</th>
+                    <th style="text-align: right;">Montante</th>
+                    <th style="text-align: center;">Prioridade</th>
+                    <th style="text-align: center;">Estado</th>
+                    <th style="text-align: center;">Data</th>
+                    <th style="text-align: right;">Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.assunto }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                            {% if x.solicitante %}{{ x.solicitante.nome }} {{ x.solicitante.apelido }}{% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if x.departamento_solicitante %}{{ x.departamento_solicitante.designacao }}{% else %}<span style="color: var(--text-muted);">—</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if x.departamento_destinatario %}{{ x.departamento_destinatario.designacao }}{% else %}<span style="color: var(--text-muted);">—</span>{% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <span style="font-size: 0.8rem;">{{ x.get_categoria_display }}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        {% if x.categoria == 'verba' and x.montante %}<span style="font-weight: 700;">{{ x.montante }} {% if x.moeda %}{{ x.moeda }}{% endif %}</span>{% else %}<span style="color: var(--text-muted);">—</span>{% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <span style="display: inline-block; padding: 0.2rem 0.6rem; border-radius: 100px; font-size: 0.7rem; font-weight: 700; {% if x.prioridade == 'urgente' %}background: #fee2e2; color: #991b1b;{% elif x.prioridade == 'alta' %}background: #fef3c7; color: #92400e;{% elif x.prioridade == 'normal' %}background: #dbeafe; color: #1e40af;{% else %}background: #f1f5f9; color: #64748b;{% endif %}">
+                            {{ x.get_prioridade_display }}
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 100px; font-size: 0.75rem; font-weight: 700; {% if x.estado == 'pendente' %}background: #fef3c7; color: #92400e;{% elif x.estado == 'em_analise' %}background: #dbeafe; color: #1e40af;{% elif x.estado == 'aprovado' %}background: #dcfce7; color: #166534;{% elif x.estado == 'rejeitado' %}background: #fee2e2; color: #991b1b;{% elif x.estado == 'concluido' %}background: #e0e7ff; color: #3730a3;{% endif %}">
+                            {{ x.get_estado_display }}
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <div style="font-size: 0.85rem;">{{ x.data_criacao|date:"d/m/Y" }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">{{ x.data_criacao|time:"H:i" }}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/solicitacoes/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-exchange-alt" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Nenhuma solicitação encontrada</h3>
+        <p style="color: var(--text-muted);">
+            {% if estado_filtro %}Sem solicitações com o estado "{{ estado_filtro }}".{% else %}Ainda não existem solicitações registadas.{% endif %}
+        </p>
+        {% if perms.sitetibl.add_solicitacaointerdepartamental %}
+        <a href="/tibl/solicitacoes/criar/" class="bt-primary" style="margin-top: 1rem; padding: 0.6rem 1.5rem;">
+            <i class="fas fa-plus-circle"></i> Criar Primeira Solicitação
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

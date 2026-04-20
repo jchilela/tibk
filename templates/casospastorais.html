@@ -1,0 +1,104 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-clipboard-list"></i> Casos Pastorais</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Registo e acompanhamento de situações pastorais.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'sitetibl:pastoral_dashboard' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #64748b;">
+                <i class="fas fa-arrow-left"></i> Painel
+            </a>
+            {% if perms.sitetibl.add_casopastoral %}
+            <a href="{% url 'sitetibl:mostra_criacao' 'casospastorais' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                <i class="fas fa-plus-circle"></i> Novo Caso
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filtros por estado -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <a href="{% url 'sitetibl:mostra_gestao' 'casospastorais' 1 %}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if not request.GET.estado %}background: var(--primary-light);{% else %}background: #94a3b8;{% endif %}">Todos</a>
+        <a href="?estado=aberto" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if request.GET.estado == 'aberto' %}background: #ef4444;{% else %}background: #94a3b8;{% endif %}">Abertos</a>
+        <a href="?estado=em_acompanhamento" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if request.GET.estado == 'em_acompanhamento' %}background: #f59e0b;{% else %}background: #94a3b8;{% endif %}">Em Acompanhamento</a>
+        <a href="?estado=resolvido" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if request.GET.estado == 'resolvido' %}background: #10b981;{% else %}background: #94a3b8;{% endif %}">Resolvidos</a>
+        <a href="?estado=encerrado" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if request.GET.estado == 'encerrado' %}background: #6b7280;{% else %}background: #94a3b8;{% endif %}">Encerrados</a>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Membro</th>
+                    <th>Tipo</th>
+                    <th>Título</th>
+                    <th>Prioridade</th>
+                    <th>Estado</th>
+                    <th>Responsável</th>
+                    <th>Data</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for caso in bb %}
+                <tr>
+                    <td>{{ caso.membro.nome }} {{ caso.membro.apelido }}</td>
+                    <td>{{ caso.get_tipo_display }}</td>
+                    <td>
+                        {{ caso.titulo }}
+                        {% if caso.confidencial %}<span class="badge badge-neutral"><i class="fas fa-lock"></i></span>{% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if caso.prioridade == 'urgente' %}badge-danger{% elif caso.prioridade == 'alta' %}badge-warning{% elif caso.prioridade == 'normal' %}badge-primary{% else %}badge-neutral{% endif %}">
+                            {{ caso.get_prioridade_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge {% if caso.estado == 'aberto' %}badge-danger{% elif caso.estado == 'em_acompanhamento' %}badge-warning{% elif caso.estado == 'resolvido' %}badge-success{% else %}badge-neutral{% endif %}">
+                            {{ caso.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{% if caso.responsavel %}{{ caso.responsavel.nome }} {{ caso.responsavel.apelido }}{% else %}—{% endif %}</td>
+                    <td>{{ caso.data_abertura|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'sitetibl:mostra_detalhe' 'casospastorais' caso.id %}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if bb.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+        {% if bb.has_previous %}
+        <a href="{% url 'sitetibl:mostra_gestao' 'casospastorais' bb.previous_page_number %}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #64748b;">← Anterior</a>
+        {% endif %}
+        <span style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--text-muted);">{{ bb.number }} / {{ bb.paginator.num_pages }}</span>
+        {% if bb.has_next %}
+        <a href="{% url 'sitetibl:mostra_gestao' 'casospastorais' bb.next_page_number %}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #64748b;">Seguinte →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-clipboard-list" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Sem casos pastorais para mostrar.</p>
+        {% if perms.sitetibl.add_casopastoral %}
+        <a href="{% url 'sitetibl:mostra_criacao' 'casospastorais' %}" class="bt-primary" style="margin-top: 1rem; padding: 0.6rem 1.5rem;">
+            <i class="fas fa-plus-circle"></i> Criar Primeiro Caso
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
