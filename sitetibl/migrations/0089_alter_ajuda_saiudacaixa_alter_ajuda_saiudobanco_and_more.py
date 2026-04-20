@@ -44,6 +44,32 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='sitetibl.saidabanco', verbose_name='Saiu do banco'),
         ),
         migrations.CreateModel(
+            name='Celula',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('designacao', models.CharField(max_length=200, unique=True, verbose_name='Designação')),
+                ('local_reuniao', models.CharField(blank=True, max_length=200, verbose_name='Local de Reunião')),
+                ('dia_reuniao', models.CharField(blank=True, choices=[('segunda', 'Segunda-feira'), ('terca', 'Terça-feira'), ('quarta', 'Quarta-feira'), ('quinta', 'Quinta-feira'), ('sexta', 'Sexta-feira'), ('sabado', 'Sábado'), ('domingo', 'Domingo')], max_length=10, verbose_name='Dia de Reunião')),
+                ('hora_reuniao', models.TimeField(blank=True, null=True, verbose_name='Hora de Reunião')),
+                ('descricao', models.TextField(blank=True, verbose_name='Descrição')),
+                ('activa', models.BooleanField(default=True, verbose_name='Activa')),
+                ('data_criacao', models.DateTimeField(auto_now_add=True)),
+                ('data_atualizacao', models.DateTimeField(auto_now=True)),
+                ('lider', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='celula_lider', to='sitetibl.irmao', verbose_name='Líder')),
+                ('vice_lider', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='celula_vice_lider', to='sitetibl.irmao', verbose_name='Vice-Líder')),
+            ],
+            options={
+                'verbose_name': 'Célula',
+                'verbose_name_plural': 'Células',
+                'ordering': ['designacao'],
+            },
+        ),
+        migrations.AddField(
+            model_name='relatoriosemanalcelula',
+            name='celula',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='relatorios', to='sitetibl.celula', verbose_name='Célula'),
+        ),
+        migrations.CreateModel(
             name='NotificacaoSistema',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

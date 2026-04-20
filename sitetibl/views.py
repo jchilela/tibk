@@ -87,6 +87,7 @@ from sitetibl.models import CasoPastoral
 from sitetibl.models import RegistoAcompanhamento
 from sitetibl.models import AlertaPastoral
 from sitetibl.models import VisitanteRecorrente
+from sitetibl.models import Celula
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
@@ -2195,6 +2196,28 @@ def encontraCestas(request):
     del dd['pagina']
     cc = request.META['QUERY_STRING']
     return render(request,'cestasfiltradas.html', {'bb':paginaresultado})
+
+@login_required
+def encontraCelulas(request):
+    nomev = request.GET.get('nomev', '').strip()
+    liderv = request.GET.get('liderv', '').strip()
+    localv = request.GET.get('localv', '').strip()
+    pagina = request.GET.get('pagina', 1)
+    from django.db.models import Count
+    resultado = Celula.objects.select_related('lider', 'vice_lider').annotate(
+        total_relatorios=Count('relatorios')
+    )
+    if nomev:
+        resultado = resultado.filter(designacao__icontains=nomev)
+    if liderv:
+        resultado = resultado.filter(
+            models.Q(lider__nome__icontains=liderv) | models.Q(lider__apelido__icontains=liderv)
+        )
+    if localv:
+        resultado = resultado.filter(local_reuniao__icontains=localv)
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    return render(request, 'celulasfiltradas.html', {'bb': paginaresultado})
 
 @login_required
 def encontraActividades(request):
