@@ -147,10 +147,13 @@ def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsave
     """Cria NotificacaoSistema e envia email para os envolvidos na mudança de estado."""
     ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
     label_novo = ESTADO_LABELS.get(estado_novo, estado_novo)
-    label_anterior = ESTADO_LABELS.get(estado_anterior, estado_anterior)
+    label_anterior = ESTADO_LABELS.get(estado_anterior, estado_anterior) if estado_anterior else ''
     url = reverse('sitetibl:mostra_detalhe', args=['solicitacoes', solicitacao.id])
     titulo = f'Solicitação #{solicitacao.id} — {label_novo}'
-    mensagem = f'A solicitação "{solicitacao.assunto}" mudou de estado para {label_novo}.'
+    if estado_anterior:
+        mensagem = f'A solicitação "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.'
+    else:
+        mensagem = f'Foi criada uma nova solicitação "{solicitacao.assunto}" — {label_novo}.'
 
     destinatarios = set()
     if solicitacao.solicitante and solicitacao.solicitante.user_id:
@@ -192,9 +195,13 @@ def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_a
         return
 
     resp_nome = f'{responsavel.nome} {responsavel.apelido}' if responsavel else ''
+    if label_anterior:
+        msg_texto = f'A solicitação "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.'
+    else:
+        msg_texto = f'Foi criada uma nova solicitação "{solicitacao.assunto}" — {label_novo}.'
     context = {
         'titulo': f'Solicitação #{solicitacao.id} — {label_novo}',
-        'mensagem': f'A solicitação "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.',
+        'mensagem': msg_texto,
         'novo_estado': estado_novo,
         'estado_display': label_novo,
         'assunto': solicitacao.assunto,
@@ -1372,6 +1379,14 @@ def mostraCriacao(request, gestaoescolhida):
                 obj.estado = 'pendente'
 
             obj.save()
+
+            # 📋 Solicitação: notificar líderes do departamento destinatário
+            if gestaoescolhida == 'solicitacoes':
+                HistoricoSolicitacao.objects.create(
+                    solicitacao=obj, estado_anterior='',
+                    estado_novo='pendente', responsavel=irmao_sol,
+                )
+                _notificar_solicitacao(obj, '', 'pendente', irmao_sol)
 
             # 👤 Regista o criador nas actividades
             if gestaoescolhida == 'actividades':
