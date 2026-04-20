@@ -1457,6 +1457,16 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
                 )
 
+            elif action == 'iniciar_acompanhamento':
+                if registo.estado == 'aberto':
+                    registo.estado = 'em_acompanhamento'
+                    registo.save(update_fields=['estado', 'data_atualizacao'])
+                    _notificar_caso_pastoral(registo, irmao_logado, 'Acompanhamento iniciado')
+                    messages.success(request, 'Acompanhamento iniciado.')
+                return HttpResponseRedirect(
+                    reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+                )
+
             elif action == 'encerrar':
                 registo.estado = 'encerrado'
                 registo.data_encerramento = now()
