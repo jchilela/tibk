@@ -18,28 +18,106 @@
         </div>
     </div>
 
-    <!-- KPI Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <!-- KPI Cards — Atenção Pastoral -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
         <a href="{% url 'sitetibl:pastoral_alertas' %}?estado=novo" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #ef4444;">
             <div style="font-size: 2rem; font-weight: 800; color: #ef4444;">{{ alertas_novos }}</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">Alertas Novos</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Alertas Novos</div>
         </a>
         <a href="{% url 'sitetibl:mostra_gestao' 'casospastorais' 1 %}" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #f59e0b;">
             <div style="font-size: 2rem; font-weight: 800; color: #f59e0b;">{{ casos_abertos }}</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">Casos Abertos</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Casos Abertos</div>
         </a>
         <a href="{% url 'sitetibl:pastoral_novos' %}" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #3b82f6;">
             <div style="font-size: 2rem; font-weight: 800; color: #3b82f6;">{{ novos_sem_acomp }}</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">Novos s/ Acomp.</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Novos s/ Acomp.</div>
         </a>
         <a href="{% url 'sitetibl:mostra_gestao' 'visitantes' 1 %}" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #10b981;">
             <div style="font-size: 2rem; font-weight: 800; color: #10b981;">{{ visitantes_recorrentes }}</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">Visitantes Recorrentes</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Visitantes Recorrentes</div>
         </a>
         <a href="{% url 'sitetibl:pastoral_inactivos' %}" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #6b7280;">
             <div style="font-size: 2rem; font-weight: 800; color: #6b7280;">{{ membros_inactivos }}</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">Membros Inactivos</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Inactivos (60d)</div>
         </a>
+    </div>
+
+    <!-- Retrato da Congregação -->
+    <div class="modern-card" style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-main);">
+            <i class="fas fa-church" style="color: var(--primary);"></i> Retrato da Congregação
+            <span style="font-size: 0.8rem; font-weight: 400; color: var(--text-muted); margin-left: 0.5rem;">{{ retrato.total_membros }} membro{{ retrato.total_membros|pluralize:"s" }} registado{{ retrato.total_membros|pluralize:"s" }}</span>
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+
+            <!-- Baptizados -->
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;"><i class="fas fa-tint"></i> Baptismo</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-size: 0.85rem;">Baptizados</span>
+                    <span style="font-weight: 700; color: #10b981;">{{ retrato.total_batizados }} <small style="font-weight: 400; color: var(--text-muted);">({{ retrato.pct_batizados }}%)</small></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem;">Não Baptizados</span>
+                    <span style="font-weight: 700; color: #3b82f6;">{{ retrato.total_nao_batizados }}</span>
+                </div>
+                <div style="background: #e5e7eb; border-radius: 4px; height: 6px; margin-top: 0.75rem; overflow: hidden;">
+                    <div style="background: #10b981; width: {{ retrato.pct_batizados }}%; height: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Género -->
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;"><i class="fas fa-users"></i> Género</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-size: 0.85rem;"><i class="fas fa-mars" style="color: #3b82f6;"></i> Masculino</span>
+                    <span style="font-weight: 700; color: #3b82f6;">{{ retrato.total_masculino }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem;"><i class="fas fa-venus" style="color: #ec4899;"></i> Feminino</span>
+                    <span style="font-weight: 700; color: #ec4899;">{{ retrato.total_feminino }}</span>
+                </div>
+                <div style="background: #e5e7eb; border-radius: 4px; height: 6px; margin-top: 0.75rem; overflow: hidden; display: flex;">
+                    {% if retrato.total_membros %}
+                    <div style="background: #3b82f6; width: {% widthratio retrato.total_masculino retrato.total_membros 100 %}%; height: 100%;"></div>
+                    <div style="background: #ec4899; flex: 1; height: 100%;"></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Dizimistas -->
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;"><i class="fas fa-hand-holding-usd"></i> Dízimo</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-size: 0.85rem;">Dizimistas</span>
+                    <span style="font-weight: 700; color: #f59e0b;">{{ retrato.total_dizimistas }} <small style="font-weight: 400; color: var(--text-muted);">({{ retrato.pct_dizimistas }}%)</small></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem;">Não Dizimistas</span>
+                    <span style="font-weight: 700; color: var(--text-muted);">{{ retrato.total_nao_dizimistas }}</span>
+                </div>
+                <div style="background: #e5e7eb; border-radius: 4px; height: 6px; margin-top: 0.75rem; overflow: hidden;">
+                    <div style="background: #f59e0b; width: {{ retrato.pct_dizimistas }}%; height: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Célula e Departamento -->
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;"><i class="fas fa-sitemap"></i> Integração</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-size: 0.85rem;">Em Departamento</span>
+                    <span style="font-weight: 700; color: #6366f1;">{{ retrato.total_em_departamento }} <small style="font-weight: 400; color: var(--text-muted);">({{ retrato.pct_em_departamento }}%)</small></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem;">Com Célula</span>
+                    <span style="font-weight: 700; color: #14b8a6;">{{ retrato.total_com_celula }} <small style="font-weight: 400; color: var(--text-muted);">({{ retrato.pct_com_celula }}%)</small></span>
+                </div>
+                {% if retrato.total_sem_celula %}
+                <div style="margin-top: 0.6rem; font-size: 0.78rem; color: #ef4444;"><i class="fas fa-exclamation-circle"></i> {{ retrato.total_sem_celula }} sem célula atribuída</div>
+                {% endif %}
+            </div>
+
+        </div>
     </div>
 
     <!-- Alertas + Casos -->

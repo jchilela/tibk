@@ -3969,61 +3969,111 @@ def encontraSolicitacoes(request):
 
 @login_required
 def pastoral_dashboard(request):
-    """Painel principal pastoral com KPIs, alertas, casos e aniversariantes."""
+    """Painel principal pastoral com KPIs, insights, alertas, casos e aniversariantes."""
     if not request.user.has_perm('sitetibl.view_casopastoral'):
         messages.error(request, 'Não tem permissão para aceder ao painel pastoral.')
         return redirect('index')
 
     from datetime import timedelta as td
+    from django.db.models import Max
     hoje = date.today()
     irmao_logado = Irmao.objects.filter(user=request.user).first()
 
-    # KPIs
+    # ── KPIs de atenção pastoral ──────────────────────────────
     alertas_novos = AlertaPastoral.objects.filter(estado='novo').count()
     casos_abertos = CasoPastoral.objects.filter(estado__in=['aberto', 'em_acompanhamento']).count()
 
-    # Novos sem acompanhamento: criados há > 30 dias, não baptizados, sem caso de integração
     trinta_dias = now() - td(days=30)
-    novos_ids_com_caso = CasoPastoral.objects.filter(tipo='integracao', membro__isnull=False).values_list('membro_id', flat=True)
+    novos_ids_com_caso = CasoPastoral.objects.filter(
+        tipo='integracao', membro__isnull=False
+    ).values_list('membro_id', flat=True)
     novos_sem_acomp = Irmao.objects.filter(
         data_criacao__lt=trinta_dias, batizado=False,
     ).exclude(id__in=novos_ids_com_caso).count()
 
-    visitantes_recorrentes = VisitanteRecorrente.objects.filter(estado='visitante', numero_visitas__gte=3).count()
+    visitantes_recorrentes = VisitanteRecorrente.objects.filter(
+        estado='visitante', numero_visitas__gte=3
+    ).count()
 
-    # Membros inactivos (sem escala nos últimos 60 dias)
+    # Inactivos: apenas membros que já participaram alguma vez mas não nos últimos 60 dias
     sessenta_dias = hoje - td(days=60)
+    alguma_vez_ids = Escala.objects.values_list('irmao_id', flat=True).distinct()
     activos_ids = Escala.objects.filter(
         actividade__data__gte=sessenta_dias
     ).values_list('irmao_id', flat=True).distinct()
-    membros_inactivos = Irmao.objects.exclude(id__in=activos_ids).count()
+    membros_inactivos = Irmao.objects.filter(
+        id__in=alguma_vez_ids
+    ).exclude(id__in=activos_ids).count()
 
-    # Alertas urgentes/altos recentes
+    # ── Retrato da Congregação ────────────────────────────────
+    total_membros = Irmao.objects.count()
+    total_batizados = Irmao.objects.filter(batizado=True).count()
+    total_nao_batizados = total_membros - total_batizados
+    total_dizimistas = Irmao.objects.filter(dizimista='sim').count()
+    total_masculino = Irmao.objects.filter(sexo='M').count()
+    total_feminino = Irmao.objects.filter(sexo='F').count()
+    total_em_departamento = Mandato.objects.values('irmao').distinct().count()
+    total_sem_celula = Irmao.objects.filter(celula__isnull=True).count()
+    total_com_celula = total_membros - total_sem_celula
+
+    # Percentagens seguras
+    def pct(part, total):
+        return round(part * 100 / total) if total else 0
+
+    retrato = {
+        'total_membros': total_membros,
+        'total_batizados': total_batizados,
+        'pct_batizados': pct(total_batizados, total_membros),
+        'total_nao_batizados': total_nao_batizados,
+        'total_dizimistas': total_dizimistas,
+        'total_nao_dizimistas': total_membros - total_dizimistas,
+        'pct_dizimistas': pct(total_dizimistas, total_membros),
+        'total_masculino': total_masculino,
+        'total_feminino': total_feminino,
+        'total_em_departamento': total_em_departamento,
+        'pct_em_departamento': pct(total_em_departamento, total_membros),
+        'total_sem_celula': total_sem_celula,
+        'total_com_celula': total_com_celula,
+        'pct_com_celula': pct(total_com_celula, total_membros),
+    }
+
+    # ── Alertas e Casos ───────────────────────────────────────
     alertas_urgentes = AlertaPastoral.objects.filter(
         estado__in=['novo', 'visto']
     ).select_related('membro', 'celula').order_by('-data_criacao')[:10]
 
-    # Casos em acompanhamento recentes
     casos_recentes = CasoPastoral.objects.filter(
         estado__in=['aberto', 'em_acompanhamento']
     ).select_related('membro', 'responsavel').order_by('-data_atualizacao')[:10]
 
-    # Confidencialidade nos casos
     if not request.user.is_superuser and not request.user.groups.filter(name='Pastor').exists():
         casos_recentes = casos_recentes.filter(
             Q(confidencial=False) | Q(responsavel=irmao_logado) | Q(criado_por=irmao_logado)
         )
 
-    # Aniversariantes da semana
+    # ── Aniversariantes (DB-level, com tratamento de virada de ano) ───
     semana_fim = hoje + td(days=7)
     aniversariantes = []
-    for irmao in Irmao.objects.exclude(datanascimento__isnull=True).select_related('celula'):
-        aniv = irmao.datanascimento.replace(year=hoje.year)
-        if hoje <= aniv <= semana_fim:
+    # Gera lista de (mês, dia) para os próximos 7 dias
+    dias_para_verificar = [(hoje + td(days=i)) for i in range(8)]
+    pares_mes_dia = [(d.month, d.day) for d in dias_para_verificar]
+    # Filtra por mês/dia via Python (mais simples e compatível com SQLite e MySQL)
+    candidatos = Irmao.objects.exclude(datanascimento__isnull=True).only(
+        'nome', 'apelido', 'datanascimento'
+    )
+    for irmao in candidatos:
+        par = (irmao.datanascimento.month, irmao.datanascimento.day)
+        if par in pares_mes_dia:
+            aniv_este_ano = irmao.datanascimento.replace(year=hoje.year)
+            # corrige para o dia correcto na lista
+            for d in dias_para_verificar:
+                if d.month == par[0] and d.day == par[1]:
+                    aniv_real = d
+                    break
             aniversariantes.append({
                 'irmao': irmao,
-                'data': aniv,
-                'idade': hoje.year - irmao.datanascimento.year,
+                'data': aniv_real,
+                'idade': aniv_real.year - irmao.datanascimento.year,
             })
     aniversariantes.sort(key=lambda x: x['data'])
 
@@ -4033,6 +4083,7 @@ def pastoral_dashboard(request):
         'novos_sem_acomp': novos_sem_acomp,
         'visitantes_recorrentes': visitantes_recorrentes,
         'membros_inactivos': membros_inactivos,
+        'retrato': retrato,
         'alertas_urgentes': alertas_urgentes,
         'casos_recentes': casos_recentes,
         'aniversariantes': aniversariantes,
