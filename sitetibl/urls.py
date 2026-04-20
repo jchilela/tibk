@@ -75,6 +75,7 @@ urlpatterns = [
     path('pastoral/api/celulas/', views.pastoral_api_celulas, name='pastoral_api_celulas'),
     path('pastoral/api/alertas-resumo/', views.pastoral_api_alertas_resumo, name='pastoral_api_alertas_resumo'),
     path('pastoral/api/casos-resumo/', views.pastoral_api_casos_resumo, name='pastoral_api_casos_resumo'),
+    path('pastoral/relatorio/selecionar/', views.relatorio_pastoral_selecionar_mes, name='relatorio_pastoral_selecionar_mes'),
     path('pastoral/relatorio/mensal/', views.relatorio_pastoral_mensal_pdf, name='relatorio_pastoral_mensal'),
     path('pastoral/relatorio/inactivos/', views.relatorio_inactivos_pdf, name='relatorio_inactivos_pdf'),
 ]

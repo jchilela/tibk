@@ -4334,6 +4334,75 @@ def pastoral_api_casos_resumo(request):
 # ── Relatórios PDF Pastorais ──────────────────────────────────
 
 @login_required
+def relatorio_pastoral_selecionar_mes(request):
+    """Página de seleção do mês para o relatório pastoral mensal."""
+    if not request.user.has_perm('sitetibl.view_casopastoral'):
+        messages.error(request, 'Não tem permissão para gerar relatórios pastorais.')
+        return redirect('index')
+
+    from django.db.models.functions import TruncMonth
+    from django.db.models import Count
+
+    # Recolher todos os meses com pelo menos um registo em qualquer tabela pastoral
+    meses_casos = (
+        CasoPastoral.objects
+        .annotate(mes=TruncMonth('data_abertura'))
+        .values_list('mes', flat=True)
+        .distinct()
+    )
+    meses_alertas = (
+        AlertaPastoral.objects
+        .annotate(mes=TruncMonth('data_criacao'))
+        .values_list('mes', flat=True)
+        .distinct()
+    )
+    meses_visitantes = (
+        VisitanteRecorrente.objects
+        .annotate(mes=TruncMonth('primeira_visita'))
+        .values_list('mes', flat=True)
+        .distinct()
+    )
+    meses_membros = (
+        Irmao.objects
+        .annotate(mes=TruncMonth('data_criacao'))
+        .values_list('mes', flat=True)
+        .distinct()
+    )
+
+    # Juntar e ordenar
+    todos_meses = sorted(
+        set(
+            list(meses_casos) + list(meses_alertas) +
+            list(meses_visitantes) + list(meses_membros)
+        ),
+        reverse=True
+    )
+
+    hoje = date.today()
+    MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+
+    meses_opcoes = [
+        {
+            'valor': f'{m.year}-{m.month:02d}',
+            'label': f'{MESES_PT[m.month - 1]} {m.year}',
+        }
+        for m in todos_meses
+    ]
+
+    # Se não há registos em nenhum mês, mostrar pelo menos o mês actual
+    if not meses_opcoes:
+        meses_opcoes = [{
+            'valor': f'{hoje.year}-{hoje.month:02d}',
+            'label': f'{MESES_PT[hoje.month - 1]} {hoje.year}',
+        }]
+
+    return render(request, 'relatorio_pastoral_selecionar_mes.html', {
+        'meses_opcoes': meses_opcoes,
+    })
+
+
+@login_required
 def relatorio_pastoral_mensal_pdf(request):
     """Relatório Pastoral Mensal em PDF."""
     if not request.user.has_perm('sitetibl.view_casopastoral'):
@@ -4342,10 +4411,26 @@ def relatorio_pastoral_mensal_pdf(request):
 
     from datetime import timedelta as td
     hoje = date.today()
-    primeiro_dia = hoje.replace(day=1)
+
+    # Aceitar mês/ano via GET param (ex: ?mes=2024-03)
+    mes_param = request.GET.get('mes', '')
+    try:
+        ano_sel, mes_sel = int(mes_param.split('-')[0]), int(mes_param.split('-')[1])
+        primeiro_dia = date(ano_sel, mes_sel, 1)
+    except (ValueError, IndexError, AttributeError):
+        primeiro_dia = hoje.replace(day=1)
+
+    # Último dia do mês selecionado
+    import calendar
+    ultimo_dia = date(primeiro_dia.year, primeiro_dia.month,
+                      calendar.monthrange(primeiro_dia.year, primeiro_dia.month)[1])
+
+    MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+    label_mes = f'{MESES_PT[primeiro_dia.month - 1]} {primeiro_dia.year}'
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="relatorio_pastoral_{hoje.strftime("%Y_%m")}.pdf"'
+    response['Content-Disposition'] = f'inline; filename="relatorio_pastoral_{primeiro_dia.strftime("%Y_%m")}.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=A4,
                             leftMargin=1.5*cm, rightMargin=1.5*cm,
@@ -4356,17 +4441,17 @@ def relatorio_pastoral_mensal_pdf(request):
     normal = styles['Normal']
 
     elements = []
-    elements.append(Paragraph(f'Relatório Pastoral Mensal — {hoje.strftime("%B %Y")}', titulo_style))
+    elements.append(Paragraph(f'Relatório Pastoral Mensal — {label_mes}', titulo_style))
     elements.append(Paragraph(f'Gerado em {hoje.strftime("%d/%m/%Y")}', normal))
     elements.append(Paragraph('<br/>', normal))
 
     # KPIs
-    novos_mes = Irmao.objects.filter(data_criacao__date__gte=primeiro_dia).count()
-    baptismos_mes = Irmao.objects.filter(data_criacao__date__gte=primeiro_dia, batizado=True).count()
+    novos_mes = Irmao.objects.filter(data_criacao__date__gte=primeiro_dia, data_criacao__date__lte=ultimo_dia).count()
+    baptismos_mes = Irmao.objects.filter(data_criacao__date__gte=primeiro_dia, data_criacao__date__lte=ultimo_dia, batizado=True).count()
     casos_abertos = CasoPastoral.objects.filter(estado__in=['aberto', 'em_acompanhamento']).count()
-    casos_resolvidos_mes = CasoPastoral.objects.filter(estado='resolvido', data_atualizacao__date__gte=primeiro_dia).count()
-    alertas_mes = AlertaPastoral.objects.filter(data_criacao__date__gte=primeiro_dia).count()
-    visitantes_mes = VisitanteRecorrente.objects.filter(primeira_visita__gte=primeiro_dia).count()
+    casos_resolvidos_mes = CasoPastoral.objects.filter(estado='resolvido', data_atualizacao__date__gte=primeiro_dia, data_atualizacao__date__lte=ultimo_dia).count()
+    alertas_mes = AlertaPastoral.objects.filter(data_criacao__date__gte=primeiro_dia, data_criacao__date__lte=ultimo_dia).count()
+    visitantes_mes = VisitanteRecorrente.objects.filter(primeira_visita__gte=primeiro_dia, primeira_visita__lte=ultimo_dia).count()
 
     kpi_data = [
         ['Indicador', 'Valor'],

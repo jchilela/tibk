@@ -11,7 +11,7 @@
         </div>
         <div style="display: flex; gap: 0.5rem;">
             {% if perms.sitetibl.view_casopastoral %}
-            <a href="{% url 'sitetibl:relatorio_pastoral_mensal' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" target="_blank">
+            <a href="{% url 'sitetibl:relatorio_pastoral_selecionar_mes' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                 <i class="fas fa-file-pdf"></i> Relatório Mensal
             </a>
             {% endif %}
