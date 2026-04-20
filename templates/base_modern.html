@@ -93,6 +93,13 @@
                 </a>
                 {% endif %}
 
+                {% if perms.sitetibl.view_solicitacaointerdepartamental %}
+                <a href="/tibl/gestao/solicitacoes/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'solicitacoes' %}active{% endif %}">
+                    <i class="fas fa-exchange-alt fa-fw"></i> Solicitações
+                </a>
+                {% endif %}
+
                 {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco or perms.sitetibl.view_pedidosaida %}
                 <div class="nav-section-title">Financeiro</div>
 
@@ -239,6 +246,14 @@
                 </div>
 
                 <div class="user-info" style="gap: 1.5rem; margin-left: auto;">
+                    <!-- Notificações -->
+                    <a href="#" id="notif-bell" style="position: relative; color: var(--text-muted); font-size: 1.1rem; text-decoration: none;" title="Notificações">
+                        <i class="fas fa-bell"></i>
+                        {% if notificacoes_nao_lidas %}
+                        <span style="position: absolute; top: -6px; right: -8px; background: #ef4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 1px 5px; border-radius: 100px; min-width: 16px; text-align: center;">{{ notificacoes_nao_lidas }}</span>
+                        {% endif %}
+                    </a>
+
                     <!-- Table Export -->
                     <button class="d-none d-md-flex" id="global-export-btn"
                         style="background:none; border:none; cursor:pointer; color:var(--primary); font-size:1.1rem; display:none;"

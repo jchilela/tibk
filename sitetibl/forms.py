@@ -3,6 +3,7 @@ from sitetibl.models import Ajuda
 from sitetibl.models import Cestabasica
 from sitetibl.models import Banco
 from sitetibl.models import Contabancaria
+from sitetibl.models import SolicitacaoInterdepartamental
 from sitetibl.models import Actividade
 from sitetibl.models import Departamento
 from sitetibl.models import Mandato
@@ -807,4 +808,41 @@ class EnvioMensagemForm(ModelForm):
         widgets = {
             'mensagem': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Escreva a sua mensagem aqui...'}),
             'destinatarios': forms.CheckboxSelectMultiple(),
+        }
+
+
+class SolicitacaoForm(ModelForm):
+    class Meta:
+        model = SolicitacaoInterdepartamental
+        fields = [
+            'departamento_solicitante', 'departamento_destinatario', 'assunto', 'descricao',
+            'categoria', 'data_necessidade', 'prioridade', 'documento_anexo',
+        ]
+        widgets = {
+            'departamento_solicitante': forms.Select(attrs={'class': 'form-control'}),
+            'departamento_destinatario': forms.Select(attrs={'class': 'form-control'}),
+            'assunto': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Resumo breve do pedido'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva o pedido em detalhe...'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'data_necessidade': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'prioridade': forms.Select(attrs={'class': 'form-control'}),
+            'documento_anexo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+
+class SolicitacaoUpdateForm(ModelForm):
+    class Meta:
+        model = SolicitacaoInterdepartamental
+        fields = [
+            'departamento_destinatario', 'assunto', 'descricao',
+            'categoria', 'data_necessidade', 'prioridade', 'documento_anexo',
+        ]
+        widgets = {
+            'departamento_destinatario': forms.Select(attrs={'class': 'form-control'}),
+            'assunto': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'data_necessidade': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'prioridade': forms.Select(attrs={'class': 'form-control'}),
+            'documento_anexo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }

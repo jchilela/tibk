@@ -695,3 +695,112 @@ class EnvioMensagem(models.Model):
     destinatarios = models.ManyToManyField(Irmao, blank=True, related_name='mensagens_recebidas', verbose_name='Destinatários')
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
+
+
+class SolicitacaoInterdepartamental(models.Model):
+    CATEGORIA_CHOICES = [
+        ('material_criativo', 'Material Criativo'),
+        ('equipamento', 'Equipamento'),
+        ('verba', 'Verba'),
+        ('cobertura_evento', 'Cobertura de Evento'),
+        ('apoio_logistico', 'Apoio Logístico'),
+        ('outro', 'Outro'),
+    ]
+    PRIORIDADE_CHOICES = [
+        ('baixa', 'Baixa'),
+        ('normal', 'Normal'),
+        ('alta', 'Alta'),
+        ('urgente', 'Urgente'),
+    ]
+    ESTADO_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('em_analise', 'Em Análise'),
+        ('aprovado', 'Aprovado'),
+        ('rejeitado', 'Rejeitado'),
+        ('concluido', 'Concluído'),
+    ]
+    # Transições de estado permitidas
+    TRANSICOES_VALIDAS = {
+        'pendente': ['em_analise'],
+        'em_analise': ['aprovado', 'rejeitado'],
+        'aprovado': ['concluido'],
+        'rejeitado': [],
+        'concluido': [],
+    }
+
+    departamento_solicitante = models.ForeignKey(
+        Departamento, on_delete=models.CASCADE,
+        related_name='solicitacoes_enviadas', verbose_name='Departamento Solicitante',
+    )
+    departamento_destinatario = models.ForeignKey(
+        Departamento, on_delete=models.CASCADE,
+        related_name='solicitacoes_recebidas', verbose_name='Departamento Destinatário',
+    )
+    solicitante = models.ForeignKey(
+        Irmao, on_delete=models.CASCADE,
+        related_name='solicitacoes_criadas', verbose_name='Solicitante',
+    )
+    assunto = models.CharField('Assunto', max_length=200)
+    descricao = models.TextField('Descrição')
+    categoria = models.CharField('Categoria', max_length=30, choices=CATEGORIA_CHOICES, default='outro')
+    data_necessidade = models.DateField('Data de Necessidade')
+    prioridade = models.CharField('Prioridade', max_length=10, choices=PRIORIDADE_CHOICES, default='normal')
+    documento_anexo = models.FileField('Documento Anexo', upload_to='solicitacoes/', blank=True)
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_CHOICES, default='pendente')
+    responsavel_resposta = models.ForeignKey(
+        Irmao, blank=True, null=True, on_delete=models.CASCADE,
+        related_name='solicitacoes_respondidas', verbose_name='Responsável pela Resposta',
+    )
+    justificacao_resposta = models.TextField('Justificação da Resposta', blank=True)
+    data_resposta = models.DateTimeField('Data da Resposta', null=True, blank=True)
+    data_conclusao = models.DateTimeField('Data de Conclusão', null=True, blank=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-data_criacao']
+        verbose_name = 'Solicitação Interdepartamental'
+        verbose_name_plural = 'Solicitações Interdepartamentais'
+
+    def __str__(self):
+        return f'{self.assunto} ({self.departamento_solicitante} → {self.departamento_destinatario})'
+
+    def pode_transitar_para(self, novo_estado):
+        return novo_estado in self.TRANSICOES_VALIDAS.get(self.estado, [])
+
+
+class HistoricoSolicitacao(models.Model):
+    solicitacao = models.ForeignKey(
+        SolicitacaoInterdepartamental, on_delete=models.CASCADE,
+        related_name='historico',
+    )
+    estado_anterior = models.CharField('Estado Anterior', max_length=20, blank=True, choices=SolicitacaoInterdepartamental.ESTADO_CHOICES)
+    estado_novo = models.CharField('Estado Novo', max_length=20, choices=SolicitacaoInterdepartamental.ESTADO_CHOICES)
+    responsavel = models.ForeignKey(Irmao, on_delete=models.CASCADE, verbose_name='Responsável')
+    observacao = models.TextField('Observação', blank=True)
+    data = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['data']
+        verbose_name = 'Histórico de Solicitação'
+        verbose_name_plural = 'Históricos de Solicitação'
+
+    def __str__(self):
+        return f'{self.solicitacao.assunto}: {self.estado_anterior} → {self.estado_novo}'
+
+
+class NotificacaoSistema(models.Model):
+    destinatario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificacoes')
+    titulo = models.CharField('Título', max_length=200)
+    mensagem = models.TextField('Mensagem')
+    lida = models.BooleanField('Lida', default=False)
+    url = models.CharField('URL', max_length=500, blank=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data_criacao']
+        verbose_name = 'Notificação'
+        verbose_name_plural = 'Notificações'
+
+    def __str__(self):
+        return self.titulo

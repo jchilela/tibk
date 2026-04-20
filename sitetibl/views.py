@@ -75,6 +75,9 @@ from sitetibl.models import RelatorioSemanalCelula
 from sitetibl.models import PedidoSaida
 from sitetibl.models import Status_Aprovacao
 from sitetibl.models import Anuncio
+from sitetibl.models import SolicitacaoInterdepartamental
+from sitetibl.models import HistoricoSolicitacao
+from sitetibl.models import NotificacaoSistema
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
@@ -108,6 +111,7 @@ from sitetibl.forms import ConteudoEnsinoForm
 from sitetibl.forms import EnvioMensagemForm
 from sitetibl.forms import MeuPerfilForm, MeuPerfilPasswordForm
 from sitetibl.forms import ActividadesRecorrentesForm
+from sitetibl.forms import SolicitacaoForm, SolicitacaoUpdateForm
 from django.contrib.auth import update_session_auth_hash
 from datetime import timedelta
 
@@ -133,6 +137,41 @@ def _sincronizar_status_legado_pedidosaida(pedido):
         pedido.status_de_aprovacao = status
 MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'Junho','7':'Julho','8':'Agosto','9':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'}
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
+
+
+def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel):
+    """Cria NotificacaoSistema para os envolvidos na mudança de estado."""
+    ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
+    label_novo = ESTADO_LABELS.get(estado_novo, estado_novo)
+    url = reverse('sitetibl:mostra_detalhe', args=['solicitacoes', solicitacao.id])
+    titulo = f'Solicitação #{solicitacao.id} — {label_novo}'
+    mensagem = f'A solicitação "{solicitacao.assunto}" mudou de estado para {label_novo}.'
+
+    destinatarios = set()
+    if solicitacao.solicitante and solicitacao.solicitante.user_id:
+        destinatarios.add(solicitacao.solicitante.user_id)
+    dept_dest = solicitacao.departamento_destinatario
+    if dept_dest:
+        if dept_dest.lider_departamento and dept_dest.lider_departamento.user_id:
+            destinatarios.add(dept_dest.lider_departamento.user_id)
+        if dept_dest.vice_lider_departamento and dept_dest.vice_lider_departamento.user_id:
+            destinatarios.add(dept_dest.vice_lider_departamento.user_id)
+    dept_sol = solicitacao.departamento_solicitante
+    if dept_sol:
+        if dept_sol.lider_departamento and dept_sol.lider_departamento.user_id:
+            destinatarios.add(dept_sol.lider_departamento.user_id)
+        if dept_sol.vice_lider_departamento and dept_sol.vice_lider_departamento.user_id:
+            destinatarios.add(dept_sol.vice_lider_departamento.user_id)
+
+    if responsavel and responsavel.user_id:
+        destinatarios.discard(responsavel.user_id)
+
+    notifs = [
+        NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
+        for uid in destinatarios
+    ]
+    if notifs:
+        NotificacaoSistema.objects.bulk_create(notifs)
 
 def comeco(request):
     return render(request, 'index.html')
@@ -191,6 +230,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'inventariopatrimonio': InventarioPatrimonio.objects.select_related('categoria_patrimonio', 'responsavel', 'estado'),
              'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
              'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
+             'solicitacoes': SolicitacaoInterdepartamental.objects.select_related('departamento_solicitante', 'departamento_destinatario', 'solicitante', 'responsavel_resposta'),
              }
     if gestaoescolhida == 'departamentos':
         resultado = (
@@ -224,6 +264,12 @@ def mostraGestao(request,gestaoescolhida,pagina):
     elif (gestaoescolhida == 'irmaos'):
         resultado = lista[gestaoescolhida].prefetch_related('mandato_set__departamento').all().order_by('nome','outrosnomes')
     elif gestaoescolhida == 'pedidosaida':
+        qs = lista[gestaoescolhida].all()
+        estado_filtro = request.GET.get('estado', '').strip()
+        if estado_filtro:
+            qs = qs.filter(estado=estado_filtro)
+        resultado = qs.order_by('-data_criacao')
+    elif gestaoescolhida == 'solicitacoes':
         qs = lista[gestaoescolhida].all()
         estado_filtro = request.GET.get('estado', '').strip()
         if estado_filtro:
@@ -308,6 +354,22 @@ def mostraGestao(request,gestaoescolhida,pagina):
             'estado_choices_com_contagem': estado_choices_com_contagem,
             'total_pedidos': sum(contagens.values()),
         }
+    elif gestaoescolhida == 'solicitacoes':
+        contagens = dict(
+            SolicitacaoInterdepartamental.objects.values_list('estado')
+            .annotate(c=Count('id'))
+            .values_list('estado', 'c')
+        )
+        estado_choices_com_contagem = [
+            (val, label, contagens.get(val, 0))
+            for val, label in SolicitacaoInterdepartamental.ESTADO_CHOICES
+        ]
+        context = {
+            'bb': paginaresultado,
+            'estado_filtro': request.GET.get('estado', ''),
+            'estado_choices_com_contagem': estado_choices_com_contagem,
+            'total_solicitacoes': sum(contagens.values()),
+        }
     elif gestaoescolhida == 'escalas':
         context = {
             'bb': paginaresultado,
@@ -375,6 +437,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
              'inventariopatrimonio': InventarioPatrimonio,
              'conteudoensino':ConteudoEnsino,
              'enviomensagem':EnvioMensagem,
+             'solicitacoes':SolicitacaoInterdepartamental,
              
 
               }
@@ -398,6 +461,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'inventariopatrimonio': InventarioPatrimonioForm,
                         'conteudoensino':ConteudoEnsinoForm,
                         'enviomensagem':EnvioMensagemForm,
+                        'solicitacoes':SolicitacaoUpdateForm,
                         }
     
     model = lista[gestaoescolhida]
@@ -511,6 +575,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
         'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
         'escalas': Escala.objects.select_related('irmao', 'actividade', 'funcao'),
+        'solicitacoes': SolicitacaoInterdepartamental.objects.select_related('departamento_solicitante', 'departamento_destinatario', 'solicitante', 'responsavel_resposta'),
     }
     queryset = lista_qs.get(gestaoescolhida)
     if queryset is None:
@@ -1010,6 +1075,80 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'gestaoescolhida': gestaoescolhida,
             'pode_aprovar': pode_aprovar,
         }
+    elif gestaoescolhida == 'solicitacoes':
+        irmao_logado = Irmao.objects.filter(user=request.user).first()
+        pode_responder = request.user.has_perm('sitetibl.change_solicitacaointerdepartamental')
+        historico = HistoricoSolicitacao.objects.filter(solicitacao=registo).select_related('responsavel').order_by('data')
+
+        if request.method == 'POST' and pode_responder:
+            action = request.POST.get('action', '').strip()
+            estado_anterior = registo.estado
+
+            if action == 'em_analise' and registo.pode_transitar_para('em_analise'):
+                registo.estado = 'em_analise'
+                registo.save(update_fields=['estado', 'data_atualizacao'])
+                HistoricoSolicitacao.objects.create(
+                    solicitacao=registo, estado_anterior=estado_anterior,
+                    estado_novo='em_analise', responsavel=irmao_logado,
+                )
+                _notificar_solicitacao(registo, estado_anterior, 'em_analise', irmao_logado)
+                messages.info(request, 'Solicitação marcada como "Em Análise".')
+
+            elif action == 'aprovar' and registo.pode_transitar_para('aprovado'):
+                obs = request.POST.get('justificacao', '').strip()
+                registo.estado = 'aprovado'
+                registo.responsavel_resposta = irmao_logado
+                registo.justificacao_resposta = obs
+                registo.data_resposta = now()
+                registo.save()
+                HistoricoSolicitacao.objects.create(
+                    solicitacao=registo, estado_anterior=estado_anterior,
+                    estado_novo='aprovado', responsavel=irmao_logado, observacao=obs,
+                )
+                _notificar_solicitacao(registo, estado_anterior, 'aprovado', irmao_logado)
+                messages.success(request, 'Solicitação aprovada com sucesso.')
+
+            elif action == 'rejeitar' and registo.pode_transitar_para('rejeitado'):
+                obs = request.POST.get('justificacao', '').strip()
+                if not obs:
+                    messages.error(request, 'É obrigatório indicar o motivo da rejeição.')
+                else:
+                    registo.estado = 'rejeitado'
+                    registo.responsavel_resposta = irmao_logado
+                    registo.justificacao_resposta = obs
+                    registo.data_resposta = now()
+                    registo.save()
+                    HistoricoSolicitacao.objects.create(
+                        solicitacao=registo, estado_anterior=estado_anterior,
+                        estado_novo='rejeitado', responsavel=irmao_logado, observacao=obs,
+                    )
+                    _notificar_solicitacao(registo, estado_anterior, 'rejeitado', irmao_logado)
+                    messages.success(request, 'Solicitação rejeitada.')
+
+            elif action == 'concluir' and registo.pode_transitar_para('concluido'):
+                obs = request.POST.get('justificacao', '').strip()
+                registo.estado = 'concluido'
+                registo.data_conclusao = now()
+                registo.save()
+                HistoricoSolicitacao.objects.create(
+                    solicitacao=registo, estado_anterior=estado_anterior,
+                    estado_novo='concluido', responsavel=irmao_logado, observacao=obs,
+                )
+                _notificar_solicitacao(registo, estado_anterior, 'concluido', irmao_logado)
+                messages.success(request, 'Solicitação concluída.')
+            else:
+                messages.error(request, 'Transição de estado inválida.')
+
+            return HttpResponseRedirect(
+                reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+            )
+
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'pode_responder': pode_responder,
+            'historico': historico,
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
@@ -1036,6 +1175,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'enviomensagem':EnvioMensagem,
              'escalas':Escala,
              'mandatos':Mandato,
+             'solicitacoes':SolicitacaoInterdepartamental,
              }
     model = lista.get(gestaoescolhida)
     if model is None:
@@ -1106,6 +1246,7 @@ def mostraCriacao(request, gestaoescolhida):
                         'inventariopatrimonio': InventarioPatrimonioForm,
                         'conteudoensino':ConteudoEnsinoForm,
                         'enviomensagem':EnvioMensagemForm,
+                        'solicitacoes':SolicitacaoForm,
                         }
     form_class = listaformularios.get(gestaoescolhida)
     if not form_class:
@@ -1158,6 +1299,19 @@ def mostraCriacao(request, gestaoescolhida):
                     obj.requerente = irmao_req
                 obj.estado = 'pendente'
                 obj.estado_pagamento = 'nao_aplicavel'
+
+            # 📋 Solicitação Interdepartamental: auto-preencher solicitante e dept
+            if gestaoescolhida == 'solicitacoes':
+                irmao_sol = Irmao.objects.filter(user=request.user).first()
+                if irmao_sol:
+                    obj.solicitante = irmao_sol
+                    if not obj.departamento_solicitante_id:
+                        depts = Departamento.objects.filter(
+                            Q(lider_departamento=irmao_sol) | Q(vice_lider_departamento=irmao_sol)
+                        )
+                        if depts.count() == 1:
+                            obj.departamento_solicitante = depts.first()
+                obj.estado = 'pendente'
 
             obj.save()
 
@@ -3387,3 +3541,25 @@ def serve_documentacao(request, path=''):
         open(file_path, 'rb'),
         content_type=content_type or 'application/octet-stream',
     )
+
+
+@login_required
+def encontraSolicitacoes(request):
+    assuntov = request.GET.get('assuntov', '').strip()
+    categoriav = request.GET.get('categoriav', '').strip()
+    estadov = request.GET.get('estadov', '').strip()
+    pagina = request.GET.get('pagina', 1)
+    qs = SolicitacaoInterdepartamental.objects.select_related(
+        'departamento_solicitante', 'departamento_destinatario', 'solicitante'
+    )
+    if assuntov:
+        qs = qs.filter(assunto__icontains=assuntov)
+    if categoriav:
+        qs = qs.filter(categoria=categoriav)
+    if estadov:
+        qs = qs.filter(estado=estadov)
+    qs = qs.order_by('-data_criacao')
+    paginador = Paginator(qs, 20)
+    paginaresultado = paginador.get_page(pagina)
+    dd = request.META['QUERY_STRING']
+    return render(request, 'solicitacoesfiltradas.html', {'bb': paginaresultado, 'dd': dd})
