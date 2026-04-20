@@ -821,16 +821,23 @@ class SolicitacaoForm(ModelForm):
         fields = [
             'departamento_solicitante', 'departamento_destinatario', 'assunto', 'descricao',
             'categoria', 'data_necessidade', 'prioridade', 'documento_anexo',
+            'montante', 'moeda', 'centro_custo', 'tipificacao_custo', 'iban', 'justificativa_custo',
         ]
         widgets = {
             'departamento_solicitante': forms.Select(attrs={'class': 'form-control'}),
             'departamento_destinatario': forms.Select(attrs={'class': 'form-control'}),
             'assunto': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Resumo breve do pedido'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva o pedido em detalhe...'}),
-            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'categoria': forms.Select(attrs={'class': 'form-control', 'id': 'id_categoria'}),
             'data_necessidade': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'prioridade': forms.Select(attrs={'class': 'form-control'}),
             'documento_anexo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'montante': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'moeda': forms.Select(attrs={'class': 'form-control'}),
+            'centro_custo': forms.Select(attrs={'class': 'form-control'}),
+            'tipificacao_custo': forms.Select(attrs={'class': 'form-control'}),
+            'iban': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IBAN para transferência'}),
+            'justificativa_custo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Justifique o custo solicitado...'}),
         }
 
 
@@ -840,19 +847,23 @@ class SolicitacaoUpdateForm(ModelForm):
         fields = [
             'departamento_destinatario', 'assunto', 'descricao',
             'categoria', 'data_necessidade', 'prioridade', 'documento_anexo',
+            'montante', 'moeda', 'centro_custo', 'tipificacao_custo', 'iban', 'justificativa_custo',
         ]
         widgets = {
             'departamento_destinatario': forms.Select(attrs={'class': 'form-control'}),
             'assunto': forms.TextInput(attrs={'class': 'form-control'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'categoria': forms.Select(attrs={'class': 'form-control', 'id': 'id_categoria'}),
             'data_necessidade': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'prioridade': forms.Select(attrs={'class': 'form-control'}),
             'documento_anexo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'montante': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'moeda': forms.Select(attrs={'class': 'form-control'}),
+            'centro_custo': forms.Select(attrs={'class': 'form-control'}),
+            'tipificacao_custo': forms.Select(attrs={'class': 'form-control'}),
+            'iban': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IBAN para transferência'}),
+            'justificativa_custo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Justifique o custo solicitado...'}),
         }
-
-
-# ── Formulários Pastoral ──────────────────────────────────────
 
 class CasoPastoralForm(ModelForm):
     class Meta:

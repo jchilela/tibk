@@ -497,5 +497,25 @@
         }
     });
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var catSelect = document.getElementById('id_categoria');
+        if (catSelect) {
+            var camposFinanceiros = ['id_montante', 'id_moeda', 'id_centro_custo', 'id_tipificacao_custo', 'id_iban', 'id_justificativa_custo'];
+            function toggleFinanceiros() {
+                var isVerba = catSelect.value === 'verba';
+                camposFinanceiros.forEach(function(fid) {
+                    var el = document.getElementById(fid);
+                    if (el) {
+                        var group = el.closest('.form-group');
+                        if (group) group.style.display = isVerba ? '' : 'none';
+                    }
+                });
+            }
+            catSelect.addEventListener('change', toggleFinanceiros);
+            toggleFinanceiros();
+        }
+    });
+</script>
 
 {% endblock %}

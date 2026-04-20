@@ -1343,6 +1343,8 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     registo.responsavel_resposta = irmao_logado
                     registo.justificacao_resposta = obs
                     registo.data_resposta = now()
+                    if registo.categoria == 'verba':
+                        registo.estado_pagamento = 'aguardando'
                     registo.save()
                     HistoricoSolicitacao.objects.create(
                         solicitacao=registo, estado_anterior=estado_anterior,
@@ -1382,6 +1384,23 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     )
                     _notificar_solicitacao(registo, estado_anterior, 'concluido', irmao_logado)
                     messages.success(request, 'Solicitação concluída.')
+
+                elif action == 'registar_pagamento' and registo.estado == 'aprovado' and registo.categoria == 'verba':
+                    obs = request.POST.get('justificacao', '').strip()
+                    comprovativo = request.FILES.get('comprovativo_pagamento')
+                    registo.estado_pagamento = 'pago'
+                    registo.data_pagamento = now()
+                    if comprovativo:
+                        registo.comprovativo_pagamento = comprovativo
+                    registo.save()
+                    HistoricoSolicitacao.objects.create(
+                        solicitacao=registo, estado_anterior=estado_anterior,
+                        estado_novo='aprovado', responsavel=irmao_logado,
+                        observacao=f'Pagamento registado. {obs}'.strip(),
+                        documento_anexo=comprovativo or '',
+                    )
+                    _notificar_solicitacao(registo, estado_anterior, 'aprovado', irmao_logado)
+                    messages.success(request, 'Pagamento registado com sucesso.')
                 else:
                     messages.error(request, 'Transição de estado inválida.')
 

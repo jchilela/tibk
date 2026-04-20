@@ -755,6 +755,17 @@ class SolicitacaoInterdepartamental(models.Model):
     justificacao_resposta = models.TextField('Justificação da Resposta', blank=True)
     data_resposta = models.DateTimeField('Data da Resposta', null=True, blank=True)
     data_conclusao = models.DateTimeField('Data de Conclusão', null=True, blank=True)
+    # Campos financeiros (preenchidos quando categoria='verba')
+    montante = models.FloatField('Montante', null=True, blank=True)
+    moeda = models.ForeignKey(Tipo_Moeda, null=True, blank=True, on_delete=models.CASCADE, verbose_name='Moeda')
+    centro_custo = models.ForeignKey(Centro_Custo, null=True, blank=True, on_delete=models.CASCADE, verbose_name='Centro de Custo')
+    tipificacao_custo = models.ForeignKey(Tipificacao_Custo, null=True, blank=True, on_delete=models.CASCADE, verbose_name='Tipificação de Custo')
+    iban = models.CharField('IBAN', max_length=50, blank=True)
+    justificativa_custo = models.TextField('Justificativa de Custo', blank=True)
+    estado_pagamento = models.CharField('Estado de Pagamento', max_length=20, choices=PedidoSaida.PAGAMENTO_CHOICES, default='nao_aplicavel')
+    comprovativo_pagamento = models.FileField('Comprovativo de Pagamento', upload_to='comprovativos/', blank=True)
+    data_pagamento = models.DateTimeField('Data de Pagamento', null=True, blank=True)
+    # Timestamps
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
 

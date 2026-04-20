@@ -120,7 +120,7 @@
                 </a>
                 {% endif %}
 
-                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco or perms.sitetibl.view_pedidosaida %}
+                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco %}
                 <div class="nav-section-title">Financeiro</div>
 
                 {% if perms.sitetibl.view_contabancaria %}
@@ -162,13 +162,6 @@
                 <a href="/tibl/gestao/saidascaixa/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidascaixa' %}active{% endif %}">
                     <i class="fas fa-money-bill-wave fa-fw"></i> Saída (Caixa)
-                </a>
-                {% endif %}
-
-                {% if perms.sitetibl.view_pedidosaida %}
-                <a href="/tibl/gestao/pedidosaida/1"
-                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'pedidosaida' %}active{% endif %}">
-                    <i class="fas fa-file-invoice-dollar fa-fw"></i> Pedidos de Saída
                 </a>
                 {% endif %}
 
