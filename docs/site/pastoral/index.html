@@ -8,7 +8,7 @@
         <meta name="author" content="Equipa TIBL">
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Perfis e Permissões - TIBL — Guia do Utilizador</title>
+        <title>Painel Pastoral - TIBL — Guia do Utilizador</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/fontawesome.min.css" rel="stylesheet">
         <link href="../css/brands.min.css" rel="stylesheet">
@@ -66,10 +66,10 @@
                                 <a href="../solicitacoes/" class="nav-link">Solicitações</a>
                             </li>
                             <li class="nav-item">
-                                <a href="../pastoral/" class="nav-link">Painel Pastoral</a>
+                                <a href="./" class="nav-link active" aria-current="page">Painel Pastoral</a>
                             </li>
                             <li class="nav-item">
-                                <a href="./" class="nav-link active" aria-current="page">Perfis e Permissões</a>
+                                <a href="../perfis/" class="nav-link">Perfis e Permissões</a>
                             </li>
                         </ul>
 
@@ -80,12 +80,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../pastoral/" class="nav-link">
+                                <a rel="prev" href="../solicitacoes/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" class="nav-link disabled">
+                                <a rel="next" href="../perfis/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -107,17 +107,25 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#perfis-e-permissoes" class="nav-link">Perfis e Permissões</a>
+            <li class="nav-item" data-bs-level="1"><a href="#painel-de-acompanhamento-pastoral" class="nav-link">Painel de Acompanhamento Pastoral</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#perfis-disponiveis" class="nav-link">Perfis disponíveis</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#como-solicitar-um-perfil" class="nav-link">Como solicitar um perfil</a>
+            <li class="nav-item" data-bs-level="2"><a href="#aceder-ao-painel" class="nav-link">Aceder ao painel</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#como-confirmar-o-seu-nivel-de-acesso" class="nav-link">Como confirmar o seu nível de acesso</a>
+            <li class="nav-item" data-bs-level="2"><a href="#o-que-encontra-no-painel" class="nav-link">O que encontra no painel</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#registar-um-caso-pastoral" class="nav-link">Registar um caso pastoral</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#registar-um-visitante-recorrente" class="nav-link">Registar um visitante recorrente</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#gerar-o-relatorio-pastoral-mensal-pdf" class="nav-link">Gerar o Relatório Pastoral Mensal (PDF)</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -132,47 +140,120 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="perfis-e-permissoes">Perfis e Permissões<a class="headerlink" href="#perfis-e-permissoes" title="Permanent link">&para;</a></h1>
-<p>Cada utilizador do sistema tem um perfil que define o que pode ver e fazer.</p>
+<h1 id="painel-de-acompanhamento-pastoral">Painel de Acompanhamento Pastoral<a class="headerlink" href="#painel-de-acompanhamento-pastoral" title="Permanent link">&para;</a></h1>
+<p>O <strong>Painel Pastoral</strong> é uma ferramenta de atenção e acompanhamento espiritual da congregação. Não é uma lista de membros — é um sistema baseado em <strong>sinais de alerta</strong> que ajuda o pastor e a equipa pastoral a agir com rapidez e intencionalidade.</p>
+<div class="admonition warning">
+<p class="admonition-title">Acesso restrito</p>
+<p>Disponível apenas para os perfis <strong>Pastor</strong>, <strong>Administrador</strong> e <strong>Secretaria</strong>.</p>
+</div>
 <hr />
-<h2 id="perfis-disponiveis">Perfis disponíveis<a class="headerlink" href="#perfis-disponiveis" title="Permanent link">&para;</a></h2>
+<h2 id="aceder-ao-painel">Aceder ao painel<a class="headerlink" href="#aceder-ao-painel" title="Permanent link">&para;</a></h2>
+<p>No menu lateral, clique em <strong>Painel Pastoral</strong>.</p>
+<hr />
+<h2 id="o-que-encontra-no-painel">O que encontra no painel<a class="headerlink" href="#o-que-encontra-no-painel" title="Permanent link">&para;</a></h2>
+<h3 id="indicadores-de-atencao-kpis">Indicadores de atenção (KPIs)<a class="headerlink" href="#indicadores-de-atencao-kpis" title="Permanent link">&para;</a></h3>
+<p>Cartões no topo com números que requerem acção imediata:</p>
+<table>
+<thead>
+<tr>
+<th>Indicador</th>
+<th>O que mede</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Membros Inactivos (60d)</td>
+<td>Membros que já participaram, mas não aparecem há 60+ dias</td>
+</tr>
+<tr>
+<td>Novos Convertidos</td>
+<td>Membros registados nos últimos 30 dias sem acompanhamento</td>
+</tr>
+<tr>
+<td>Em Discipulado</td>
+<td>Casos pastorais de discipulado em aberto</td>
+</tr>
+<tr>
+<td>Visitantes Recorrentes</td>
+<td>Visitantes registados ainda não integrados</td>
+</tr>
+<tr>
+<td>Casos Sensíveis</td>
+<td>Casos de luto, doença ou aconselhamento activos</td>
+</tr>
+<tr>
+<td>Alertas Activos</td>
+<td>Alertas pastorais não resolvidos</td>
+</tr>
+</tbody>
+</table>
+<h3 id="retrato-da-congregacao">Retrato da Congregação<a class="headerlink" href="#retrato-da-congregacao" title="Permanent link">&para;</a></h3>
+<p>Secção com métricas de composição da congregação em barras de progresso:</p>
 <ul>
-<li><strong>Administrador:</strong> acesso total a todos os módulos e configurações</li>
-<li><strong>Pastor:</strong> supervisão pastoral, consulta finanças, gere membros e actividades</li>
-<li><strong>Financeiro:</strong> gestão financeira completa e aprovação de pedidos de saída</li>
-<li><strong>Secretaria:</strong> gere membros, actividades e comunicação; consulta finanças</li>
-<li><strong>Líder de Departamento:</strong> gere actividades, escalas e mandatos do seu departamento; cria pedidos; envia mensagens</li>
-<li><strong>Vice-Líder de Departamento:</strong> gere actividades, escalas e mandatos do seu departamento; cria pedidos</li>
-<li><strong>Líder de Célula:</strong> preenche relatórios semanais; consulta membros e actividades</li>
-<li><strong>Membros Baptizados:</strong> consulta geral, vê as suas escalas e preenche relatórios</li>
-<li><strong>Membro Geral:</strong> consulta básica de actividades, departamentos e conteúdos</li>
+<li><strong>Baptismo</strong> — total de batizados vs. não-batizados (com percentagem)</li>
+<li><strong>Género</strong> — distribuição masculino / feminino</li>
+<li><strong>Dízimo</strong> — dizimistas activos vs. restantes</li>
+<li><strong>Integração</strong> — membros em departamento e membros com célula atribuída</li>
+</ul>
+<h3 id="alertas-pastorais">Alertas Pastorais<a class="headerlink" href="#alertas-pastorais" title="Permanent link">&para;</a></h3>
+<p>Lista dos alertas activos, ordenados por prioridade. Por cada alerta pode <strong>Resolver</strong> ou <strong>Ignorar</strong>.</p>
+<h3 id="casos-pastorais">Casos Pastorais<a class="headerlink" href="#casos-pastorais" title="Permanent link">&para;</a></h3>
+<p>Lista dos casos sensíveis em acompanhamento activo (luto, doença, aconselhamento, crise familiar, discipulado).</p>
+<h3 id="graficos-de-tendencia">Gráficos de tendência<a class="headerlink" href="#graficos-de-tendencia" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tendências mensais</strong> — evolução de novos membros, baptismos e visitantes por mês</li>
+<li><strong>Casos por tipo</strong> — distribuição dos tipos de casos pastorais activos</li>
 </ul>
 <hr />
-<h2 id="como-solicitar-um-perfil">Como solicitar um perfil<a class="headerlink" href="#como-solicitar-um-perfil" title="Permanent link">&para;</a></h2>
-<p>Contacte o administrador do sistema indicando:</p>
+<h2 id="registar-um-caso-pastoral">Registar um caso pastoral<a class="headerlink" href="#registar-um-caso-pastoral" title="Permanent link">&para;</a></h2>
 <ol>
-<li>O seu <strong>nome de utilizador</strong></li>
-<li>O <strong>perfil pretendido</strong></li>
-<li>A <strong>justificação</strong> (cargo ou responsabilidade na igreja)</li>
+<li>Clique em <strong>Novo Caso</strong> no painel ou em <strong>Casos Pastorais → Novo</strong>.</li>
+<li>Preencha:</li>
+<li><strong>Membro</strong> — seleccione o irmão envolvido</li>
+<li><strong>Tipo</strong> — Luto, Doença, Aconselhamento, Crise Familiar, Discipulado, Outro</li>
+<li><strong>Prioridade</strong> — Baixa, Normal, Alta, Urgente</li>
+<li><strong>Responsável</strong> — pastor ou líder responsável pelo acompanhamento</li>
+<li><strong>Descrição</strong> — contexto do caso (visível apenas para quem tem acesso)</li>
+<li>Clique em <strong>Guardar</strong>.</li>
 </ol>
-<div class="admonition warning">
-<p class="admonition-title">Gestão de perfis</p>
-<p>Apenas o <strong>Administrador</strong> pode atribuir ou alterar perfis.</p>
+<h3 id="acompanhar-e-encerrar-um-caso">Acompanhar e encerrar um caso<a class="headerlink" href="#acompanhar-e-encerrar-um-caso" title="Permanent link">&para;</a></h3>
+<p>No detalhe do caso, o responsável pode:</p>
+<ul>
+<li><strong>Iniciar Acompanhamento</strong> — muda o estado para "Em Acompanhamento"</li>
+<li><strong>Guardar Registo</strong> — adiciona uma nota de acompanhamento com data e autor</li>
+<li><strong>Encerrar</strong> — marca o caso como resolvido (requer nota de encerramento)</li>
+</ul>
+<hr />
+<h2 id="registar-um-visitante-recorrente">Registar um visitante recorrente<a class="headerlink" href="#registar-um-visitante-recorrente" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Aceda a <strong>Visitantes → Novo Visitante</strong>.</li>
+<li>Preencha o nome, contacto, primeira e última visita.</li>
+<li>Atribua um <strong>responsável de acompanhamento</strong> (opcional).</li>
+<li>Clique em <strong>Guardar</strong>.</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">Campo Célula</p>
+<p>O campo Célula é opcional — um visitante pode ter vindo a um culto sem pertencer a uma célula.</p>
 </div>
-<h2 id="como-confirmar-o-seu-nivel-de-acesso">Como confirmar o seu nível de acesso<a class="headerlink" href="#como-confirmar-o-seu-nivel-de-acesso" title="Permanent link">&para;</a></h2>
+<hr />
+<h2 id="gerar-o-relatorio-pastoral-mensal-pdf">Gerar o Relatório Pastoral Mensal (PDF)<a class="headerlink" href="#gerar-o-relatorio-pastoral-mensal-pdf" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Inicie sessão no sistema</li>
-<li>Observe quais módulos aparecem no menu lateral</li>
-<li>Entre no módulo pretendido e confirme se as opções <strong>Novo</strong>, <strong>Editar</strong>, <strong>Eliminar</strong> ou <strong>Ver</strong> estão disponíveis</li>
-<li>Se uma funcionalidade não estiver visível, compare o seu acesso com a tabela de perfis acima</li>
-<li>Caso necessário, solicite revisão do perfil ao administrador</li>
+<li>No topo do painel, clique em <strong>Relatório Mensal</strong>.</li>
+<li>Na página de seleção, escolha o <strong>mês</strong> pretendido.</li>
+<li>Apenas os meses com registos aparecem disponíveis.</li>
+<li>Clique em <strong>Gerar PDF</strong> — o relatório abre numa nova aba.</li>
 </ol>
+<p>O relatório inclui:
+- KPIs do mês seleccionado (novos membros, baptismos, casos resolvidos, alertas, visitantes)
+- Tabela de casos pastorais em acompanhamento</p>
 <hr />
 <h2 id="perguntas-frequentes">Perguntas frequentes<a class="headerlink" href="#perguntas-frequentes" title="Permanent link">&para;</a></h2>
-<p><strong>Posso ter mais do que um perfil?</strong>
-Não — cada utilizador tem apenas um perfil principal.</p>
-<p><strong>O meu perfil não tem acesso a uma funcionalidade que necessito. O que faço?</strong>
-Contacte o administrador para solicitar a alteração do seu perfil ou permissões adicionais.</p></div>
+<p><strong>Os casos pastorais são visíveis por todos os utilizadores?</strong>
+Não — apenas os perfis com acesso ao painel pastoral podem ver os casos.</p>
+<p><strong>Posso registar um alerta manualmente?</strong>
+Sim — aceda a <strong>Alertas Pastorais → Novo</strong> e preencha o tipo e o membro em causa.</p>
+<p><strong>O que é um visitante recorrente?</strong>
+É uma pessoa que visitou a igreja mais de uma vez mas ainda não se integrou como membro ou convertido.</p></div>
             </div>
         </div>
 

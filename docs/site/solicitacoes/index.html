@@ -8,7 +8,7 @@
         <meta name="author" content="Equipa TIBL">
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Perfis e Permissões - TIBL — Guia do Utilizador</title>
+        <title>Solicitações - TIBL — Guia do Utilizador</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/fontawesome.min.css" rel="stylesheet">
         <link href="../css/brands.min.css" rel="stylesheet">
@@ -63,13 +63,13 @@
                                 <a href="../relatorios/" class="nav-link">Relatórios</a>
                             </li>
                             <li class="nav-item">
-                                <a href="../solicitacoes/" class="nav-link">Solicitações</a>
+                                <a href="./" class="nav-link active" aria-current="page">Solicitações</a>
                             </li>
                             <li class="nav-item">
                                 <a href="../pastoral/" class="nav-link">Painel Pastoral</a>
                             </li>
                             <li class="nav-item">
-                                <a href="./" class="nav-link active" aria-current="page">Perfis e Permissões</a>
+                                <a href="../perfis/" class="nav-link">Perfis e Permissões</a>
                             </li>
                         </ul>
 
@@ -80,12 +80,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../pastoral/" class="nav-link">
+                                <a rel="prev" href="../relatorios/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" class="nav-link disabled">
+                                <a rel="next" href="../pastoral/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -107,17 +107,25 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#perfis-e-permissoes" class="nav-link">Perfis e Permissões</a>
+            <li class="nav-item" data-bs-level="1"><a href="#solicitacoes-interdepartamentais" class="nav-link">Solicitações Interdepartamentais</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#perfis-disponiveis" class="nav-link">Perfis disponíveis</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#como-solicitar-um-perfil" class="nav-link">Como solicitar um perfil</a>
+            <li class="nav-item" data-bs-level="2"><a href="#criar-uma-solicitacao" class="nav-link">Criar uma solicitação</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#como-confirmar-o-seu-nivel-de-acesso" class="nav-link">Como confirmar o seu nível de acesso</a>
+            <li class="nav-item" data-bs-level="2"><a href="#ciclo-de-vida-de-uma-solicitacao" class="nav-link">Ciclo de vida de uma solicitação</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#avaliar-uma-solicitacao-destinatario" class="nav-link">Avaliar uma solicitação (destinatário)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#comentarios-e-troca-de-informacao" class="nav-link">Comentários e troca de informação</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#quem-pode-usar-este-modulo" class="nav-link">Quem pode usar este módulo</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -132,47 +140,130 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="perfis-e-permissoes">Perfis e Permissões<a class="headerlink" href="#perfis-e-permissoes" title="Permanent link">&para;</a></h1>
-<p>Cada utilizador do sistema tem um perfil que define o que pode ver e fazer.</p>
+<h1 id="solicitacoes-interdepartamentais">Solicitações Interdepartamentais<a class="headerlink" href="#solicitacoes-interdepartamentais" title="Permanent link">&para;</a></h1>
+<p>O módulo de <strong>Solicitações Interdepartamentais</strong> permite que os líderes de cada departamento efectuem pedidos formais a outros departamentos — como pedir material criativo à Comunicação, equipamento ao Património, verbas às Finanças ou cobertura fotográfica ao Som e Media.</p>
+<p>O objectivo é centralizar estes pedidos numa plataforma rastreável, substituindo a comunicação informal por e-mail, WhatsApp ou verbal.</p>
 <hr />
-<h2 id="perfis-disponiveis">Perfis disponíveis<a class="headerlink" href="#perfis-disponiveis" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Administrador:</strong> acesso total a todos os módulos e configurações</li>
-<li><strong>Pastor:</strong> supervisão pastoral, consulta finanças, gere membros e actividades</li>
-<li><strong>Financeiro:</strong> gestão financeira completa e aprovação de pedidos de saída</li>
-<li><strong>Secretaria:</strong> gere membros, actividades e comunicação; consulta finanças</li>
-<li><strong>Líder de Departamento:</strong> gere actividades, escalas e mandatos do seu departamento; cria pedidos; envia mensagens</li>
-<li><strong>Vice-Líder de Departamento:</strong> gere actividades, escalas e mandatos do seu departamento; cria pedidos</li>
-<li><strong>Líder de Célula:</strong> preenche relatórios semanais; consulta membros e actividades</li>
-<li><strong>Membros Baptizados:</strong> consulta geral, vê as suas escalas e preenche relatórios</li>
-<li><strong>Membro Geral:</strong> consulta básica de actividades, departamentos e conteúdos</li>
-</ul>
-<hr />
-<h2 id="como-solicitar-um-perfil">Como solicitar um perfil<a class="headerlink" href="#como-solicitar-um-perfil" title="Permanent link">&para;</a></h2>
-<p>Contacte o administrador do sistema indicando:</p>
+<h2 id="criar-uma-solicitacao">Criar uma solicitação<a class="headerlink" href="#criar-uma-solicitacao" title="Permanent link">&para;</a></h2>
 <ol>
-<li>O seu <strong>nome de utilizador</strong></li>
-<li>O <strong>perfil pretendido</strong></li>
-<li>A <strong>justificação</strong> (cargo ou responsabilidade na igreja)</li>
+<li>No menu lateral, clique em <strong>Solicitações</strong>.</li>
+<li>Clique em <strong>Nova Solicitação</strong>.</li>
+<li>Preencha os campos:</li>
+<li><strong>Assunto</strong> — título breve e claro do pedido</li>
+<li><strong>Categoria</strong> — tipo de pedido (Material, Equipamento, Financeiro, Cobertura, Outro)</li>
+<li><strong>Departamento Destinatário</strong> — o departamento a quem se dirige o pedido</li>
+<li><strong>Descrição</strong> — detalhe o que é necessário, quando e porquê</li>
+<li><strong>Prioridade</strong> — Normal, Alta ou Urgente</li>
+<li><strong>Data Limite</strong> (opcional) — data até quando o pedido deve ser atendido</li>
+<li>Clique em <strong>Guardar</strong>.</li>
 </ol>
-<div class="admonition warning">
-<p class="admonition-title">Gestão de perfis</p>
-<p>Apenas o <strong>Administrador</strong> pode atribuir ou alterar perfis.</p>
+<p>A solicitação é criada com o estado <strong>Pendente</strong> e o departamento destinatário recebe uma notificação automática por e-mail.</p>
+<hr />
+<h2 id="ciclo-de-vida-de-uma-solicitacao">Ciclo de vida de uma solicitação<a class="headerlink" href="#ciclo-de-vida-de-uma-solicitacao" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Estado</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pendente</strong></td>
+<td>Aguarda análise pelo destinatário</td>
+</tr>
+<tr>
+<td><strong>Em Análise</strong></td>
+<td>O destinatário está a avaliar o pedido</td>
+</tr>
+<tr>
+<td><strong>Aprovada</strong></td>
+<td>Pedido aceite — em execução</td>
+</tr>
+<tr>
+<td><strong>Rejeitada</strong></td>
+<td>Pedido recusado com justificação</td>
+</tr>
+<tr>
+<td><strong>Concluída</strong></td>
+<td>Pedido executado e encerrado</td>
+</tr>
+<tr>
+<td><strong>Cancelada</strong></td>
+<td>Retirada pelo próprio solicitante</td>
+</tr>
+</tbody>
+</table>
+<p>Cada mudança de estado fica registada com data, hora e responsável. O solicitante recebe e-mail automático em cada transição.</p>
+<hr />
+<h2 id="avaliar-uma-solicitacao-destinatario">Avaliar uma solicitação (destinatário)<a class="headerlink" href="#avaliar-uma-solicitacao-destinatario" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Aceda a <strong>Solicitações</strong> e localize o pedido que lhe foi dirigido.</li>
+<li>Clique no pedido para abrir o detalhe.</li>
+<li>Escolha uma acção:</li>
+<li><strong>Colocar em Análise</strong> — indica que começou a analisar</li>
+<li><strong>Aprovar</strong> — aceitar o pedido</li>
+<li><strong>Rejeitar</strong> — recusar com justificação obrigatória</li>
+<li><strong>Concluir</strong> — marcar como executado</li>
+<li>Clique em <strong>Confirmar</strong>.</li>
+</ol>
+<hr />
+<h2 id="comentarios-e-troca-de-informacao">Comentários e troca de informação<a class="headerlink" href="#comentarios-e-troca-de-informacao" title="Permanent link">&para;</a></h2>
+<p>Durante a avaliação, qualquer interveniente pode adicionar comentários para pedir esclarecimentos ou partilhar informação:</p>
+<ol>
+<li>No detalhe da solicitação, desça até à secção <strong>Comentários</strong>.</li>
+<li>Escreva a mensagem no campo de texto.</li>
+<li>Clique em <strong>Enviar Comentário</strong>.</li>
+</ol>
+<p>Todos os envolvidos (solicitante e destinatário) recebem um e-mail com o comentário adicionado.</p>
+<div class="admonition note">
+<p class="admonition-title">Histórico completo</p>
+<p>Os comentários e o histórico de estados ficam registados permanentemente no detalhe da solicitação.</p>
 </div>
-<h2 id="como-confirmar-o-seu-nivel-de-acesso">Como confirmar o seu nível de acesso<a class="headerlink" href="#como-confirmar-o-seu-nivel-de-acesso" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Inicie sessão no sistema</li>
-<li>Observe quais módulos aparecem no menu lateral</li>
-<li>Entre no módulo pretendido e confirme se as opções <strong>Novo</strong>, <strong>Editar</strong>, <strong>Eliminar</strong> ou <strong>Ver</strong> estão disponíveis</li>
-<li>Se uma funcionalidade não estiver visível, compare o seu acesso com a tabela de perfis acima</li>
-<li>Caso necessário, solicite revisão do perfil ao administrador</li>
-</ol>
+<hr />
+<h2 id="quem-pode-usar-este-modulo">Quem pode usar este módulo<a class="headerlink" href="#quem-pode-usar-este-modulo" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>O que pode fazer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Líder de Departamento</td>
+<td>Criar, comentar, cancelar as suas solicitações</td>
+</tr>
+<tr>
+<td>Vice-Líder de Departamento</td>
+<td>Criar, comentar, cancelar as suas solicitações</td>
+</tr>
+<tr>
+<td>Secretaria</td>
+<td>Ver todas, comentar</td>
+</tr>
+<tr>
+<td>Pastor</td>
+<td>Ver todas, comentar</td>
+</tr>
+<tr>
+<td>Financeiro</td>
+<td>Avaliar solicitações financeiras, comentar</td>
+</tr>
+<tr>
+<td>Administrador</td>
+<td>Acesso total</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="perguntas-frequentes">Perguntas frequentes<a class="headerlink" href="#perguntas-frequentes" title="Permanent link">&para;</a></h2>
-<p><strong>Posso ter mais do que um perfil?</strong>
-Não — cada utilizador tem apenas um perfil principal.</p>
-<p><strong>O meu perfil não tem acesso a uma funcionalidade que necessito. O que faço?</strong>
-Contacte o administrador para solicitar a alteração do seu perfil ou permissões adicionais.</p></div>
+<p><strong>Posso cancelar uma solicitação depois de aprovada?</strong>
+Não — após aprovação apenas o administrador pode alterar o estado.</p>
+<p><strong>O destinatário tem de justificar a rejeição?</strong>
+Sim — ao rejeitar é obrigatório escrever uma justificação.</p>
+<p><strong>Recebo notificação quando a minha solicitação for respondida?</strong>
+Sim — recebe e-mail automático em cada mudança de estado e por cada comentário adicionado.</p></div>
             </div>
         </div>
 

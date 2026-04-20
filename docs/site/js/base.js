@@ -27,22 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
     var search_modal = new bootstrap.Modal(document.getElementById('mkdocs_search_modal'));
     var keyboard_modal = new bootstrap.Modal(document.getElementById('mkdocs_keyboard_modal'));
 
-    document.querySelectorAll('.navbar a[data-bs-target="#mkdocs_search_modal"]').forEach(function(item) {
-        item.innerHTML = '<i class="fa fa-search"></i> Pesquisar';
-    });
-
-    document.querySelectorAll('.navbar a[rel="prev"]').forEach(function(item) {
-        item.innerHTML = '<i class="fa fa-arrow-left"></i> Anterior';
-    });
-
-    document.querySelectorAll('.navbar a[rel="next"]').forEach(function(item) {
-        item.innerHTML = 'Próximo <i class="fa fa-arrow-right"></i>';
-    });
-
-    document.querySelectorAll('#searchModalLabel').forEach(function(item) {
-        item.textContent = 'Pesquisar';
-    });
-
     if (search_term) {
         search_modal.show();
     }

@@ -1,11 +1,8 @@
 function setColorMode(mode) {
     // Switch between light/dark theme. `mode` is a string value of either 'dark' or 'light'.
-    document.documentElement.setAttribute('data-bs-theme', mode);
     var hljs_light = document.getElementById('hljs-light'),
         hljs_dark = document.getElementById('hljs-dark');
-    if (hljs_light == null || hljs_dark == null) {
-        return;
-    }
+    document.documentElement.setAttribute('data-bs-theme', mode);
     if (mode == 'dark') {
         hljs_light.disabled = true;
         hljs_dark.disabled = false;

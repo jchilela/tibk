@@ -30,6 +30,13 @@ Gere relatórios em PDF para gestão e prestação de contas.
 3. Em relatórios com pesquisa textual, escreva o nome ou critério principal antes de gerar o PDF
 4. Reveja os filtros escolhidos para evitar emitir relatórios com dados incompletos
 
+## Relatório Pastoral Mensal
+
+1. No menu lateral, aceda ao **Painel Pastoral**.
+2. Clique em **Relatório Mensal** no topo do painel.
+3. Seleccione o **mês** pretendido (apenas meses com registos são apresentados).
+4. Clique em **Gerar PDF** — o relatório abre numa nova aba.
+
 ---
 
 ## Perguntas frequentes

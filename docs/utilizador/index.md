@@ -20,6 +20,8 @@ Este documento foi organizado para ajudar utilizadores, líderes e equipas admin
 | [Património](patrimonio.md) | Regista e acompanha os bens da igreja. |
 | [Comunicação](comunicacao.md) | Envia mensagens por email e SMS. |
 | [Relatórios](relatorios.md) | Gera PDFs para gestão e prestação de contas. |
+| [Solicitações](solicitacoes.md) | Pedidos formais entre departamentos. |
+| [Painel Pastoral](pastoral.md) | Acompanhamento espiritual e pastoral da congregação. |
 
 ---
 
