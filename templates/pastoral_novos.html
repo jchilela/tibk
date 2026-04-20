@@ -1,0 +1,52 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-seedling"></i> Novos Convertidos sem Acompanhamento</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Membros registados há mais de 30 dias, não baptizados, sem caso pastoral de integração.</p>
+        </div>
+        <a href="{% url 'sitetibl:pastoral_dashboard' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #64748b;">
+            <i class="fas fa-arrow-left"></i> Painel
+        </a>
+    </div>
+
+    {% if novos %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Célula</th>
+                    <th>Data de Registo</th>
+                    <th>Dias desde Registo</th>
+                    <th>Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in novos %}
+                <tr>
+                    <td>{{ item.irmao.nome }} {{ item.irmao.apelido }}</td>
+                    <td>{% if item.irmao.celula %}{{ item.irmao.celula }}{% else %}<span style="color: var(--text-muted);">Sem célula</span>{% endif %}</td>
+                    <td>{{ item.data_criacao|date:"d/m/Y" }}</td>
+                    <td><span class="badge badge-warning">{{ item.dias }} dias</span></td>
+                    <td style="display: flex; gap: 0.25rem;">
+                        <a href="{% url 'sitetibl:mostra_detalhe' 'irmaos' item.irmao.id %}" class="bt-primary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Ver perfil"><i class="fas fa-user"></i></a>
+                        <a href="{% url 'sitetibl:mostra_criacao' 'casospastorais' %}?membro={{ item.irmao.id }}&tipo=integracao" class="bt-primary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; background: #f59e0b;" title="Criar caso pastoral"><i class="fas fa-folder-plus"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-check-circle" style="font-size: 4rem; color: #10b981; margin-bottom: 1.5rem;"></i>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Todos os novos convertidos têm acompanhamento. 🎉</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-user-friends"></i> Visitantes Recorrentes</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Registo de visitantes identificados nas células.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'sitetibl:pastoral_dashboard' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #64748b;">
+                <i class="fas fa-arrow-left"></i> Painel
+            </a>
+            {% if perms.sitetibl.add_visitanterecorrente %}
+            <a href="{% url 'sitetibl:mostra_criacao' 'visitantes' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                <i class="fas fa-plus-circle"></i> Novo Visitante
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <a href="{% url 'sitetibl:mostra_gestao' 'visitantes' 1 %}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if not request.GET.estado %}background: var(--primary-light);{% else %}background: #94a3b8;{% endif %}">Todos</a>
+        <a href="?estado=visitante" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if request.GET.estado == 'visitante' %}background: #3b82f6;{% else %}background: #94a3b8;{% endif %}">Visitantes</a>
+        <a href="?estado=em_integracao" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if request.GET.estado == 'em_integracao' %}background: #f59e0b;{% else %}background: #94a3b8;{% endif %}">Em Integração</a>
+        <a href="?estado=integrado" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; {% if request.GET.estado == 'integrado' %}background: #10b981;{% else %}background: #94a3b8;{% endif %}">Integrados</a>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Célula</th>
+                    <th>Visitas</th>
+                    <th>Primeira Visita</th>
+                    <th>Última Visita</th>
+                    <th>Estado</th>
+                    <th>Responsável</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in bb %}
+                <tr>
+                    <td>{{ v.nome }}</td>
+                    <td>{{ v.celula }}</td>
+                    <td><span class="badge badge-primary">{{ v.numero_visitas }}</span></td>
+                    <td>{{ v.primeira_visita|date:"d/m/Y" }}</td>
+                    <td>{{ v.ultima_visita|date:"d/m/Y" }}</td>
+                    <td>
+                        <span class="badge {% if v.estado == 'visitante' %}badge-info{% elif v.estado == 'em_integracao' %}badge-warning{% elif v.estado == 'integrado' %}badge-success{% else %}badge-neutral{% endif %}">
+                            {{ v.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{% if v.responsavel_integracao %}{{ v.responsavel_integracao.nome }}{% else %}—{% endif %}</td>
+                    <td>
+                        <a href="{% url 'sitetibl:mostra_detalhe' 'visitantes' v.id %}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if bb.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+        {% if bb.has_previous %}
+        <a href="{% url 'sitetibl:mostra_gestao' 'visitantes' bb.previous_page_number %}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #64748b;">← Anterior</a>
+        {% endif %}
+        <span style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--text-muted);">{{ bb.number }} / {{ bb.paginator.num_pages }}</span>
+        {% if bb.has_next %}
+        <a href="{% url 'sitetibl:mostra_gestao' 'visitantes' bb.next_page_number %}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #64748b;">Seguinte →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-user-friends" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Sem visitantes recorrentes registados.</p>
+        {% if perms.sitetibl.add_visitanterecorrente %}
+        <a href="{% url 'sitetibl:mostra_criacao' 'visitantes' %}" class="bt-primary" style="margin-top: 1rem; padding: 0.6rem 1.5rem;">
+            <i class="fas fa-plus-circle"></i> Registar Visitante
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

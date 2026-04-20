@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db.models import Sum, DecimalField
 from django.db.models.functions import Coalesce
 from django.core.exceptions import ValidationError
+from django.db.models import JSONField
 
 # Create your models here.
 MESES = (('1','Janeiro'),('2','Fevereiro'),('3','Março'),('4','Abril'),('5','Maio'),('6','Junho'),('7','Julho'),('8','Agosto'),('9','Setembro'),('10','Outubro'),('9','Novembro'),('10','Dezembro'))
@@ -824,3 +825,152 @@ class NotificacaoSistema(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+# ── Painel de Acompanhamento Pastoral ──────────────────────────
+
+class CasoPastoral(models.Model):
+    TIPO_CHOICES = [
+        ('luto', 'Luto'),
+        ('doenca', 'Doença'),
+        ('aconselhamento', 'Aconselhamento'),
+        ('crise_familiar', 'Crise Familiar'),
+        ('hospitalizacao', 'Hospitalização'),
+        ('necessidade_material', 'Necessidade Material'),
+        ('integracao', 'Integração de Novo Membro'),
+        ('restauracao', 'Restauração'),
+        ('outro', 'Outro'),
+    ]
+    PRIORIDADE_CHOICES = [
+        ('baixa', 'Baixa'),
+        ('normal', 'Normal'),
+        ('alta', 'Alta'),
+        ('urgente', 'Urgente'),
+    ]
+    ESTADO_CHOICES = [
+        ('aberto', 'Aberto'),
+        ('em_acompanhamento', 'Em Acompanhamento'),
+        ('resolvido', 'Resolvido'),
+        ('encerrado', 'Encerrado'),
+    ]
+
+    membro = models.ForeignKey(Irmao, on_delete=models.CASCADE, related_name='casos_pastorais', verbose_name='Membro')
+    tipo = models.CharField('Tipo', max_length=30, choices=TIPO_CHOICES)
+    prioridade = models.CharField('Prioridade', max_length=10, choices=PRIORIDADE_CHOICES, default='normal')
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_CHOICES, default='aberto')
+    titulo = models.CharField('Título', max_length=200)
+    descricao = models.TextField('Descrição')
+    confidencial = models.BooleanField('Confidencial', default=True)
+    responsavel = models.ForeignKey(Irmao, on_delete=models.SET_NULL, null=True, blank=True, related_name='casos_atribuidos', verbose_name='Responsável')
+    criado_por = models.ForeignKey(Irmao, on_delete=models.SET_NULL, null=True, blank=True, related_name='casos_criados', verbose_name='Criado por')
+    data_abertura = models.DateTimeField('Data de Abertura', auto_now_add=True)
+    data_encerramento = models.DateTimeField('Data de Encerramento', null=True, blank=True)
+    data_atualizacao = models.DateTimeField('Última Actualização', auto_now=True)
+
+    class Meta:
+        ordering = ['-data_abertura']
+        verbose_name = 'Caso Pastoral'
+        verbose_name_plural = 'Casos Pastorais'
+
+    def __str__(self):
+        return f'{self.get_tipo_display()} — {self.membro}'
+
+
+class RegistoAcompanhamento(models.Model):
+    TIPO_CHOICES = [
+        ('visita_domiciliar', 'Visita Domiciliar'),
+        ('chamada_telefonica', 'Chamada Telefónica'),
+        ('mensagem', 'Mensagem (WhatsApp/SMS)'),
+        ('reuniao_presencial', 'Reunião Presencial'),
+        ('oracao', 'Oração'),
+        ('encaminhamento', 'Encaminhamento'),
+        ('outro', 'Outro'),
+    ]
+
+    caso = models.ForeignKey(CasoPastoral, on_delete=models.CASCADE, related_name='registos', verbose_name='Caso')
+    tipo_contacto = models.CharField('Tipo de Contacto', max_length=30, choices=TIPO_CHOICES)
+    descricao = models.TextField('Descrição')
+    realizado_por = models.ForeignKey(Irmao, on_delete=models.SET_NULL, null=True, verbose_name='Realizado por')
+    documento_anexo = models.FileField('Documento Anexo', upload_to='pastoral/registos/', blank=True)
+    data = models.DateTimeField('Data', auto_now_add=True)
+    proximo_passo = models.TextField('Próximo Passo', blank=True)
+    data_proximo_contacto = models.DateField('Data do Próximo Contacto', null=True, blank=True)
+
+    class Meta:
+        ordering = ['-data']
+        verbose_name = 'Registo de Acompanhamento'
+        verbose_name_plural = 'Registos de Acompanhamento'
+
+    def __str__(self):
+        return f'{self.get_tipo_contacto_display()} — {self.caso}'
+
+
+class AlertaPastoral(models.Model):
+    TIPO_CHOICES = [
+        ('inactividade', 'Inactividade Prolongada'),
+        ('novo_sem_acompanhamento', 'Novo Convertido sem Acompanhamento'),
+        ('sem_celula', 'Sem Célula Atribuída'),
+        ('ausencia_dizimo', 'Ausência de Dízimo'),
+        ('aniversario', 'Aniversário'),
+        ('visitante_recorrente', 'Visitante Recorrente'),
+        ('queda_celula', 'Queda de Participação na Célula'),
+        ('manual', 'Alerta Manual'),
+    ]
+    ESTADO_CHOICES = [
+        ('novo', 'Novo'),
+        ('visto', 'Visto'),
+        ('em_tratamento', 'Em Tratamento'),
+        ('resolvido', 'Resolvido'),
+        ('ignorado', 'Ignorado'),
+    ]
+
+    membro = models.ForeignKey(Irmao, on_delete=models.CASCADE, null=True, blank=True, related_name='alertas_pastorais', verbose_name='Membro')
+    celula = models.ForeignKey('Sitio', on_delete=models.CASCADE, null=True, blank=True, related_name='alertas_pastorais', verbose_name='Célula')
+    tipo = models.CharField('Tipo', max_length=30, choices=TIPO_CHOICES)
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_CHOICES, default='novo')
+    titulo = models.CharField('Título', max_length=200)
+    descricao = models.TextField('Descrição')
+    dados_json = JSONField('Dados de Contexto', default=dict, blank=True)
+    caso_associado = models.ForeignKey(CasoPastoral, on_delete=models.SET_NULL, null=True, blank=True, related_name='alertas', verbose_name='Caso Associado')
+    gerado_automaticamente = models.BooleanField('Gerado Automaticamente', default=True)
+    data_criacao = models.DateTimeField('Data de Criação', auto_now_add=True)
+    data_atualizacao = models.DateTimeField('Última Actualização', auto_now=True)
+
+    class Meta:
+        ordering = ['-data_criacao']
+        verbose_name = 'Alerta Pastoral'
+        verbose_name_plural = 'Alertas Pastorais'
+
+    def __str__(self):
+        return self.titulo
+
+
+class VisitanteRecorrente(models.Model):
+    ESTADO_CHOICES = [
+        ('visitante', 'Visitante'),
+        ('em_integracao', 'Em Integração'),
+        ('integrado', 'Integrado (tornou-se membro)'),
+        ('desistiu', 'Desistiu'),
+    ]
+
+    nome = models.CharField('Nome', max_length=100)
+    telefone = models.CharField('Telefone', max_length=50, blank=True)
+    email = models.EmailField('Email', blank=True)
+    celula = models.ForeignKey('Sitio', on_delete=models.CASCADE, related_name='visitantes_recorrentes', verbose_name='Célula')
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_CHOICES, default='visitante')
+    responsavel_integracao = models.ForeignKey(Irmao, on_delete=models.SET_NULL, null=True, blank=True, related_name='visitantes_acompanhados', verbose_name='Responsável pela Integração')
+    irmao_convertido = models.ForeignKey(Irmao, on_delete=models.SET_NULL, null=True, blank=True, related_name='visitante_origem', verbose_name='Membro Convertido')
+    numero_visitas = models.IntegerField('Número de Visitas', default=1)
+    primeira_visita = models.DateField('Primeira Visita')
+    ultima_visita = models.DateField('Última Visita')
+    observacao = models.TextField('Observação', blank=True)
+    data_criacao = models.DateTimeField('Data de Criação', auto_now_add=True)
+    data_atualizacao = models.DateTimeField('Última Actualização', auto_now=True)
+
+    class Meta:
+        ordering = ['-ultima_visita']
+        verbose_name = 'Visitante Recorrente'
+        verbose_name_plural = 'Visitantes Recorrentes'
+
+    def __str__(self):
+        return f'{self.nome} ({self.get_estado_display()})'

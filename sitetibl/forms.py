@@ -4,6 +4,10 @@ from sitetibl.models import Cestabasica
 from sitetibl.models import Banco
 from sitetibl.models import Contabancaria
 from sitetibl.models import SolicitacaoInterdepartamental
+from sitetibl.models import CasoPastoral
+from sitetibl.models import RegistoAcompanhamento
+from sitetibl.models import VisitanteRecorrente
+from sitetibl.models import AlertaPastoral
 from sitetibl.models import Actividade
 from sitetibl.models import Departamento
 from sitetibl.models import Mandato
@@ -845,4 +849,80 @@ class SolicitacaoUpdateForm(ModelForm):
             'data_necessidade': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'prioridade': forms.Select(attrs={'class': 'form-control'}),
             'documento_anexo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+
+# ── Formulários Pastoral ──────────────────────────────────────
+
+class CasoPastoralForm(ModelForm):
+    class Meta:
+        model = CasoPastoral
+        fields = [
+            'membro', 'tipo', 'prioridade', 'titulo', 'descricao',
+            'confidencial', 'responsavel',
+        ]
+        widgets = {
+            'membro': forms.Select(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'prioridade': forms.Select(attrs={'class': 'form-control'}),
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'confidencial': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'responsavel': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class CasoPastoralUpdateForm(ModelForm):
+    class Meta:
+        model = CasoPastoral
+        fields = [
+            'tipo', 'prioridade', 'estado', 'titulo', 'descricao',
+            'confidencial', 'responsavel',
+        ]
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'prioridade': forms.Select(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'confidencial': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'responsavel': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class RegistoAcompanhamentoForm(ModelForm):
+    class Meta:
+        model = RegistoAcompanhamento
+        fields = [
+            'tipo_contacto', 'descricao', 'documento_anexo',
+            'proximo_passo', 'data_proximo_contacto',
+        ]
+        widgets = {
+            'tipo_contacto': forms.Select(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'documento_anexo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'proximo_passo': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'data_proximo_contacto': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+
+class VisitanteRecorrenteForm(ModelForm):
+    class Meta:
+        model = VisitanteRecorrente
+        fields = [
+            'nome', 'telefone', 'email', 'celula', 'estado',
+            'responsavel_integracao', 'numero_visitas',
+            'primeira_visita', 'ultima_visita', 'observacao',
+        ]
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'celula': forms.Select(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+            'responsavel_integracao': forms.Select(attrs={'class': 'form-control'}),
+            'numero_visitas': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'primeira_visita': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'ultima_visita': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }

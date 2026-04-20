@@ -83,6 +83,10 @@ from sitetibl.models import SolicitacaoInterdepartamental
 from sitetibl.models import HistoricoSolicitacao
 from sitetibl.models import ComentarioSolicitacao
 from sitetibl.models import NotificacaoSistema
+from sitetibl.models import CasoPastoral
+from sitetibl.models import RegistoAcompanhamento
+from sitetibl.models import AlertaPastoral
+from sitetibl.models import VisitanteRecorrente
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
@@ -117,6 +121,9 @@ from sitetibl.forms import EnvioMensagemForm
 from sitetibl.forms import MeuPerfilForm, MeuPerfilPasswordForm
 from sitetibl.forms import ActividadesRecorrentesForm
 from sitetibl.forms import SolicitacaoForm, SolicitacaoUpdateForm
+from sitetibl.forms import CasoPastoralForm, CasoPastoralUpdateForm
+from sitetibl.forms import RegistoAcompanhamentoForm
+from sitetibl.forms import VisitanteRecorrenteForm
 from django.contrib.auth import update_session_auth_hash
 from datetime import timedelta
 
@@ -305,6 +312,58 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
         logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
 
 
+def _notificar_caso_pastoral(caso, actor, mensagem_texto):
+    """Cria notificação in-app e envia email para os envolvidos num caso pastoral."""
+    url = reverse('sitetibl:mostra_detalhe', args=['casospastorais', caso.id])
+    titulo = f'Caso Pastoral — {caso.titulo}'
+
+    destinatarios = set()
+    if caso.responsavel and caso.responsavel.user_id:
+        destinatarios.add(caso.responsavel.user_id)
+    if caso.criado_por and caso.criado_por.user_id:
+        destinatarios.add(caso.criado_por.user_id)
+    # Excluir o actor
+    if actor and actor.user_id:
+        destinatarios.discard(actor.user_id)
+
+    notifs = [
+        NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem_texto, url=url)
+        for uid in destinatarios
+    ]
+    if notifs:
+        NotificacaoSistema.objects.bulk_create(notifs)
+
+    users = User.objects.filter(id__in=destinatarios, email__gt='').select_related()
+    emails_to = [u.email for u in users if u.email]
+    if not emails_to:
+        return
+
+    TIPO_LABELS = dict(CasoPastoral.TIPO_CHOICES)
+    ESTADO_LABELS = dict(CasoPastoral.ESTADO_CHOICES)
+    context = {
+        'titulo': titulo,
+        'mensagem': mensagem_texto,
+        'caso_titulo': caso.titulo,
+        'caso_tipo': TIPO_LABELS.get(caso.tipo, caso.tipo),
+        'caso_estado': ESTADO_LABELS.get(caso.estado, caso.estado),
+        'caso_prioridade': caso.get_prioridade_display(),
+        'membro': str(caso.membro),
+        'responsavel': str(caso.responsavel) if caso.responsavel else 'Não atribuído',
+    }
+    try:
+        html_content = render_to_string('emails/email_alerta_pastoral.html', context)
+        for email_addr in emails_to:
+            msg = EmailMultiAlternatives(
+                subject=titulo, body=mensagem_texto,
+                from_email=None, to=[email_addr],
+            )
+            msg.attach_alternative(html_content, 'text/html')
+            msg.send()
+        logger.info('Emails caso pastoral #%s enviados para %s', caso.id, emails_to)
+    except Exception as e:
+        logger.error('Falha ao enviar emails caso pastoral #%s: %s', caso.id, e)
+
+
 def comeco(request):
     return render(request, 'index.html')
 
@@ -363,6 +422,8 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
              'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
              'solicitacoes': SolicitacaoInterdepartamental.objects.select_related('departamento_solicitante', 'departamento_destinatario', 'solicitante', 'responsavel_resposta'),
+             'casospastorais': CasoPastoral.objects.select_related('membro', 'responsavel', 'criado_por'),
+             'visitantes': VisitanteRecorrente.objects.select_related('celula', 'responsavel_integracao', 'irmao_convertido'),
              }
     if gestaoescolhida == 'departamentos':
         resultado = (
@@ -407,6 +468,25 @@ def mostraGestao(request,gestaoescolhida,pagina):
         if estado_filtro:
             qs = qs.filter(estado=estado_filtro)
         resultado = qs.order_by('-data_criacao')
+    elif gestaoescolhida == 'casospastorais':
+        qs = lista[gestaoescolhida].all()
+        # Filtro de confidencialidade
+        irmao_logado = Irmao.objects.filter(user=request.user).first()
+        if not request.user.is_superuser and not request.user.groups.filter(name='Pastor').exists():
+            qs = qs.filter(Q(confidencial=False) | Q(responsavel=irmao_logado) | Q(criado_por=irmao_logado))
+        estado_filtro = request.GET.get('estado', '').strip()
+        tipo_filtro = request.GET.get('tipo', '').strip()
+        if estado_filtro:
+            qs = qs.filter(estado=estado_filtro)
+        if tipo_filtro:
+            qs = qs.filter(tipo=tipo_filtro)
+        resultado = qs.order_by('-data_abertura')
+    elif gestaoescolhida == 'visitantes':
+        qs = lista[gestaoescolhida].all()
+        estado_filtro = request.GET.get('estado', '').strip()
+        if estado_filtro:
+            qs = qs.filter(estado=estado_filtro)
+        resultado = qs.order_by('-ultima_visita')
     elif gestaoescolhida == 'escalas':
         resultado = lista[gestaoescolhida].all().annotate(
             is_passado=Case(
@@ -570,6 +650,8 @@ def mostraActualizacao(request, gestaoescolhida, id):
              'conteudoensino':ConteudoEnsino,
              'enviomensagem':EnvioMensagem,
              'solicitacoes':SolicitacaoInterdepartamental,
+             'casospastorais':CasoPastoral,
+             'visitantes':VisitanteRecorrente,
              
 
               }
@@ -594,6 +676,8 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'conteudoensino':ConteudoEnsinoForm,
                         'enviomensagem':EnvioMensagemForm,
                         'solicitacoes':SolicitacaoUpdateForm,
+                        'casospastorais':CasoPastoralUpdateForm,
+                        'visitantes':VisitanteRecorrenteForm,
                         }
     
     model = lista[gestaoescolhida]
@@ -710,6 +794,8 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
         'escalas': Escala.objects.select_related('irmao', 'actividade', 'funcao'),
         'solicitacoes': SolicitacaoInterdepartamental.objects.select_related('departamento_solicitante', 'departamento_destinatario', 'solicitante', 'responsavel_resposta'),
+        'casospastorais': CasoPastoral.objects.select_related('membro', 'responsavel', 'criado_por'),
+        'visitantes': VisitanteRecorrente.objects.select_related('celula', 'responsavel_integracao', 'irmao_convertido'),
     }
     queryset = lista_qs.get(gestaoescolhida)
     if queryset is None:
@@ -1310,6 +1396,76 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'historico': historico,
             'comentarios': comentarios,
         }
+    elif gestaoescolhida == 'casospastorais':
+        irmao_logado = Irmao.objects.filter(user=request.user).first()
+        # Confidencialidade: verificar acesso
+        if registo.confidencial:
+            is_pastor = request.user.is_superuser or request.user.groups.filter(name='Pastor').exists()
+            is_envolvido = irmao_logado and (registo.responsavel == irmao_logado or registo.criado_por == irmao_logado)
+            if not is_pastor and not is_envolvido:
+                messages.error(request, 'Acesso negado. Este caso é confidencial.')
+                return redirect('index')
+
+        registos_acompanhamento = RegistoAcompanhamento.objects.filter(caso=registo).select_related('realizado_por').order_by('-data')
+        form_registo = RegistoAcompanhamentoForm()
+
+        if request.method == 'POST' and irmao_logado:
+            action = request.POST.get('action', '').strip()
+
+            if action == 'adicionar_registo':
+                form_registo = RegistoAcompanhamentoForm(request.POST, request.FILES)
+                if form_registo.is_valid():
+                    novo_registo = form_registo.save(commit=False)
+                    novo_registo.caso = registo
+                    novo_registo.realizado_por = irmao_logado
+                    novo_registo.save()
+                    # Actualizar estado do caso se estiver aberto
+                    if registo.estado == 'aberto':
+                        registo.estado = 'em_acompanhamento'
+                        registo.save(update_fields=['estado', 'data_atualizacao'])
+                    _notificar_caso_pastoral(registo, irmao_logado, f'Novo registo: {novo_registo.get_tipo_contacto_display()}')
+                    messages.success(request, 'Registo de acompanhamento adicionado.')
+                    return HttpResponseRedirect(
+                        reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+                    )
+
+            elif action == 'resolver':
+                registo.estado = 'resolvido'
+                registo.save(update_fields=['estado', 'data_atualizacao'])
+                _notificar_caso_pastoral(registo, irmao_logado, 'Caso marcado como resolvido')
+                messages.success(request, 'Caso marcado como resolvido.')
+                return HttpResponseRedirect(
+                    reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+                )
+
+            elif action == 'encerrar':
+                registo.estado = 'encerrado'
+                registo.data_encerramento = now()
+                registo.save(update_fields=['estado', 'data_encerramento', 'data_atualizacao'])
+                _notificar_caso_pastoral(registo, irmao_logado, 'Caso encerrado')
+                messages.success(request, 'Caso encerrado.')
+                return HttpResponseRedirect(
+                    reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+                )
+
+            elif action == 'reabrir':
+                registo.estado = 'em_acompanhamento'
+                registo.data_encerramento = None
+                registo.save(update_fields=['estado', 'data_encerramento', 'data_atualizacao'])
+                _notificar_caso_pastoral(registo, irmao_logado, 'Caso reaberto')
+                messages.success(request, 'Caso reaberto.')
+                return HttpResponseRedirect(
+                    reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
+                )
+
+        pode_gerir = request.user.has_perm('sitetibl.change_casopastoral')
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'registos_acompanhamento': registos_acompanhamento,
+            'form_registo': form_registo,
+            'pode_gerir': pode_gerir,
+        }
     else:
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
@@ -1337,6 +1493,8 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'escalas':Escala,
              'mandatos':Mandato,
              'solicitacoes':SolicitacaoInterdepartamental,
+             'casospastorais':CasoPastoral,
+             'visitantes':VisitanteRecorrente,
              }
     model = lista.get(gestaoescolhida)
     if model is None:
@@ -1408,6 +1566,8 @@ def mostraCriacao(request, gestaoescolhida):
                         'conteudoensino':ConteudoEnsinoForm,
                         'enviomensagem':EnvioMensagemForm,
                         'solicitacoes':SolicitacaoForm,
+                        'casospastorais':CasoPastoralForm,
+                        'visitantes':VisitanteRecorrenteForm,
                         }
     form_class = listaformularios.get(gestaoescolhida)
     if not form_class:
@@ -1476,6 +1636,14 @@ def mostraCriacao(request, gestaoescolhida):
                         obj.departamento_solicitante = depts.first()
                 obj.estado = 'pendente'
 
+            # 📋 Caso Pastoral: auto-preencher criado_por
+            if gestaoescolhida == 'casospastorais':
+                irmao_logado = Irmao.objects.filter(user=request.user).first()
+                if irmao_logado:
+                    obj.criado_por = irmao_logado
+                if not obj.responsavel_id and irmao_logado:
+                    obj.responsavel = irmao_logado
+
             obj.save()
 
             # 📋 Solicitação: notificar líderes do departamento destinatário
@@ -1510,6 +1678,11 @@ def mostraCriacao(request, gestaoescolhida):
                 return redirect(f'/tibl/actividades/detalhe/{obj.actividade_id}/')
             if gestaoescolhida == 'solicitacoes':
                 return redirect(reverse('sitetibl:mostra_detalhe', args=['solicitacoes', obj.id]))
+            if gestaoescolhida == 'casospastorais':
+                _notificar_caso_pastoral(obj, obj.criado_por, 'Novo caso pastoral criado')
+                return redirect(reverse('sitetibl:mostra_detalhe', args=['casospastorais', obj.id]))
+            if gestaoescolhida == 'visitantes':
+                return redirect(reverse('sitetibl:mostra_gestao', args=['visitantes', 1]))
             return redirect('index')
         else:
             messages.error(request, 'Foram encontrados erros ao preencher o formulário')
@@ -3736,3 +3909,466 @@ def encontraSolicitacoes(request):
     paginaresultado = paginador.get_page(pagina)
     dd = request.META['QUERY_STRING']
     return render(request, 'solicitacoesfiltradas.html', {'bb': paginaresultado, 'dd': dd})
+
+
+# ═══════════════════════════════════════════════════════════════
+# PAINEL DE ACOMPANHAMENTO PASTORAL
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+def pastoral_dashboard(request):
+    """Painel principal pastoral com KPIs, alertas, casos e aniversariantes."""
+    if not request.user.has_perm('sitetibl.view_casopastoral'):
+        messages.error(request, 'Não tem permissão para aceder ao painel pastoral.')
+        return redirect('index')
+
+    from datetime import timedelta as td
+    hoje = date.today()
+    irmao_logado = Irmao.objects.filter(user=request.user).first()
+
+    # KPIs
+    alertas_novos = AlertaPastoral.objects.filter(estado='novo').count()
+    casos_abertos = CasoPastoral.objects.filter(estado__in=['aberto', 'em_acompanhamento']).count()
+
+    # Novos sem acompanhamento: criados há > 30 dias, não baptizados, sem caso de integração
+    trinta_dias = now() - td(days=30)
+    novos_ids_com_caso = CasoPastoral.objects.filter(tipo='integracao', membro__isnull=False).values_list('membro_id', flat=True)
+    novos_sem_acomp = Irmao.objects.filter(
+        data_criacao__lt=trinta_dias, batizado=False,
+    ).exclude(id__in=novos_ids_com_caso).count()
+
+    visitantes_recorrentes = VisitanteRecorrente.objects.filter(estado='visitante', numero_visitas__gte=3).count()
+
+    # Membros inactivos (sem escala nos últimos 60 dias)
+    sessenta_dias = hoje - td(days=60)
+    activos_ids = Escala.objects.filter(
+        actividade__data__gte=sessenta_dias
+    ).values_list('irmao_id', flat=True).distinct()
+    membros_inactivos = Irmao.objects.exclude(id__in=activos_ids).count()
+
+    # Alertas urgentes/altos recentes
+    alertas_urgentes = AlertaPastoral.objects.filter(
+        estado__in=['novo', 'visto']
+    ).select_related('membro', 'celula').order_by('-data_criacao')[:10]
+
+    # Casos em acompanhamento recentes
+    casos_recentes = CasoPastoral.objects.filter(
+        estado__in=['aberto', 'em_acompanhamento']
+    ).select_related('membro', 'responsavel').order_by('-data_atualizacao')[:10]
+
+    # Confidencialidade nos casos
+    if not request.user.is_superuser and not request.user.groups.filter(name='Pastor').exists():
+        casos_recentes = casos_recentes.filter(
+            Q(confidencial=False) | Q(responsavel=irmao_logado) | Q(criado_por=irmao_logado)
+        )
+
+    # Aniversariantes da semana
+    semana_fim = hoje + td(days=7)
+    aniversariantes = []
+    for irmao in Irmao.objects.exclude(datanascimento__isnull=True).select_related('celula'):
+        aniv = irmao.datanascimento.replace(year=hoje.year)
+        if hoje <= aniv <= semana_fim:
+            aniversariantes.append({
+                'irmao': irmao,
+                'data': aniv,
+                'idade': hoje.year - irmao.datanascimento.year,
+            })
+    aniversariantes.sort(key=lambda x: x['data'])
+
+    context = {
+        'alertas_novos': alertas_novos,
+        'casos_abertos': casos_abertos,
+        'novos_sem_acomp': novos_sem_acomp,
+        'visitantes_recorrentes': visitantes_recorrentes,
+        'membros_inactivos': membros_inactivos,
+        'alertas_urgentes': alertas_urgentes,
+        'casos_recentes': casos_recentes,
+        'aniversariantes': aniversariantes,
+    }
+    return render(request, 'pastoral_dashboard.html', context)
+
+
+@login_required
+def pastoral_alertas(request):
+    """Lista de alertas pastorais com filtros."""
+    if not request.user.has_perm('sitetibl.view_alertapastoral'):
+        messages.error(request, 'Não tem permissão para ver alertas pastorais.')
+        return redirect('index')
+
+    qs = AlertaPastoral.objects.select_related('membro', 'celula', 'caso_associado')
+    tipo_filtro = request.GET.get('tipo', '').strip()
+    estado_filtro = request.GET.get('estado', '').strip()
+    if tipo_filtro:
+        qs = qs.filter(tipo=tipo_filtro)
+    if estado_filtro:
+        qs = qs.filter(estado=estado_filtro)
+    qs = qs.order_by('-data_criacao')
+    paginador = Paginator(qs, 20)
+    pagina = request.GET.get('pagina', 1)
+    alertas = paginador.get_page(pagina)
+
+    context = {
+        'alertas': alertas,
+        'tipo_filtro': tipo_filtro,
+        'estado_filtro': estado_filtro,
+        'tipos': AlertaPastoral.TIPO_CHOICES,
+        'estados': AlertaPastoral.ESTADO_CHOICES,
+    }
+    return render(request, 'pastoral_alertas.html', context)
+
+
+@login_required
+def pastoral_alerta_accao(request, alerta_id):
+    """Mudar estado de um alerta ou criar caso a partir dele."""
+    if not request.user.has_perm('sitetibl.change_alertapastoral'):
+        messages.error(request, 'Não tem permissão para gerir alertas.')
+        return redirect('sitetibl:pastoral_alertas')
+
+    alerta = get_object_or_404(AlertaPastoral, id=alerta_id)
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        if action == 'resolver':
+            alerta.estado = 'resolvido'
+            alerta.save(update_fields=['estado', 'data_atualizacao'])
+            messages.success(request, 'Alerta resolvido.')
+        elif action == 'ignorar':
+            alerta.estado = 'ignorado'
+            alerta.save(update_fields=['estado', 'data_atualizacao'])
+            messages.info(request, 'Alerta ignorado.')
+        elif action == 'em_tratamento':
+            alerta.estado = 'em_tratamento'
+            alerta.save(update_fields=['estado', 'data_atualizacao'])
+            messages.info(request, 'Alerta em tratamento.')
+        elif action == 'criar_caso':
+            irmao_logado = Irmao.objects.filter(user=request.user).first()
+            if alerta.membro:
+                caso = CasoPastoral.objects.create(
+                    membro=alerta.membro,
+                    tipo='outro',
+                    titulo=f'Caso a partir de alerta: {alerta.titulo}',
+                    descricao=alerta.descricao,
+                    responsavel=irmao_logado,
+                    criado_por=irmao_logado,
+                )
+                alerta.caso_associado = caso
+                alerta.estado = 'em_tratamento'
+                alerta.save(update_fields=['caso_associado', 'estado', 'data_atualizacao'])
+                messages.success(request, f'Caso pastoral #{caso.id} criado a partir do alerta.')
+                return redirect(reverse('sitetibl:mostra_detalhe', args=['casospastorais', caso.id]))
+            else:
+                messages.error(request, 'Não é possível criar caso — alerta sem membro associado.')
+
+    return redirect('sitetibl:pastoral_alertas')
+
+
+@login_required
+def pastoral_inactivos(request):
+    """Lista de membros inactivos."""
+    if not request.user.has_perm('sitetibl.view_casopastoral'):
+        messages.error(request, 'Não tem permissão para aceder ao painel pastoral.')
+        return redirect('index')
+
+    from datetime import timedelta as td
+    hoje = date.today()
+    dias_limite = int(request.GET.get('dias', 60))
+    limite = hoje - td(days=dias_limite)
+
+    # IDs de irmãos activos
+    activos_ids = Escala.objects.filter(
+        actividade__data__gte=limite
+    ).values_list('irmao_id', flat=True).distinct()
+
+    # Última participação de cada irmão inactivo
+    from django.db.models import Max
+    inactivos = (
+        Irmao.objects.exclude(id__in=activos_ids)
+        .select_related('celula', 'localcongregacao')
+        .annotate(ultima_participacao=Max('particact__data'))
+        .order_by('ultima_participacao')
+    )
+
+    paginador = Paginator(inactivos, 30)
+    pagina = request.GET.get('pagina', 1)
+    resultado = paginador.get_page(pagina)
+
+    context = {
+        'inactivos': resultado,
+        'dias_limite': dias_limite,
+        'hoje': hoje,
+    }
+    return render(request, 'pastoral_inactivos.html', context)
+
+
+@login_required
+def pastoral_novos(request):
+    """Novos convertidos sem acompanhamento."""
+    if not request.user.has_perm('sitetibl.view_casopastoral'):
+        messages.error(request, 'Não tem permissão para aceder ao painel pastoral.')
+        return redirect('index')
+
+    from datetime import timedelta as td
+    novos_ids_com_caso = CasoPastoral.objects.filter(
+        tipo='integracao', membro__isnull=False
+    ).values_list('membro_id', flat=True)
+
+    trinta_dias = now() - td(days=30)
+    novos = Irmao.objects.filter(
+        data_criacao__lt=trinta_dias, batizado=False,
+    ).exclude(id__in=novos_ids_com_caso).select_related('celula').order_by('-data_criacao')
+
+    paginador = Paginator(novos, 30)
+    pagina = request.GET.get('pagina', 1)
+    resultado = paginador.get_page(pagina)
+
+    context = {'novos': resultado}
+    return render(request, 'pastoral_novos.html', context)
+
+
+# ── APIs JSON para gráficos pastorais ──────────────────────────
+
+@login_required
+def pastoral_api_tendencias(request):
+    """Novos membros, baptismos e visitantes por mês (12 meses)."""
+    from datetime import timedelta as td
+    hoje = date.today()
+    inicio = hoje - td(days=365)
+
+    novos_por_mes = (
+        Irmao.objects.filter(data_criacao__date__gte=inicio)
+        .annotate(mes=TruncMonth('data_criacao'))
+        .values('mes')
+        .annotate(total=Count('id'))
+        .order_by('mes')
+    )
+
+    baptismos_por_mes = (
+        Irmao.objects.filter(data_criacao__date__gte=inicio, batizado=True)
+        .annotate(mes=TruncMonth('data_criacao'))
+        .values('mes')
+        .annotate(total=Count('id'))
+        .order_by('mes')
+    )
+
+    visitantes_por_mes = (
+        VisitanteRecorrente.objects.filter(primeira_visita__gte=inicio)
+        .annotate(mes=TruncMonth('primeira_visita'))
+        .values('mes')
+        .annotate(total=Count('id'))
+        .order_by('mes')
+    )
+
+    data = {
+        'novos': [{'mes': r['mes'].strftime('%Y-%m'), 'total': r['total']} for r in novos_por_mes],
+        'baptismos': [{'mes': r['mes'].strftime('%Y-%m'), 'total': r['total']} for r in baptismos_por_mes],
+        'visitantes': [{'mes': r['mes'].strftime('%Y-%m'), 'total': r['total']} for r in visitantes_por_mes],
+    }
+    return JsonResponse(data)
+
+
+@login_required
+def pastoral_api_celulas(request):
+    """Participação média por célula nas últimas 8 semanas."""
+    from datetime import timedelta as td
+    hoje = date.today()
+    inicio = hoje - td(weeks=8)
+
+    dados = (
+        RelatorioSemanalCelula.objects.filter(data_reuniao__gte=inicio)
+        .values('nome_celula__designacao')
+        .annotate(
+            media_membros=Count('numero_participantes_membros'),
+            media_visitantes=Count('numero_participantes_visitantes'),
+            total_relatorios=Count('id'),
+        )
+        .order_by('nome_celula__designacao')
+    )
+    from django.db.models import Avg
+    dados = (
+        RelatorioSemanalCelula.objects.filter(data_reuniao__gte=inicio)
+        .values('nome_celula__designacao')
+        .annotate(
+            media_membros=Avg('numero_participantes_membros'),
+            media_visitantes=Avg('numero_participantes_visitantes'),
+            total_relatorios=Count('id'),
+        )
+        .order_by('nome_celula__designacao')
+    )
+    result = []
+    for d in dados:
+        result.append({
+            'celula': d['nome_celula__designacao'] or 'Sem Nome',
+            'media_membros': round(d['media_membros'] or 0, 1),
+            'media_visitantes': round(d['media_visitantes'] or 0, 1),
+            'total_relatorios': d['total_relatorios'],
+        })
+    return JsonResponse(result, safe=False)
+
+
+@login_required
+def pastoral_api_alertas_resumo(request):
+    """Contagem de alertas por tipo e estado."""
+    por_tipo = list(
+        AlertaPastoral.objects.values('tipo').annotate(total=Count('id')).order_by('tipo')
+    )
+    por_estado = list(
+        AlertaPastoral.objects.values('estado').annotate(total=Count('id')).order_by('estado')
+    )
+    return JsonResponse({'por_tipo': por_tipo, 'por_estado': por_estado})
+
+
+@login_required
+def pastoral_api_casos_resumo(request):
+    """Contagem de casos por tipo e estado."""
+    por_tipo = list(
+        CasoPastoral.objects.values('tipo').annotate(total=Count('id')).order_by('tipo')
+    )
+    por_estado = list(
+        CasoPastoral.objects.values('estado').annotate(total=Count('id')).order_by('estado')
+    )
+    return JsonResponse({'por_tipo': por_tipo, 'por_estado': por_estado})
+
+
+# ── Relatórios PDF Pastorais ──────────────────────────────────
+
+@login_required
+def relatorio_pastoral_mensal_pdf(request):
+    """Relatório Pastoral Mensal em PDF."""
+    if not request.user.has_perm('sitetibl.view_casopastoral'):
+        messages.error(request, 'Não tem permissão para gerar relatórios pastorais.')
+        return redirect('index')
+
+    from datetime import timedelta as td
+    hoje = date.today()
+    primeiro_dia = hoje.replace(day=1)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="relatorio_pastoral_{hoje.strftime("%Y_%m")}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4,
+                            leftMargin=1.5*cm, rightMargin=1.5*cm,
+                            topMargin=1.5*cm, bottomMargin=1.5*cm)
+    styles = getSampleStyleSheet()
+    titulo_style = ParagraphStyle('TituloPastoral', parent=styles['Heading1'], fontSize=16, spaceAfter=12, alignment=1)
+    subtitulo_style = ParagraphStyle('SubtituloPastoral', parent=styles['Heading2'], fontSize=12, spaceAfter=8)
+    normal = styles['Normal']
+
+    elements = []
+    elements.append(Paragraph(f'Relatório Pastoral Mensal — {hoje.strftime("%B %Y")}', titulo_style))
+    elements.append(Paragraph(f'Gerado em {hoje.strftime("%d/%m/%Y")}', normal))
+    elements.append(Paragraph('<br/>', normal))
+
+    # KPIs
+    novos_mes = Irmao.objects.filter(data_criacao__date__gte=primeiro_dia).count()
+    baptismos_mes = Irmao.objects.filter(data_criacao__date__gte=primeiro_dia, batizado=True).count()
+    casos_abertos = CasoPastoral.objects.filter(estado__in=['aberto', 'em_acompanhamento']).count()
+    casos_resolvidos_mes = CasoPastoral.objects.filter(estado='resolvido', data_atualizacao__date__gte=primeiro_dia).count()
+    alertas_mes = AlertaPastoral.objects.filter(data_criacao__date__gte=primeiro_dia).count()
+    visitantes_mes = VisitanteRecorrente.objects.filter(primeira_visita__gte=primeiro_dia).count()
+
+    kpi_data = [
+        ['Indicador', 'Valor'],
+        ['Novos membros no mês', str(novos_mes)],
+        ['Baptismos no mês', str(baptismos_mes)],
+        ['Casos pastorais abertos', str(casos_abertos)],
+        ['Casos resolvidos no mês', str(casos_resolvidos_mes)],
+        ['Alertas gerados no mês', str(alertas_mes)],
+        ['Novos visitantes no mês', str(visitantes_mes)],
+    ]
+    elements.append(Paragraph('Indicadores do Mês', subtitulo_style))
+    t = Table(kpi_data, colWidths=[12*cm, 5*cm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+    ]))
+    elements.append(t)
+    elements.append(Paragraph('<br/>', normal))
+
+    # Casos em acompanhamento
+    casos = CasoPastoral.objects.filter(
+        estado__in=['aberto', 'em_acompanhamento']
+    ).select_related('membro', 'responsavel').order_by('-prioridade', '-data_abertura')[:20]
+
+    if casos:
+        elements.append(Paragraph('Casos em Acompanhamento', subtitulo_style))
+        caso_data = [['Membro', 'Tipo', 'Prioridade', 'Estado', 'Responsável']]
+        for c in casos:
+            caso_data.append([
+                str(c.membro),
+                c.get_tipo_display(),
+                c.get_prioridade_display(),
+                c.get_estado_display(),
+                str(c.responsavel) if c.responsavel else '—',
+            ])
+        t2 = Table(caso_data, colWidths=[4*cm, 3*cm, 2.5*cm, 3*cm, 4*cm])
+        t2.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+        elements.append(t2)
+
+    doc.build(elements)
+    return response
+
+
+@login_required
+def relatorio_inactivos_pdf(request):
+    """PDF com lista de membros inactivos."""
+    if not request.user.has_perm('sitetibl.view_casopastoral'):
+        messages.error(request, 'Não tem permissão para gerar relatórios pastorais.')
+        return redirect('index')
+
+    from datetime import timedelta as td
+    from django.db.models import Max
+    hoje = date.today()
+    limite = hoje - td(days=60)
+    activos_ids = Escala.objects.filter(actividade__data__gte=limite).values_list('irmao_id', flat=True).distinct()
+    inactivos = (
+        Irmao.objects.exclude(id__in=activos_ids)
+        .select_related('celula')
+        .annotate(ultima_participacao=Max('particact__data'))
+        .order_by('ultima_participacao')[:100]
+    )
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="membros_inactivos_{hoje.strftime("%Y%m%d")}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4,
+                            leftMargin=1.5*cm, rightMargin=1.5*cm,
+                            topMargin=1.5*cm, bottomMargin=1.5*cm)
+    styles = getSampleStyleSheet()
+    titulo = ParagraphStyle('Titulo', parent=styles['Heading1'], fontSize=16, alignment=1)
+    normal = styles['Normal']
+
+    elements = []
+    elements.append(Paragraph('Membros Inactivos (60+ dias)', titulo))
+    elements.append(Paragraph(f'Gerado em {hoje.strftime("%d/%m/%Y")}', normal))
+    elements.append(Paragraph('<br/>', normal))
+
+    data_table = [['Nome', 'Célula', 'Última Participação', 'Dias Inactivo']]
+    for i in inactivos:
+        ult = i.ultima_participacao
+        dias = (hoje - ult).days if ult else '—'
+        data_table.append([
+            f'{i.nome} {i.apelido}',
+            str(i.celula) if i.celula else '—',
+            ult.strftime('%d/%m/%Y') if ult else 'Nunca',
+            str(dias),
+        ])
+
+    t = Table(data_table, colWidths=[5*cm, 4*cm, 4*cm, 3.5*cm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t)
+    doc.build(elements)
+    return response

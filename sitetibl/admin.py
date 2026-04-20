@@ -121,3 +121,34 @@ class MunicipioAdmin(admin.ModelAdmin):
     list_display = ['nome', 'provincia']
     list_filter = ['provincia']
     search_fields = ['nome']
+
+
+# ── Pastoral Care ──────────────────────────────────────────
+from sitetibl.models import CasoPastoral, RegistoAcompanhamento, AlertaPastoral, VisitanteRecorrente
+
+
+class RegistoAcompanhamentoInline(admin.TabularInline):
+    model = RegistoAcompanhamento
+    extra = 0
+
+
+@admin.register(CasoPastoral)
+class CasoPastoralAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'membro', 'tipo', 'prioridade', 'estado', 'responsavel', 'confidencial', 'data_abertura']
+    list_filter = ['estado', 'tipo', 'prioridade', 'confidencial']
+    search_fields = ['titulo', 'membro__nome', 'membro__apelido']
+    inlines = [RegistoAcompanhamentoInline]
+
+
+@admin.register(AlertaPastoral)
+class AlertaPastoralAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'tipo', 'estado', 'membro', 'celula', 'gerado_automaticamente', 'data_criacao']
+    list_filter = ['estado', 'tipo', 'gerado_automaticamente']
+    search_fields = ['titulo', 'membro__nome']
+
+
+@admin.register(VisitanteRecorrente)
+class VisitanteRecorrenteAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'celula', 'numero_visitas', 'estado', 'primeira_visita', 'ultima_visita']
+    list_filter = ['estado', 'celula']
+    search_fields = ['nome']

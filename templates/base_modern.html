@@ -100,6 +100,26 @@
                 </a>
                 {% endif %}
 
+                {% if perms.sitetibl.view_casopastoral %}
+                <div class="nav-section-title">Acompanhamento Pastoral</div>
+                <a href="/tibl/pastoral/"
+                    class="nav-item {% if request.resolver_match.url_name == 'pastoral_dashboard' %}active{% endif %}">
+                    <i class="fas fa-hand-holding-heart fa-fw"></i> Painel Pastoral
+                </a>
+                <a href="/tibl/gestao/casospastorais/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'casospastorais' %}active{% endif %}">
+                    <i class="fas fa-clipboard-list fa-fw"></i> Casos Pastorais
+                </a>
+                <a href="/tibl/pastoral/alertas/"
+                    class="nav-item {% if request.resolver_match.url_name == 'pastoral_alertas' %}active{% endif %}">
+                    <i class="fas fa-bell fa-fw"></i> Alertas
+                </a>
+                <a href="/tibl/gestao/visitantes/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'visitantes' %}active{% endif %}">
+                    <i class="fas fa-user-friends fa-fw"></i> Visitantes
+                </a>
+                {% endif %}
+
                 {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entradabanco or perms.sitetibl.view_pedidosaida %}
                 <div class="nav-section-title">Financeiro</div>
 

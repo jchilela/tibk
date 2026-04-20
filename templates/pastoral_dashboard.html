@@ -1,0 +1,179 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load verificagrupo %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-hand-holding-heart"></i> Painel de Acompanhamento Pastoral</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Visão geral do estado espiritual e humano da congregação.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            {% if perms.sitetibl.view_casopastoral %}
+            <a href="{% url 'sitetibl:relatorio_pastoral_mensal' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" target="_blank">
+                <i class="fas fa-file-pdf"></i> Relatório Mensal
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <a href="{% url 'sitetibl:pastoral_alertas' %}?estado=novo" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #ef4444;">
+            <div style="font-size: 2rem; font-weight: 800; color: #ef4444;">{{ alertas_novos }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Alertas Novos</div>
+        </a>
+        <a href="{% url 'sitetibl:mostra_gestao' 'casospastorais' 1 %}" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #f59e0b;">
+            <div style="font-size: 2rem; font-weight: 800; color: #f59e0b;">{{ casos_abertos }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Casos Abertos</div>
+        </a>
+        <a href="{% url 'sitetibl:pastoral_novos' %}" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 2rem; font-weight: 800; color: #3b82f6;">{{ novos_sem_acomp }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Novos s/ Acomp.</div>
+        </a>
+        <a href="{% url 'sitetibl:mostra_gestao' 'visitantes' 1 %}" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #10b981;">
+            <div style="font-size: 2rem; font-weight: 800; color: #10b981;">{{ visitantes_recorrentes }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Visitantes Recorrentes</div>
+        </a>
+        <a href="{% url 'sitetibl:pastoral_inactivos' %}" class="modern-card" style="text-align: center; text-decoration: none; border-left: 4px solid #6b7280;">
+            <div style="font-size: 2rem; font-weight: 800; color: #6b7280;">{{ membros_inactivos }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Membros Inactivos</div>
+        </a>
+    </div>
+
+    <!-- Alertas + Casos -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Alertas Recentes -->
+        <div class="modern-card" style="padding: 0; overflow: hidden;">
+            <div style="background: #ef4444; color: white; padding: 0.75rem 1.25rem; font-weight: 700; font-size: 0.9rem;">
+                <i class="fas fa-exclamation-triangle"></i> Alertas Recentes
+            </div>
+            <div style="padding: 0;">
+                {% if alertas_urgentes %}
+                {% for alerta in alertas_urgentes %}
+                <div style="padding: 0.75rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: start; gap: 0.75rem;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">{{ alerta.titulo }}</div>
+                        {% if alerta.membro %}<div style="font-size: 0.8rem; color: var(--text-muted);">{{ alerta.membro }}</div>{% endif %}
+                    </div>
+                    <div style="display: flex; gap: 0.3rem; align-items: center; flex-shrink: 0;">
+                        <span class="badge {% if alerta.estado == 'novo' %}badge-danger{% elif alerta.estado == 'visto' %}badge-warning{% else %}badge-neutral{% endif %}">{{ alerta.get_estado_display }}</span>
+                        <form method="post" action="{% url 'sitetibl:pastoral_alerta_accao' alerta.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="em_tratamento">
+                            <button type="submit" class="bt-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Tratar"><i class="fas fa-eye"></i></button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div style="padding: 2rem; text-align: center; color: var(--text-muted);">Sem alertas recentes.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Casos em Acompanhamento -->
+        <div class="modern-card" style="padding: 0; overflow: hidden;">
+            <div style="background: #f59e0b; color: white; padding: 0.75rem 1.25rem; font-weight: 700; font-size: 0.9rem;">
+                <i class="fas fa-clipboard-list"></i> Casos em Acompanhamento
+            </div>
+            <div style="padding: 0;">
+                {% if casos_recentes %}
+                {% for caso in casos_recentes %}
+                <a href="{% url 'sitetibl:mostra_detalhe' 'casospastorais' caso.id %}" style="display: block; padding: 0.75rem 1.25rem; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; font-size: 0.9rem;">{{ caso.titulo }}</span>
+                        <span class="badge {% if caso.prioridade == 'urgente' %}badge-danger{% elif caso.prioridade == 'alta' %}badge-warning{% elif caso.prioridade == 'normal' %}badge-primary{% else %}badge-neutral{% endif %}">{{ caso.get_prioridade_display }}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        {{ caso.get_tipo_display }} — {{ caso.membro }}
+                        {% if caso.confidencial %}<span class="badge badge-neutral" style="margin-left: 0.25rem;"><i class="fas fa-lock"></i></span>{% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+                {% else %}
+                <div style="padding: 2rem; text-align: center; color: var(--text-muted);">Sem casos em acompanhamento.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1rem; font-size: 1rem;">
+                <i class="fas fa-chart-line"></i> Tendências (12 meses)
+            </h3>
+            <canvas id="chartTendencias" height="200"></canvas>
+        </div>
+        <div class="modern-card">
+            <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1rem; font-size: 1rem;">
+                <i class="fas fa-chart-pie"></i> Casos por Tipo
+            </h3>
+            <canvas id="chartCasos" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Aniversariantes -->
+    {% if aniversariantes %}
+    <div class="modern-card" style="padding: 0; overflow: hidden;">
+        <div style="background: #10b981; color: white; padding: 0.75rem 1.25rem; font-weight: 700; font-size: 0.9rem;">
+            <i class="fas fa-birthday-cake"></i> Aniversariantes da Semana
+        </div>
+        {% for a in aniversariantes %}
+        <div style="padding: 0.6rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
+            <span><strong>{{ a.irmao.nome }} {{ a.irmao.apelido }}</strong> — {{ a.idade }} anos</span>
+            <span style="color: var(--text-muted);">{{ a.data|date:"d/m" }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch("{% url 'sitetibl:pastoral_api_tendencias' %}")
+    .then(r => r.json())
+    .then(data => {
+        const meses = [...new Set([
+            ...data.novos.map(d=>d.mes),
+            ...data.baptismos.map(d=>d.mes),
+            ...data.visitantes.map(d=>d.mes)
+        ])].sort();
+        const mapNovos = Object.fromEntries(data.novos.map(d=>[d.mes, d.total]));
+        const mapBapt = Object.fromEntries(data.baptismos.map(d=>[d.mes, d.total]));
+        const mapVisit = Object.fromEntries(data.visitantes.map(d=>[d.mes, d.total]));
+        new Chart(document.getElementById('chartTendencias'), {
+            type: 'line',
+            data: {
+                labels: meses,
+                datasets: [
+                    {label:'Novos Membros', data: meses.map(m=>mapNovos[m]||0), borderColor:'#3b82f6', fill:false, tension:0.3},
+                    {label:'Baptismos', data: meses.map(m=>mapBapt[m]||0), borderColor:'#10b981', fill:false, tension:0.3},
+                    {label:'Visitantes', data: meses.map(m=>mapVisit[m]||0), borderColor:'#f59e0b', fill:false, tension:0.3},
+                ]
+            },
+            options: {responsive:true, plugins:{legend:{position:'bottom'}}}
+        });
+    });
+
+    fetch("{% url 'sitetibl:pastoral_api_casos_resumo' %}")
+    .then(r => r.json())
+    .then(data => {
+        const labels = data.por_tipo.map(d=>d.tipo);
+        const values = data.por_tipo.map(d=>d.total);
+        const cores = ['#ef4444','#f59e0b','#3b82f6','#10b981','#6366f1','#ec4899','#14b8a6','#f97316','#6b7280'];
+        new Chart(document.getElementById('chartCasos'), {
+            type: 'doughnut',
+            data: {labels: labels, datasets: [{data:values, backgroundColor:cores.slice(0,labels.length)}]},
+            options: {responsive:true, plugins:{legend:{position:'bottom', labels:{font:{size:10}}}}}
+        });
+    });
+});
+</script>
+{% endblock %}
