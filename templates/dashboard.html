@@ -272,8 +272,8 @@
   {# ═══════════════════════ GRÁFICOS ═══════════════════════ #}
   <div id="charts-grid" class="animate-fade-in" style="animation-delay: 0.5s; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 1.5rem;">
 
-    {# Gráfico: Cadastro Mensal — visível para quem tem view_irmao #}
-    {% if perms.sitetibl.view_irmao %}
+    {# Gráfico: Cadastro Mensal — apenas gestores de membros (não membros simples) #}
+    {% if perms.sitetibl.change_irmao %}
     <div class="modern-card">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
         <div>
@@ -285,8 +285,8 @@
     </div>
     {% endif %}
 
-    {# Gráfico: Membros por Departamento — visível para quem tem view_departamento #}
-    {% if perms.sitetibl.view_departamento %}
+    {# Gráfico: Membros por Departamento — apenas gestores de membros (não membros simples) #}
+    {% if perms.sitetibl.change_irmao %}
     <div class="modern-card">
       <div style="margin-bottom: 1.25rem;">
         <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-sitemap mr-2" style="color: var(--primary-light);"></i> Membros por Departamento</h3>
