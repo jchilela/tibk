@@ -226,9 +226,11 @@
                 </a>
                 {% endif %}
 
-                <a href="{% url 'pagina_relatorios' %}" class="nav-item">
+                {% if perms.sitetibl.change_actividade or perms.sitetibl.view_dizimooferta or perms.sitetibl.view_inventariopatrimonio %}
+                <a href="{% url 'pagina_relatorios' %}" class="nav-item {% if request.resolver_match.url_name == 'pagina_relatorios' %}active{% endif %}">
                     <i class="fas fa-file-pdf fa-fw"></i> Relatórios PDF
                 </a>
+                {% endif %}
 
                 {% if request.user.is_staff %}
                 <a href="/admin/" class="nav-item" target="_blank">
