@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.db.models import Max, Avg, Q
 from sitetibl.models import (
     Irmao, Escala, Actividade, AlertaPastoral, CasoPastoral,
-    RelatorioSemanalCelula, Dizimooferta, Sitio, VisitanteRecorrente,
+    RelatorioSemanalCelula, Dizimooferta, Sitio, VisitanteRecorrente, Celula,
 )
 
 
@@ -59,7 +59,7 @@ class Command(BaseCommand):
         limite = now - timedelta(days=60)
         count = 0
 
-        irmaos = Irmao.objects.filter(activo='activo')
+        irmaos = Irmao.objects.all()
         for irmao in irmaos:
             ultima = Escala.objects.filter(
                 irmao=irmao,
@@ -91,9 +91,8 @@ class Command(BaseCommand):
         count = 0
 
         novos = Irmao.objects.filter(
-            activo='activo',
             data_criacao__lt=limite,
-            batizado='nao',
+            batizado=False,
         )
         for irmao in novos:
             tem_caso = CasoPastoral.objects.filter(
@@ -119,8 +118,7 @@ class Command(BaseCommand):
         count = 0
 
         sem_celula = Irmao.objects.filter(
-            activo='activo',
-            batizado='sim',
+            batizado=True,
             celula__isnull=True,
         )
         for irmao in sem_celula:
@@ -142,17 +140,16 @@ class Command(BaseCommand):
         count = 0
 
         dizimistas = Irmao.objects.filter(
-            activo='activo',
             dizimista='sim',
         )
         for irmao in dizimistas:
             tem_dizimo = Dizimooferta.objects.filter(
                 irmao=irmao,
-                data__gte=limite.date(),
+                dataregisto__gte=limite.date(),
             ).exists()
             if not tem_dizimo and not self._alerta_existe('ausencia_dizimo', membro=irmao):
                 ultimo = Dizimooferta.objects.filter(irmao=irmao).aggregate(
-                    ultimo=Max('data')
+                    ultimo=Max('dataregisto')
                 )['ultimo']
                 dias = (now.date() - ultimo).days if ultimo else 999
                 count += self._criar_alerta(dry_run,
@@ -172,7 +169,7 @@ class Command(BaseCommand):
         count = 0
         hoje = now.date()
 
-        irmaos = Irmao.objects.filter(activo='activo').exclude(datanascimento__isnull=True)
+        irmaos = Irmao.objects.exclude(datanascimento__isnull=True)
         for irmao in irmaos:
             try:
                 aniv = irmao.datanascimento.replace(year=hoje.year)
@@ -229,28 +226,32 @@ class Command(BaseCommand):
         fim_anterior = inicio_recente
         inicio_anterior = inicio_recente - timedelta(weeks=4)
 
-        celulas = Sitio.objects.filter(tipo=2)
-        for celula in celulas:
+        for celula in Celula.objects.filter(activa=True):
             recente = RelatorioSemanalCelula.objects.filter(
                 celula=celula,
-                data__range=(inicio_recente, fim_recente),
-            ).aggregate(media=Avg('numero_participantes'))['media']
+                data_reuniao__range=(inicio_recente, fim_recente),
+            ).aggregate(media=Avg('numero_participantes_membros'))['media']
 
             anterior = RelatorioSemanalCelula.objects.filter(
                 celula=celula,
-                data__range=(inicio_anterior, fim_anterior),
-            ).aggregate(media=Avg('numero_participantes'))['media']
+                data_reuniao__range=(inicio_anterior, fim_anterior),
+            ).aggregate(media=Avg('numero_participantes_membros'))['media']
 
             if anterior and recente and anterior > 0:
                 queda = ((anterior - recente) / anterior) * 100
-                if queda >= 30 and not self._alerta_existe('queda_celula', celula=celula):
-                    count += self._criar_alerta(dry_run,
-                        celula=celula,
+                if queda >= 30:
+                    # Idempotência: verificar por título (celula não tem FK para Sitio)
+                    ja_existe = AlertaPastoral.objects.filter(
                         tipo='queda_celula',
-                        titulo=f'Célula {celula} — Queda de {queda:.0f}% na participação',
-                        descricao=f'Média de participantes caiu de {anterior:.1f} para {recente:.1f} (queda de {queda:.0f}%).',
-                        dados_json={'media_anterior': round(anterior, 1), 'media_recente': round(recente, 1), 'queda_percentual': round(queda, 1)},
-                        gerado_automaticamente=True,
-                    )
+                        titulo__startswith=f'Célula {celula.designacao}',
+                    ).exclude(estado__in=['resolvido', 'ignorado']).exists()
+                    if not ja_existe:
+                        count += self._criar_alerta(dry_run,
+                            tipo='queda_celula',
+                            titulo=f'Célula {celula.designacao} — Queda de {queda:.0f}% na participação',
+                            descricao=f'Média de membros caiu de {anterior:.1f} para {recente:.1f} (queda de {queda:.0f}%).',
+                            dados_json={'celula_id': celula.id, 'celula': celula.designacao, 'media_anterior': round(anterior, 1), 'media_recente': round(recente, 1), 'queda_percentual': round(queda, 1)},
+                            gerado_automaticamente=True,
+                        )
         self.stdout.write(f'  Queda células: {count} alertas')
         return count
