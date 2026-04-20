@@ -956,7 +956,7 @@ class VisitanteRecorrente(models.Model):
     nome = models.CharField('Nome', max_length=100)
     telefone = models.CharField('Telefone', max_length=50, blank=True)
     email = models.EmailField('Email', blank=True)
-    celula = models.ForeignKey('Sitio', on_delete=models.CASCADE, related_name='visitantes_recorrentes', verbose_name='Célula')
+    celula = models.ForeignKey('Sitio', on_delete=models.CASCADE, null=True, blank=True, related_name='visitantes_recorrentes', verbose_name='Célula')
     estado = models.CharField('Estado', max_length=20, choices=ESTADO_CHOICES, default='visitante')
     responsavel_integracao = models.ForeignKey(Irmao, on_delete=models.SET_NULL, null=True, blank=True, related_name='visitantes_acompanhados', verbose_name='Responsável pela Integração')
     irmao_convertido = models.ForeignKey(Irmao, on_delete=models.SET_NULL, null=True, blank=True, related_name='visitante_origem', verbose_name='Membro Convertido')
