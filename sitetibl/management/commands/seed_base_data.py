@@ -191,11 +191,6 @@ class Command(BaseCommand):
         ], crud)
         ld_perms |= self._perms_for(app, ['notificacaosistema'], ['view', 'change'])
         ld_perms |= self._perms_for(app, [
-            'casopastoral', 'registoacompanhamento',
-        ], ['view', 'add'])
-        ld_perms |= self._perms_for(app, ['alertapastoral'], ['view'])
-        ld_perms |= self._perms_for(app, ['visitanterecorrente'], crud)
-        ld_perms |= self._perms_for(app, [
             'irmao', 'pessoa', 'sitio', 'conteudoensino',
         ], ['view'])
         ld_grp.permissions.set(ld_perms)
@@ -218,9 +213,6 @@ class Command(BaseCommand):
             'enviomensagem',
         ], ['view'])
         vld_perms |= self._perms_for(app, ['funcao'], ['add', 'view'])
-        vld_perms |= self._perms_for(app, [
-            'casopastoral', 'alertapastoral', 'visitanterecorrente',
-        ], ['view'])
         vld_grp.permissions.set(vld_perms)
         self.stdout.write(f'Vice-Líder de Departamento: {vld_perms.count()} permissoes atribuidas')
 
@@ -233,9 +225,6 @@ class Command(BaseCommand):
             'irmao', 'pessoa', 'sitio', 'actividade', 'departamento',
             'conteudoensino',
         ], ['view'])
-        lc_perms |= self._perms_for(app, ['casopastoral'], ['view'])
-        lc_perms |= self._perms_for(app, ['registoacompanhamento'], ['add', 'view'])
-        lc_perms |= self._perms_for(app, ['visitanterecorrente'], crud)
         lc_grp.permissions.set(lc_perms)
         self.stdout.write(f'Líder de Célula: {lc_perms.count()} permissoes atribuidas')
 
