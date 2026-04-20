@@ -586,6 +586,8 @@ def mostraActualizacao(request, gestaoescolhida, id):
 
             obj.save()
             messages.success(request, 'Actualização foi bem sucedida')
+            if gestaoescolhida == 'solicitacoes':
+                return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=['solicitacoes', id]))
             return HttpResponseRedirect(reverse('index'))
 
         else:
@@ -1393,6 +1395,8 @@ def mostraCriacao(request, gestaoescolhida):
             # Após criar uma escala, redirecionar para o detalhe da actividade
             if gestaoescolhida == 'escalas' and hasattr(obj, 'actividade_id') and obj.actividade_id:
                 return redirect(f'/tibl/actividades/detalhe/{obj.actividade_id}/')
+            if gestaoescolhida == 'solicitacoes':
+                return redirect(reverse('sitetibl:mostra_detalhe', args=['solicitacoes', obj.id]))
             return redirect('index')
         else:
             messages.error(request, 'Foram encontrados erros ao preencher o formulário')
