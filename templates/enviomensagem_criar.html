@@ -99,7 +99,16 @@
     .msg-clear-btn:hover { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
 
     /* Tags for selected */
-    .msg-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; min-height: 28px; }
+    .msg-tags-panel {
+        display: none; border: 1px solid #e2e8f0; border-top: none;
+        background: #f8fafc; padding: 0.75rem 0.8rem;
+    }
+    .msg-tags-panel.has-items { display: block; }
+    .msg-tags-panel-title {
+        font-size: 0.75rem; font-weight: 700; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;
+    }
+    .msg-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 24px; }
     .msg-tag {
         display: inline-flex; align-items: center; gap: 0.3rem;
         background: #ecfdf5; color: #166534; padding: 0.2rem 0.6rem;
@@ -228,9 +237,6 @@
                             <input type="text" class="msg-search" id="search-input" placeholder="Pesquisar irmão por nome..." oninput="filterList()">
                         </div>
 
-                        <!-- Selected tags -->
-                        <div class="msg-tags" id="sel-tags"></div>
-
                         <!-- Select-all header row -->
                         <div class="msg-list-header">
                             <label>
@@ -239,6 +245,12 @@
                             </label>
                             <span class="msg-sel-count" id="sel-count">0 seleccionado(s)</span>
                             <button type="button" class="msg-clear-btn" onclick="deselectAll()"><i class="fas fa-times"></i> Limpar</button>
+                        </div>
+
+                        <!-- Selected tags panel -->
+                        <div class="msg-tags-panel" id="sel-tags-panel">
+                            <div class="msg-tags-panel-title"><i class="fas fa-check-circle" style="color:var(--primary);margin-right:0.3rem;"></i> Irmãos selecionados</div>
+                            <div class="msg-tags" id="sel-tags"></div>
                         </div>
 
                         <!-- Member list -->
@@ -428,6 +440,8 @@
         updateSelection();
     };
 
+    var selTagsPanel = document.getElementById('sel-tags-panel');
+
     window.updateSelection = function() {
         var checked = document.querySelectorAll('#member-list input[type=checkbox]:checked');
         var visibleItems = 0;
@@ -446,6 +460,8 @@
             html += '<span class="msg-tag">' + name + ' <i class="fas fa-times msg-tag-remove" onclick="removeRecipient(\'' + id + '\')"></i></span>';
         });
         selTags.innerHTML = html;
+        // Show/hide panel
+        if (selTagsPanel) selTagsPanel.classList.toggle('has-items', count > 0);
     };
 
     window.removeRecipient = function(id) {

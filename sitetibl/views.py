@@ -113,6 +113,7 @@ from sitetibl.forms import PagamentoservicoForm
 from sitetibl.forms import GruporubricaForm
 from sitetibl.forms import ServicoForm
 from sitetibl.forms import RelatorioSemanalCelulaForm
+from sitetibl.forms import CelulaForm
 from sitetibl.forms import PedidoSaidaForm
 from sitetibl.forms import PedidoSaidaUpdateForm
 from sitetibl.forms import OrcamentoDepartamentoForm
@@ -425,12 +426,20 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'solicitacoes': SolicitacaoInterdepartamental.objects.select_related('departamento_solicitante', 'departamento_destinatario', 'solicitante', 'responsavel_resposta'),
              'casospastorais': CasoPastoral.objects.select_related('membro', 'responsavel', 'criado_por'),
              'visitantes': VisitanteRecorrente.objects.select_related('celula', 'responsavel_integracao', 'irmao_convertido'),
+             'celulas': Celula.objects.select_related('lider', 'vice_lider'),
              }
     if gestaoescolhida == 'departamentos':
         resultado = (
             lista[gestaoescolhida]
             .all()
             .annotate(total_integrantes=Count('integrantes', distinct=True))
+            .order_by('designacao')
+        )
+    elif gestaoescolhida == 'celulas':
+        resultado = (
+            lista[gestaoescolhida]
+            .all()
+            .annotate(total_relatorios=Count('relatorios', distinct=True))
             .order_by('designacao')
         )
     elif gestaoescolhida == 'contasbancarias':
@@ -653,8 +662,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
              'solicitacoes':SolicitacaoInterdepartamental,
              'casospastorais':CasoPastoral,
              'visitantes':VisitanteRecorrente,
-             
-
+             'celulas':Celula,
               }
     listaformularios = {'escalas' : EscalaForm, 
                         'mandatos': MandatoForm, 
@@ -679,6 +687,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'solicitacoes':SolicitacaoUpdateForm,
                         'casospastorais':CasoPastoralUpdateForm,
                         'visitantes':VisitanteRecorrenteForm,
+                        'celulas':CelulaForm,
                         }
     
     model = lista[gestaoescolhida]
@@ -1525,6 +1534,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'solicitacoes':SolicitacaoInterdepartamental,
              'casospastorais':CasoPastoral,
              'visitantes':VisitanteRecorrente,
+             'celulas':Celula,
              }
     model = lista.get(gestaoescolhida)
     if model is None:
@@ -1598,6 +1608,7 @@ def mostraCriacao(request, gestaoescolhida):
                         'solicitacoes':SolicitacaoForm,
                         'casospastorais':CasoPastoralForm,
                         'visitantes':VisitanteRecorrenteForm,
+                        'celulas':CelulaForm,
                         }
     form_class = listaformularios.get(gestaoescolhida)
     if not form_class:
