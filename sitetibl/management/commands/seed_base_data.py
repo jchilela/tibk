@@ -88,6 +88,7 @@ class Command(BaseCommand):
             'Financeiro',
             'Secretaria',
             'Líder de Departamento',
+            'Secretário departamental',
             'Vice-Líder de Departamento',
             'Líder de Célula',
             'Membros Baptizados',
@@ -200,6 +201,12 @@ class Command(BaseCommand):
         ], ['view'])
         ld_grp.permissions.set(ld_perms)
         self.stdout.write(f'Líder de Departamento: {ld_perms.count()} permissoes atribuidas')
+
+        # --- Secretário departamental: tudo o que o Líder faz, sem permissões de eliminar ---
+        sd_grp, _ = Group.objects.get_or_create(name='Secretário departamental')
+        sd_perms = Permission.objects.filter(pk__in=ld_perms).exclude(codename__startswith='delete_')
+        sd_grp.permissions.set(sd_perms)
+        self.stdout.write(f'Secretário departamental: {sd_perms.count()} permissoes atribuidas')
 
         # --- Vice-Líder de Departamento: apoia líder, escalas, cria pedidos ---
         vld_grp = Group.objects.get(name='Vice-Líder de Departamento')
