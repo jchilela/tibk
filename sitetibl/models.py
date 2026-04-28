@@ -225,8 +225,8 @@ class Mandato(models.Model):
         ('membro', 'Membro'),
         ('lider', 'Líder'),
         ('vice_lider', 'Vice-Líder'),
-        ('secretario', 'Secretário departamental'),
-        ('secretario_geral', 'Secretário Geral'),
+        ('secretario', 'Secretário(a)'),
+        ('secretario_geral', 'Secretário(a) Geral'),
         ('tesoureiro', 'Tesoureiro(a)'),
         ('coordenador', 'Coordenador(a)'),
     ]
