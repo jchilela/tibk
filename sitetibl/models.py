@@ -226,10 +226,11 @@ class Mandato(models.Model):
         ('lider', 'Líder'),
         ('vice_lider', 'Vice-Líder'),
         ('secretario', 'Secretário departamental'),
+        ('secretario_geral', 'Secretário Geral'),
         ('tesoureiro', 'Tesoureiro(a)'),
         ('coordenador', 'Coordenador(a)'),
     ]
-    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
+    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'secretario_geral', 'tesoureiro', 'coordenador'}
 
     irmao = models.ForeignKey(Irmao, verbose_name = 'Irmão', on_delete = models.CASCADE)
     departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE)

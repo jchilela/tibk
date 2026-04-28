@@ -669,6 +669,7 @@ def limpar_lider_ao_apagar_mandato(sender, instance, **kwargs):
 _GRUPO_LIDER = 'Líder de Departamento'
 _GRUPO_VICE_LIDER = 'Vice-Líder de Departamento'
 _GRUPO_SEC_DEPT = 'Secretário departamental'
+_GRUPO_SEC_GERAL = 'Secretário Geral'
 
 
 def _sincronizar_grupos_lideranca(irmao):
@@ -689,6 +690,7 @@ def _sincronizar_grupos_lideranca(irmao):
         grupo_lider = Group.objects.get(name=_GRUPO_LIDER)
         grupo_vice = Group.objects.get(name=_GRUPO_VICE_LIDER)
         grupo_sec = Group.objects.get(name=_GRUPO_SEC_DEPT)
+        grupo_sec_geral = Group.objects.get(name=_GRUPO_SEC_GERAL)
     except Group.DoesNotExist:
         logger.warning('Grupos de liderança não encontrados — execute seed_config_essencial')
         return
@@ -696,6 +698,7 @@ def _sincronizar_grupos_lideranca(irmao):
     e_lider = Departamento.objects.filter(lider_departamento=irmao).exists()
     e_vice = Departamento.objects.filter(vice_lider_departamento=irmao).exists()
     e_sec = irmao.mandato_set.filter(funcao='secretario').exists()
+    e_sec_geral = irmao.mandato_set.filter(funcao='secretario_geral').exists()
 
     if e_lider:
         user.groups.add(grupo_lider)
@@ -711,6 +714,11 @@ def _sincronizar_grupos_lideranca(irmao):
         user.groups.add(grupo_sec)
     else:
         user.groups.remove(grupo_sec)
+
+    if e_sec_geral:
+        user.groups.add(grupo_sec_geral)
+    else:
+        user.groups.remove(grupo_sec_geral)
 
 
 # Signal: Departamento pre_save — captura valores anteriores
