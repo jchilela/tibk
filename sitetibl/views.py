@@ -153,6 +153,22 @@ MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
 
 
+def _user_ids_lideranca_dept(departamento):
+    """Retorna user_ids de todos os líderes activos de um departamento (líder, vice, secretário)."""
+    ids = set()
+    if departamento.lider_departamento and departamento.lider_departamento.user_id:
+        ids.add(departamento.lider_departamento.user_id)
+    if departamento.vice_lider_departamento and departamento.vice_lider_departamento.user_id:
+        ids.add(departamento.vice_lider_departamento.user_id)
+    secretarios = Mandato.objects.filter(
+        departamento=departamento,
+        funcao='secretario',
+        irmao__user__isnull=False,
+    ).filter(Q(fim__isnull=True) | Q(fim__gte=date.today())).values_list('irmao__user_id', flat=True)
+    ids.update(secretarios)
+    return ids
+
+
 def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel):
     """Cria NotificacaoSistema e envia email para os envolvidos na mudança de estado."""
     ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
@@ -168,18 +184,10 @@ def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsave
     destinatarios = set()
     if solicitacao.solicitante and solicitacao.solicitante.user_id:
         destinatarios.add(solicitacao.solicitante.user_id)
-    dept_dest = solicitacao.departamento_destinatario
-    if dept_dest:
-        if dept_dest.lider_departamento and dept_dest.lider_departamento.user_id:
-            destinatarios.add(dept_dest.lider_departamento.user_id)
-        if dept_dest.vice_lider_departamento and dept_dest.vice_lider_departamento.user_id:
-            destinatarios.add(dept_dest.vice_lider_departamento.user_id)
-    dept_sol = solicitacao.departamento_solicitante
-    if dept_sol:
-        if dept_sol.lider_departamento and dept_sol.lider_departamento.user_id:
-            destinatarios.add(dept_sol.lider_departamento.user_id)
-        if dept_sol.vice_lider_departamento and dept_sol.vice_lider_departamento.user_id:
-            destinatarios.add(dept_sol.vice_lider_departamento.user_id)
+    if solicitacao.departamento_destinatario:
+        destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_destinatario))
+    if solicitacao.departamento_solicitante:
+        destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_solicitante))
 
     if responsavel and responsavel.user_id:
         destinatarios.discard(responsavel.user_id)
@@ -246,22 +254,14 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
     titulo = f'Novo comentário — Solicitação #{solicitacao.id}'
     mensagem = f'{autor.nome} {autor.apelido} comentou na solicitação "{solicitacao.assunto}": {texto[:100]}'
 
-    # Recolher todos os líderes envolvidos
+    # Recolher todos os líderes envolvidos (líder, vice, secretário de ambos os departamentos)
     destinatarios = set()
     if solicitacao.solicitante and solicitacao.solicitante.user_id:
         destinatarios.add(solicitacao.solicitante.user_id)
-    dept_dest = solicitacao.departamento_destinatario
-    if dept_dest:
-        if dept_dest.lider_departamento and dept_dest.lider_departamento.user_id:
-            destinatarios.add(dept_dest.lider_departamento.user_id)
-        if dept_dest.vice_lider_departamento and dept_dest.vice_lider_departamento.user_id:
-            destinatarios.add(dept_dest.vice_lider_departamento.user_id)
-    dept_sol = solicitacao.departamento_solicitante
-    if dept_sol:
-        if dept_sol.lider_departamento and dept_sol.lider_departamento.user_id:
-            destinatarios.add(dept_sol.lider_departamento.user_id)
-        if dept_sol.vice_lider_departamento and dept_sol.vice_lider_departamento.user_id:
-            destinatarios.add(dept_sol.vice_lider_departamento.user_id)
+    if solicitacao.departamento_destinatario:
+        destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_destinatario))
+    if solicitacao.departamento_solicitante:
+        destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_solicitante))
 
     # Excluir o autor do comentário
     if autor.user_id:
@@ -1680,9 +1680,14 @@ def mostraCriacao(request, gestaoescolhida):
                     return render(request, gestaoescolhida + '.html', {'formulario': formulario, 'is_update': False})
                 obj.solicitante = irmao_sol
                 if not obj.departamento_solicitante_id:
-                    depts = Departamento.objects.filter(
+                    depts_fk = Departamento.objects.filter(
                         Q(lider_departamento=irmao_sol) | Q(vice_lider_departamento=irmao_sol)
                     )
+                    depts_mandato = Departamento.objects.filter(
+                        mandato__irmao=irmao_sol,
+                        mandato__funcao='secretario',
+                    ).filter(Q(mandato__fim__isnull=True) | Q(mandato__fim__gte=date.today()))
+                    depts = (depts_fk | depts_mandato).distinct()
                     if depts.count() == 1:
                         obj.departamento_solicitante = depts.first()
                 obj.estado = 'pendente'
