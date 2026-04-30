@@ -272,7 +272,7 @@
                                     {% if mandato.fim %}{{ mandato.fim|date:"d/m/Y" }}{% else %}Em curso{% endif %}
                                 </td>
                                 <td style="text-align: right;">
-                                    {% if pode_gerir_membros %}
+                                    {% if pode_remover_membros %}
                                     <form method="post" action="" style="display: inline;">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="remove_member">

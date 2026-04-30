@@ -113,6 +113,7 @@ from sitetibl.forms import PagamentoservicoForm
 from sitetibl.forms import GruporubricaForm
 from sitetibl.forms import ServicoForm
 from sitetibl.forms import RelatorioSemanalCelulaForm
+from sitetibl.forms import CelulaForm
 from sitetibl.forms import PedidoSaidaForm
 from sitetibl.forms import PedidoSaidaUpdateForm
 from sitetibl.forms import OrcamentoDepartamentoForm
@@ -425,12 +426,20 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'solicitacoes': SolicitacaoInterdepartamental.objects.select_related('departamento_solicitante', 'departamento_destinatario', 'solicitante', 'responsavel_resposta'),
              'casospastorais': CasoPastoral.objects.select_related('membro', 'responsavel', 'criado_por'),
              'visitantes': VisitanteRecorrente.objects.select_related('celula', 'responsavel_integracao', 'irmao_convertido'),
+             'celulas': Celula.objects.select_related('lider', 'vice_lider'),
              }
     if gestaoescolhida == 'departamentos':
         resultado = (
             lista[gestaoescolhida]
             .all()
             .annotate(total_integrantes=Count('integrantes', distinct=True))
+            .order_by('designacao')
+        )
+    elif gestaoescolhida == 'celulas':
+        resultado = (
+            lista[gestaoescolhida]
+            .all()
+            .annotate(total_relatorios=Count('relatorios', distinct=True))
             .order_by('designacao')
         )
     elif gestaoescolhida == 'contasbancarias':
@@ -653,8 +662,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
              'solicitacoes':SolicitacaoInterdepartamental,
              'casospastorais':CasoPastoral,
              'visitantes':VisitanteRecorrente,
-             
-
+             'celulas':Celula,
               }
     listaformularios = {'escalas' : EscalaForm, 
                         'mandatos': MandatoForm, 
@@ -679,6 +687,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'solicitacoes':SolicitacaoUpdateForm,
                         'casospastorais':CasoPastoralUpdateForm,
                         'visitantes':VisitanteRecorrenteForm,
+                        'celulas':CelulaForm,
                         }
     
     model = lista[gestaoescolhida]
@@ -856,10 +865,16 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             and (registo.lider_departamento_id == irmao_logado.id
                  or registo.vice_lider_departamento_id == irmao_logado.id)
         )
+        e_secretario_dept = (
+            irmao_logado is not None
+            and mandatos_departamento.filter(irmao_id=irmao_logado.id, funcao='secretario').exists()
+        )
         # Papéis elevados (Pastor/Secretaria/Admin) gerem qualquer dept;
-        # LD/VLD só gere o departamento onde é líder ou vice-líder.
+        # LD/VLD e Secretário departamental só gerem o dept onde têm cargo.
         papel_elevado_dept = request.user.has_perm('sitetibl.change_mandato')
-        pode_gerir_membros = lidera_departamento or papel_elevado_dept
+        # Secretário departamental pode adicionar mas não remover membros (sem permissão de delete)
+        pode_gerir_membros = lidera_departamento or papel_elevado_dept or e_secretario_dept
+        pode_remover_membros = lidera_departamento or papel_elevado_dept
 
         if request.method == 'POST':
             if not pode_gerir_membros:
@@ -877,7 +892,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 if not irmao_ids:
                     messages.error(request, 'Seleccione pelo menos um irmão para adicionar ao departamento.')
                 else:
-                    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
+                    FUNCOES_EXCLUSIVAS = Mandato.FUNCOES_EXCLUSIVAS
                     # Cargo exclusivo com vários irmãos selecionados → forçar 'membro'
                     if funcao in FUNCOES_EXCLUSIVAS and len(irmao_ids) > 1:
                         funcao = 'membro'
@@ -932,6 +947,9 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                         messages.info(request, 'Nenhuma alteração efectuada — os irmãos já pertencem ao departamento com esse cargo.')
 
             elif action == 'remove_member':
+                if not pode_remover_membros:
+                    messages.error(request, 'Apenas o líder do departamento ou um administrador pode remover membros.')
+                    return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
                 mandato_id = request.POST.get('mandato_id', '').strip()
                 mandato = Mandato.objects.filter(id=mandato_id, departamento_id=identificador).first()
                 if mandato is None:
@@ -987,6 +1005,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'todos_irmaos': Irmao.objects.order_by('nome', 'apelido'),
             'funcao_choices': Mandato.FUNCAO_CHOICES,
             'pode_gerir_membros': pode_gerir_membros,
+            'pode_remover_membros': pode_remover_membros,
             'funcoes_departamento': funcoes_departamento,
             'pode_gerir_funcoes': pode_gerir_funcoes,
         }
@@ -1525,6 +1544,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'solicitacoes':SolicitacaoInterdepartamental,
              'casospastorais':CasoPastoral,
              'visitantes':VisitanteRecorrente,
+             'celulas':Celula,
              }
     model = lista.get(gestaoescolhida)
     if model is None:
@@ -1598,6 +1618,7 @@ def mostraCriacao(request, gestaoescolhida):
                         'solicitacoes':SolicitacaoForm,
                         'casospastorais':CasoPastoralForm,
                         'visitantes':VisitanteRecorrenteForm,
+                        'celulas':CelulaForm,
                         }
     form_class = listaformularios.get(gestaoescolhida)
     if not form_class:
