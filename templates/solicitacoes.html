@@ -84,9 +84,6 @@
                 <tr>
                     <td>
                         <div style="font-weight: 600; color: var(--primary-dark);">{{ x.assunto }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">
-                            {% if x.solicitante %}{{ x.solicitante.nome }} {{ x.solicitante.apelido }}{% endif %}
-                        </div>
                     </td>
                     <td>
                         {% if x.departamento_solicitante %}{{ x.departamento_solicitante.designacao }}{% else %}<span style="color: var(--text-muted);">—</span>{% endif %}
