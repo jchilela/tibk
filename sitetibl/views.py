@@ -23,13 +23,14 @@ from django.conf import settings
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, LongTable
 from reportlab.lib import colors
 import os
+import requests
 from django.contrib.auth.decorators import login_required
 
 from django.db.models.functions import TruncMonth, ExtractDay
 import json
 from django.http import JsonResponse
 from django.utils.timezone import now
-from .signals import notificar_mudanca_estado_pedido, _atribuir_grupos_irmao, _enviar_credenciais_email, _enviar_credenciais_sms
+from .signals import notificar_mudanca_estado_pedido, _atribuir_grupos_irmao, _enviar_credenciais_email, _enviar_credenciais_sms, _telcosms_api_key
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from collections import OrderedDict
@@ -153,6 +154,39 @@ MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
 
 
+def _enviar_sms_solicitacao(mensagem_sms, user_ids):
+    """Envia SMS de solicitação aos destinatários que não têm email registado."""
+    if not user_ids:
+        return
+    users_sem_email = User.objects.filter(id__in=user_ids).filter(Q(email='') | Q(email__isnull=True))
+    user_ids_sem_email = set(users_sem_email.values_list('id', flat=True))
+    if not user_ids_sem_email:
+        return
+    irmaos = Irmao.objects.filter(
+        user_id__in=user_ids_sem_email,
+    ).exclude(telefone='').exclude(telefone__isnull=True)
+    sms_url = 'https://telcosms.co.ao/send_message'
+    for irmao in irmaos:
+        sms_data = {
+            'message': {
+                'api_key_app': _telcosms_api_key(),
+                'phone_number': irmao.telefone,
+                'message_body': mensagem_sms,
+            }
+        }
+        try:
+            response = requests.post(sms_url, json=sms_data, timeout=10)
+            if response.status_code == 200:
+                logger.info('SMS de solicitação enviado para %s', irmao.telefone)
+            else:
+                logger.warning(
+                    'Falha SMS solicitação para %s — status %s: %s',
+                    irmao.telefone, response.status_code, response.text,
+                )
+        except Exception as e:
+            logger.error('Erro SMS solicitação para %s: %s', irmao.telefone, e)
+
+
 def _user_ids_lideranca_dept(departamento):
     """Retorna user_ids de todos os líderes activos de um departamento (líder, vice, secretário)."""
     ids = set()
@@ -199,8 +233,13 @@ def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsave
     if notifs:
         NotificacaoSistema.objects.bulk_create(notifs)
 
-    # Enviar email para os líderes envolvidos
+    # Enviar email para os líderes envolvidos; SMS para quem não tem email
     _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, destinatarios)
+    sms_texto = (
+        f'TIBL - Solicitação #{solicitacao.id}: "{solicitacao.assunto[:60]}". '
+        f'Estado: {label_novo}. Consulte o portal: gestao.tibl.ao'
+    )
+    _enviar_sms_solicitacao(sms_texto, destinatarios)
 
 
 def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, user_ids):
@@ -312,6 +351,12 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
         logger.info('Emails de comentário solicitação #%s enviados para %s', solicitacao.id, emails_to)
     except Exception as e:
         logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
+
+    sms_texto = (
+        f'TIBL - Novo comentário na Solicitação #{solicitacao.id}: "{solicitacao.assunto[:60]}". '
+        f'Por: {autor.nome} {autor.apelido}. Consulte o portal: gestao.tibl.ao'
+    )
+    _enviar_sms_solicitacao(sms_texto, destinatarios)
 
 
 def _notificar_caso_pastoral(caso, actor, mensagem_texto):
