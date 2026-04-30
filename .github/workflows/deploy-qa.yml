@@ -52,5 +52,12 @@ jobs:
             # Aplicar migrações pendentes
             docker compose -f docker-compose.qa.yml exec -T web python manage.py migrate --noinput
 
+            # Seed: grupos, permissões, tabelas de referência e dados demo (idempotente)
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_provincias
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_base_data --with-demo
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_irmaos_comunicacao
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_actividades_recorrentes
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_qa_users
+
             # Remover imagens antigas não referenciadas
             docker image prune -f
