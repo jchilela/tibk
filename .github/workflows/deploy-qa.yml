@@ -1,0 +1,63 @@
+name: Deploy para QA
+
+on:
+  push:
+    branches:
+      - qa
+
+jobs:
+  build-and-deploy:
+    name: Build, Push e Deploy (QA)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy no servidor (QA)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+
+            QA_DIR=/home/projectotibl/tibk-qa
+
+            # Clonar repositório se ainda não existir
+            if [ ! -d "$QA_DIR/.git" ]; then
+              git clone https://github.com/${{ github.repository }}.git "$QA_DIR"
+            fi
+
+            cd "$QA_DIR"
+
+            # Actualizar código
+            git fetch origin
+            git checkout qa
+            git pull origin qa
+
+            # Criar .env de QA se não existir
+            if [ ! -f "$QA_DIR/.env" ]; then
+              cp "$QA_DIR/.env.example" "$QA_DIR/.env" 2>/dev/null || touch "$QA_DIR/.env"
+              echo "DB_NAME=db_qa.sqlite3" >> "$QA_DIR/.env"
+              echo "DEBUG=True" >> "$QA_DIR/.env"
+            fi
+
+            # Reconstruir e reiniciar
+            docker compose -f docker-compose.qa.yml build web
+            docker compose -f docker-compose.qa.yml up -d
+
+            # Aplicar migrações pendentes
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py migrate --noinput
+
+            # Seed: grupos, permissões, tabelas de referência e dados demo (idempotente)
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_provincias
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_base_data --with-demo
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_irmaos_comunicacao
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_actividades_recorrentes
+            docker compose -f docker-compose.qa.yml exec -T web python manage.py seed_qa_users
+
+            # Remover imagens antigas não referenciadas
+            docker image prune -f

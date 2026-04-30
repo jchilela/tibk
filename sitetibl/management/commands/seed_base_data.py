@@ -87,7 +87,9 @@ class Command(BaseCommand):
             'Pastor',
             'Financeiro',
             'Secretaria',
+            'Secretário Geral',
             'Líder de Departamento',
+            'Secretário departamental',
             'Vice-Líder de Departamento',
             'Líder de Célula',
             'Membros Baptizados',
@@ -157,6 +159,23 @@ class Command(BaseCommand):
         fin_grp.permissions.set(fin_perms)
         self.stdout.write(f'Financeiro: {fin_perms.count()} permissoes atribuidas')
 
+        # --- Secretário Geral: mesmas permissões da Secretaria (âmbito de toda a igreja) ---
+        sg_grp, _ = Group.objects.get_or_create(name='Secretário Geral')
+        sg_perms = self._perms_for(app, [
+            'irmao', 'pessoa', 'actividade', 'escala', 'mandato',
+            'departamento', 'sitio', 'relatoriosemanalcelula',
+            'conteudoensino', 'enviomensagem', 'anuncio',
+            'inventariopatrimonio', 'cestabasica', 'ajuda',
+        ], crud)
+        sg_perms |= self._perms_for(app, ['pedidosaida'], ['view'])
+        sg_perms |= self._perms_for(app, ['solicitacaointerdepartamental'], ['view'])
+        sg_perms |= self._perms_for(app, ['notificacaosistema'], ['view', 'change'])
+        sg_perms |= self._perms_for(app, [
+            'casopastoral', 'alertapastoral', 'visitanterecorrente',
+        ], ['view'])
+        sg_grp.permissions.set(sg_perms)
+        self.stdout.write(f'Secretário Geral: {sg_perms.count()} permissoes atribuidas')
+
         # --- Secretaria: CRUD membros/actividades/comunicacao + pedido de saida (sem acesso financeiro) ---
         sec_grp = Group.objects.get(name='Secretaria')
         sec_perms = self._perms_for(app, [
@@ -195,6 +214,12 @@ class Command(BaseCommand):
         ], ['view'])
         ld_grp.permissions.set(ld_perms)
         self.stdout.write(f'Líder de Departamento: {ld_perms.count()} permissoes atribuidas')
+
+        # --- Secretário departamental: tudo o que o Líder faz, sem permissões de eliminar ---
+        sd_grp, _ = Group.objects.get_or_create(name='Secretário departamental')
+        sd_perms = Permission.objects.filter(pk__in=ld_perms).exclude(codename__startswith='delete_')
+        sd_grp.permissions.set(sd_perms)
+        self.stdout.write(f'Secretário departamental: {sd_perms.count()} permissoes atribuidas')
 
         # --- Vice-Líder de Departamento: apoia líder, escalas, cria pedidos ---
         vld_grp = Group.objects.get(name='Vice-Líder de Departamento')
