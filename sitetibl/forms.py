@@ -43,7 +43,11 @@ from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import re
+from urllib.parse import urlparse
+
+from django.conf import settings
 from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
+from django.contrib.auth.forms import PasswordResetForm as DjangoPasswordResetForm
 
 
 class MeuPerfilForm(ModelForm):
@@ -73,6 +77,24 @@ class MeuPerfilPasswordForm(DjangoPasswordChangeForm):
         )
         self.fields['new_password2'].label = 'Confirmar nova senha'
         self.fields['new_password2'].help_text = 'Repita a nova senha para confirmar.'
+
+
+class TiblPasswordResetForm(DjangoPasswordResetForm):
+    def save(self, *args, **kwargs):
+        if not kwargs.get('domain_override'):
+            domain_override = getattr(settings, 'PASSWORD_RESET_DOMAIN', '').strip()
+            if not domain_override:
+                trusted_origins = getattr(settings, 'CSRF_TRUSTED_ORIGINS', [])
+                if trusted_origins:
+                    domain_override = urlparse(trusted_origins[0]).netloc
+            if domain_override:
+                kwargs['domain_override'] = domain_override
+
+        protocol_override = getattr(settings, 'PASSWORD_RESET_PROTOCOL', '').strip().lower()
+        if protocol_override in {'http', 'https'}:
+            kwargs['use_https'] = protocol_override == 'https'
+
+        return super().save(*args, **kwargs)
 
 
 class ContabancariaForm(forms.ModelForm):

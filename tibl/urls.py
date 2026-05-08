@@ -17,12 +17,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import path, include, re_path
 import sitetibl.views
+from sitetibl.forms import TiblPasswordResetForm
 
 urlpatterns = [
     path('admin/clearcache/', include('clearcache.urls')),
     path('admin/', admin.site.urls),
+    path(
+        'accounts/password_reset/',
+        auth_views.PasswordResetView.as_view(form_class=TiblPasswordResetForm),
+        name='password_reset',
+    ),
     path('accounts/', include('django.contrib.auth.urls')),
 
     # App sitetibl
