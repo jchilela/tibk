@@ -23,20 +23,20 @@ from django.conf import settings
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, LongTable
 from reportlab.lib import colors
 import os
-import requests
 from django.contrib.auth.decorators import login_required
 
 from django.db.models.functions import TruncMonth, ExtractDay
 import json
 from django.http import JsonResponse
 from django.utils.timezone import now
-from .signals import notificar_mudanca_estado_pedido, _atribuir_grupos_irmao, _enviar_credenciais_email, _enviar_credenciais_sms, _telcosms_api_key
+from .signals import notificar_mudanca_estado_pedido, _atribuir_grupos_irmao, _enviar_credenciais_email, _enviar_credenciais_sms
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from collections import OrderedDict
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 import logging
+import requests
 logger = logging.getLogger(__name__)
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
@@ -154,57 +154,72 @@ MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
 
 
-def _enviar_sms_solicitacao(mensagem_sms, user_ids):
-    """Envia SMS de solicitação aos destinatários que não têm email registado."""
-    if not user_ids:
-        return
-    users_sem_email = User.objects.filter(id__in=user_ids).filter(Q(email='') | Q(email__isnull=True))
-    user_ids_sem_email = set(users_sem_email.values_list('id', flat=True))
-    if not user_ids_sem_email:
-        return
-    irmaos = Irmao.objects.filter(
-        user_id__in=user_ids_sem_email,
-    ).exclude(telefone='').exclude(telefone__isnull=True)
-    sms_url = 'https://telcosms.co.ao/send_message'
+def _irmaos_envolvidos_solicitacao(solicitacao, excluir=None):
+    """Recolhe irmãos envolvidos numa solicitação (solicitante + líderes dos deptos)."""
+    irmaos = []
+    vistos = set()
+
+    def _add(irmao):
+        if not irmao or irmao.pk in vistos:
+            return
+        if excluir and irmao.pk == excluir.pk:
+            return
+        vistos.add(irmao.pk)
+        irmaos.append(irmao)
+
+    _add(solicitacao.solicitante)
+    for dept in (solicitacao.departamento_destinatario, solicitacao.departamento_solicitante):
+        if dept:
+            _add(dept.lider_departamento)
+            _add(dept.vice_lider_departamento)
+    return irmaos
+
+
+def _contactos_de_irmaos(irmaos):
+    """Resolve emails (Irmao.email com fallback User.email) e telefones."""
+    emails = []
+    telefones = []
     for irmao in irmaos:
+        email = (irmao.email or '').strip()
+        if not email and irmao.user_id:
+            email = (irmao.user.email or '').strip()
+        if email and email not in emails:
+            emails.append(email)
+        tel = (irmao.telefone or '').strip()
+        if tel and tel not in telefones:
+            telefones.append(tel)
+    return emails, telefones
+
+
+def _enviar_sms_telcosms(telefones, mensagem):
+    """Envia SMS via TelcoSMS para uma lista de telefones."""
+    api_key = getattr(settings, 'TELCOSMS_API_KEY', '')
+    if not api_key or not telefones:
+        return
+    sms_url = 'https://telcosms.co.ao/send_message'
+    for telefone in telefones:
         sms_data = {
             'message': {
-                'api_key_app': _telcosms_api_key(),
-                'phone_number': irmao.telefone,
-                'message_body': mensagem_sms,
+                'api_key_app': api_key,
+                'phone_number': telefone,
+                'message_body': mensagem,
             }
         }
         try:
             response = requests.post(sms_url, json=sms_data, timeout=10)
             if response.status_code == 200:
-                logger.info('SMS de solicitação enviado para %s', irmao.telefone)
+                logger.info('SMS enviado para %s', telefone)
             else:
-                logger.warning(
-                    'Falha SMS solicitação para %s — status %s: %s',
-                    irmao.telefone, response.status_code, response.text,
+                logger.error(
+                    'Falha SMS para %s — status %s: %s',
+                    telefone, response.status_code, response.text,
                 )
-        except Exception as e:
-            logger.error('Erro SMS solicitação para %s: %s', irmao.telefone, e)
+        except requests.exceptions.RequestException as e:
+            logger.error('Erro SMS para %s: %s', telefone, e)
 
 
-def _user_ids_lideranca_dept(departamento):
-    """Retorna user_ids de todos os líderes activos de um departamento (líder, vice, secretário)."""
-    ids = set()
-    if departamento.lider_departamento and departamento.lider_departamento.user_id:
-        ids.add(departamento.lider_departamento.user_id)
-    if departamento.vice_lider_departamento and departamento.vice_lider_departamento.user_id:
-        ids.add(departamento.vice_lider_departamento.user_id)
-    secretarios = Mandato.objects.filter(
-        departamento=departamento,
-        funcao='secretario',
-        irmao__user__isnull=False,
-    ).filter(Q(fim__isnull=True) | Q(fim__gte=date.today())).values_list('irmao__user_id', flat=True)
-    ids.update(secretarios)
-    return ids
-
-
-def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel):
-    """Cria NotificacaoSistema e envia email para os envolvidos na mudança de estado."""
+def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel, apenas_externo=False):
+    """Cria NotificacaoSistema e envia email/SMS para os envolvidos na mudança de estado."""
     ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
     label_novo = ESTADO_LABELS.get(estado_novo, estado_novo)
     label_anterior = ESTADO_LABELS.get(estado_anterior, estado_anterior) if estado_anterior else ''
@@ -215,49 +230,50 @@ def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsave
     else:
         mensagem = f'Foi criada uma nova solicitação "{solicitacao.assunto}" — {label_novo}.'
 
-    destinatarios = set()
-    if solicitacao.solicitante and solicitacao.solicitante.user_id:
-        destinatarios.add(solicitacao.solicitante.user_id)
-    if solicitacao.departamento_destinatario:
-        destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_destinatario))
-    if solicitacao.departamento_solicitante:
-        destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_solicitante))
+    irmaos = _irmaos_envolvidos_solicitacao(solicitacao, excluir=responsavel)
+    destinatarios = {irmao.user_id for irmao in irmaos if irmao.user_id}
 
-    if responsavel and responsavel.user_id:
-        destinatarios.discard(responsavel.user_id)
+    if not apenas_externo:
+        notifs = [
+            NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
+            for uid in destinatarios
+        ]
+        if notifs:
+            NotificacaoSistema.objects.bulk_create(notifs)
 
-    notifs = [
-        NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
-        for uid in destinatarios
-    ]
-    if notifs:
-        NotificacaoSistema.objects.bulk_create(notifs)
-
-    # Enviar email para os líderes envolvidos; SMS para quem não tem email
-    _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, destinatarios)
-    sms_texto = (
-        f'TIBL - Solicitação #{solicitacao.id}: "{solicitacao.assunto[:60]}". '
-        f'Estado: {label_novo}. Consulte o portal: gestao.tibl.ao'
+    _enviar_mensagens_solicitacao(
+        solicitacao, estado_anterior, estado_novo, label_anterior, label_novo,
+        responsavel, irmaos, titulo_override=titulo, mensagem_override=mensagem,
     )
-    _enviar_sms_solicitacao(sms_texto, destinatarios)
 
 
-def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, user_ids):
-    """Envia email HTML aos líderes envolvidos numa mudança de estado."""
-    if not user_ids:
+def _enviar_mensagens_solicitacao(
+    solicitacao, estado_anterior, estado_novo, label_anterior, label_novo,
+    responsavel, irmaos, titulo_override=None, mensagem_override=None,
+):
+    """Envia email HTML e SMS aos envolvidos numa solicitação."""
+    if not irmaos:
         return
-    users = User.objects.filter(id__in=user_ids, email__gt='').select_related()
-    emails_to = [u.email for u in users if u.email]
-    if not emails_to:
+
+    emails_to, telefones = _contactos_de_irmaos(irmaos)
+    if not emails_to and not telefones:
+        logger.warning(
+            'Solicitação #%s: nenhum email ou telefone encontrado para os destinatários.',
+            solicitacao.id,
+        )
         return
 
     resp_nome = f'{responsavel.nome} {responsavel.apelido}' if responsavel else ''
-    if label_anterior:
+    if mensagem_override:
+        msg_texto = mensagem_override
+    elif label_anterior:
         msg_texto = f'A solicitação "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.'
     else:
         msg_texto = f'Foi criada uma nova solicitação "{solicitacao.assunto}" — {label_novo}.'
+
+    titulo = titulo_override or f'Solicitação #{solicitacao.id} — {label_novo}'
     context = {
-        'titulo': f'Solicitação #{solicitacao.id} — {label_novo}',
+        'titulo': titulo,
         'mensagem': msg_texto,
         'novo_estado': estado_novo,
         'estado_display': label_novo,
@@ -271,42 +287,49 @@ def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_a
         'responsavel': resp_nome,
     }
 
-    try:
-        html_content = render_to_string('emails/email_solicitacao_estado.html', context)
-        for email_addr in emails_to:
-            msg = EmailMultiAlternatives(
-                subject=context['titulo'],
-                body=context['mensagem'],
-                from_email=None,
-                to=[email_addr],
-            )
-            msg.attach_alternative(html_content, 'text/html')
-            msg.send()
-        logger.info('Emails de solicitação #%s enviados para %s', solicitacao.id, emails_to)
-    except Exception as e:
-        logger.error('Falha ao enviar emails de solicitação #%s: %s', solicitacao.id, e)
+    if emails_to:
+        try:
+            html_content = render_to_string('emails/email_solicitacao_estado.html', context)
+            from_email = settings.EMAIL_HOST_USER or None
+            for email_addr in emails_to:
+                msg = EmailMultiAlternatives(
+                    subject=titulo,
+                    body=msg_texto,
+                    from_email=from_email,
+                    to=[email_addr],
+                )
+                msg.attach_alternative(html_content, 'text/html')
+                msg.send()
+            logger.info('Emails de solicitação #%s enviados para %s', solicitacao.id, emails_to)
+        except Exception as e:
+            logger.error('Falha ao enviar emails de solicitação #%s: %s', solicitacao.id, e)
+
+    if telefones:
+        sms_texto = f'TIBL — {titulo}. {msg_texto}'
+        _enviar_sms_telcosms(telefones, sms_texto)
+        logger.info('SMS de solicitação #%s enviados para %s', solicitacao.id, telefones)
+
+
+def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, user_ids):
+    """Compatibilidade: delega para _enviar_mensagens_solicitacao."""
+    irmaos = [
+        irmao for irmao in Irmao.objects.filter(user_id__in=user_ids).select_related('user')
+    ]
+    _enviar_mensagens_solicitacao(
+        solicitacao, estado_anterior, estado_novo, label_anterior, label_novo,
+        responsavel, irmaos,
+    )
 
 
 def _notificar_comentario_solicitacao(solicitacao, autor, texto):
-    """Cria notificação in-app e envia email quando alguém comenta numa solicitação."""
+    """Cria notificação in-app e envia email/SMS quando alguém comenta numa solicitação."""
     url = reverse('sitetibl:mostra_detalhe', args=['solicitacoes', solicitacao.id])
     titulo = f'Novo comentário — Solicitação #{solicitacao.id}'
     mensagem = f'{autor.nome} {autor.apelido} comentou na solicitação "{solicitacao.assunto}": {texto[:100]}'
 
-    # Recolher todos os líderes envolvidos (líder, vice, secretário de ambos os departamentos)
-    destinatarios = set()
-    if solicitacao.solicitante and solicitacao.solicitante.user_id:
-        destinatarios.add(solicitacao.solicitante.user_id)
-    if solicitacao.departamento_destinatario:
-        destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_destinatario))
-    if solicitacao.departamento_solicitante:
-        destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_solicitante))
+    irmaos = _irmaos_envolvidos_solicitacao(solicitacao, excluir=autor)
+    destinatarios = {irmao.user_id for irmao in irmaos if irmao.user_id}
 
-    # Excluir o autor do comentário
-    if autor.user_id:
-        destinatarios.discard(autor.user_id)
-
-    # Notificações in-app
     notifs = [
         NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
         for uid in destinatarios
@@ -314,15 +337,11 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
     if notifs:
         NotificacaoSistema.objects.bulk_create(notifs)
 
-    # Email
-    if not destinatarios:
-        return
-    users = User.objects.filter(id__in=destinatarios, email__gt='').select_related()
-    emails_to = [u.email for u in users if u.email]
-    if not emails_to:
+    ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
+    emails_to, telefones = _contactos_de_irmaos(irmaos)
+    if not emails_to and not telefones:
         return
 
-    ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
     context = {
         'titulo': titulo,
         'mensagem': mensagem,
@@ -337,26 +356,25 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
         'observacao': texto,
         'responsavel': f'{autor.nome} {autor.apelido}',
     }
-    try:
-        html_content = render_to_string('emails/email_solicitacao_estado.html', context)
-        for email_addr in emails_to:
-            msg = EmailMultiAlternatives(
-                subject=titulo,
-                body=mensagem,
-                from_email=None,
-                to=[email_addr],
-            )
-            msg.attach_alternative(html_content, 'text/html')
-            msg.send()
-        logger.info('Emails de comentário solicitação #%s enviados para %s', solicitacao.id, emails_to)
-    except Exception as e:
-        logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
+    if emails_to:
+        try:
+            html_content = render_to_string('emails/email_solicitacao_estado.html', context)
+            from_email = settings.EMAIL_HOST_USER or None
+            for email_addr in emails_to:
+                msg = EmailMultiAlternatives(
+                    subject=titulo,
+                    body=mensagem,
+                    from_email=from_email,
+                    to=[email_addr],
+                )
+                msg.attach_alternative(html_content, 'text/html')
+                msg.send()
+            logger.info('Emails de comentário solicitação #%s enviados para %s', solicitacao.id, emails_to)
+        except Exception as e:
+            logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
 
-    sms_texto = (
-        f'TIBL - Novo comentário na Solicitação #{solicitacao.id}: "{solicitacao.assunto[:60]}". '
-        f'Por: {autor.nome} {autor.apelido}. Consulte o portal: gestao.tibl.ao'
-    )
-    _enviar_sms_solicitacao(sms_texto, destinatarios)
+    if telefones:
+        _enviar_sms_telcosms(telefones, f'TIBL — {titulo}. {mensagem}')
 
 
 def _notificar_caso_pastoral(caso, actor, mensagem_texto):
@@ -910,16 +928,10 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             and (registo.lider_departamento_id == irmao_logado.id
                  or registo.vice_lider_departamento_id == irmao_logado.id)
         )
-        e_secretario_dept = (
-            irmao_logado is not None
-            and mandatos_departamento.filter(irmao_id=irmao_logado.id, funcao='secretario').exists()
-        )
         # Papéis elevados (Pastor/Secretaria/Admin) gerem qualquer dept;
-        # LD/VLD e Secretário departamental só gerem o dept onde têm cargo.
+        # LD/VLD só gere o departamento onde é líder ou vice-líder.
         papel_elevado_dept = request.user.has_perm('sitetibl.change_mandato')
-        # Secretário departamental pode adicionar mas não remover membros (sem permissão de delete)
-        pode_gerir_membros = lidera_departamento or papel_elevado_dept or e_secretario_dept
-        pode_remover_membros = lidera_departamento or papel_elevado_dept
+        pode_gerir_membros = lidera_departamento or papel_elevado_dept
 
         if request.method == 'POST':
             if not pode_gerir_membros:
@@ -937,7 +949,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 if not irmao_ids:
                     messages.error(request, 'Seleccione pelo menos um irmão para adicionar ao departamento.')
                 else:
-                    FUNCOES_EXCLUSIVAS = Mandato.FUNCOES_EXCLUSIVAS
+                    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
                     # Cargo exclusivo com vários irmãos selecionados → forçar 'membro'
                     if funcao in FUNCOES_EXCLUSIVAS and len(irmao_ids) > 1:
                         funcao = 'membro'
@@ -992,9 +1004,6 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                         messages.info(request, 'Nenhuma alteração efectuada — os irmãos já pertencem ao departamento com esse cargo.')
 
             elif action == 'remove_member':
-                if not pode_remover_membros:
-                    messages.error(request, 'Apenas o líder do departamento ou um administrador pode remover membros.')
-                    return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
                 mandato_id = request.POST.get('mandato_id', '').strip()
                 mandato = Mandato.objects.filter(id=mandato_id, departamento_id=identificador).first()
                 if mandato is None:
@@ -1050,7 +1059,6 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'todos_irmaos': Irmao.objects.order_by('nome', 'apelido'),
             'funcao_choices': Mandato.FUNCAO_CHOICES,
             'pode_gerir_membros': pode_gerir_membros,
-            'pode_remover_membros': pode_remover_membros,
             'funcoes_departamento': funcoes_departamento,
             'pode_gerir_funcoes': pode_gerir_funcoes,
         }
@@ -1725,14 +1733,9 @@ def mostraCriacao(request, gestaoescolhida):
                     return render(request, gestaoescolhida + '.html', {'formulario': formulario, 'is_update': False})
                 obj.solicitante = irmao_sol
                 if not obj.departamento_solicitante_id:
-                    depts_fk = Departamento.objects.filter(
+                    depts = Departamento.objects.filter(
                         Q(lider_departamento=irmao_sol) | Q(vice_lider_departamento=irmao_sol)
                     )
-                    depts_mandato = Departamento.objects.filter(
-                        mandato__irmao=irmao_sol,
-                        mandato__funcao='secretario',
-                    ).filter(Q(mandato__fim__isnull=True) | Q(mandato__fim__gte=date.today()))
-                    depts = (depts_fk | depts_mandato).distinct()
                     if depts.count() == 1:
                         obj.departamento_solicitante = depts.first()
                 obj.estado = 'pendente'
