@@ -36,6 +36,7 @@ from collections import OrderedDict
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 import logging
+import requests
 logger = logging.getLogger(__name__)
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
@@ -153,8 +154,72 @@ MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'
 TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
 
 
-def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel):
-    """Cria NotificacaoSistema e envia email para os envolvidos na mudança de estado."""
+def _irmaos_envolvidos_solicitacao(solicitacao, excluir=None):
+    """Recolhe irmãos envolvidos numa solicitação (solicitante + líderes dos deptos)."""
+    irmaos = []
+    vistos = set()
+
+    def _add(irmao):
+        if not irmao or irmao.pk in vistos:
+            return
+        if excluir and irmao.pk == excluir.pk:
+            return
+        vistos.add(irmao.pk)
+        irmaos.append(irmao)
+
+    _add(solicitacao.solicitante)
+    for dept in (solicitacao.departamento_destinatario, solicitacao.departamento_solicitante):
+        if dept:
+            _add(dept.lider_departamento)
+            _add(dept.vice_lider_departamento)
+    return irmaos
+
+
+def _contactos_de_irmaos(irmaos):
+    """Resolve emails (Irmao.email com fallback User.email) e telefones."""
+    emails = []
+    telefones = []
+    for irmao in irmaos:
+        email = (irmao.email or '').strip()
+        if not email and irmao.user_id:
+            email = (irmao.user.email or '').strip()
+        if email and email not in emails:
+            emails.append(email)
+        tel = (irmao.telefone or '').strip()
+        if tel and tel not in telefones:
+            telefones.append(tel)
+    return emails, telefones
+
+
+def _enviar_sms_telcosms(telefones, mensagem):
+    """Envia SMS via TelcoSMS para uma lista de telefones."""
+    api_key = getattr(settings, 'TELCOSMS_API_KEY', '')
+    if not api_key or not telefones:
+        return
+    sms_url = 'https://telcosms.co.ao/send_message'
+    for telefone in telefones:
+        sms_data = {
+            'message': {
+                'api_key_app': api_key,
+                'phone_number': telefone,
+                'message_body': mensagem,
+            }
+        }
+        try:
+            response = requests.post(sms_url, json=sms_data, timeout=10)
+            if response.status_code == 200:
+                logger.info('SMS enviado para %s', telefone)
+            else:
+                logger.error(
+                    'Falha SMS para %s — status %s: %s',
+                    telefone, response.status_code, response.text,
+                )
+        except requests.exceptions.RequestException as e:
+            logger.error('Erro SMS para %s: %s', telefone, e)
+
+
+def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel, apenas_externo=False):
+    """Cria NotificacaoSistema e envia email/SMS para os envolvidos na mudança de estado."""
     ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
     label_novo = ESTADO_LABELS.get(estado_novo, estado_novo)
     label_anterior = ESTADO_LABELS.get(estado_anterior, estado_anterior) if estado_anterior else ''
@@ -165,52 +230,50 @@ def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsave
     else:
         mensagem = f'Foi criada uma nova solicitação "{solicitacao.assunto}" — {label_novo}.'
 
-    destinatarios = set()
-    if solicitacao.solicitante and solicitacao.solicitante.user_id:
-        destinatarios.add(solicitacao.solicitante.user_id)
-    dept_dest = solicitacao.departamento_destinatario
-    if dept_dest:
-        if dept_dest.lider_departamento and dept_dest.lider_departamento.user_id:
-            destinatarios.add(dept_dest.lider_departamento.user_id)
-        if dept_dest.vice_lider_departamento and dept_dest.vice_lider_departamento.user_id:
-            destinatarios.add(dept_dest.vice_lider_departamento.user_id)
-    dept_sol = solicitacao.departamento_solicitante
-    if dept_sol:
-        if dept_sol.lider_departamento and dept_sol.lider_departamento.user_id:
-            destinatarios.add(dept_sol.lider_departamento.user_id)
-        if dept_sol.vice_lider_departamento and dept_sol.vice_lider_departamento.user_id:
-            destinatarios.add(dept_sol.vice_lider_departamento.user_id)
+    irmaos = _irmaos_envolvidos_solicitacao(solicitacao, excluir=responsavel)
+    destinatarios = {irmao.user_id for irmao in irmaos if irmao.user_id}
 
-    if responsavel and responsavel.user_id:
-        destinatarios.discard(responsavel.user_id)
+    if not apenas_externo:
+        notifs = [
+            NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
+            for uid in destinatarios
+        ]
+        if notifs:
+            NotificacaoSistema.objects.bulk_create(notifs)
 
-    notifs = [
-        NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
-        for uid in destinatarios
-    ]
-    if notifs:
-        NotificacaoSistema.objects.bulk_create(notifs)
-
-    # Enviar email para os líderes envolvidos
-    _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, destinatarios)
+    _enviar_mensagens_solicitacao(
+        solicitacao, estado_anterior, estado_novo, label_anterior, label_novo,
+        responsavel, irmaos, titulo_override=titulo, mensagem_override=mensagem,
+    )
 
 
-def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, user_ids):
-    """Envia email HTML aos líderes envolvidos numa mudança de estado."""
-    if not user_ids:
+def _enviar_mensagens_solicitacao(
+    solicitacao, estado_anterior, estado_novo, label_anterior, label_novo,
+    responsavel, irmaos, titulo_override=None, mensagem_override=None,
+):
+    """Envia email HTML e SMS aos envolvidos numa solicitação."""
+    if not irmaos:
         return
-    users = User.objects.filter(id__in=user_ids, email__gt='').select_related()
-    emails_to = [u.email for u in users if u.email]
-    if not emails_to:
+
+    emails_to, telefones = _contactos_de_irmaos(irmaos)
+    if not emails_to and not telefones:
+        logger.warning(
+            'Solicitação #%s: nenhum email ou telefone encontrado para os destinatários.',
+            solicitacao.id,
+        )
         return
 
     resp_nome = f'{responsavel.nome} {responsavel.apelido}' if responsavel else ''
-    if label_anterior:
+    if mensagem_override:
+        msg_texto = mensagem_override
+    elif label_anterior:
         msg_texto = f'A solicitação "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.'
     else:
         msg_texto = f'Foi criada uma nova solicitação "{solicitacao.assunto}" — {label_novo}.'
+
+    titulo = titulo_override or f'Solicitação #{solicitacao.id} — {label_novo}'
     context = {
-        'titulo': f'Solicitação #{solicitacao.id} — {label_novo}',
+        'titulo': titulo,
         'mensagem': msg_texto,
         'novo_estado': estado_novo,
         'estado_display': label_novo,
@@ -224,50 +287,49 @@ def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_a
         'responsavel': resp_nome,
     }
 
-    try:
-        html_content = render_to_string('emails/email_solicitacao_estado.html', context)
-        for email_addr in emails_to:
-            msg = EmailMultiAlternatives(
-                subject=context['titulo'],
-                body=context['mensagem'],
-                from_email=None,
-                to=[email_addr],
-            )
-            msg.attach_alternative(html_content, 'text/html')
-            msg.send()
-        logger.info('Emails de solicitação #%s enviados para %s', solicitacao.id, emails_to)
-    except Exception as e:
-        logger.error('Falha ao enviar emails de solicitação #%s: %s', solicitacao.id, e)
+    if emails_to:
+        try:
+            html_content = render_to_string('emails/email_solicitacao_estado.html', context)
+            from_email = settings.EMAIL_HOST_USER or None
+            for email_addr in emails_to:
+                msg = EmailMultiAlternatives(
+                    subject=titulo,
+                    body=msg_texto,
+                    from_email=from_email,
+                    to=[email_addr],
+                )
+                msg.attach_alternative(html_content, 'text/html')
+                msg.send()
+            logger.info('Emails de solicitação #%s enviados para %s', solicitacao.id, emails_to)
+        except Exception as e:
+            logger.error('Falha ao enviar emails de solicitação #%s: %s', solicitacao.id, e)
+
+    if telefones:
+        sms_texto = f'TIBL — {titulo}. {msg_texto}'
+        _enviar_sms_telcosms(telefones, sms_texto)
+        logger.info('SMS de solicitação #%s enviados para %s', solicitacao.id, telefones)
+
+
+def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, user_ids):
+    """Compatibilidade: delega para _enviar_mensagens_solicitacao."""
+    irmaos = [
+        irmao for irmao in Irmao.objects.filter(user_id__in=user_ids).select_related('user')
+    ]
+    _enviar_mensagens_solicitacao(
+        solicitacao, estado_anterior, estado_novo, label_anterior, label_novo,
+        responsavel, irmaos,
+    )
 
 
 def _notificar_comentario_solicitacao(solicitacao, autor, texto):
-    """Cria notificação in-app e envia email quando alguém comenta numa solicitação."""
+    """Cria notificação in-app e envia email/SMS quando alguém comenta numa solicitação."""
     url = reverse('sitetibl:mostra_detalhe', args=['solicitacoes', solicitacao.id])
     titulo = f'Novo comentário — Solicitação #{solicitacao.id}'
     mensagem = f'{autor.nome} {autor.apelido} comentou na solicitação "{solicitacao.assunto}": {texto[:100]}'
 
-    # Recolher todos os líderes envolvidos
-    destinatarios = set()
-    if solicitacao.solicitante and solicitacao.solicitante.user_id:
-        destinatarios.add(solicitacao.solicitante.user_id)
-    dept_dest = solicitacao.departamento_destinatario
-    if dept_dest:
-        if dept_dest.lider_departamento and dept_dest.lider_departamento.user_id:
-            destinatarios.add(dept_dest.lider_departamento.user_id)
-        if dept_dest.vice_lider_departamento and dept_dest.vice_lider_departamento.user_id:
-            destinatarios.add(dept_dest.vice_lider_departamento.user_id)
-    dept_sol = solicitacao.departamento_solicitante
-    if dept_sol:
-        if dept_sol.lider_departamento and dept_sol.lider_departamento.user_id:
-            destinatarios.add(dept_sol.lider_departamento.user_id)
-        if dept_sol.vice_lider_departamento and dept_sol.vice_lider_departamento.user_id:
-            destinatarios.add(dept_sol.vice_lider_departamento.user_id)
+    irmaos = _irmaos_envolvidos_solicitacao(solicitacao, excluir=autor)
+    destinatarios = {irmao.user_id for irmao in irmaos if irmao.user_id}
 
-    # Excluir o autor do comentário
-    if autor.user_id:
-        destinatarios.discard(autor.user_id)
-
-    # Notificações in-app
     notifs = [
         NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
         for uid in destinatarios
@@ -275,15 +337,11 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
     if notifs:
         NotificacaoSistema.objects.bulk_create(notifs)
 
-    # Email
-    if not destinatarios:
-        return
-    users = User.objects.filter(id__in=destinatarios, email__gt='').select_related()
-    emails_to = [u.email for u in users if u.email]
-    if not emails_to:
+    ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
+    emails_to, telefones = _contactos_de_irmaos(irmaos)
+    if not emails_to and not telefones:
         return
 
-    ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
     context = {
         'titulo': titulo,
         'mensagem': mensagem,
@@ -298,20 +356,25 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
         'observacao': texto,
         'responsavel': f'{autor.nome} {autor.apelido}',
     }
-    try:
-        html_content = render_to_string('emails/email_solicitacao_estado.html', context)
-        for email_addr in emails_to:
-            msg = EmailMultiAlternatives(
-                subject=titulo,
-                body=mensagem,
-                from_email=None,
-                to=[email_addr],
-            )
-            msg.attach_alternative(html_content, 'text/html')
-            msg.send()
-        logger.info('Emails de comentário solicitação #%s enviados para %s', solicitacao.id, emails_to)
-    except Exception as e:
-        logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
+    if emails_to:
+        try:
+            html_content = render_to_string('emails/email_solicitacao_estado.html', context)
+            from_email = settings.EMAIL_HOST_USER or None
+            for email_addr in emails_to:
+                msg = EmailMultiAlternatives(
+                    subject=titulo,
+                    body=mensagem,
+                    from_email=from_email,
+                    to=[email_addr],
+                )
+                msg.attach_alternative(html_content, 'text/html')
+                msg.send()
+            logger.info('Emails de comentário solicitação #%s enviados para %s', solicitacao.id, emails_to)
+        except Exception as e:
+            logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
+
+    if telefones:
+        _enviar_sms_telcosms(telefones, f'TIBL — {titulo}. {mensagem}')
 
 
 def _notificar_caso_pastoral(caso, actor, mensagem_texto):
