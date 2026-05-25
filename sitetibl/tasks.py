@@ -6,7 +6,7 @@ from datetime import date, timedelta
 from .models import Actividade, Escala
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-import requests
+from .sms import enviar_sms
 
 
 
@@ -54,22 +54,10 @@ def enviar_notificacoes_escala():
                         fail_silently=False,
                     )
 
-                #Enviar SMS 
-                sms_url = 'https://telcosms.co.ao/send_message'
-                sms_data = {
-                    "message": {
-                        "api_key_app": settings.TELCOSMS_API_KEY,
-                        "phone_number": irmao.telefone,  # campo para passar o numero de telefone do User
-                        "message_body": f"{irmao.nome} {irmao.apelido}, Este e um lembrete de que você está escalado para uma actividade {actividade.designacao}, no dia {actividade.data}, na hora {actividade.inicio}, com a função {escala.funcao}."
-                    }
-                }
-                
-                try:
-                    sms_response = requests.post(sms_url, json=sms_data)
-                    if sms_response.status_code == 200:
-                        print('Mensagem SMS enviada com sucesso!')
-                    else:
-                        print('Falha ao enviar a mensagem SMS. Código de status:', sms_response.status_code)
-                        print('Resposta do servidor:', sms_response.text)
-                except requests.exceptions.RequestException as e:
-                    print('Ocorreu um erro ao tentar enviar a mensagem SMS:', e)
+                if irmao.telefone:
+                    enviar_sms(
+                        irmao.telefone,
+                        f'{irmao.nome} {irmao.apelido}, Este e um lembrete de que você está escalado '
+                        f'para uma actividade {actividade.designacao}, no dia {actividade.data}, '
+                        f'na hora {actividade.inicio}, com a função {escala.funcao}.',
+                    )

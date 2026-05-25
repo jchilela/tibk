@@ -29,15 +29,15 @@ from django.db.models.functions import TruncMonth, ExtractDay
 import json
 from django.http import JsonResponse
 from django.utils.timezone import now
-from .signals import notificar_mudanca_estado_pedido, _atribuir_grupos_irmao, _enviar_credenciais_email, _enviar_credenciais_sms
+from .signals import notificar_mudanca_estado_pedido, _atribuir_grupos_irmao, enviar_credenciais
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from collections import OrderedDict
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 import logging
-import requests
 logger = logging.getLogger(__name__)
+from sitetibl.sms import enviar_sms
 from django.db.models.functions import ExtractWeekDay
 from django.shortcuts import redirect
 from rest_framework.views import APIView
@@ -193,29 +193,7 @@ def _contactos_de_irmaos(irmaos):
 
 def _enviar_sms_telcosms(telefones, mensagem):
     """Envia SMS via TelcoSMS para uma lista de telefones."""
-    api_key = getattr(settings, 'TELCOSMS_API_KEY', '')
-    if not api_key or not telefones:
-        return
-    sms_url = 'https://telcosms.co.ao/send_message'
-    for telefone in telefones:
-        sms_data = {
-            'message': {
-                'api_key_app': api_key,
-                'phone_number': telefone,
-                'message_body': mensagem,
-            }
-        }
-        try:
-            response = requests.post(sms_url, json=sms_data, timeout=10)
-            if response.status_code == 200:
-                logger.info('SMS enviado para %s', telefone)
-            else:
-                logger.error(
-                    'Falha SMS para %s — status %s: %s',
-                    telefone, response.status_code, response.text,
-                )
-        except requests.exceptions.RequestException as e:
-            logger.error('Erro SMS para %s: %s', telefone, e)
+    enviar_sms(telefones, mensagem)
 
 
 def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel, apenas_externo=False):
@@ -1249,12 +1227,14 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 Irmao.objects.filter(pk=registo.pk).update(user=user)
                 _atribuir_grupos_irmao(user, registo.batizado)
 
-                if registo.email:
-                    _enviar_credenciais_email(registo, username, temp_password)
-                elif registo.telefone:
-                    _enviar_credenciais_sms(registo, username, temp_password)
-
-                messages.success(request, f'Utilizador "{username}" criado e credenciais enviadas com sucesso.')
+                if enviar_credenciais(registo, username, temp_password):
+                    messages.success(request, f'Utilizador "{username}" criado e credenciais enviadas com sucesso.')
+                else:
+                    messages.warning(
+                        request,
+                        f'Utilizador "{username}" criado, mas não foi possível enviar credenciais '
+                        f'(verifique email/telefone ou contacte o administrador).',
+                    )
 
             elif action == 'reenviar_credenciais' and registo.user is not None:
                 temp_password = get_random_string(length=12)
@@ -1262,15 +1242,14 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 registo.user.save(update_fields=['password'])
                 username = registo.user.username
 
-                if registo.email:
-                    _enviar_credenciais_email(registo, username, temp_password)
-                elif registo.telefone:
-                    _enviar_credenciais_sms(registo, username, temp_password)
-                else:
-                    messages.warning(request, 'Credenciais renovadas mas sem email nem telefone para envio.')
-
-                if registo.email or registo.telefone:
+                if enviar_credenciais(registo, username, temp_password):
                     messages.success(request, f'Credenciais de acesso reenviadas para "{username}".')
+                else:
+                    messages.error(
+                        request,
+                        f'Palavra-passe renovada para "{username}", mas o envio falhou — '
+                        f'verifique se o irmão tem email ou telefone registado.',
+                    )
 
             return HttpResponseRedirect(
                 reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])

@@ -8,16 +8,13 @@ from django.template.loader import render_to_string
 from django.core.mail import get_connection
 from django.core.mail import EmailMultiAlternatives
 from django.utils.crypto import get_random_string
-import requests
 
 from .models import Departamento, EnvioMensagem, Escala, Irmao, Mandato, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa, Actividade
+from .sms import enviar_sms
 
 logger = logging.getLogger(__name__)
 
 from django.conf import settings as django_settings
-
-def _telcosms_api_key():
-    return getattr(django_settings, 'TELCOSMS_API_KEY', '')
 
 
 # =========================================
@@ -119,20 +116,52 @@ def criar_user_para_irmao(sender, instance, created, **kwargs):
 
     logger.info('User "%s" criado para Irmao ID %s', username, instance.pk)
 
-    # Enviar credenciais: email se disponivel, senao SMS
-    if instance.email:
-        _enviar_credenciais_email(instance, username, temp_password)
-    elif instance.telefone:
-        _enviar_credenciais_sms(instance, username, temp_password)
-    else:
+    enviar_credenciais(instance, username, temp_password)
+
+
+def _telefone_irmao(irmao):
+    """Devolve o primeiro telefone disponível (telefone ou WhatsApp)."""
+    for campo in ('telefone', 'telefonewhatsapp'):
+        valor = (getattr(irmao, campo, None) or '').strip()
+        if valor:
+            return valor
+    return ''
+
+
+def enviar_credenciais(irmao, username, password):
+    """
+    Envia credenciais por email e/ou SMS.
+    Retorna True se pelo menos um canal foi enviado com sucesso.
+    """
+    email = (irmao.email or '').strip()
+    telefone = _telefone_irmao(irmao)
+
+    if not email and not telefone:
         logger.warning(
             'Irmao ID %s sem email nem telefone — credenciais nao enviadas. '
-            'Username: %s', instance.pk, username,
+            'Username: %s', irmao.pk, username,
         )
+        return False
+
+    if email:
+        if _enviar_credenciais_email(irmao, username, password):
+            return True
+        if telefone:
+            logger.warning(
+                'Email falhou para Irmao ID %s — a tentar SMS para %s.',
+                irmao.pk, telefone,
+            )
+            return _enviar_credenciais_sms(irmao, username, password)
+        return False
+
+    return _enviar_credenciais_sms(irmao, username, password)
 
 
 def _enviar_credenciais_email(irmao, username, password):
     """Envia email de boas-vindas com credenciais de acesso."""
+    email = (irmao.email or '').strip()
+    if not email:
+        return False
     try:
         html_content = render_to_string(
             'emails/email_boas_vindas.html',
@@ -148,44 +177,30 @@ def _enviar_credenciais_email(irmao, username, password):
             body=f'Olá {irmao.nome}, o seu acesso ao TIBL foi criado. '
                  f'Utilizador: {username} | Palavra-passe temporária: {password} '
                  f'| Aceda em: https://gestao.tibl.ao',
-
-            from_email=None,  # usa DEFAULT_FROM_EMAIL do settings
-            to=[irmao.email],
+            from_email=getattr(django_settings, 'EMAIL_HOST_USER', None) or None,
+            to=[email],
         )
         msg.attach_alternative(html_content, 'text/html')
         msg.send()
-        logger.info('Email de boas-vindas enviado para %s', irmao.email)
+        logger.info('Email de boas-vindas enviado para %s', email)
+        return True
     except Exception as e:
-        logger.error('Falha ao enviar email de boas-vindas para %s: %s', irmao.email, e)
+        logger.error('Falha ao enviar email de boas-vindas para %s: %s', email, e)
+        return False
 
 
 def _enviar_credenciais_sms(irmao, username, password):
     """Envia SMS com credenciais de acesso via TelcoSMS."""
-    sms_url = 'https://telcosms.co.ao/send_message'
+    telefone = _telefone_irmao(irmao)
+    if not telefone:
+        return False
     mensagem = (
         f'TIBL - Bem-vindo {irmao.nome}! '
         f'Utilizador: {username} | Senha: {password} '
         f'Altere a senha no primeiro acesso. '
         f'Aceda em: https://gestao.tibl.ao'
     )
-    sms_data = {
-        'message': {
-            'api_key_app': _telcosms_api_key(),
-            'phone_number': irmao.telefone,
-            'message_body': mensagem,
-        }
-    }
-    try:
-        response = requests.post(sms_url, json=sms_data, timeout=10)
-        if response.status_code == 200:
-            logger.info('SMS de boas-vindas enviado para %s', irmao.telefone)
-        else:
-            logger.error(
-                'Falha ao enviar SMS para %s — status %s: %s',
-                irmao.telefone, response.status_code, response.text,
-            )
-    except requests.exceptions.RequestException as e:
-        logger.error('Erro ao enviar SMS para %s: %s', irmao.telefone, e)
+    return enviar_sms(telefone, mensagem)
 
 @receiver(post_save, sender=EnvioMensagem)
 def enviar_email_sms_massivo(sender, instance, created, **kwargs):
@@ -235,26 +250,13 @@ def enviar_email_sms_massivo(sender, instance, created, **kwargs):
         connection.close()
     
     if instance.sms:
-        sms_url = 'https://telcosms.co.ao/send_message'
-        for irmao in irmaos_telefone:
-            sms_data = {
-                'message': {
-                    'api_key_app': _telcosms_api_key(),
-                    'phone_number': irmao.telefone,
-                    'message_body': f'{instance.mensagem}. Atenciosamente a equipa TIBL.',
-                }
-            }
-            try:
-                response = requests.post(sms_url, json=sms_data, timeout=10)
-                if response.status_code == 200:
-                    logger.info('SMS massivo enviado para %s', irmao.telefone)
-                else:
-                    logger.error(
-                        'Falha SMS massivo para %s — status %s: %s',
-                        irmao.telefone, response.status_code, response.text,
-                    )
-            except requests.exceptions.RequestException as e:
-                logger.error('Erro SMS massivo para %s: %s', irmao.telefone, e)
+        telefones = list(
+            irmaos_telefone.exclude(telefone='').values_list('telefone', flat=True)
+        )
+        enviar_sms(
+            telefones,
+            f'{instance.mensagem}. Atenciosamente a equipa TIBL.',
+        )
 
 
 # =========================================
@@ -354,30 +356,12 @@ def notificar_mudanca_estado_pedido(pedido, novo_estado, aprovador_irmao=None):
 
     # SMS ao requerente se tiver telefone mas não email (ou adicionalmente)
     if pedido.requerente and getattr(pedido.requerente, 'telefone', None):
-        sms_url = 'https://telcosms.co.ao/send_message'
         mensagem_sms = (
             f'TIBL — {config["titulo"]}: '
             f'Pedido #{pedido.id} ({pedido.projecto}). '
             f'{config["mensagem"]}'
         )
-        sms_data = {
-            'message': {
-                'api_key_app': _telcosms_api_key(),
-                'phone_number': pedido.requerente.telefone,
-                'message_body': mensagem_sms,
-            }
-        }
-        try:
-            response = requests.post(sms_url, json=sms_data, timeout=10)
-            if response.status_code == 200:
-                logger.info('SMS de estado de pedido enviado para %s', pedido.requerente.telefone)
-            else:
-                logger.error(
-                    'Falha SMS pedido #%s para %s — status %s: %s',
-                    pedido.id, pedido.requerente.telefone, response.status_code, response.text,
-                )
-        except requests.exceptions.RequestException as e:
-            logger.error('Erro SMS pedido #%s para %s: %s', pedido.id, pedido.requerente.telefone, e)
+        enviar_sms(pedido.requerente.telefone, mensagem_sms)
 
 
 # =========================================
@@ -439,33 +423,13 @@ def notificar_lideres_departamento(sender, instance, created, **kwargs):
 
     
     # ---------- SMS ----------
-    sms_url = 'https://telcosms.co.ao/send_message'
     mensagem_sms = (
         f'TIBL — Novo pedido de saída de caixa: '
         f'{instance.projecto or "sem título"}, '
         f'Montante: {instance.montante} {instance.moeda.abreviatura if instance.moeda else ""}. '
         f'Requerente: {instance.requerente}.'
     )
-    telefones_unicos = list(dict.fromkeys(t for t in telefones if t))
-    for telefone in telefones_unicos:
-        sms_data = {
-            'message': {
-                'api_key_app': _telcosms_api_key(),
-                'phone_number': telefone,
-                'message_body': mensagem_sms,
-            }
-        }
-        try:
-            response = requests.post(sms_url, json=sms_data, timeout=10)
-            if response.status_code == 200:
-                logger.info('SMS de pedido de saída enviado para %s', telefone)
-            else:
-                logger.error(
-                    'Falha ao enviar SMS para %s — status %s: %s',
-                    telefone, response.status_code, response.text,
-                )
-        except requests.exceptions.RequestException as e:
-            logger.error('Erro ao enviar SMS para %s: %s', telefone, e)
+    enviar_sms(telefones, mensagem_sms)
 
 
 # =========================================
@@ -516,30 +480,12 @@ def enviar_notificacao_irmao_escalado(instance):
 
     # ---------- SMS ----------
     if getattr(irmao, 'telefone', None):
-        sms_url = 'https://telcosms.co.ao/send_message'
         mensagem_sms = (
             f'TIBL — Está escalado para {actividade_str} no dia {data_fmt}'
             f'{" às " + str(actividade.inicio) if actividade.inicio else ""}. '
             f'Função: {funcao_str}.'
         )
-        sms_data = {
-            'message': {
-                'api_key_app': _telcosms_api_key(),
-                'phone_number': irmao.telefone,
-                'message_body': mensagem_sms,
-            }
-        }
-        try:
-            response = requests.post(sms_url, json=sms_data, timeout=10)
-            if response.status_code == 200:
-                logger.info('SMS de escala enviado para %s (Escala ID %s)', irmao.telefone, instance.pk)
-            else:
-                logger.error(
-                    'Falha SMS de escala para %s — status %s: %s',
-                    irmao.telefone, response.status_code, response.text,
-                )
-        except requests.exceptions.RequestException as e:
-            logger.error('Erro SMS de escala para %s: %s', irmao.telefone, e)
+        enviar_sms(irmao.telefone, mensagem_sms)
     else:
         logger.info('Escala ID %s: irmão sem telefone — SMS ignorado.', instance.pk)
 

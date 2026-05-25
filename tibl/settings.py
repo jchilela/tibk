@@ -211,6 +211,8 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # TelcoSMS
 TELCOSMS_API_KEY = os.getenv('TELCOSMS_API_KEY', '')
+# Em testes: redirecciona todos os SMS para este número (deixar vazio em produção)
+TELCOSMS_TEST_PHONE = os.getenv('TELCOSMS_TEST_PHONE', '')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
