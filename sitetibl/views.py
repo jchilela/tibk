@@ -4165,6 +4165,7 @@ def pastoral_dashboard(request):
 # ═══════════════════════════════════════════════════════════════
 
 @login_required
+@login_required
 def api_irmaos(request):
     """API endpoint: lista de irmãos para seleção em modal"""
     irmaos = Irmao.objects.all().values('id', 'nome', 'apelido').order_by('nome', 'apelido')
@@ -4173,9 +4174,19 @@ def api_irmaos(request):
 
 @login_required
 def api_actividades(request):
-    """API endpoint: lista de actividades com data"""
-    actividades = Actividade.objects.all().values('id', 'designacao', 'data').order_by('designacao')
-    return JsonResponse(list(actividades), safe=False)
+    """API endpoint: lista de actividades com data no futuro ou hoje"""
+    from django.utils import timezone
+    hoje = timezone.now().date()
+    actividades = Actividade.objects.filter(data__gte=hoje).values('id', 'designacao__designacao', 'data').order_by('data', 'designacao__designacao')
+    # Renomear o campo para compatibilidade com o frontend
+    result = []
+    for act in actividades:
+        result.append({
+            'id': act['id'],
+            'designacao': act['designacao__designacao'],
+            'data': act['data']
+        })
+    return JsonResponse(result, safe=False)
 
 
 @login_required
@@ -4183,6 +4194,52 @@ def api_funcoes(request):
     """API endpoint: lista de funções"""
     funcoes = Funcao.objects.all().values('id', 'designacao').order_by('designacao')
     return JsonResponse(list(funcoes), safe=False)
+
+
+@login_required
+def api_check_irmaos_escalas(request):
+    """API endpoint: verifica se irmãos já foram escalados numa actividade"""
+    actividade_id = request.GET.get('actividade_id')
+    irmao_ids = request.GET.getlist('irmao_ids[]')
+    
+    if not actividade_id or not irmao_ids:
+        return JsonResponse({'success': False, 'error': 'Parâmetros incompletos'}, status=400)
+    
+    try:
+        actividade = Actividade.objects.get(id=actividade_id)
+        
+        # Buscar escalas existentes para esta actividade
+        escalas_existentes = Escala.objects.filter(
+            actividade=actividade,
+            irmao_id__in=irmao_ids
+        ).values_list('irmao_id', flat=True)
+        
+        # Preparar resposta com detalhes
+        irmao_details = []
+        for irmao_id in irmao_ids:
+            try:
+                irmao = Irmao.objects.get(id=irmao_id)
+                ja_escalado = int(irmao_id) in escalas_existentes
+                irmao_details.append({
+                    'id': irmao_id,
+                    'nome': irmao.nome,
+                    'apelido': irmao.apelido,
+                    'ja_escalado': ja_escalado
+                })
+            except Irmao.DoesNotExist:
+                pass
+        
+        return JsonResponse({
+            'success': True,
+            'irmaos': irmao_details,
+            'com_aviso': [d for d in irmao_details if d['ja_escalado']]
+        })
+    
+    except Actividade.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Actividade não encontrada'}, status=404)
+    except Exception as e:
+        logger.exception("Erro ao verificar escalas de irmãos")
+        return JsonResponse({'success': False, 'error': f'Erro: {str(e)}'}, status=500)
 
 
 @login_required
@@ -4214,8 +4271,9 @@ def protocolo_add_escalas(request):
             protocolo.actividade_principal = actividade
             protocolo.save(update_fields=['actividade_principal'])
         
-        # Criar escalas para cada irmão
+        # Criar escalas para cada irmão e colecionar dados dos irmãos
         criadas = 0
+        irmaos_data = []
         for irmao_id in irmao_ids:
             irmao = Irmao.objects.get(id=irmao_id)
             escala, created = Escala.objects.get_or_create(
@@ -4225,12 +4283,23 @@ def protocolo_add_escalas(request):
             )
             if created:
                 criadas += 1
+            
+            # Adicionar dados do irmão para o "passo"
+            irmaos_data.append({
+                'id': irmao.id,
+                'nome': irmao.nome,
+                'apelido': irmao.apelido,
+                'foto': irmao.foto.url if irmao.foto else None,
+            })
         
         return JsonResponse({
             'success': True,
             'criadas': criadas,
             'total': len(irmao_ids),
-            'mensagem': f'{criadas} escala(s) adicionada(s) com sucesso'
+            'mensagem': f'{criadas} escala(s) adicionada(s) com sucesso',
+            'actividade': actividade.designacao.designacao,
+            'data': actividade.data.strftime('%d/%m/%Y'),
+            'irmaos': irmaos_data
         })
     
     except Protocolo.DoesNotExist:

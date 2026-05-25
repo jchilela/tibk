@@ -100,10 +100,12 @@
                 <!-- Seleção de Irmãos (até 10) -->
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main);">
-                        Selecionar Irmãos (máximo 10)
+                        <i class="fas fa-search"></i> Buscar e Selecionar Irmãos (máximo 10)
                     </label>
-                    <div id="irmaosContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.8rem; max-height: 300px; overflow-y: auto; padding: 0.8rem; background: white; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-                        <p style="color: var(--text-muted); grid-column: 1/-1;">Carregando irmãos...</p>
+                    <input type="text" id="searchIrmaos" placeholder="Digite o nome do irmão..." style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem; margin-bottom: 0.8rem;">
+                    
+                    <div id="irmaosContainer" style="display: grid; grid-template-columns: 1fr; gap: 0.6rem; max-height: 350px; overflow-y: auto; padding: 0.8rem; background: white; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <p style="color: var(--text-muted); padding: 1rem;">Carregando irmãos...</p>
                     </div>
                     <div id="irmaosContador" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
                         Irmãos selecionados: <strong id="contadorIrmaos">0</strong>/10
@@ -170,24 +172,6 @@
         min-height: 100px;
     }
 
-    .checkbox-irmao {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    .checkbox-irmao input[type="checkbox"] {
-        cursor: pointer;
-        width: 18px;
-        height: 18px;
-    }
-
-    .checkbox-irmao label {
-        cursor: pointer;
-        margin: 0;
-        font-size: 0.9rem;
-    }
-
     .bt-secondary {
         display: inline-flex;
         align-items: center;
@@ -227,12 +211,6 @@
         transform: translateY(-1px);
         box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
     }
-
-    #irmaosContainer {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 0.8rem;
-    }
 </style>
 
 <script>
@@ -245,6 +223,11 @@
         carregarActividades();
         carregarFuncoes();
         carregarIrmaos();
+
+        // Search handler
+        document.getElementById('searchIrmaos').addEventListener('keyup', function() {
+            renderizarIrmaos();
+        });
 
         document.getElementById('actividade').addEventListener('change', function() {
             const id = this.value;
@@ -278,7 +261,10 @@
                     'X-Requested-With': 'XMLHttpRequest',
                 }
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     const protocoloId = data.protocolo_id;
@@ -307,10 +293,19 @@
 
     function carregarActividades() {
         fetch('/tibl/api/actividades/')
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
-                actividades = data;
+                actividades = Array.isArray(data) ? data : [];
                 const select = document.getElementById('actividade');
+                
+                // Limpar opções anteriores (manter primeira)
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                
                 data.forEach(a => {
                     const option = document.createElement('option');
                     option.value = a.id;
@@ -318,12 +313,18 @@
                     select.appendChild(option);
                 });
             })
-            .catch(e => console.error('Erro ao carregar actividades:', e));
+            .catch(e => {
+                console.error('Erro ao carregar actividades:', e);
+                document.getElementById('actividade').innerHTML = '<option value="">Erro ao carregar actividades</option>';
+            });
     }
 
     function carregarFuncoes() {
         fetch('/tibl/api/funcoes/')
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
                 // Procurar pela função 'Protocolo'
                 const funcaoProtocolo = data.find(f => f.designacao.toLowerCase() === 'protocolo');
@@ -341,64 +342,65 @@
 
     function carregarIrmaos() {
         fetch('/tibl/api/irmaos/')
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
-                irmaosDisponiveis = data;
+                irmaosDisponiveis = Array.isArray(data) ? data : [];
                 renderizarIrmaos();
             })
-            .catch(e => console.error('Erro ao carregar irmãos:', e));
+            .catch(e => {
+                console.error('Erro ao carregar irmãos:', e);
+                document.getElementById('irmaosContainer').innerHTML = '<p style="color: #ef4444; padding: 1rem;">Erro ao carregar irmãos. Recarregue a página.</p>';
+            });
     }
 
     function renderizarIrmaos() {
         const container = document.getElementById('irmaosContainer');
-        container.innerHTML = '';
-
-        if (irmaosDisponiveis.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Nenhum irmão disponível</p>';
+        const searchTerm = document.getElementById('searchIrmaos').value.toLowerCase();
+        
+        if (!irmaosDisponiveis || irmaosDisponiveis.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); padding: 1rem;">Nenhum irmão disponível</p>';
             return;
         }
 
-        irmaosDisponiveis.forEach(irmao => {
-            const div = document.createElement('div');
-            div.className = 'checkbox-irmao';
-            div.style.padding = '0.5rem';
-            div.style.border = irmaosSelecionados.has(irmao.id) ? '2px solid var(--primary-light)' : '1px solid #e2e8f0';
-            div.style.borderRadius = 'var(--radius-sm)';
-            div.style.background = irmaosSelecionados.has(irmao.id) ? '#f0f9ff' : 'transparent';
+        const filtered = irmaosDisponiveis.filter(i =>
+            i.nome.toLowerCase().includes(searchTerm) ||
+            i.apelido.toLowerCase().includes(searchTerm)
+        ).slice(0, 50);
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = irmao.id;
-            checkbox.checked = irmaosSelecionados.has(irmao.id);
-            checkbox.id = `irmao_${irmao.id}`;
+        if (filtered.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); padding: 1rem;">Nenhum resultado encontrado</p>';
+            return;
+        }
 
-            checkbox.addEventListener('change', function() {
-                if (irmaosSelecionados.size >= 10 && !irmaosSelecionados.has(irmao.id)) {
-                    alert('Máximo de 10 irmãos permitidos');
-                    this.checked = false;
-                    return;
-                }
+        container.innerHTML = filtered.map(irmao => {
+            const isSelected = irmaosSelecionados.has(irmao.id);
+            return `
+                <label style="display: flex; align-items: center; padding: 0.8rem; border: 1px solid #e2e8f0; background: white; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; color: var(--text-main); transition: all 0.2s; gap: 0.6rem;">
+                    <input type="checkbox" value="${irmao.id}" ${isSelected ? 'checked' : ''} onchange="toggleIrmaoForm(${irmao.id})" style="cursor: pointer; width: 18px; height: 18px;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">${irmao.nome} ${irmao.apelido}</div>
+                    </div>
+                </label>
+            `;
+        }).join('');
+    }
 
-                if (this.checked) {
-                    irmaosSelecionados.add(irmao.id);
-                } else {
-                    irmaosSelecionados.delete(irmao.id);
-                }
-
-                document.getElementById('contadorIrmaos').textContent = irmaosSelecionados.size;
+    function toggleIrmaoForm(irmaoId) {
+        if (irmaosSelecionados.has(irmaoId)) {
+            irmaosSelecionados.delete(irmaoId);
+        } else {
+            if (irmaosSelecionados.size >= 10) {
+                alert('Máximo de 10 irmãos permitidos');
                 renderizarIrmaos();
-            });
-
-            const label = document.createElement('label');
-            label.htmlFor = `irmao_${irmao.id}`;
-            label.textContent = `${irmao.nome} ${irmao.apelido}`;
-            label.style.margin = '0';
-            label.style.userSelect = 'none';
-
-            div.appendChild(checkbox);
-            div.appendChild(label);
-            container.appendChild(div);
-        });
+                return;
+            }
+            irmaosSelecionados.add(irmaoId);
+        }
+        document.getElementById('contadorIrmaos').textContent = irmaosSelecionados.size;
+        renderizarIrmaos();
     }
 
     function criarEscalas() {
@@ -479,7 +481,6 @@
             // Mesmo com erro, redirecionar para detalhe
             window.location.href = `/tibl/protocolo/detalhe/${protocoloId}`;
         });
-    }
     }
 
     function fecharModal() {

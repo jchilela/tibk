@@ -53,6 +53,7 @@ urlpatterns = [
     path('api/irmaos/', views.api_irmaos, name='api_irmaos'),
     path('api/actividades/', views.api_actividades, name='api_actividades'),
     path('api/funcoes/', views.api_funcoes, name='api_funcoes'),
+    path('api/check-irmaos-escalas/', views.api_check_irmaos_escalas, name='api_check_irmaos_escalas'),
     path('protocolo/add-escalas/', views.protocolo_add_escalas, name='protocolo_add_escalas'),
     path('protocolo/delete-escala/<int:escala_id>/', views.protocolo_delete_escala, name='protocolo_delete_escala'),
 
