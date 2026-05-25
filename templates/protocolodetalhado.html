@@ -1,0 +1,299 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Protocolo {{ protocolo.numero }} - TIBL{% endblock %}
+
+{% block content %}
+
+<div class="list-container">
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 2rem; display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; color: var(--text-muted);">
+        <a href="/tibl/gestao/protocolo/1" style="color: var(--primary); text-decoration: none;">Protocolos</a>
+        <span>/</span>
+        <span style="color: var(--text-main); font-weight: 600;">{{ protocolo.numero }}</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem; margin-bottom: 2rem;">
+        <!-- Conteúdo Principal -->
+        <div>
+            <!-- Card Informações Básicas -->
+            <div class="modern-card" style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+                    <div>
+                        <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.3rem 0;">
+                            {{ protocolo.numero }}
+                        </h1>
+                        <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">
+                            {{ protocolo.assunto }}
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="badge" style="background: {% if protocolo.status == 'novo' %}#3b82f6{% elif protocolo.status == 'em_processamento' %}#f59e0b{% elif protocolo.status == 'processado' %}#10b981{% else %}#6b7280{% endif %}; color: white; padding: 0.4rem 0.8rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
+                            {{ protocolo.get_status_display }}
+                        </span>
+                        <span class="badge" style="background: {% if protocolo.prioridade == 'urgente' %}#ef4444{% elif protocolo.prioridade == 'alta' %}#f97316{% elif protocolo.prioridade == 'normal' %}#3b82f6{% else %}#10b981{% endif %}; color: white; padding: 0.4rem 0.8rem; border-radius: 12px; font-size: 0.8rem; margin-top: 0.5rem; display: inline-block; font-weight: 600;">
+                            {{ protocolo.get_prioridade_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin: 0 0 0.3rem 0;">
+                            Remetente
+                        </p>
+                        <p style="font-size: 0.95rem; color: var(--text-main); margin: 0; font-weight: 500;">
+                            {{ protocolo.remetente|default:"—" }}
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin: 0 0 0.3rem 0;">
+                            Destinatário
+                        </p>
+                        <p style="font-size: 0.95rem; color: var(--text-main); margin: 0; font-weight: 500;">
+                            {{ protocolo.destinatario|default:"—" }}
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin: 0 0 0.3rem 0;">
+                            Tipo
+                        </p>
+                        <p style="font-size: 0.95rem; color: var(--text-main); margin: 0; font-weight: 500;">
+                            {{ protocolo.get_tipo_display }}
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin: 0 0 0.3rem 0;">
+                            Responsável
+                        </p>
+                        <p style="font-size: 0.95rem; color: var(--text-main); margin: 0; font-weight: 500;">
+                            {% if protocolo.responsavel %}
+                                {{ protocolo.responsavel.nome }} {{ protocolo.responsavel.apelido }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Descrição -->
+            {% if protocolo.descricao %}
+            <div class="modern-card" style="margin-bottom: 2rem;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0 0 1rem 0;">
+                    <i class="fas fa-align-left" style="margin-right: 0.5rem;"></i>Descrição
+                </h3>
+                <p style="color: var(--text-main); line-height: 1.6; margin: 0; white-space: pre-wrap;">
+                    {{ protocolo.descricao }}
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Card Escalas (Irmãos Assinalados) -->
+            <div class="modern-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0;">
+                        <i class="fas fa-users" style="margin-right: 0.5rem;"></i>Irmãos Atribuídos às Actividades
+                    </h3>
+                    {% if perms.sitetibl.add_escala %}
+                    <button onclick="abrirModalEscalas()" class="bt-primary" style="padding: 0.5rem 1rem; background: var(--primary-light); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem;">
+                        <i class="fas fa-plus"></i> Adicionar Irmão
+                    </button>
+                    {% endif %}
+                </div>
+
+                <!-- Aqui virão as escalas da actividade associada -->
+                <div id="escalas-container" style="display: grid; gap: 1rem;">
+                    {% if escalas %}
+                        {% for escala in escalas %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); background: #fafafa;">
+                            <div>
+                                <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin: 0 0 0.3rem 0;">
+                                    {{ escala.irmao.nome }} {{ escala.irmao.apelido }}
+                                </p>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                                    <i class="fas fa-calendar"></i> {{ escala.actividade.designacao }} ({{ escala.actividade.data|date:"d/m/Y" }})
+                                </p>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                                    <i class="fas fa-briefcase"></i> {{ escala.funcao.designacao }}
+                                </p>
+                            </div>
+                            {% if perms.sitetibl.delete_escala %}
+                            <button onclick="removerEscala({{ escala.id }})" class="bt-danger" style="padding: 0.5rem 1rem; background: white; color: #ef4444; border: 1px solid #fecaca; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem;">
+                                <i class="fas fa-trash"></i> Remover
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">
+                            Nenhuma escala criada ainda. Crie uma actividade relacionada ao protocolo e adicione irmãos.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Direita -->
+        <div>
+            <!-- Card Metadata -->
+            <div class="modern-card" style="margin-bottom: 1.5rem;">
+                <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin: 0 0 1rem 0; text-transform: uppercase;">
+                    Informações
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin: 0 0 0.3rem 0;">
+                            <i class="fas fa-calendar"></i> Entrada
+                        </p>
+                        <p style="font-size: 0.9rem; color: var(--text-main); margin: 0;">
+                            {{ protocolo.data_entrada|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+
+                    {% if protocolo.data_processamento %}
+                    <div>
+                        <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin: 0 0 0.3rem 0;">
+                            <i class="fas fa-check"></i> Processamento
+                        </p>
+                        <p style="font-size: 0.9rem; color: var(--text-main); margin: 0;">
+                            {{ protocolo.data_processamento|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Card Ações -->
+            <div class="modern-card">
+                <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin: 0 0 1rem 0; text-transform: uppercase;">
+                    Ações
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    {% if perms.sitetibl.change_protocolo %}
+                    <a href="/tibl/protocolo/actualizar/{{ protocolo.id }}" class="bt-secondary" style="padding: 0.6rem; text-align: center; background: white; color: var(--primary); border: 1px solid var(--primary-light); border-radius: var(--radius-sm); text-decoration: none; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    {% endif %}
+
+                    {% if perms.sitetibl.delete_protocolo %}
+                    <a href="/tibl/protocolo/eliminar/{{ protocolo.id }}" class="bt-danger" style="padding: 0.6rem; text-align: center; background: white; color: #ef4444; border: 1px solid #fecaca; border-radius: var(--radius-sm); text-decoration: none; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='white'">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
+                    {% endif %}
+
+                    <a href="/tibl/gestao/protocolo/1" class="bt-secondary" style="padding: 0.6rem; text-align: center; background: #f3f4f6; color: var(--text-main); border: 1px solid #e5e7eb; border-radius: var(--radius-sm); text-decoration: none; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bt-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--primary-light);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .bt-primary:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+    }
+
+    .bt-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+    }
+
+    .bt-danger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+    }
+
+    .modern-card {
+        background: white;
+        border-radius: var(--radius-sm);
+        border: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    // Carregar e renderizar escalas quando página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Se existirem escalas no contexto, renderizá-las
+        // Por agora, mantém a mensagem de vazio
+        renderizarEscalas();
+    });
+
+    function renderizarEscalas() {
+        // Placeholder: em versão futura, carregar via API
+        // Exemplo de estrutura de escala:
+        // { id: 1, irmao: { nome: "João", apelido: "Silva" }, 
+        //   actividade: { designacao: "Culto Domingo", data: "2026-05-11" },
+        //   funcao: { designacao: "Orador" } }
+    }
+
+    function removerEscala(escalaId) {
+        if (!confirm('Tem certeza que deseja remover este irmão?')) {
+            return;
+        }
+
+        fetch(`/tibl/protocolo/delete-escala/${escalaId}/`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.mensagem);
+                location.reload();
+            } else {
+                alert('Erro: ' + data.error);
+            }
+        })
+        .catch(e => alert('Erro na requisição: ' + e));
+    }
+
+    function abrirModalEscalas() {
+        alert('Funcionalidade para adicionar irmãos será implementada em breve.');
+        // Aqui iremos adicionar a lógica de modal
+    }
+</script>
+
+{% endblock %}

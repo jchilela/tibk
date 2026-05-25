@@ -1021,3 +1021,42 @@ class VisitanteRecorrente(models.Model):
 
     def __str__(self):
         return f'{self.nome} ({self.get_estado_display()})'
+
+
+class Protocolo(models.Model):
+    TIPO_CHOICES = [
+        ('entrada', 'Entrada'),
+        ('saida', 'Saída'),
+        ('interno', 'Interno'),
+    ]
+    STATUS_CHOICES = [
+        ('novo', 'Novo'),
+        ('em_processamento', 'Em Processamento'),
+        ('processado', 'Processado'),
+        ('arquivado', 'Arquivado'),
+    ]
+
+    numero = models.CharField('Número de Protocolo', max_length=50, unique=True)
+    tipo = models.CharField('Tipo', max_length=20, choices=TIPO_CHOICES)
+    assunto = models.CharField('Assunto', max_length=200)
+    descricao = models.TextField('Descrição', blank=True)
+    remetente = models.CharField('Remetente', max_length=200, blank=True)
+    destinatario = models.CharField('Destinatário', max_length=200, blank=True)
+    responsavel = models.ForeignKey(Irmao, null=True, blank=True, on_delete=models.SET_NULL, related_name='protocolos_responsavel', verbose_name='Responsável')
+    status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES, default='novo')
+    prioridade = models.CharField('Prioridade', max_length=10, choices=[('baixa', 'Baixa'), ('normal', 'Normal'), ('alta', 'Alta'), ('urgente', 'Urgente')], default='normal')
+    documento = models.FileField('Documento', upload_to='protocolos/', blank=True)
+    data_entrada = models.DateTimeField('Data de Entrada', auto_now_add=True)
+    data_processamento = models.DateTimeField('Data de Processamento', null=True, blank=True)
+    observacao = models.TextField('Observação', blank=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    actividade_principal = models.ForeignKey(Actividade, null=True, blank=True, on_delete=models.SET_NULL, related_name='protocolos_actividade', verbose_name='Actividade Principal')
+
+    class Meta:
+        ordering = ['-data_entrada']
+        verbose_name = 'Protocolo'
+        verbose_name_plural = 'Protocolos'
+
+    def __str__(self):
+        return f'{self.numero} - {self.assunto}'

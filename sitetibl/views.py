@@ -89,6 +89,7 @@ from sitetibl.models import RegistoAcompanhamento
 from sitetibl.models import AlertaPastoral
 from sitetibl.models import VisitanteRecorrente
 from sitetibl.models import Celula
+from sitetibl.models import Protocolo
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
@@ -118,6 +119,7 @@ from sitetibl.forms import CelulaForm
 from sitetibl.forms import PedidoSaidaForm
 from sitetibl.forms import PedidoSaidaUpdateForm
 from sitetibl.forms import OrcamentoDepartamentoForm
+from sitetibl.forms import ProtocoloForm
 from sitetibl.forms import InventarioPatrimonioForm
 from sitetibl.forms import ConteudoEnsinoForm
 from sitetibl.forms import EnvioMensagemForm
@@ -127,6 +129,7 @@ from sitetibl.forms import SolicitacaoForm, SolicitacaoUpdateForm
 from sitetibl.forms import CasoPastoralForm, CasoPastoralUpdateForm
 from sitetibl.forms import RegistoAcompanhamentoForm
 from sitetibl.forms import VisitanteRecorrenteForm
+from sitetibl.forms import ProtocoloForm
 from django.contrib.auth import update_session_auth_hash
 from datetime import timedelta
 
@@ -472,6 +475,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'casospastorais': CasoPastoral.objects.select_related('membro', 'responsavel', 'criado_por'),
              'visitantes': VisitanteRecorrente.objects.select_related('celula', 'responsavel_integracao', 'irmao_convertido'),
              'celulas': Celula.objects.select_related('lider', 'vice_lider'),
+             'protocolo': Protocolo.objects.select_related('responsavel'),
              }
     if gestaoescolhida == 'departamentos':
         resultado = (
@@ -542,6 +546,8 @@ def mostraGestao(request,gestaoescolhida,pagina):
         if estado_filtro:
             qs = qs.filter(estado=estado_filtro)
         resultado = qs.order_by('-ultima_visita')
+    elif gestaoescolhida == 'protocolo':
+        resultado = lista[gestaoescolhida].all().order_by('-data_entrada')
     elif gestaoescolhida == 'escalas':
         resultado = lista[gestaoescolhida].all().annotate(
             is_passado=Case(
@@ -674,6 +680,12 @@ def mostraGestao(request,gestaoescolhida,pagina):
             'kpi_moeda': _do_moeda_kpi,
             'kpi_ano_atual': _do_ano_atual,
         }
+    elif gestaoescolhida == 'protocolo':
+        context = {
+            'bb': paginaresultado,
+            'statusv_sel': request.GET.get('statusv', ''),
+            'tipov_sel': request.GET.get('tipov', ''),
+        }
     else:
         context = { 'bb':paginaresultado, 'listameses' : MESES }
 
@@ -708,6 +720,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
              'casospastorais':CasoPastoral,
              'visitantes':VisitanteRecorrente,
              'celulas':Celula,
+             'protocolo':Protocolo,
               }
     listaformularios = {'escalas' : EscalaForm, 
                         'mandatos': MandatoForm, 
@@ -733,6 +746,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'casospastorais':CasoPastoralUpdateForm,
                         'visitantes':VisitanteRecorrenteForm,
                         'celulas':CelulaForm,
+                        'protocolo': ProtocoloForm,
                         }
     
     model = lista[gestaoescolhida]
@@ -806,6 +820,13 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'Se for num local diferente, pode prosseguir normalmente.'
                     )
 
+            # 📋 Protocolo: manter tipo e assunto como preenchidos
+            if gestaoescolhida == 'protocolo':
+                if not obj.tipo or obj.tipo.strip() == '':
+                    obj.tipo = 'interno'
+                if not obj.assunto or obj.assunto.strip() == '':
+                    obj.assunto = 'Protocolo'
+
             obj.save()
             messages.success(request, 'Actualização foi bem sucedida')
             if gestaoescolhida == 'solicitacoes':
@@ -848,6 +869,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         'conteudoensino': ConteudoEnsino.objects.select_related('autor'),
         'enviomensagem': EnvioMensagem.objects.select_related('quemenviou'),
         'escalas': Escala.objects.select_related('irmao', 'actividade', 'funcao'),
+        'protocolo': Protocolo.objects.select_related('responsavel'),
         'solicitacoes': SolicitacaoInterdepartamental.objects.select_related('departamento_solicitante', 'departamento_destinatario', 'solicitante', 'responsavel_resposta'),
         'casospastorais': CasoPastoral.objects.select_related('membro', 'responsavel', 'criado_por'),
         'visitantes': VisitanteRecorrente.objects.select_related('celula', 'responsavel_integracao', 'irmao_convertido'),
@@ -873,6 +895,27 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             valorgasto = total * totalcestasajuda
             cestasremanescentes = int((a - valorgasto)/total)
             context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida, 'detalhecestas' : subtotal, 'total' : total, 'totalcestasajuda' : totalcestasajuda, 'montantedisponibilizado' : a, 'valorgasto' : valorgasto, 'cestasremanescentes' : cestasremanescentes}
+    elif gestaoescolhida == 'protocolo':
+        # Suporte para detalhe de protocolo
+        protocolo = registo
+        
+        # Buscar escalas da actividade principal do protocolo
+        if protocolo.actividade_principal_id:
+            escalas_protocolo = (
+                Escala.objects
+                .filter(actividade_id=protocolo.actividade_principal_id)
+                .select_related('irmao', 'irmao__celula', 'funcao', 'funcao__departamento')
+                .order_by('funcao__departamento__designacao', 'funcao__designacao', 'irmao__nome')
+            )
+        else:
+            escalas_protocolo = Escala.objects.none()
+        
+        context = {
+            'registoachado': registoachado,
+            'gestaoescolhida': gestaoescolhida,
+            'protocolo': protocolo,
+            'escalas': escalas_protocolo,
+        }
     elif gestaoescolhida == 'actividades':
         escalas_da_actividade = (
             Escala.objects
@@ -1590,6 +1633,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'casospastorais':CasoPastoral,
              'visitantes':VisitanteRecorrente,
              'celulas':Celula,
+             'protocolo':Protocolo,
              }
     model = lista.get(gestaoescolhida)
     if model is None:
@@ -1664,6 +1708,7 @@ def mostraCriacao(request, gestaoescolhida):
                         'casospastorais':CasoPastoralForm,
                         'visitantes':VisitanteRecorrenteForm,
                         'celulas':CelulaForm,
+                        'protocolo':ProtocoloForm,
                         }
     form_class = listaformularios.get(gestaoescolhida)
     if not form_class:
@@ -1745,6 +1790,11 @@ def mostraCriacao(request, gestaoescolhida):
                 if not obj.responsavel_id and irmao_logado:
                     obj.responsavel = irmao_logado
 
+            # 📋 Protocolo: auto-preencher tipo e assunto
+            if gestaoescolhida == 'protocolo':
+                obj.tipo = 'interno'
+                obj.assunto = 'Protocolo'
+
             obj.save()
 
             # 📋 Solicitação: notificar líderes do departamento destinatário
@@ -1784,13 +1834,18 @@ def mostraCriacao(request, gestaoescolhida):
                 return redirect(reverse('sitetibl:mostra_detalhe', args=['casospastorais', obj.id]))
             if gestaoescolhida == 'visitantes':
                 return redirect(reverse('sitetibl:mostra_gestao', args=['visitantes', 1]))
+            if gestaoescolhida == 'protocolo':
+                # Verificar se é requisição AJAX para retornar JSON
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True, 'protocolo_id': obj.id})
+                return redirect(reverse('sitetibl:mostra_detalhe', args=['protocolo', obj.id]))
             return redirect('index')
         else:
             messages.error(request, 'Foram encontrados erros ao preencher o formulário')
     else:
         formulario = form_class()
 
-    tmpl = 'actividades_form.html' if gestaoescolhida == 'actividades' else 'formulario_criacao.html'
+    tmpl = 'actividades_form.html' if gestaoescolhida == 'actividades' else 'protocolo_form.html' if gestaoescolhida == 'protocolo' else 'formulario_criacao.html'
     if gestaoescolhida == 'escalas':
         from collections import defaultdict
         todos_irmaos_esc = Irmao.objects.select_related('celula').order_by('nome', 'apelido')
@@ -4103,6 +4158,133 @@ def pastoral_dashboard(request):
     total_membros = Irmao.objects.count()
     total_batizados = Irmao.objects.filter(batizado=True).count()
     total_nao_batizados = total_membros - total_batizados
+
+
+# ═══════════════════════════════════════════════════════════════
+# API ENDPOINTS FOR PROTOCOLO TEMPLATE
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+def api_irmaos(request):
+    """API endpoint: lista de irmãos para seleção em modal"""
+    irmaos = Irmao.objects.all().values('id', 'nome', 'apelido').order_by('nome', 'apelido')
+    return JsonResponse(list(irmaos), safe=False)
+
+
+@login_required
+def api_actividades(request):
+    """API endpoint: lista de actividades com data"""
+    actividades = Actividade.objects.all().values('id', 'designacao', 'data').order_by('designacao')
+    return JsonResponse(list(actividades), safe=False)
+
+
+@login_required
+def api_funcoes(request):
+    """API endpoint: lista de funções"""
+    funcoes = Funcao.objects.all().values('id', 'designacao').order_by('designacao')
+    return JsonResponse(list(funcoes), safe=False)
+
+
+@login_required
+def protocolo_add_escalas(request):
+    """Endpoint: adicionar escalas a um protocolo (POST JSON)"""
+    if not request.user.has_perm('sitetibl.add_escala'):
+        return JsonResponse({'success': False, 'error': 'Sem permissão'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        protocolo_id = data.get('protocolo_id')
+        irmao_ids = data.get('irmao_ids', [])
+        actividade_id = data.get('actividade_id')
+        funcao_id = data.get('funcao_id')
+        
+        if not all([protocolo_id, irmao_ids, actividade_id, funcao_id]):
+            return JsonResponse({'success': False, 'error': 'Parâmetros incompletos'}, status=400)
+        
+        # Validar que protocolo existe
+        protocolo = Protocolo.objects.get(id=protocolo_id)
+        actividade = Actividade.objects.get(id=actividade_id)
+        funcao = Funcao.objects.get(id=funcao_id)
+        
+        # Guardar a actividade principal no protocolo se não tiver
+        if not protocolo.actividade_principal_id:
+            protocolo.actividade_principal = actividade
+            protocolo.save(update_fields=['actividade_principal'])
+        
+        # Criar escalas para cada irmão
+        criadas = 0
+        for irmao_id in irmao_ids:
+            irmao = Irmao.objects.get(id=irmao_id)
+            escala, created = Escala.objects.get_or_create(
+                irmao=irmao,
+                actividade=actividade,
+                funcao=funcao
+            )
+            if created:
+                criadas += 1
+        
+        return JsonResponse({
+            'success': True,
+            'criadas': criadas,
+            'total': len(irmao_ids),
+            'mensagem': f'{criadas} escala(s) adicionada(s) com sucesso'
+        })
+    
+    except Protocolo.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Protocolo não encontrado'}, status=404)
+    except Actividade.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Actividade não encontrada'}, status=404)
+    except Funcao.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Função não encontrada'}, status=404)
+    except Irmao.DoesNotExist as e:
+        return JsonResponse({'success': False, 'error': f'Irmão não encontrado: {str(e)}'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        logger.exception("Erro ao adicionar escalas a protocolo")
+        return JsonResponse({'success': False, 'error': f'Erro: {str(e)}'}, status=500)
+
+
+@login_required
+def protocolo_delete_escala(request, escala_id):
+    """Endpoint: remover escala de um protocolo (DELETE ou POST)"""
+    if not request.user.has_perm('sitetibl.delete_escala'):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sem permissão'}, status=403)
+        raise PermissionDenied
+    
+    try:
+        escala = Escala.objects.get(id=escala_id)
+        actividade_id = escala.actividade_id
+        escala.delete()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'mensagem': 'Escala removida com sucesso',
+                'actividade_id': actividade_id,
+            })
+        else:
+            messages.success(request, 'Escala removida com sucesso')
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/tibl/'))
+            
+    except Escala.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Escala não encontrada'}, status=404)
+        messages.error(request, 'Escala não encontrada')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/tibl/'))
+        
+    except Exception as e:
+        logger.exception("Erro ao remover escala")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': f'Erro: {str(e)}'}, status=500)
+        messages.error(request, f'Erro ao remover escala: {str(e)}')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/tibl/'))
+
+
     total_dizimistas = Irmao.objects.filter(dizimista='sim').count()
     total_masculino = Irmao.objects.filter(sexo='M').count()
     total_feminino = Irmao.objects.filter(sexo='F').count()

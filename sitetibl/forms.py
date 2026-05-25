@@ -33,6 +33,7 @@ from sitetibl.models import EnvioMensagem
 from sitetibl.models import TipoOferta
 from sitetibl.models import Listaactividades
 from sitetibl.models import Celula
+from sitetibl.models import Protocolo
 
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django.utils import timezone as tz
@@ -971,4 +972,18 @@ class VisitanteRecorrenteForm(ModelForm):
             'primeira_visita': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'ultima_visita': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class ProtocoloForm(ModelForm):
+    class Meta:
+        model = Protocolo
+        fields = [
+            'numero', 'descricao', 'responsavel', 'prioridade',
+        ]
+        widgets = {
+            'numero': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: PROT-001-2026'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descrição detalhada...'}),
+            'responsavel': forms.Select(attrs={'class': 'form-control'}),
+            'prioridade': forms.Select(attrs={'class': 'form-control'}),
         }

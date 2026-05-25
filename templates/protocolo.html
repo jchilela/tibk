@@ -1,0 +1,391 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Protocolo - TIBL{% endblock %}
+
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">Gestão de Protocolos</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Rastreamento e gestão de documentos protocolados com escalas de entrega.</p>
+        </div>
+        {% if perms.sitetibl.add_protocolo %}
+        <a href="/tibl/protocolo/criar/" class="bt-primary" style="background-color: var(--primary-light); color: white; padding: 0.8rem 1.5rem;">
+            <i class="fas fa-file-plus"></i> Novo Protocolo
+        </a>
+        {% endif %}
+    </div>
+
+    {% if bb %}
+
+    <!-- Filtro por Status e Tipo -->
+    <div class="modern-card" style="margin-bottom: 1.5rem;">
+        <form action="/tibl/buscaprotocolo/" method="GET" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Status</label>
+                <select name="statusv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Todos os status</option>
+                    <option value="novo" {% if statusv_sel == "novo" %}selected{% endif %}>Novo</option>
+                    <option value="em_processamento" {% if statusv_sel == "em_processamento" %}selected{% endif %}>Em Processamento</option>
+                    <option value="processado" {% if statusv_sel == "processado" %}selected{% endif %}>Processado</option>
+                    <option value="arquivado" {% if statusv_sel == "arquivado" %}selected{% endif %}>Arquivado</option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Tipo</label>
+                <select name="tipov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Todos os tipos</option>
+                    <option value="entrada" {% if tipov_sel == "entrada" %}selected{% endif %}>Entrada</option>
+                    <option value="saida" {% if tipov_sel == "saida" %}selected{% endif %}>Saída</option>
+                    <option value="interno" {% if tipov_sel == "interno" %}selected{% endif %}>Interno</option>
+                </select>
+            </div>
+            <button type="submit" class="bt-primary" style="padding: 0.6rem 1.5rem; font-size: 0.9rem; color: white; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+        </form>
+    </div>
+
+    <!-- Lista de Protocolos -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 1rem;">
+        {% for protocolo in bb %}
+        <div class="modern-card" style="border-top: 5px solid {% if protocolo.status == 'novo' %}#3b82f6{% elif protocolo.status == 'em_processamento' %}#f59e0b{% elif protocolo.status == 'processado' %}#10b981{% else %}#6b7280{% endif %}; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+            
+            <!-- Header do Protocolo -->
+            <div style="background: {% if protocolo.status == 'novo' %}#3b82f6{% elif protocolo.status == 'em_processamento' %}#f59e0b{% elif protocolo.status == 'processado' %}#10b981{% else %}#6b7280{% endif %}; color: white; padding: 1.5rem; text-align: center;">
+                <h3 style="margin: 0; color: white; font-size: 1.2rem; line-height: 1.3;">
+                    Protocolo #{{ protocolo.numero }}
+                </h3>
+                <div style="color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem;">
+                    <span class="badge" style="background: rgba(255,255,255,0.2); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem;">
+                        {{ protocolo.get_tipo_display }}
+                    </span>
+                    <span class="badge" style="background: rgba(255,255,255,0.2); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; margin-left: 0.4rem;">
+                        {% if protocolo.prioridade == 'urgente' %}<i class="fas fa-exclamation" style="color: #ef4444;"></i>{% elif protocolo.prioridade == 'alta' %}<i class="fas fa-arrow-up" style="color: #f97316;"></i>{% endif %}
+                        {{ protocolo.get_prioridade_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Conteúdo do Protocolo -->
+            <div style="padding: 1.5rem; flex-grow: 1; background: #f8fafc;">
+                <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin: 0 0 0.5rem 0;">
+                    {{ protocolo.assunto }}
+                </h4>
+                {% if protocolo.descricao %}
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.5rem 0; line-height: 1.5;">
+                    {{ protocolo.descricao|truncatewords:20 }}
+                </p>
+                {% endif %}
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                    <div>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Remetente</span>
+                        <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin: 0.3rem 0 0 0;">
+                            {{ protocolo.remetente|default:"—" }}
+                        </p>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Responsável</span>
+                        <p style="font-size: 0.9rem; font-weight: 600; color: var(--primary); margin: 0.3rem 0 0 0;">
+                            {% if protocolo.responsavel %}{{ protocolo.responsavel.nome }} {{ protocolo.responsavel.apelido }}{% else %}—{% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 0.8rem;">
+                    <div>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Entrada</span>
+                        <p style="font-size: 0.85rem; color: var(--text-main); margin: 0.3rem 0 0 0;">
+                            {{ protocolo.data_entrada|date:"d M Y H:i" }}
+                        </p>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Status</span>
+                        <p style="font-size: 0.85rem; color: {% if protocolo.status == 'novo' %}#3b82f6{% elif protocolo.status == 'em_processamento' %}#f59e0b{% elif protocolo.status == 'processado' %}#10b981{% else %}#6b7280{% endif %}; margin: 0.3rem 0 0 0; font-weight: 600;">
+                            {{ protocolo.get_status_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Escalas Associadas -->
+            <div style="padding: 1rem; background: white; border-top: 1px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">
+                        <i class="fas fa-clock" style="margin-right: 0.3rem;"></i>Escalas de Entrega
+                    </span>
+                    {% if perms.sitetibl.add_escala %}
+                    <button class="add-escala-btn" data-protocolo-id="{{ protocolo.id }}" data-protocolo-num="{{ protocolo.numero }}" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.8rem; font-weight: 600; padding: 0; text-decoration: none;">
+                        <i class="fas fa-plus-circle"></i> Adicionar
+                    </button>
+                    {% endif %}
+                </div>
+
+            <!-- Footer com Ações -->
+            <div style="padding: 1rem; border-top: 1px solid #e2e8f0; display: flex; gap: 0.5rem; background: white;">
+                {% if perms.sitetibl.change_protocolo %}
+                <a href="/tibl/protocolo/actualizar/{{ protocolo.id }}" style="flex: 1; color: var(--primary); font-size: 0.85rem; font-weight: 600; text-decoration: none; padding: 0.5rem; text-align: center; border: 1px solid var(--primary-light); border-radius: var(--radius-sm); transition: background 0.2s;"
+                    onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='transparent'">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                {% endif %}
+                {% if perms.sitetibl.delete_protocolo %}
+                <a href="/tibl/protocolo/eliminar/{{ protocolo.id }}" style="flex: 1; color: #ef4444; font-size: 0.85rem; font-weight: 600; text-decoration: none; padding: 0.5rem; text-align: center; border: 1px solid #fecaca; border-radius: var(--radius-sm); transition: background 0.2s;"
+                    onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='transparent'">
+                    <i class="fas fa-trash"></i> Eliminar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-file-contract" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Protocolos Registados</h3>
+        <p style="color: var(--text-muted);">Não existem protocolos registados no sistema.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para Adicionar Escala -->
+<div id="modal-add-escala" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(2px); align-items: center; justify-content: center;">
+    <div class="modern-card" style="width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="margin: 0; color: var(--text-main);">Adicionar Escalas ao Protocolo <span id="modal-protocolo-num" style="color: var(--primary);">#000</span></h2>
+            <button onclick="closeEscalaModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Busca de Irmãos -->
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main);">
+                <i class="fas fa-search"></i> Buscar Irmãos
+            </label>
+            <input type="text" id="search-irmaos" placeholder="Digite o nome do irmão..." style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem;">
+                Máximo de 10 irmãos. Clique para selecionar.
+            </p>
+        </div>
+
+        <!-- Lista de Irmãos Disponíveis -->
+        <div id="irmaos-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; max-height: 250px; overflow-y: auto;">
+            <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Irmãos Selecionados -->
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main);">
+                <i class="fas fa-check-circle"></i> Selecionados (<span id="count-selected">0</span>/10)
+            </label>
+            <div id="irmaos-selected" style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0.8rem; background: #f1f5f9; border-radius: var(--radius-sm); min-height: 40px;">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; width: 100%;">Nenhum irmão selecionado</p>
+            </div>
+        </div>
+
+        <!-- Seleção de Actividade e Função -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main);">Actividade</label>
+                <select id="select-actividade" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                    <option value="">Selecione uma actividade</option>
+                    <!-- Populated by JavaScript -->
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main);">Função</label>
+                <select id="select-funcao" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                    <option value="">Selecione uma função</option>
+                    <!-- Populated by JavaScript -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div style="display: flex; gap: 1rem;">
+            <button onclick="closeEscalaModal()" class="bt-primary" style="flex: 1; background: #f1f5f9; color: var(--text-main); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none;">
+                Cancelar
+            </button>
+            <button onclick="saveEscalas()" class="bt-primary" style="flex: 1; background: var(--primary); color: white; padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none;">
+                <i class="fas fa-save"></i> Guardar Escalas
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedIrmaos = [];
+    let allIrmaos = [];
+    let allActividades = [];
+    let allFuncoes = [];
+    let currentProtocoloId = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load irmãos data
+        fetch('/tibl/api/irmaos/')
+            .then(r => r.json())
+            .then(data => {
+                allIrmaos = data;
+                renderIrmaosList('');
+            });
+
+        // Load actividades
+        fetch('/tibl/api/actividades/')
+            .then(r => r.json())
+            .then(data => {
+                allActividades = data;
+                populateSelect('select-actividade', allActividades);
+            });
+
+        // Load funcoes
+        fetch('/tibl/api/funcoes/')
+            .then(r => r.json())
+            .then(data => {
+                allFuncoes = data;
+                populateSelect('select-funcao', allFuncoes);
+            });
+
+        // Search handler
+        document.getElementById('search-irmaos').addEventListener('keyup', function(e) {
+            renderIrmaosList(e.target.value);
+        });
+
+        // Add escala button handlers
+        document.querySelectorAll('.add-escala-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentProtocoloId = this.dataset.protocoloId;
+                document.getElementById('modal-protocolo-num').textContent = '#' + this.dataset.protocoloNum;
+                selectedIrmaos = [];
+                document.getElementById('irmaos-list').innerHTML = '';
+                renderIrmaosList('');
+                updateSelectedCount();
+                openEscalaModal();
+            });
+        });
+    });
+
+    function renderIrmaosList(searchTerm) {
+        const list = document.getElementById('irmaos-list');
+        const filtered = allIrmaos.filter(i => 
+            i.nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            i.apelido.toLowerCase().includes(searchTerm.toLowerCase())
+        ).slice(0, 20);
+
+        list.innerHTML = filtered.map(irmao => `
+            <button type="button" onclick="toggleIrmao(${irmao.id}, '${irmao.nome} ${irmao.apelido}')" 
+                style="padding: 0.6rem; border: 2px solid ${selectedIrmaos.includes(irmao.id) ? 'var(--primary)' : '#e2e8f0'}; background: ${selectedIrmaos.includes(irmao.id) ? '#f0fdf4' : 'white'}; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--text-main); transition: all 0.2s;">
+                <i class="fas fa-${selectedIrmaos.includes(irmao.id) ? 'check-circle' : 'circle'}"></i> ${irmao.nome}
+            </button>
+        `).join('');
+    }
+
+    function toggleIrmao(id, name) {
+        if (selectedIrmaos.includes(id)) {
+            selectedIrmaos = selectedIrmaos.filter(i => i !== id);
+        } else {
+            if (selectedIrmaos.length < 10) {
+                selectedIrmaos.push(id);
+            } else {
+                alert('Máximo de 10 irmãos atingido');
+                return;
+            }
+        }
+        renderIrmaosList(document.getElementById('search-irmaos').value);
+        updateSelectedDisplay();
+    }
+
+    function updateSelectedDisplay() {
+        const container = document.getElementById('irmaos-selected');
+        if (selectedIrmaos.length === 0) {
+            container.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; width: 100%;">Nenhum irmão selecionado</p>';
+        } else {
+            container.innerHTML = selectedIrmaos.map(id => {
+                const irmao = allIrmaos.find(i => i.id === id);
+                return `
+                    <span style="background: var(--primary); color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem;">
+                        ${irmao ? irmao.nome : 'ID:' + id}
+                        <button type="button" onclick="toggleIrmao(${id})" style="background: none; border: none; color: white; cursor: pointer; font-size: 0.9rem;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                `;
+            }).join('');
+        }
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        document.getElementById('count-selected').textContent = selectedIrmaos.length;
+    }
+
+    function populateSelect(selectId, data) {
+        const select = document.getElementById(selectId);
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.designacao;
+            select.appendChild(option);
+        });
+    }
+
+    function openEscalaModal() {
+        document.getElementById('modal-add-escala').style.display = 'flex';
+    }
+
+    function closeEscalaModal() {
+        document.getElementById('modal-add-escala').style.display = 'none';
+        selectedIrmaos = [];
+    }
+
+    function saveEscalas() {
+        const actividadeId = document.getElementById('select-actividade').value;
+        const funcaoId = document.getElementById('select-funcao').value;
+
+        if (!actividadeId || !funcaoId || selectedIrmaos.length === 0) {
+            alert('Selecione uma actividade, função e pelo menos um irmão');
+            return;
+        }
+
+        // Send to backend
+        fetch('/tibl/protocolo/add-escalas/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                protocolo_id: currentProtocoloId,
+                irmao_ids: selectedIrmaos,
+                actividade_id: actividadeId,
+                funcao_id: funcaoId
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('Escalas adicionadas com sucesso!');
+                closeEscalaModal();
+                location.reload();
+            } else {
+                alert('Erro ao adicionar escalas: ' + (data.error || 'Erro desconhecido'));
+            }
+        });
+    }
+
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+               document.querySelector('meta[name="csrf-token"]')?.content || '';
+    }
+</script>
+
+{% endblock %}

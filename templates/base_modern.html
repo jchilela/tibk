@@ -217,13 +217,22 @@
                 {% endif %}
                 {% endif %}
 
-                {% if perms.sitetibl.view_inventariopatrimonio %}
+                {% if perms.sitetibl.view_inventariopatrimonio or perms.sitetibl.view_protocolo %}
                 <div class="nav-section-title">Administração</div>
 
+                {% if perms.sitetibl.view_inventariopatrimonio %}
                 <a href="/tibl/gestao/inventariopatrimonio/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
                     <i class="fas fa-boxes-stacked fa-fw"></i> Património
                 </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_protocolo %}
+                <a href="/tibl/gestao/protocolo/1"
+                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'protocolo' %}active{% endif %}">
+                    <i class="fas fa-file-contract fa-fw"></i> Protocolo
+                </a>
+                {% endif %}
                 {% endif %}
 
                 {% if perms.sitetibl.change_actividade or perms.sitetibl.view_dizimooferta or perms.sitetibl.view_inventariopatrimonio %}

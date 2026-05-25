@@ -165,7 +165,7 @@ class Command(BaseCommand):
             'irmao', 'pessoa', 'actividade', 'escala', 'mandato',
             'departamento', 'sitio', 'relatoriosemanalcelula',
             'conteudoensino', 'enviomensagem', 'anuncio',
-            'inventariopatrimonio', 'cestabasica', 'ajuda',
+            'inventariopatrimonio', 'cestabasica', 'ajuda', 'protocolo',
         ], crud)
         sg_perms |= self._perms_for(app, ['pedidosaida'], ['view'])
         sg_perms |= self._perms_for(app, ['solicitacaointerdepartamental'], ['view'])
@@ -182,7 +182,7 @@ class Command(BaseCommand):
             'irmao', 'pessoa', 'actividade', 'escala', 'mandato',
             'departamento', 'sitio', 'relatoriosemanalcelula',
             'conteudoensino', 'enviomensagem', 'anuncio',
-            'inventariopatrimonio', 'cestabasica', 'ajuda',
+            'inventariopatrimonio', 'cestabasica', 'ajuda', 'protocolo',
         ], crud)
         sec_perms |= self._perms_for(app, [
             'pedidosaida',
