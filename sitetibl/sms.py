@@ -66,8 +66,8 @@ def enviar_sms(telefones, mensagem):
         }
         try:
             response = requests.post(SMS_URL, json=payload, headers=headers, timeout=10)
-            if response.status_code == 200:
-                logger.info('SMS enviado para %s', telefone)
+            if response.status_code in (200, 202):
+                logger.info('SMS enviado para %s (status %s)', telefone, response.status_code)
                 ok = True
             else:
                 try:
