@@ -5,7 +5,7 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-SMS_URL = 'https://telcosms.co.ao/send_message'
+SMS_URL = 'https://api.strongx.it.ao/v1/sms/send'
 
 
 def _normalizar_telefones(telefones):
@@ -18,20 +18,25 @@ def _normalizar_telefones(telefones):
 
 def enviar_sms(telefones, mensagem):
     """
-    Envia SMS via TelcoSMS.
-    Se TELCOSMS_TEST_PHONE estiver definido, redirecciona todos os SMS para esse número.
+    Envia SMS via StrongX.
+    Se STRONGX_TEST_PHONE estiver definido, redirecciona todos os SMS para esse número.
     Retorna True se pelo menos um envio foi bem-sucedido.
     """
     originais = _normalizar_telefones(telefones)
     if not originais:
         return False
 
-    api_key = getattr(settings, 'TELCOSMS_API_KEY', '')
+    api_key = getattr(settings, 'STRONGX_API_KEY', '')
     if not api_key:
-        logger.error('TELCOSMS_API_KEY não configurada — SMS não enviado.')
+        logger.error('STRONGX_API_KEY não configurada — SMS não enviado.')
         return False
 
-    test_phone = (getattr(settings, 'TELCOSMS_TEST_PHONE', '') or '').strip()
+    app_id = getattr(settings, 'STRONGX_APP_ID', '')
+    if not app_id:
+        logger.error('STRONGX_APP_ID não configurado — SMS não enviado.')
+        return False
+
+    test_phone = (getattr(settings, 'STRONGX_TEST_PHONE', '') or '').strip()
     if test_phone:
         if len(originais) == 1:
             prefix = f'[TESTE p/ {originais[0]}] '
@@ -47,17 +52,20 @@ def enviar_sms(telefones, mensagem):
         destinos = originais
         corpo = mensagem
 
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json',
+    }
+
     ok = False
     for telefone in destinos:
-        sms_data = {
-            'message': {
-                'api_key_app': api_key,
-                'phone_number': telefone,
-                'message_body': corpo,
-            }
+        payload = {
+            'to': telefone,
+            'message': corpo,
+            'applicationId': app_id,
         }
         try:
-            response = requests.post(SMS_URL, json=sms_data, timeout=10)
+            response = requests.post(SMS_URL, json=payload, headers=headers, timeout=10)
             if response.status_code == 200:
                 logger.info('SMS enviado para %s', telefone)
                 ok = True

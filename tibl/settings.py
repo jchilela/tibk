@@ -209,10 +209,11 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
-# TelcoSMS
-TELCOSMS_API_KEY = os.getenv('TELCOSMS_API_KEY', '')
+# StrongX SMS
+STRONGX_API_KEY = os.getenv('STRONGX_API_KEY', '')
+STRONGX_APP_ID = os.getenv('STRONGX_APP_ID', '')
 # Em testes: redirecciona todos os SMS para este número (deixar vazio em produção)
-TELCOSMS_TEST_PHONE = os.getenv('TELCOSMS_TEST_PHONE', '')
+STRONGX_TEST_PHONE = os.getenv('STRONGX_TEST_PHONE', '')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
