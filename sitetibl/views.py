@@ -191,8 +191,8 @@ def _contactos_de_irmaos(irmaos):
     return emails, telefones
 
 
-def _enviar_sms_telcosms(telefones, mensagem):
-    """Envia SMS via TelcoSMS para uma lista de telefones."""
+def _enviar_sms(telefones, mensagem):
+    """Envia SMS (via StrongX) para uma lista de telefones."""
     enviar_sms(telefones, mensagem)
 
 
@@ -284,7 +284,7 @@ def _enviar_mensagens_solicitacao(
 
     if telefones:
         sms_texto = f'TIBL — {titulo}. {msg_texto}'
-        _enviar_sms_telcosms(telefones, sms_texto)
+        _enviar_sms(telefones, sms_texto)
         logger.info('SMS de solicitação #%s enviados para %s', solicitacao.id, telefones)
 
 
@@ -352,7 +352,7 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
             logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
 
     if telefones:
-        _enviar_sms_telcosms(telefones, f'TIBL — {titulo}. {mensagem}')
+        _enviar_sms(telefones, f'TIBL — {titulo}. {mensagem}')
 
 
 def _notificar_caso_pastoral(caso, actor, mensagem_texto):
@@ -2515,9 +2515,9 @@ def encontraEnvioMensagem(request):
     quemenviou = request.GET['quemenviou']
     
     
-    kwargs= {'mensagem__icontains':mensagemv, 
-             'quemenviou__nome__icontains' : quemenviou, 
-             
+    kwargs= {'mensagem__icontains':mensagemv,
+             'quemenviou__designacao__icontains' : quemenviou,
+
             }
     pagina= request.GET['pagina']
     resultado = EnvioMensagem.objects.filter(**kwargs)
@@ -2537,16 +2537,60 @@ def criarEnvioMensagem(request):
     irmaos = Irmao.objects.select_related('celula').prefetch_related('integrantes_departamento').order_by('nome', 'apelido')
     departamentos = Departamento.objects.order_by('designacao')
 
+    irmao_logado = Irmao.objects.filter(user=request.user).first()
+    todos_departamentos = Departamento.objects.order_by('designacao')
+
     if request.method == 'POST':
         formulario = EnvioMensagemForm(request.POST)
+        formulario.fields['quemenviou'].queryset = todos_departamentos
         if formulario.is_valid():
-            formulario.save()
-            messages.success(request, 'Mensagem enviada com sucesso!')
-            return redirect('index')
+            obj = formulario.save(commit=False)
+            obj.save()
+            formulario.save_m2m()  # guardar destinatários M2M
+
+            destinatarios = obj.destinatarios.all()
+            emails_to = [i.email for i in destinatarios if i.email and i.email.strip()]
+            telefones = [str(i.telefone).strip() for i in destinatarios if i.telefone and str(i.telefone).strip()]
+            autor_nome = str(obj.quemenviou) if obj.quemenviou else ''
+
+            # Enviar SMS
+            if obj.sms and telefones:
+                try:
+                    _enviar_sms(telefones, obj.mensagem)
+                    logger.info('SMS massivo enviado para %d destinatários', len(telefones))
+                except Exception as e:
+                    logger.error('Falha ao enviar SMS massivo: %s', e)
+                    messages.warning(request, 'Mensagem guardada, mas ocorreu um erro no envio de SMS.')
+
+            # Enviar Email
+            if obj.email and emails_to:
+                try:
+                    html_content = render_to_string('emails/email_mensagem_massiva.html', {
+                        'mensagem': obj.mensagem,
+                        'autor': autor_nome,
+                    })
+                    from_email = settings.EMAIL_HOST_USER or None
+                    for email_addr in emails_to:
+                        msg = EmailMultiAlternatives(
+                            subject='Mensagem da TIBL',
+                            body=obj.mensagem,
+                            from_email=from_email,
+                            to=[email_addr],
+                        )
+                        msg.attach_alternative(html_content, 'text/html')
+                        msg.send()
+                    logger.info('Emails massivos enviados para %d destinatários', len(emails_to))
+                except Exception as e:
+                    logger.error('Falha ao enviar emails massivos: %s', e)
+                    messages.warning(request, 'Mensagem guardada, mas ocorreu um erro no envio de email.')
+
+            messages.success(request, f'Mensagem enviada com sucesso para {destinatarios.count()} destinatário(s).')
+            return redirect(reverse('sitetibl:mostra_gestao', args=['enviomensagem', 1]))
         else:
             messages.error(request, 'Foram encontrados erros ao preencher o formulário.')
     else:
         formulario = EnvioMensagemForm()
+        formulario.fields['quemenviou'].queryset = todos_departamentos
 
     return render(request, 'enviomensagem_criar.html', {
         'formulario': formulario,

@@ -280,10 +280,13 @@
                     <div class="msg-card-header"><i class="fas fa-edit"></i> Compor Mensagem</div>
                     <div class="msg-card-body">
 
-                        <!-- Sender -->
+                        <!-- Sender department -->
                         <div class="msg-field">
-                            <label class="msg-label" for="id_quemenviou">Remetente</label>
+                            <label class="msg-label" for="id_quemenviou">Departamento remetente</label>
                             {{ formulario.quemenviou }}
+                            {% if formulario.quemenviou.errors %}
+                            <div class="msg-error" style="margin-top:0.4rem;">{{ formulario.quemenviou.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <!-- Channels -->

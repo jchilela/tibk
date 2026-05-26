@@ -728,7 +728,7 @@ class EnvioMensagem(models.Model):
     mensagem = models.TextField()
     sms = models.BooleanField(default=False)
     email = models.BooleanField(default=False)
-    quemenviou = models.ForeignKey(Irmao, blank=True, null=True, default=None, on_delete = models.CASCADE)
+    quemenviou = models.ForeignKey(Departamento, blank=True, null=True, default=None, on_delete=models.SET_NULL, verbose_name='Departamento remetente')
     destinatarios = models.ManyToManyField(Irmao, blank=True, related_name='mensagens_recebidas', verbose_name='Destinatários')
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)

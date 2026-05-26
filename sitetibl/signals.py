@@ -3,7 +3,6 @@ import logging
 from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
-from django.core.mail import send_mass_mail
 from django.template.loader import render_to_string
 from django.core.mail import get_connection
 from django.core.mail import EmailMultiAlternatives
@@ -202,61 +201,6 @@ def _enviar_credenciais_sms(irmao, username, password):
     )
     return enviar_sms(telefone, mensagem)
 
-@receiver(post_save, sender=EnvioMensagem)
-def enviar_email_sms_massivo(sender, instance, created, **kwargs):
-    irmaos = Irmao.objects.exclude(email__isnull=True).exclude(email='')
-    irmaos_telefone = Irmao.objects.exclude(telefone__isnull=True).exclude(telefone='').distinct()
-
-
-    if created and instance.email:
-
-        
-
-        if not irmaos.exists():
-            return
-
-        subject = 'Mensagem da TIBL'
-        from_email = 'noreply@suaigreja.ao'
-
-        connection = get_connection()  # 🔴 UMA conexão só
-        connection.open()
-
-        emails = []
-
-        for irmao in irmaos:
-            html_content = render_to_string(
-                'emails/email_mensagem_massiva.html',
-                {
-                    'mensagem': instance.mensagem,
-                    'autor': instance.quemenviou,
-                    
-                }
-            )
-
-            email = EmailMultiAlternatives(
-                subject,
-                instance.mensagem,
-                from_email,
-                [irmao.email],
-                connection=connection
-            )
-
-            email.attach_alternative(html_content, "text/html")
-            emails.append(email)
-            print("email enviado para:", irmao.nome)
-        
-
-        connection.send_messages(emails)
-        connection.close()
-    
-    if instance.sms:
-        telefones = list(
-            irmaos_telefone.exclude(telefone='').values_list('telefone', flat=True)
-        )
-        enviar_sms(
-            telefones,
-            f'{instance.mensagem}. Atenciosamente a equipa TIBL.',
-        )
 
 
 # =========================================

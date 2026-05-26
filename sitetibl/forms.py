@@ -838,9 +838,9 @@ class ConteudoEnsinoForm(ModelForm):
 class EnvioMensagemForm(ModelForm):
     class Meta:
         model = EnvioMensagem
-        fields = '__all__'
+        fields = ['quemenviou', 'mensagem', 'sms', 'email', 'destinatarios']
         labels = {
-            'quemenviou': 'Quem enviou',
+            'quemenviou': 'Departamento remetente',
             'destinatarios': 'Destinatários',
             'mensagem': 'Mensagem',
         }
