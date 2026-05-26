@@ -16,31 +16,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Deploy no servidor via SSH
+      # 2. Deploy no servidor via SSH com password
       - name: Deploy no servidor
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sudo apt-get install -y sshpass
+          sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash << 'ENDSSH'
             set -e
-
             cd /home/projectotibl/tibk/
-
-            # Actualizar código
             git pull origin production
-
-            # Reconstruir e reiniciar o serviço web
             docker compose build web
             docker compose up -d
-
-            # Aplicar migrações pendentes
             docker compose exec -T web python manage.py migrate --noinput
-
-            # Garantir grupos e permissões actualizados
             docker compose exec -T web python manage.py seed_base_data --skip-admin
-
-            # Remover imagens antigas não referenciadas (liberta espaço)
             docker image prune -f
+          ENDSSH
