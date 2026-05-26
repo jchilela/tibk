@@ -41,6 +41,7 @@
                     <th>Mensagem (Preview)</th>
                     <th>Remetente</th>
                     <th style="text-align: center;">Destinatários</th>
+                    <th style="text-align: center;">Estado</th>
                     <th style="text-align: right;">Ações</th>
                 </tr>
             </thead>
@@ -48,12 +49,13 @@
                 {% for x in bb %}
                 <tr>
                     <td>
-                        <div style="font-weight: 600; color: var(--text-main); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <div style="font-weight: 600; color: var(--text-main); max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             {{ x.mensagem }}
                         </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">{{ x.data_criacao|date:"d/m/Y H:i" }}</div>
                     </td>
                     <td>
-                        <div style="font-weight: 500; color: var(--primary-dark);">{{ x.quemenviou.nome|default:x.quemenviou }}</div>
+                        <div style="font-weight: 500; color: var(--primary-dark);">{{ x.quemenviou.designacao|default:"—" }}</div>
                     </td>
                     <td style="text-align: center;">
                         {% if x.destinatarios.count %}
@@ -64,9 +66,30 @@
                         <span style="color: var(--text-muted); font-size: 0.85rem;">—</span>
                         {% endif %}
                     </td>
+                    <td style="text-align: center;">
+                        <div style="display: flex; gap: 0.35rem; justify-content: center; flex-wrap: wrap;">
+                            {% if x.sms %}
+                                {% if x.sms_enviado %}
+                                <span style="background:#f0fdf4;color:#166534;padding:0.15rem 0.5rem;border-radius:100px;font-size:0.75rem;font-weight:600;"><i class="fas fa-check"></i> SMS</span>
+                                {% else %}
+                                <span style="background:#fef2f2;color:#991b1b;padding:0.15rem 0.5rem;border-radius:100px;font-size:0.75rem;font-weight:600;"><i class="fas fa-times"></i> SMS</span>
+                                {% endif %}
+                            {% endif %}
+                            {% if x.email %}
+                                {% if x.email_enviado %}
+                                <span style="background:#f0fdf4;color:#166534;padding:0.15rem 0.5rem;border-radius:100px;font-size:0.75rem;font-weight:600;"><i class="fas fa-check"></i> Email</span>
+                                {% else %}
+                                <span style="background:#fef2f2;color:#991b1b;padding:0.15rem 0.5rem;border-radius:100px;font-size:0.75rem;font-weight:600;"><i class="fas fa-times"></i> Email</span>
+                                {% endif %}
+                            {% endif %}
+                            {% if not x.sms and not x.email %}
+                            <span style="color:var(--text-muted);font-size:0.8rem;">—</span>
+                            {% endif %}
+                        </div>
+                    </td>
                     <td style="text-align: right;">
                         <a href="/tibl/enviomensagem/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
-                            <i class="fas fa-envelope-open-text"></i> Ler Mais
+                            <i class="fas fa-envelope-open-text"></i> Ver
                         </a>
                     </td>
                 </tr>

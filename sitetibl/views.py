@@ -192,8 +192,8 @@ def _contactos_de_irmaos(irmaos):
 
 
 def _enviar_sms(telefones, mensagem):
-    """Envia SMS (via StrongX) para uma lista de telefones."""
-    enviar_sms(telefones, mensagem)
+    """Envia SMS (via StrongX) para uma lista de telefones. Retorna True se bem-sucedido."""
+    return enviar_sms(telefones, mensagem)
 
 
 def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel, apenas_externo=False):
@@ -2553,20 +2553,16 @@ def criarEnvioMensagem(request):
             telefones = [str(i.telefone).strip() for i in destinatarios if i.telefone and str(i.telefone).strip()]
             autor_nome = str(obj.quemenviou) if obj.quemenviou else ''
 
+            sms_ok = False
+            email_ok = False
+
             # Enviar SMS
-            sms_ok = True
             if obj.sms and telefones:
-                try:
-                    _enviar_sms(telefones, obj.mensagem)
+                sms_ok = bool(_enviar_sms(telefones, obj.mensagem))
+                if sms_ok:
                     logger.info('SMS massivo enviado para %d destinatários', len(telefones))
-                except RuntimeError as e:
-                    sms_ok = False
-                    logger.error('Falha ao enviar SMS massivo: %s', e)
-                    messages.error(request, f'Erro no envio de SMS: {e}')
-                except Exception as e:
-                    sms_ok = False
-                    logger.error('Falha inesperada no envio de SMS: %s', e)
-                    messages.error(request, 'Erro inesperado no envio de SMS.')
+                else:
+                    messages.error(request, 'Não foi possível enviar o SMS. Por favor contacte o administrador do sistema.')
 
             # Enviar Email
             if obj.email and emails_to:
@@ -2585,12 +2581,18 @@ def criarEnvioMensagem(request):
                         )
                         msg.attach_alternative(html_content, 'text/html')
                         msg.send()
+                    email_ok = True
                     logger.info('Emails massivos enviados para %d destinatários', len(emails_to))
                 except Exception as e:
                     logger.error('Falha ao enviar emails massivos: %s', e)
-                    messages.warning(request, 'Mensagem guardada, mas ocorreu um erro no envio de email.')
+                    messages.error(request, 'Não foi possível enviar o email. Por favor contacte o administrador do sistema.')
 
-            if sms_ok:
+            # Guardar estado real de envio
+            obj.sms_enviado = sms_ok
+            obj.email_enviado = email_ok
+            obj.save(update_fields=['sms_enviado', 'email_enviado'])
+
+            if (not obj.sms or sms_ok) and (not obj.email or email_ok):
                 messages.success(request, f'Mensagem enviada com sucesso para {destinatarios.count()} destinatário(s).')
             return redirect(reverse('sitetibl:mostra_gestao', args=['enviomensagem', 1]))
         else:
@@ -2604,6 +2606,60 @@ def criarEnvioMensagem(request):
         'irmaos': irmaos,
         'departamentos': departamentos,
     })
+
+
+@login_required
+def reenviarEnvioMensagem(request, pk):
+    if not request.user.has_perm('sitetibl.add_enviomensagem'):
+        messages.error(request, 'Acesso negado.')
+        return redirect('index')
+
+    obj = get_object_or_404(EnvioMensagem, pk=pk)
+    destinatarios = obj.destinatarios.all()
+    emails_to = [i.email for i in destinatarios if i.email and i.email.strip()]
+    telefones = [str(i.telefone).strip() for i in destinatarios if i.telefone and str(i.telefone).strip()]
+    autor_nome = str(obj.quemenviou) if obj.quemenviou else ''
+
+    sms_ok = obj.sms_enviado
+    email_ok = obj.email_enviado
+
+    if obj.sms and telefones:
+        sms_ok = bool(_enviar_sms(telefones, obj.mensagem))
+        if sms_ok:
+            logger.info('Reenvio SMS para %d destinatários (EnvioMensagem #%s)', len(telefones), pk)
+        else:
+            messages.error(request, 'Não foi possível reenviar o SMS. Por favor contacte o administrador do sistema.')
+
+    if obj.email and emails_to:
+        try:
+            html_content = render_to_string('emails/email_mensagem_massiva.html', {
+                'mensagem': obj.mensagem,
+                'autor': autor_nome,
+            })
+            from_email = settings.EMAIL_HOST_USER or None
+            for email_addr in emails_to:
+                msg = EmailMultiAlternatives(
+                    subject='Mensagem da TIBL',
+                    body=obj.mensagem,
+                    from_email=from_email,
+                    to=[email_addr],
+                )
+                msg.attach_alternative(html_content, 'text/html')
+                msg.send()
+            email_ok = True
+            logger.info('Reenvio email para %d destinatários (EnvioMensagem #%s)', len(emails_to), pk)
+        except Exception as e:
+            logger.error('Falha no reenvio de email (EnvioMensagem #%s): %s', pk, e)
+            messages.error(request, 'Não foi possível reenviar o email. Por favor contacte o administrador do sistema.')
+
+    obj.sms_enviado = sms_ok
+    obj.email_enviado = email_ok
+    obj.save(update_fields=['sms_enviado', 'email_enviado'])
+
+    if (not obj.sms or sms_ok) and (not obj.email or email_ok):
+        messages.success(request, 'Mensagem reenviada com sucesso.')
+
+    return redirect(reverse('sitetibl:mostra_detalhe', args=['enviomensagem', pk]))
 
 
 @login_required

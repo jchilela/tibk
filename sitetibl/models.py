@@ -726,8 +726,10 @@ class ConteudoEnsino(models.Model):
 
 class EnvioMensagem(models.Model):
     mensagem = models.TextField()
-    sms = models.BooleanField(default=False)
-    email = models.BooleanField(default=False)
+    sms = models.BooleanField(default=False, verbose_name='Enviar por SMS')
+    email = models.BooleanField(default=False, verbose_name='Enviar por Email')
+    sms_enviado = models.BooleanField(default=False, verbose_name='SMS enviado com sucesso')
+    email_enviado = models.BooleanField(default=False, verbose_name='Email enviado com sucesso')
     quemenviou = models.ForeignKey(Departamento, blank=True, null=True, default=None, on_delete=models.SET_NULL, verbose_name='Departamento remetente')
     destinatarios = models.ManyToManyField(Irmao, blank=True, related_name='mensagens_recebidas', verbose_name='Destinatários')
     data_criacao = models.DateTimeField(auto_now_add=True)

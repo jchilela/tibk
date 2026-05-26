@@ -27,7 +27,14 @@
                 <i class="far fa-clock mr-1"></i> Enviado em: {{ x.data_criacao|date:"d/m/Y H:i"|default:x.data_criacao }}
             </p>
         </div>
-        <div style="display: flex; gap: 0.75rem;">
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            {% if perms.sitetibl.add_enviomensagem %}
+            <a href="{% url 'sitetibl:reenviar_enviomensagem' x.id %}" class="bt-primary"
+                style="padding: 0.6rem 1rem; background: #0369a1;"
+                onclick="return confirm('Reenviar esta mensagem para todos os destinatários?')">
+                <i class="fas fa-redo"></i> Reenviar
+            </a>
+            {% endif %}
             {% if perms.sitetibl.change_enviomensagem %}
             <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                 style="padding: 0.6rem 1rem;">
@@ -82,23 +89,37 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; position: relative; z-index: 1;">
-            <div class="modern-card"
-                style="background: rgba(var(--primary-rgb), 0.05); border: 1px solid var(--primary-light); text-align: center; padding: 1rem;">
-                <i class="fas fa-sms" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
-                    Status SMS</div>
-                <div style="font-weight: 600; color: var(--text-main);">{% if x.sms %}<i
-                        class="fas fa-check-circle text-success"></i> Enviado{% else %}<i
-                        class="fas fa-times-circle text-muted"></i> Não enviado{% endif %}</div>
+            <!-- SMS -->
+            <div class="modern-card" style="text-align: center; padding: 1rem;
+                {% if x.sms %}{% if x.sms_enviado %}background:#f0fdf4;border:1px solid #86efac;{% else %}background:#fef2f2;border:1px solid #fca5a5;{% endif %}{% else %}background:#f8fafc;border:1px solid #e2e8f0;{% endif %}">
+                <i class="fas fa-sms" style="font-size: 1.5rem; margin-bottom: 0.5rem;
+                    {% if x.sms %}{% if x.sms_enviado %}color:#16a34a;{% else %}color:#dc2626;{% endif %}{% else %}color:#94a3b8;{% endif %}"></i>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">SMS</div>
+                <div style="font-weight: 600;">
+                    {% if not x.sms %}
+                        <span style="color:#94a3b8;"><i class="fas fa-minus-circle"></i> Não solicitado</span>
+                    {% elif x.sms_enviado %}
+                        <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Enviado com sucesso</span>
+                    {% else %}
+                        <span style="color:#dc2626;"><i class="fas fa-times-circle"></i> Falhou</span>
+                    {% endif %}
+                </div>
             </div>
-            <div class="modern-card"
-                style="background: rgba(var(--primary-rgb), 0.05); border: 1px solid var(--primary-light); text-align: center; padding: 1rem;">
-                <i class="fas fa-envelope" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
-                    Status Email</div>
-                <div style="font-weight: 600; color: var(--text-main);">{% if x.email %}<i
-                        class="fas fa-check-circle text-success"></i> Enviado{% else %}<i
-                        class="fas fa-times-circle text-muted"></i> Não enviado{% endif %}</div>
+            <!-- Email -->
+            <div class="modern-card" style="text-align: center; padding: 1rem;
+                {% if x.email %}{% if x.email_enviado %}background:#f0fdf4;border:1px solid #86efac;{% else %}background:#fef2f2;border:1px solid #fca5a5;{% endif %}{% else %}background:#f8fafc;border:1px solid #e2e8f0;{% endif %}">
+                <i class="fas fa-envelope" style="font-size: 1.5rem; margin-bottom: 0.5rem;
+                    {% if x.email %}{% if x.email_enviado %}color:#16a34a;{% else %}color:#dc2626;{% endif %}{% else %}color:#94a3b8;{% endif %}"></i>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Email</div>
+                <div style="font-weight: 600;">
+                    {% if not x.email %}
+                        <span style="color:#94a3b8;"><i class="fas fa-minus-circle"></i> Não solicitado</span>
+                    {% elif x.email_enviado %}
+                        <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Enviado com sucesso</span>
+                    {% else %}
+                        <span style="color:#dc2626;"><i class="fas fa-times-circle"></i> Falhou</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

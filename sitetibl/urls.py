@@ -37,6 +37,7 @@ urlpatterns = [
     path('buscaenviomensagem/', views.encontraEnvioMensagem, name='busca_enviomensagem'),
     path('buscasolicitacoes/', views.encontraSolicitacoes, name='busca_solicitacoes'),
     path('enviomensagem/nova/', views.criarEnvioMensagem, name='criar_enviomensagem'),
+    path('enviomensagem/<int:pk>/reenviar/', views.reenviarEnvioMensagem, name='reenviar_enviomensagem'),
     path('buscabancos/', views.encontraBancos, name='busca_bancos'),
     path('buscaescalas/', views.encontraEscalas, name='busca_escalas'),
 
