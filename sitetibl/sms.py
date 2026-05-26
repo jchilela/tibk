@@ -70,10 +70,23 @@ def enviar_sms(telefones, mensagem):
                 logger.info('SMS enviado para %s', telefone)
                 ok = True
             else:
+                # Tentar extrair mensagem de erro do JSON da StrongX
+                try:
+                    erro = response.json()
+                    codigo = erro.get('error', 'erro_desconhecido')
+                    detalhe = erro.get('message', response.text)
+                except Exception:
+                    codigo = 'erro_desconhecido'
+                    detalhe = response.text
                 logger.error(
-                    'Falha SMS para %s — status %s: %s',
-                    telefone, response.status_code, response.text,
+                    'Falha SMS para %s — status %s [%s]: %s',
+                    telefone, response.status_code, codigo, detalhe,
                 )
+                # Erros conhecidos da StrongX
+                if codigo == 'insufficient_funds':
+                    raise RuntimeError(f'Saldo insuficiente na StrongX. {detalhe}')
+                raise RuntimeError(f'Erro StrongX [{codigo}]: {detalhe}')
         except requests.exceptions.RequestException as e:
-            logger.error('Erro SMS para %s: %s', telefone, e)
+            logger.error('Erro de ligação SMS para %s: %s', telefone, e)
+            raise RuntimeError(f'Erro de ligação ao enviar SMS: {e}')
     return ok

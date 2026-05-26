@@ -2554,13 +2554,19 @@ def criarEnvioMensagem(request):
             autor_nome = str(obj.quemenviou) if obj.quemenviou else ''
 
             # Enviar SMS
+            sms_ok = True
             if obj.sms and telefones:
                 try:
                     _enviar_sms(telefones, obj.mensagem)
                     logger.info('SMS massivo enviado para %d destinatários', len(telefones))
-                except Exception as e:
+                except RuntimeError as e:
+                    sms_ok = False
                     logger.error('Falha ao enviar SMS massivo: %s', e)
-                    messages.warning(request, 'Mensagem guardada, mas ocorreu um erro no envio de SMS.')
+                    messages.error(request, f'Erro no envio de SMS: {e}')
+                except Exception as e:
+                    sms_ok = False
+                    logger.error('Falha inesperada no envio de SMS: %s', e)
+                    messages.error(request, 'Erro inesperado no envio de SMS.')
 
             # Enviar Email
             if obj.email and emails_to:
@@ -2584,7 +2590,8 @@ def criarEnvioMensagem(request):
                     logger.error('Falha ao enviar emails massivos: %s', e)
                     messages.warning(request, 'Mensagem guardada, mas ocorreu um erro no envio de email.')
 
-            messages.success(request, f'Mensagem enviada com sucesso para {destinatarios.count()} destinatário(s).')
+            if sms_ok:
+                messages.success(request, f'Mensagem enviada com sucesso para {destinatarios.count()} destinatário(s).')
             return redirect(reverse('sitetibl:mostra_gestao', args=['enviomensagem', 1]))
         else:
             messages.error(request, 'Foram encontrados erros ao preencher o formulário.')
