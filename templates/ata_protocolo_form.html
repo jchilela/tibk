@@ -1,0 +1,240 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Ata de Protocolo - {{ actividade.designacao }} - TIBL{% endblock %}
+
+{% block content %}
+
+<div class="list-container">
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 2rem; display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; color: var(--text-muted);">
+        <a href="/tibl/actividades/detalhe/{{ actividade.id }}" style="color: var(--primary); text-decoration: none;">{{ actividade.designacao }}</a>
+        <span>/</span>
+        <span style="color: var(--text-main); font-weight: 600;">Ata de Protocolo</span>
+    </div>
+
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+            <div>
+                <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.3rem 0;">
+                    {% if ata %}Editar Ata {{ ata.numero }}{% else %}Gerar Nova Ata de Protocolo{% endif %}
+                </h1>
+                <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">
+                    {{ actividade.designacao }} - {{ actividade.data|date:"d M Y" }}
+                </p>
+            </div>
+            {% if ata %}
+            <div style="text-align: right;">
+                <span class="badge" style="background: {% if ata.estado == 'rascunho' %}#94a3b8{% elif ata.estado == 'finalizada' %}#3b82f6{% elif ata.estado == 'revisada' %}#f59e0b{% else %}#10b981{% endif %}; color: white; padding: 0.4rem 0.8rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
+                    {{ ata.get_estado_display }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <form method="POST" style="display: grid; gap: 1.5rem;">
+            {% csrf_token %}
+
+            <!-- Informações da Atividade -->
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0 0 1rem 0;">
+                    <i class="fas fa-info-circle" style="margin-right: 0.5rem; color: var(--primary);"></i>Informações da Atividade
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Atividade</label>
+                        <input type="text" value="{{ actividade.designacao }}" disabled style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; background: white;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Data Planejada</label>
+                        <input type="text" value="{{ actividade.data|date:'d/m/Y' }}" disabled style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; background: white;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Local Planejado</label>
+                        <input type="text" value="{% if actividade.localactividade %}{{ actividade.localactividade }}{% else %}Sede Principal{% endif %}" disabled style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; background: white;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Total Escalados</label>
+                        <input type="text" value="{{ escalas.count }}" disabled style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; background: white;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações da Realização -->
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0 0 1rem 0;">
+                    <i class="fas fa-calendar-check" style="margin-right: 0.5rem; color: var(--primary);"></i>Informações da Realização
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Data de Realização</label>
+                        <input type="date" name="data_realizacao" value="{% if ata %}{{ ata.data_realizacao|date:'Y-m-d' }}{% else %}{{ actividade.data|date:'Y-m-d' }}{% endif %}" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Hora Início (Real)</label>
+                        <input type="time" name="hora_inicio_real" value="{% if ata and ata.hora_inicio_real %}{{ ata.hora_inicio_real|time:'H:i' }}{% endif %}" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Hora Fim (Real)</label>
+                        <input type="time" name="hora_fim_real" value="{% if ata and ata.hora_fim_real %}{{ ata.hora_fim_real|time:'H:i' }}{% endif %}" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Local Realizado</label>
+                    <input type="text" name="local_realizado" value="{% if ata %}{{ ata.local_realizado }}{% else %}{{ actividade.localactividade }}{% endif %}" placeholder="Especifique o local onde a atividade foi realizada" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+                </div>
+            </div>
+
+            <!-- Participação -->
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0 0 1rem 0;">
+                    <i class="fas fa-users" style="margin-right: 0.5rem; color: var(--primary);"></i>Registro de Participação
+                </h3>
+
+                {% if escalas %}
+                <div style="overflow-x: auto; margin-top: 1rem;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead style="background: #e2e8f0; border-bottom: 2px solid #cbd5e1;">
+                            <tr>
+                                <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: var(--text-main);">Irmão</th>
+                                <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: var(--text-main);">Função</th>
+                                <th style="padding: 0.75rem; text-align: center; font-weight: 600; color: var(--text-main);">Presente</th>
+                                <th style="padding: 0.75rem; text-align: center; font-weight: 600; color: var(--text-main);">Ausente</th>
+                                <th style="padding: 0.75rem; text-align: center; font-weight: 600; color: var(--text-main);">Justificado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for escala in escalas %}
+                            <tr style="border-bottom: 1px solid #e2e8f0; background: {% cycle 'white' '#f8fafc' %};">
+                                <td style="padding: 0.75rem; font-weight: 500; color: var(--text-main);">{{ escala.irmao.nome }} {{ escala.irmao.apelido }}</td>
+                                <td style="padding: 0.75rem; color: var(--text-muted);">{{ escala.funcao.designacao }}</td>
+                                <td style="padding: 0.75rem; text-align: center;">
+                                    <input type="checkbox" name="irmaos_presentes[]" value="{{ escala.irmao.id }}" class="presenca-checkbox" style="cursor: pointer;">
+                                </td>
+                                <td style="padding: 0.75rem; text-align: center;">
+                                    <input type="checkbox" name="irmaos_ausentes[]" value="{{ escala.irmao.id }}" class="presenca-checkbox" style="cursor: pointer;">
+                                </td>
+                                <td style="padding: 0.75rem; text-align: center;">
+                                    <input type="checkbox" name="irmaos_justificado[]" value="{{ escala.irmao.id }}" class="presenca-checkbox" style="cursor: pointer;">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Total Presentes</label>
+                        <input type="number" name="total_presentes" value="{% if ata %}{{ ata.total_presentes }}{% endif %}" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px;" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Total Ausentes</label>
+                        <input type="number" name="total_ausentes" value="{% if ata %}{{ ata.total_ausentes }}{% endif %}" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px;" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Estado</label>
+                        <select name="estado" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            <option value="rascunho" {% if not ata or ata.estado == 'rascunho' %}selected{% endif %}>Rascunho</option>
+                            <option value="finalizada" {% if ata and ata.estado == 'finalizada' %}selected{% endif %}>Finalizada</option>
+                            <option value="revisada" {% if ata and ata.estado == 'revisada' %}selected{% endif %}>Revisada</option>
+                            <option value="assinada" {% if ata and ata.estado == 'assinada' %}selected{% endif %}>Assinada</option>
+                        </select>
+                    </div>
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); font-style: italic;">Nenhum irmão escalado para esta atividade.</p>
+                {% endif %}
+            </div>
+
+            <!-- Observações -->
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0 0 1rem 0;">
+                    <i class="fas fa-align-left" style="margin-right: 0.5rem; color: var(--primary);"></i>Observações e Análise
+                </h3>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Resumo da Atividade</label>
+                    <textarea name="resumo_atividade" placeholder="Descreva brevemente como a atividade se desenvolveu..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; min-height: 100px; font-family: inherit; font-size: 0.9rem;">{% if ata %}{{ ata.resumo_atividade }}{% endif %}</textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Pontos Positivos</label>
+                        <textarea name="pontos_positivos" placeholder="Quais foram os pontos positivos..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; min-height: 80px; font-family: inherit; font-size: 0.9rem;">{% if ata %}{{ ata.pontos_positivos }}{% endif %}</textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Pontos a Melhorar</label>
+                        <textarea name="pontos_melhorar" placeholder="O que pode ser melhorado..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; min-height: 80px; font-family: inherit; font-size: 0.9rem;">{% if ata %}{{ ata.pontos_melhorar }}{% endif %}</textarea>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Ações Próximas</label>
+                    <textarea name="acoes_proximas" placeholder="Quais são as ações a tomar no futuro..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; min-height: 80px; font-family: inherit; font-size: 0.9rem;">{% if ata %}{{ ata.acoes_proximas }}{% endif %}</textarea>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.5rem;">Observações Gerais</label>
+                    <textarea name="observacoes" placeholder="Observações adicionais..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; min-height: 80px; font-family: inherit; font-size: 0.9rem;">{% if ata %}{{ ata.observacoes }}{% endif %}</textarea>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <a href="/tibl/actividades/detalhe/{{ actividade.id }}" class="bt-primary" style="background: #94a3b8; color: white; padding: 0.8rem 1.5rem; border-radius: var(--radius-sm); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                
+                {% if ata %}
+                <a href="/tibl/ata-protocolo/{{ ata.id }}/pdf/" class="bt-primary" style="background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: var(--radius-sm); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-file-pdf"></i> Gerar PDF
+                </a>
+                {% endif %}
+                
+                <button type="submit" class="bt-primary" style="background: var(--primary); color: white; padding: 0.8rem 1.5rem; border: none; border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1rem;">
+                    <i class="fas fa-save"></i> Guardar Ata
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Sincronizar checkboxes de presença
+document.querySelectorAll('.presenca-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const irmaoId = this.value;
+        const tipo = this.name.split('[')[0].replace('irmaos_', '');
+        
+        // Desmarcar outros tipos para este irmão
+        document.querySelectorAll(`input[type="checkbox"][value="${irmaoId}"]`).forEach(cb => {
+            if (cb.name !== this.name && cb.checked) {
+                cb.checked = false;
+            }
+        });
+    });
+});
+
+// Atualizar totais automaticamente
+function atualizarTotais() {
+    const presentes = document.querySelectorAll('input[name="irmaos_presentes[]"]:checked').length;
+    const ausentes = document.querySelectorAll('input[name="irmaos_ausentes[]"]:checked').length;
+    
+    document.querySelector('input[name="total_presentes"]').value = presentes;
+    document.querySelector('input[name="total_ausentes"]').value = ausentes;
+}
+
+document.querySelectorAll('.presenca-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', atualizarTotais);
+});
+</script>
+
+{% endblock %}

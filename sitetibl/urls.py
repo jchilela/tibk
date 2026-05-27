@@ -36,6 +36,7 @@ urlpatterns = [
     path('buscaconteudoensino/', views.encontraConteudoEnsino, name='busca_conteudoensino'),
     path('buscaenviomensagem/', views.encontraEnvioMensagem, name='busca_enviomensagem'),
     path('buscasolicitacoes/', views.encontraSolicitacoes, name='busca_solicitacoes'),
+    path('buscaprotocolo/', views.encontraProtocolo, name='busca_protocolo'),
     path('enviomensagem/nova/', views.criarEnvioMensagem, name='criar_enviomensagem'),
     path('buscabancos/', views.encontraBancos, name='busca_bancos'),
     path('buscaescalas/', views.encontraEscalas, name='busca_escalas'),
@@ -59,6 +60,12 @@ urlpatterns = [
 
     # Calendário de actividades
     path('actividades/calendario/', views.actividades_calendario, name='actividades_calendario'),
+
+    # Atas de Protocolo
+    path('ata-protocolo/gerar/<int:actividade_id>/', views.gerar_ata_protocolo, name='gerar_ata_protocolo'),
+    path('ata-protocolo/<int:ata_id>/detalhe/', views.detalhe_ata_protocolo, name='detalhe_ata_protocolo'),
+    path('ata-protocolo/<int:ata_id>/pdf/', views.gerar_pdf_ata_protocolo, name='gerar_pdf_ata_protocolo'),
+    path('ata-protocolo/<int:ata_id>/excluir/', views.excluir_ata_protocolo, name='excluir_ata_protocolo'),
 
     # Rotas legadas preservadas para compatibilidade entre branches
     path('contasbancarias/inativar/<int:id>/', views.inativaContabancaria, name='inativaContabancaria'),

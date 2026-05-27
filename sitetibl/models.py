@@ -1060,3 +1060,77 @@ class Protocolo(models.Model):
 
     def __str__(self):
         return f'{self.numero} - {self.assunto}'
+
+
+class AtaProtocolo(models.Model):
+    """Ata de protocolo gerada após uma atividade com registro de participantes e observações."""
+    
+    ESTADO_CHOICES = [
+        ('rascunho', 'Rascunho'),
+        ('finalizada', 'Finalizada'),
+        ('revisada', 'Revisada'),
+        ('assinada', 'Assinada'),
+    ]
+    
+    actividade = models.OneToOneField(Actividade, on_delete=models.CASCADE, related_name='ata_protocolo', verbose_name='Atividade')
+    numero = models.CharField('Número da Ata', max_length=50, unique=True)
+    responsavel = models.ForeignKey(Irmao, on_delete=models.SET_NULL, null=True, blank=True, related_name='atas_responsavel', verbose_name='Responsável')
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_CHOICES, default='rascunho')
+    
+    # Informações da realização
+    data_realizacao = models.DateField('Data de Realização', blank=True, null=True)
+    hora_inicio_real = models.TimeField('Hora de Início (Real)', blank=True, null=True)
+    hora_fim_real = models.TimeField('Hora de Fim (Real)', blank=True, null=True)
+    local_realizado = models.CharField('Local Realizado', max_length=200, blank=True)
+    
+    # Participação
+    total_escalados = models.IntegerField('Total de Escalados', default=0)
+    total_presentes = models.IntegerField('Total de Presentes', default=0)
+    total_ausentes = models.IntegerField('Total de Ausentes', default=0)
+    
+    # Observações
+    resumo_atividade = models.TextField('Resumo da Atividade', blank=True)
+    observacoes = models.TextField('Observações Gerais', blank=True)
+    pontos_positivos = models.TextField('Pontos Positivos', blank=True)
+    pontos_melhorar = models.TextField('Pontos a Melhorar', blank=True)
+    
+    # Decisões e ações
+    acoes_proximas = models.TextField('Ações Próximas', blank=True)
+    
+    # Controle
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    criada_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='atas_criadas', verbose_name='Criada por')
+    
+    class Meta:
+        ordering = ['-data_realizacao']
+        verbose_name = 'Ata de Protocolo'
+        verbose_name_plural = 'Atas de Protocolo'
+    
+    def __str__(self):
+        return f'Ata {self.numero} - {self.actividade}'
+
+
+class ParticipanteAtaProtocolo(models.Model):
+    """Registro de participação de um irmão numa ata de protocolo."""
+    
+    PRESENCA_CHOICES = [
+        ('presente', 'Presente'),
+        ('ausente', 'Ausente'),
+        ('justificado', 'Ausente Justificado'),
+    ]
+    
+    ata = models.ForeignKey(AtaProtocolo, on_delete=models.CASCADE, related_name='participantes', verbose_name='Ata')
+    irmao = models.ForeignKey(Irmao, on_delete=models.CASCADE, related_name='participacoes_ata', verbose_name='Irmão')
+    funcao = models.ForeignKey(Funcao, on_delete=models.SET_NULL, null=True, blank=True, related_name='participacoes_ata', verbose_name='Função')
+    presenca = models.CharField('Presença', max_length=20, choices=PRESENCA_CHOICES, default='presente')
+    observacao = models.TextField('Observação', blank=True)
+    
+    class Meta:
+        ordering = ['irmao__nome']
+        verbose_name = 'Participante de Ata'
+        verbose_name_plural = 'Participantes de Ata'
+        unique_together = ['ata', 'irmao']
+    
+    def __str__(self):
+        return f'{self.irmao} - {self.ata}'

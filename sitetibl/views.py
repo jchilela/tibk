@@ -90,6 +90,8 @@ from sitetibl.models import AlertaPastoral
 from sitetibl.models import VisitanteRecorrente
 from sitetibl.models import Celula
 from sitetibl.models import Protocolo
+from sitetibl.models import AtaProtocolo
+from sitetibl.models import ParticipanteAtaProtocolo
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
@@ -2675,6 +2677,30 @@ def encontraEscalas(request):
 
 
 @login_required
+def encontraProtocolo(request):
+    """Busca e filtra protocolos por status e tipo"""
+    statusv = request.GET.get('statusv', '0').strip()
+    tipov = request.GET.get('tipov', '0').strip()
+    pagina = request.GET.get('pagina', 1)
+    
+    kwargs = {}
+    if statusv and statusv != '0':
+        kwargs['status'] = statusv
+    if tipov and tipov != '0':
+        kwargs['tipo'] = tipov
+    
+    resultado = Protocolo.objects.filter(**kwargs).select_related('responsavel').order_by('-data_entrada')
+    paginador = Paginator(resultado, 20)
+    paginaresultado = paginador.get_page(pagina)
+    
+    return render(request, 'protocolo.html', {
+        'bb': paginaresultado,
+        'statusv_sel': statusv,
+        'tipov_sel': tipov,
+    })
+
+
+@login_required
 def criar_actividades_recorrentes(request):
     """Cria múltiplas actividades para uma série semanal recorrente."""
     if not request.user.has_perm('sitetibl.add_actividade'):
@@ -4905,3 +4931,322 @@ def relatorio_inactivos_pdf(request):
     elements.append(t)
     doc.build(elements)
     return response
+
+
+# ═══════════════════════════════════════════════════════════════
+# GERAÇÃO E GESTÃO DE ATAS DE PROTOCOLO
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+@permission_required('sitetibl.add_ataprotocolo', raise_exception=True)
+def gerar_ata_protocolo(request, actividade_id):
+    """Gera ou edita uma ata de protocolo para uma atividade."""
+    from django.utils import timezone
+    from datetime import datetime
+    
+    actividade = get_object_or_404(Actividade, id=actividade_id)
+    
+    # Verificar se a ata já existe
+    ata = AtaProtocolo.objects.filter(actividade=actividade).first()
+    
+    if request.method == 'POST':
+        if not ata:
+            # Gerar número automaticamente: ATA-YYYYMMDD-HHMMSS
+            numero_ata = f"ATA-{timezone.now().strftime('%Y%m%d-%H%M%S')}"
+            ata = AtaProtocolo.objects.create(
+                actividade=actividade,
+                numero=numero_ata,
+                responsavel=Irmao.objects.filter(user=request.user).first(),
+                criada_por=request.user,
+                data_realizacao=actividade.data,
+                total_escalados=actividade.escalas.count() if hasattr(actividade, 'escalas') else 0,
+            )
+        
+        # Atualizar dados da ata
+        ata.resumo_atividade = request.POST.get('resumo_atividade', '')
+        ata.observacoes = request.POST.get('observacoes', '')
+        ata.pontos_positivos = request.POST.get('pontos_positivos', '')
+        ata.pontos_melhorar = request.POST.get('pontos_melhorar', '')
+        ata.acoes_proximas = request.POST.get('acoes_proximas', '')
+        ata.total_presentes = int(request.POST.get('total_presentes', 0))
+        ata.total_ausentes = int(request.POST.get('total_ausentes', 0))
+        
+        if request.POST.get('hora_inicio_real'):
+            try:
+                ata.hora_inicio_real = datetime.strptime(request.POST.get('hora_inicio_real'), '%H:%M').time()
+            except:
+                pass
+        
+        if request.POST.get('hora_fim_real'):
+            try:
+                ata.hora_fim_real = datetime.strptime(request.POST.get('hora_fim_real'), '%H:%M').time()
+            except:
+                pass
+        
+        ata.local_realizado = request.POST.get('local_realizado', '') or str(actividade.localactividade)
+        
+        # Atualizar estado
+        novo_estado = request.POST.get('estado', 'rascunho')
+        ata.estado = novo_estado
+        ata.save()
+        
+        # Atualizar participantes
+        irmaos_presentes = request.POST.getlist('irmaos_presentes[]')
+        irmaos_ausentes = request.POST.getlist('irmaos_ausentes[]')
+        irmaos_justificado = request.POST.getlist('irmaos_justificado[]')
+        
+        # Limpar participantes anteriores
+        ata.participantes.all().delete()
+        
+        # Adicionar participantes
+        escalas = Escala.objects.filter(actividade=actividade)
+        for escala in escalas:
+            presenca = 'presente' if str(escala.irmao_id) in irmaos_presentes else \
+                       'justificado' if str(escala.irmao_id) in irmaos_justificado else 'ausente'
+            
+            ParticipanteAtaProtocolo.objects.create(
+                ata=ata,
+                irmao=escala.irmao,
+                funcao=escala.funcao,
+                presenca=presenca,
+            )
+        
+        messages.success(request, f'Ata de protocolo {ata.numero} atualizada com sucesso!')
+        return redirect('sitetibl:detalhe_ata_protocolo', ata_id=ata.id)
+    
+    # GET - Exibir formulário
+    escalas = Escala.objects.filter(actividade=actividade).select_related('irmao', 'funcao')
+    
+    context = {
+        'actividade': actividade,
+        'ata': ata,
+        'escalas': escalas,
+        'titulo': f'Ata de Protocolo - {actividade.designacao}',
+    }
+    return render(request, 'ata_protocolo_form.html', context)
+
+
+@login_required
+@permission_required('sitetibl.view_ataprotocolo', raise_exception=True)
+def detalhe_ata_protocolo(request, ata_id):
+    """Exibe detalhes de uma ata de protocolo."""
+    ata = get_object_or_404(AtaProtocolo, id=ata_id)
+    
+    context = {
+        'ata': ata,
+        'actividade': ata.actividade,
+        'participantes': ata.participantes.all().select_related('irmao', 'funcao'),
+        'titulo': f'Ata de Protocolo {ata.numero}',
+    }
+    return render(request, 'ata_protocolo_detalhe.html', context)
+
+
+@login_required
+@permission_required('sitetibl.view_ataprotocolo', raise_exception=True)
+def gerar_pdf_ata_protocolo(request, ata_id):
+    """Gera PDF da ata de protocolo."""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+    import os
+    
+    ata = get_object_or_404(AtaProtocolo, id=ata_id)
+    actividade = ata.actividade
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="ata_protocolo_{ata.numero}.pdf"'
+    
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=2 * cm,
+        leftMargin=2 * cm,
+        topMargin=2 * cm,
+        bottomMargin=2 * cm,
+        title=f'Ata de Protocolo {ata.numero}',
+        author='TIBL'
+    )
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Estilos personalizados
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        textColor=colors.HexColor('#1e3a5f'),
+        spaceAfter=12,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold',
+    )
+    
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=colors.HexColor('#2c5aa0'),
+        spaceAfter=8,
+        fontName='Helvetica-Bold',
+    )
+    
+    normal_style = ParagraphStyle(
+        'Normal',
+        fontSize=10,
+        leading=12,
+        alignment=TA_JUSTIFY,
+    )
+    
+    # Logo
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        from reportlab.platypus import Image
+        logo = Image(logo_path, width=60, height=60)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+    
+    elements.append(Spacer(1, 0.5 * cm))
+    
+    # Título
+    elements.append(Paragraph('ATA DE PROTOCOLO', title_style))
+    elements.append(Paragraph(f'Nº {ata.numero}', styles['Normal']))
+    elements.append(Spacer(1, 0.8 * cm))
+    
+    # Informações da atividade
+    elements.append(Paragraph('INFORMAÇÕES DA ATIVIDADE', heading_style))
+    atividade_data = [
+        ['Atividade:', str(actividade.designacao)],
+        ['Data Planejada:', actividade.data.strftime('%d/%m/%Y') if actividade.data else '—'],
+        ['Local:', str(actividade.localactividade) if actividade.localactividade else '—'],
+        ['Data de Realização:', ata.data_realizacao.strftime('%d/%m/%Y') if ata.data_realizacao else '—'],
+        ['Local Realizado:', ata.local_realizado or '—'],
+    ]
+    
+    table = Table(atividade_data, colWidths=[3 * cm, 12 * cm])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e8f0f8')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(table)
+    elements.append(Spacer(1, 0.5 * cm))
+    
+    # Participação
+    elements.append(Paragraph('PARTICIPAÇÃO', heading_style))
+    participacao_data = [
+        ['Total Escalados', 'Total Presentes', 'Total Ausentes', 'Taxa Presença'],
+        [
+            str(ata.total_escalados),
+            str(ata.total_presentes),
+            str(ata.total_ausentes),
+            f"{int(ata.total_presentes * 100 / ata.total_escalados) if ata.total_escalados else 0}%"
+        ]
+    ]
+    
+    table = Table(participacao_data, colWidths=[3.5 * cm, 3.5 * cm, 3.5 * cm, 3.5 * cm])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c5aa0')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ]))
+    elements.append(table)
+    elements.append(Spacer(1, 0.5 * cm))
+    
+    # Lista de participantes
+    if ata.participantes.exists():
+        elements.append(Paragraph('LISTA DE PARTICIPANTES', heading_style))
+        
+        participantes_data = [['Irmão', 'Função', 'Presença']]
+        for part in ata.participantes.all():
+            participantes_data.append([
+                f'{part.irmao.nome} {part.irmao.apelido}',
+                str(part.funcao) if part.funcao else '—',
+                part.get_presenca_display(),
+            ])
+        
+        table = Table(participantes_data, colWidths=[6 * cm, 4 * cm, 3 * cm])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c5aa0')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f4f8')]),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 0.5 * cm))
+    
+    # Observações
+    if ata.resumo_atividade:
+        elements.append(Paragraph('RESUMO DA ATIVIDADE', heading_style))
+        elements.append(Paragraph(ata.resumo_atividade, normal_style))
+        elements.append(Spacer(1, 0.3 * cm))
+    
+    if ata.pontos_positivos:
+        elements.append(Paragraph('PONTOS POSITIVOS', heading_style))
+        elements.append(Paragraph(ata.pontos_positivos, normal_style))
+        elements.append(Spacer(1, 0.3 * cm))
+    
+    if ata.pontos_melhorar:
+        elements.append(Paragraph('PONTOS A MELHORAR', heading_style))
+        elements.append(Paragraph(ata.pontos_melhorar, normal_style))
+        elements.append(Spacer(1, 0.3 * cm))
+    
+    if ata.acoes_proximas:
+        elements.append(Paragraph('AÇÕES PRÓXIMAS', heading_style))
+        elements.append(Paragraph(ata.acoes_proximas, normal_style))
+        elements.append(Spacer(1, 0.3 * cm))
+    
+    if ata.observacoes:
+        elements.append(Paragraph('OBSERVAÇÕES GERAIS', heading_style))
+        elements.append(Paragraph(ata.observacoes, normal_style))
+    
+    # Rodapé
+    elements.append(Spacer(1, 1 * cm))
+    elementos_rodape = []
+    
+    if ata.responsavel:
+        elementos_rodape.append(Paragraph(
+            f'Responsável: {ata.responsavel.nome} {ata.responsavel.apelido}',
+            ParagraphStyle('footer', fontSize=9, textColor=colors.grey)
+        ))
+    
+    elementos_rodape.append(Paragraph(
+        f'Data de Criação: {ata.data_criacao.strftime("%d/%m/%Y %H:%M")}',
+        ParagraphStyle('footer', fontSize=9, textColor=colors.grey)
+    ))
+    
+    for elem in elementos_rodape:
+        elements.append(elem)
+    
+    doc.build(elements)
+    return response
+
+
+@login_required
+@permission_required('sitetibl.delete_ataprotocolo', raise_exception=True)
+def excluir_ata_protocolo(request, ata_id):
+    """Exclui uma ata de protocolo."""
+    ata = get_object_or_404(AtaProtocolo, id=ata_id)
+    actividade_id = ata.actividade_id
+    
+    if request.method == 'POST':
+        ata.delete()
+        messages.success(request, 'Ata de protocolo excluída com sucesso!')
+        return redirect('sitetibl:detalhe_actividade', actividade_id=actividade_id)
+    
+    context = {
+        'ata': ata,
+        'titulo': f'Excluir Ata de Protocolo {ata.numero}',
+    }
+    return render(request, 'confirmar_exclusao_ata.html', context)
