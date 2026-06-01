@@ -1,4 +1,4 @@
-﻿{% extends 'index.html' %}
+{% extends 'index.html' %}
 {% block Actividades%}
 {% load ajudatotal %}
 
@@ -55,9 +55,21 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Cronograma de
-            Actividades</h2>
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">
+            {% if mostrar_historico %}Histórico de Actividades{% else %}Cronograma de Actividades{% endif %}
+        </h2>
         <div style="display: flex; gap: 0.75rem; align-items: center;">
+            {% if mostrar_historico %}
+            <a href="/tibl/gestao/actividades/1/" class="bt-secondary"
+                style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: #f1f5f9; color: #475569;">
+                <i class="fas fa-calendar-alt"></i> Ver Cronograma
+            </a>
+            {% else %}
+            <a href="/tibl/gestao/actividades/1/?historico=1" class="bt-secondary"
+                style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: #f1f5f9; color: #475569;">
+                <i class="fas fa-history"></i> Ver Histórico
+            </a>
+            {% endif %}
             {% if perms.sitetibl.view_actividade %}
             <a href="{% url 'sitetibl:actividades_calendario' %}" class="bt-secondary"
                 style="padding: 0.5rem 1.2rem; font-size: 0.9rem;">
@@ -171,34 +183,7 @@
         {% endfor %}
     </div>
 
-    <div id="past-activities-toggle" style="display:none; text-align:center; margin: 1rem 0;">
-        <button id="btn-toggle-passadas" onclick="togglePassadas()"
-            style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 0.5rem 1.5rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
-            <i class="fas fa-history" style="margin-right: 0.4rem;"></i>
-            <span id="btn-passadas-label">Mostrar actividades passadas</span>
-        </button>
-    </div>
-    <script>
-    (function() {
-        var cards = document.querySelectorAll('[data-past="true"]');
-        if (!cards.length) return;
-        cards.forEach(function(c) { c.style.display = 'none'; });
-        var btn = document.getElementById('past-activities-toggle');
-        if (btn) {
-            btn.style.display = 'block';
-            document.getElementById('btn-passadas-label').textContent = 'Mostrar ' + cards.length + ' actividade(s) passada(s)';
-        }
-    })();
-    function togglePassadas() {
-        var cards = document.querySelectorAll('[data-past="true"]');
-        var label = document.getElementById('btn-passadas-label');
-        var hidden = cards[0].style.display === 'none';
-        cards.forEach(function(c) { c.style.display = hidden ? '' : 'none'; });
-        label.textContent = hidden
-            ? 'Ocultar actividades passadas'
-            : 'Mostrar ' + cards.length + ' actividade(s) passada(s)';
-    }
-    </script>
+
     <div style="margin-top: 2rem;">
         {% include 'paginacao.html' %}
     </div>

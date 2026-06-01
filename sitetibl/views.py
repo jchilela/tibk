@@ -1,4 +1,4 @@
-﻿# Create your views here.
+# Create your views here.
 from django.contrib import admin, messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaulttags import register
@@ -126,6 +126,7 @@ from sitetibl.forms import ActividadesRecorrentesForm
 from sitetibl.forms import SolicitacaoForm, SolicitacaoUpdateForm
 from sitetibl.forms import CasoPastoralForm, CasoPastoralUpdateForm
 from sitetibl.forms import RegistoAcompanhamentoForm
+from sitetibl.forms import VisitanteRecorrenteForm
 from django.contrib.auth import update_session_auth_hash
 from datetime import timedelta
 
@@ -556,13 +557,11 @@ def mostraGestao(request,gestaoescolhida,pagina):
             'funcao__designacao',
         )
     elif gestaoescolhida == 'actividades':
-        resultado = lista[gestaoescolhida].all().annotate(
-            is_passado=Case(
-                When(data__lt=date.today(), then=Value(1)),
-                default=Value(0),
-                output_field=IntegerField(),
-            )
-        ).order_by('is_passado', 'data')
+        mostrar_historico = request.GET.get('historico') == '1'
+        if mostrar_historico:
+            resultado = lista[gestaoescolhida].filter(data__lt=date.today()).order_by('-data')
+        else:
+            resultado = lista[gestaoescolhida].filter(data__gte=date.today()).order_by('data')
     elif gestaoescolhida == 'dizimosofertas':
         _do_nomev = request.GET.get('nomev', '').strip()
         _do_apelidov = request.GET.get('apelidov', '').strip()
@@ -584,9 +583,10 @@ def mostraGestao(request,gestaoescolhida,pagina):
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
-    paginaresultado = paginador.get_page(pagina)
+    pagina_final = request.GET.get('pagina', pagina)
+    paginaresultado = paginador.get_page(pagina_final)
     if (gestaoescolhida == 'ajudas') or (gestaoescolhida == 'cestas') or (gestaoescolhida == 'actividades'):
-        context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao'), 'hoje': date.today() }
+        context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao'), 'hoje': date.today(), 'mostrar_historico': request.GET.get('historico') == '1' }
     elif gestaoescolhida == 'departamentos':
         context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'funcao_choices': Mandato.FUNCAO_CHOICES}
     elif gestaoescolhida == 'contasbancarias':
@@ -677,7 +677,8 @@ def mostraGestao(request,gestaoescolhida,pagina):
         context = { 'bb':paginaresultado, 'listameses' : MESES }
 
     paginador = Paginator(resultado, 20)
-    paginaresultado = paginador.get_page(pagina)
+    pagina_final = request.GET.get('pagina', pagina)
+    paginaresultado = paginador.get_page(pagina_final)
     return render(request, gestaoescolhida + '.html', context)
 
 
@@ -895,6 +896,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'todos_irmaos': todos_irmaos,
             'departamentos': departamentos,
             'irmao_depts_json': json.dumps({str(k): v for k, v in _irmao_depts.items()}),
+            'tem_protocolo': escalas_da_actividade.filter(eh_protocolo=True).exists(),
         }
     elif gestaoescolhida == 'departamentos':
         mandatos_departamento = (
@@ -4652,6 +4654,181 @@ def relatorio_inactivos_pdf(request):
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
     ]))
     elements.append(t)
+    doc.build(elements)
+    return response
+
+
+@login_required
+def acta_actividade_pdf(request, actividade_id):
+    actividade = get_object_or_404(Actividade, id=actividade_id)
+    escalas_protocolo = Escala.objects.filter(actividade=actividade, eh_protocolo=True)
+    if not escalas_protocolo.exists():
+        messages.error(request, 'Esta actividade não possui uma escala de protocolo associada.')
+        return redirect('sitetibl:mostra_detalhe', gestaoescolhida='actividades', identificador=actividade_id)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="acta_actividade_{actividade_id}.pdf"'
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=2 * cm,
+        leftMargin=2 * cm,
+        topMargin=2 * cm,
+        bottomMargin=2 * cm,
+        title=f"Acta de Actividade - {actividade_id}",
+        author="Sistema TIBL"
+    )
+
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'ActaTitle',
+        parent=styles['Title'],
+        fontSize=18,
+        leading=22,
+        textColor=colors.HexColor('#1e3a5f'),
+        alignment=1, # Center
+        spaceAfter=15
+    )
+    
+    section_heading = ParagraphStyle(
+        'ActaSection',
+        parent=styles['Heading2'],
+        fontSize=12,
+        leading=15,
+        textColor=colors.HexColor('#548c2f'),
+        spaceBefore=12,
+        spaceAfter=6,
+        keepWithNext=True
+    )
+    
+    body_style = ParagraphStyle(
+        'ActaBody',
+        parent=styles['Normal'],
+        fontSize=10,
+        leading=14,
+        textColor=colors.HexColor('#333333'),
+        spaceAfter=4
+    )
+    
+    meta_label_style = ParagraphStyle(
+        'ActaMetaLabel',
+        parent=styles['Normal'],
+        fontSize=10,
+        leading=14,
+        fontName='Helvetica-Bold',
+        textColor=colors.HexColor('#1e3a5f')
+    )
+
+    elements = []
+
+    # Logo
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=70, height=70)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+        elements.append(Paragraph("<br/>", styles['Normal']))
+
+    # Title
+    elements.append(Paragraph("<b>ACTA DE ACTIVIDADE DE PROTOCOLO</b>", title_style))
+    elements.append(Paragraph("<hr color='#1e3a5f' width='100%'/>", styles['Normal']))
+    elements.append(Paragraph("<br/>", styles['Normal']))
+
+    # Info Table
+    info_data = [
+        [Paragraph("<b>Actividade:</b>", meta_label_style), Paragraph(str(actividade.designacao), body_style)],
+        [Paragraph("<b>Tema:</b>", meta_label_style), Paragraph(actividade.tema or 'Não especificado', body_style)],
+        [Paragraph("<b>Data:</b>", meta_label_style), Paragraph(actividade.data.strftime('%d/%m/%Y'), body_style)],
+        [Paragraph("<b>Horário:</b>", meta_label_style), Paragraph(f"{actividade.inicio.strftime('%H:%M')} às {actividade.fim.strftime('%H:%M')}", body_style)],
+        [Paragraph("<b>Local:</b>", meta_label_style), Paragraph(str(actividade.localactividade or 'Sede'), body_style)],
+        [Paragraph("<b>Total Presentes:</b>", meta_label_style), Paragraph(str(actividade.totalpresentes), body_style)]
+    ]
+    
+    info_table = Table(info_data, colWidths=[4 * cm, 13 * cm])
+    info_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
+    ]))
+    elements.append(info_table)
+    elements.append(Paragraph("<br/>", styles['Normal']))
+
+    # Spiritual Section
+    elements.append(Paragraph("Conteúdo Espiritual", section_heading))
+    esp_data = [
+        [Paragraph("<b>Versos Bíblicos:</b>", meta_label_style), Paragraph(actividade.versosbiblicos or 'Não especificado', body_style)],
+        [Paragraph("<b>Hinos:</b>", meta_label_style), Paragraph(actividade.hinos or 'Não especificado', body_style)],
+    ]
+    esp_table = Table(esp_data, colWidths=[4 * cm, 13 * cm])
+    esp_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
+    ]))
+    elements.append(esp_table)
+    elements.append(Paragraph("<br/>", styles['Normal']))
+
+    # Protocol Team
+    elements.append(Paragraph("Equipa de Protocolo Escalada", section_heading))
+    
+    # Gather brothers
+    irmaos_set = set()
+    for esc in escalas_protocolo.prefetch_related('irmao_protocolo', 'irmao'):
+        if esc.irmao:
+            irmaos_set.add(esc.irmao)
+        for i in esc.irmao_protocolo.all():
+            irmaos_set.add(i)
+
+    team_data = [[
+        Paragraph("<b>Nome Completo</b>", meta_label_style),
+        Paragraph("<b>Telefone</b>", meta_label_style),
+        Paragraph("<b>Célula</b>", meta_label_style)
+    ]]
+
+    for irmao in sorted(irmaos_set, key=lambda x: x.nome):
+        team_data.append([
+            Paragraph(f"{irmao.nome} {irmao.apelido}", body_style),
+            Paragraph(irmao.telefone or '—', body_style),
+            Paragraph(str(irmao.celula) if irmao.celula else '—', body_style)
+        ])
+
+    team_table = Table(team_data, colWidths=[8 * cm, 4 * cm, 5 * cm])
+    team_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f8fafc')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+    ]))
+    elements.append(team_table)
+    elements.append(Paragraph("<br/>", styles['Normal']))
+
+    # Observations / Report Section
+    elements.append(Paragraph("Relatório / Observações da Actividade", section_heading))
+    obs_text = actividade.observacao or "Nenhuma observação ou ocorrência registada para esta actividade."
+    elements.append(Paragraph(obs_text, body_style))
+    elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+    # Signatures
+    sig_data = [
+        [
+            Paragraph("<hr color='#cbd5e1' width='80%'/><b>Responsável pelo Protocolo</b>", ParagraphStyle('sig', parent=styles['Normal'], alignment=1)),
+            Paragraph("<hr color='#cbd5e1' width='80%'/><b>Líder da Actividade / Culto</b>", ParagraphStyle('sig', parent=styles['Normal'], alignment=1))
+        ]
+    ]
+    sig_table = Table(sig_data, colWidths=[8.5 * cm, 8.5 * cm])
+    sig_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 20),
+    ]))
+    elements.append(sig_table)
+
     doc.build(elements)
     return response
 
