@@ -50,7 +50,6 @@ from sitetibl.models import SolicitacaoInterdepartamental
 from sitetibl.models import HistoricoSolicitacao
 from sitetibl.models import NotificacaoSistema
 from sitetibl.models import ComentarioSolicitacao
-from sitetibl.models import Protocolo
 from .forms import IrmaoForm
 
 @admin.register(Irmao)
@@ -105,7 +104,6 @@ admin.site.register(SolicitacaoInterdepartamental)
 admin.site.register(HistoricoSolicitacao)
 admin.site.register(NotificacaoSistema)
 admin.site.register(ComentarioSolicitacao)
-admin.site.register(Protocolo)
 
 
 class MunicipioInline(admin.TabularInline):

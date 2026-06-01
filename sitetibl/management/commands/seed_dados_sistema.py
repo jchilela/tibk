@@ -101,7 +101,6 @@ class Command(BaseCommand):
             'Noivo(a)',
             'Responsável',
             'Regente',
-            'Protocolo',
             'Dirigente',
             'Pregador(a)',
         ]

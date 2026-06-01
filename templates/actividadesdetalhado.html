@@ -24,12 +24,6 @@
                     <i class="fas fa-church"></i> Evento de Culto / Actividade
                 </span>
                 <div style="display: flex; gap: 0.5rem;">
-                    {% if perms.sitetibl.add_ataprotocolo %}
-                    <a href="/tibl/ata-protocolo/gerar/{{ x.id }}/" class="bt-primary"
-                        style="background: #10b981; color: white; padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.4rem;">
-                        <i class="fas fa-file-contract"></i> Ata
-                    </a>
-                    {% endif %}
                     {% if perms.sitetibl.change_actividade %}
                     <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                         style="background: white; color: var(--primary-dark); padding: 0.5rem 1rem;">
