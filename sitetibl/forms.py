@@ -574,7 +574,7 @@ class MandatoForm(ModelForm):
 class EscalaForm(ModelForm):
     class Meta:
         model = Escala
-        fields = ('irmao', 'actividade', 'funcao')
+        fields = ('irmao', 'actividade', 'funcao', 'eh_protocolo', 'irmao_protocolo')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -594,6 +594,30 @@ class EscalaForm(ModelForm):
             Funcao.objects.select_related('departamento')
             .order_by('departamento__designacao', 'designacao')
         )
+        self.fields['eh_protocolo'].label = 'É Protocolo?'
+        self.fields['eh_protocolo'].required = False
+        self.fields['eh_protocolo'].help_text = 'Marque se esta escala é para protocolo (permite múltiplos irmãos até 10)'
+        self.fields['irmao_protocolo'].label = 'Irmãos do Protocolo'
+        self.fields['irmao_protocolo'].queryset = (
+            Irmao.objects.select_related('celula').order_by('nome', 'apelido')
+        )
+        self.fields['irmao_protocolo'].required = False
+        self.fields['irmao_protocolo'].help_text = 'Selecione até 10 irmãos para protocolo (apenas se "É Protocolo?" estiver marcado)'
+        self.fields['irmao_protocolo'].widget.attrs['size'] = 10
+
+    def clean(self):
+        cleaned_data = super().clean()
+        eh_protocolo = cleaned_data.get('eh_protocolo')
+        irmao_protocolo = cleaned_data.get('irmao_protocolo')
+        
+        if eh_protocolo and irmao_protocolo.count() > 10:
+            raise forms.ValidationError('Máximo de 10 irmãos permitidos para protocolo')
+        
+        if eh_protocolo and irmao_protocolo.count() == 0:
+            raise forms.ValidationError('Selecione pelo menos 1 irmão se é protocolo')
+        
+        return cleaned_data
+
 
 class DizimoofertaForm(ModelForm):
     def __init__(self, *args, **kwargs):

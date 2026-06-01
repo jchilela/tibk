@@ -100,6 +100,56 @@
                 {% endif %}
             </div>
 
+            <!-- Secção: Protocolo -->
+            <div style="margin-bottom: 1.75rem; padding: 1rem; background: #f0f4f8; border-radius: var(--radius-sm); border: 1px solid #dbeafe;">
+                <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: var(--primary-dark); cursor: pointer; margin-bottom: 0.75rem;">
+                    <input type="checkbox" name="eh_protocolo" id="id_eh_protocolo"
+                        style="width: 1.2rem; height: 1.2rem; accent-color: var(--primary); cursor: pointer;"
+                        onchange="toggleProtocoloFields(this.checked)">
+                    <span>É Protocolo? (Selecione até 10 irmãos)</span>
+                </label>
+                {% if formulario.eh_protocolo.errors %}
+                <p style="color: #ef4444; font-size: 0.85rem;">{{ formulario.eh_protocolo.errors|join:", " }}</p>
+                {% endif %}
+                
+                <!-- Irmãos do Protocolo (hidden initially) -->
+                <div id="protocolo-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #cbd5e1;">
+                    <label for="id_irmao_protocolo" style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">
+                        Selecione os Irmãos
+                        <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(máximo 10)</span>
+                    </label>
+                    <input type="text" id="protocolo-filtro" placeholder="Pesquisar irmão..."
+                        style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.9rem; margin-bottom: 0.5rem; box-sizing: border-box; display: none;"
+                        oninput="filtrarProtocolo(this.value)">
+                    <div style="border: 1px solid #cbd5e1; border-radius: var(--radius-sm); max-height: 280px; overflow-y: auto; background: white;">
+                        <div style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid #e2e8f0; background: #f8fafc; position: sticky; top: 0;">
+                            <span id="protocolo-count">0/10 irmãos selecionados</span>
+                        </div>
+                        <div id="protocolo-lista">
+                            {% for irmao in todos_irmaos %}
+                            <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" 
+                                onmouseover="this.style.background='#f8fafc'" 
+                                onmouseout="this.style.background='transparent'"
+                                data-nome="{{ irmao.nome }} {{ irmao.apelido }}">
+                                <input type="checkbox" name="irmao_protocolo" value="{{ irmao.id }}"
+                                    style="width: 1.1rem; height: 1.1rem; accent-color: var(--primary); cursor: pointer;"
+                                    onchange="updateProtocoloCount()">
+                                <div style="flex: 1;">
+                                    <span style="font-weight: 500; font-size: 0.95rem; color: var(--text-main);">{{ irmao.nome }} {{ irmao.apelido }}</span>
+                                    {% if irmao.celula %}
+                                    <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">Célula: {{ irmao.celula }}</span>
+                                    {% endif %}
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if formulario.irmao_protocolo.errors %}
+                    <p style="color: #ef4444; font-size: 0.85rem; margin-top: 0.3rem;">{{ formulario.irmao_protocolo.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Errors gerais -->
             {% for field in formulario %}
             {% if field.name not in "irmao actividade funcao" %}
@@ -179,7 +229,64 @@
         if (cnt) cnt.textContent = `${visiveis} irmão(s)`;
     }
 
+    // ───── Protocolo Functions ─────
+    function toggleProtocoloFields(checked) {
+        const protocolo_section = document.getElementById('protocolo-section');
+        const filtro_input = document.getElementById('protocolo-filtro');
+        
+        if (checked) {
+            protocolo_section.style.display = 'block';
+            filtro_input.style.display = 'block';
+        } else {
+            protocolo_section.style.display = 'none';
+            filtro_input.style.display = 'none';
+            // Limpar seleções se desmarcar
+            document.querySelectorAll('input[name="irmao_protocolo"]').forEach(cb => cb.checked = false);
+            updateProtocoloCount();
+        }
+    }
+
+    function updateProtocoloCount() {
+        const checkboxes = document.querySelectorAll('input[name="irmao_protocolo"]:checked');
+        const count = checkboxes.length;
+        const countSpan = document.getElementById('protocolo-count');
+        
+        if (count > 10) {
+            // Se ultrapassar 10, desmarcar o último
+            checkboxes[checkboxes.length - 1].checked = false;
+            updateProtocoloCount(); // Recursão para recalcular
+            return;
+        }
+        
+        if (countSpan) {
+            countSpan.textContent = `${count}/10 irmãos selecionados`;
+            if (count > 0) {
+                countSpan.style.color = count === 10 ? '#ef4444' : 'var(--primary)';
+            }
+        }
+    }
+
+    function filtrarProtocolo(txt) {
+        const labels = document.querySelectorAll('#protocolo-lista label');
+        const filter = txt.toLowerCase();
+        let visiveis = 0;
+
+        labels.forEach(label => {
+            const nome = label.dataset.nome.toLowerCase();
+            const show = !filter || nome.includes(filter);
+            label.style.display = show ? 'flex' : 'none';
+            if (show) visiveis++;
+        });
+    }
+
     // Inicializa contagem
-    document.addEventListener('DOMContentLoaded', function() { aplicarFiltros(''); });
+    document.addEventListener('DOMContentLoaded', function() { 
+        aplicarFiltros('');
+        // Se houver protocolo já marcado, mostrar seção
+        const ehProtocolo = document.getElementById('id_eh_protocolo');
+        if (ehProtocolo && ehProtocolo.checked) {
+            toggleProtocoloFields(true);
+        }
+    });
 </script>
 {% endblock %}
