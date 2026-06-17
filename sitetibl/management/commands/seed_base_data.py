@@ -485,6 +485,7 @@ class Command(BaseCommand):
                     'celula': membro['celula'],
                     'localcongregacao': sede,
                     'dizimista': membro['dizimista'],
+                    'categoria': 'membro_batizado',
                     'batizado': True,
                     'user': user,
                 },

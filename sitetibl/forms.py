@@ -141,7 +141,7 @@ class IrmaoForm(ModelForm):
             # --- Localização ---
             'ruaenumero', 'bairro', 'provincia', 'municipio',
             # --- Vida eclesiástica ---
-            'localcongregacao', 'celula', 'culto', 'batizado', 'dizimista',
+            'localcongregacao', 'celula', 'culto', 'categoria', 'dizimista',
             # --- Profissão e trabalho ---
             'profissao', 'especialidade', 'grauescolaridade', 'localdetrabalho',
             # --- Outros ---

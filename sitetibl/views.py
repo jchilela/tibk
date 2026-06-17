@@ -600,7 +600,11 @@ def mostraGestao(request,gestaoescolhida,pagina):
     elif (gestaoescolhida == 'entradascaixa') or (gestaoescolhida == 'saidascaixa') or (gestaoescolhida == 'entradabancos') or (gestaoescolhida == 'saidabancos'):
         context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
     elif gestaoescolhida == 'irmaos':
-        context = { 'bb':paginaresultado, 'listamunicipios': Municipio.objects.select_related('provincia').order_by('provincia__nome', 'nome') }
+        context = {
+            'bb': paginaresultado,
+            'listamunicipios': Municipio.objects.select_related('provincia').order_by('provincia__nome', 'nome'),
+            'categorias_membro': Irmao.CATEGORIA_CHOICES,
+        }
     elif gestaoescolhida == 'pedidosaida':
         contagens = dict(
             PedidoSaida.objects.values_list('estado')
@@ -1225,7 +1229,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     last_name=registo.apelido or '',
                 )
                 Irmao.objects.filter(pk=registo.pk).update(user=user)
-                _atribuir_grupos_irmao(user, registo.batizado)
+                _atribuir_grupos_irmao(user, registo.categoria)
 
                 if enviar_credenciais(registo, username, temp_password):
                     messages.success(request, f'Utilizador "{username}" criado e credenciais enviadas com sucesso.')
@@ -1796,15 +1800,16 @@ def encontraIrmao(request):
     apelidov = request.GET.get('apelidov', '').strip()
     municipiov = request.GET.get('municipiov', '').strip()
     bairrov = request.GET.get('bairrov', '').strip()
-    
+    categoriav = request.GET.get('categoriav', '').strip()
     profissaov = request.GET.get('profissaov', '').strip()
-    
     pagina = request.GET.get('pagina', '1')
     kwargs= {'nome__icontains':nomev, 'apelido__icontains' : apelidov, 'bairro__icontains' : bairrov}
     if profissaov:
         kwargs['profissao__icontains'] = profissaov
     if municipiov and municipiov != '0':
         kwargs['municipio_id'] = municipiov
+    if categoriav:
+        kwargs['categoria'] = categoriav
     resultado = Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
@@ -3078,7 +3083,7 @@ def relatorio_irmaos_pdf(request):
 
     # 🔹 CABEÇALHO DA TABELA
     data = [
-        ['Nome', 'Telefone', 'Dizimista', 'Batizado']
+        ['Nome', 'Telefone', 'Categoria', 'Dizimista']
     ]
 
     # 🔹 DADOS
@@ -3086,8 +3091,8 @@ def relatorio_irmaos_pdf(request):
         data.append([
             irmao.nome,
             irmao.telefone or '-',
-            'Sim' if irmao.dizimista else 'Não',
-            'Sim' if irmao.batizado else 'Não'
+            irmao.get_categoria_display(),
+            'Sim' if irmao.dizimista == 'sim' else 'Não',
         ])
 
     # 🔹 TABELA
