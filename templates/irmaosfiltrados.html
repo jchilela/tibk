@@ -21,6 +21,7 @@
             <thead>
                 <tr>
                     <th>Nome Completo</th>
+                    <th style="text-align: center;">Categoria</th>
                     <th style="text-align: center;">Telefone</th>
                     <th style="text-align: right;">Ações</th>
                 </tr>
@@ -36,6 +37,15 @@
                             style="font-size: 0.75rem; color: var(--primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">
                             ID: #{{ x.id }}
                         </div>
+                    </td>
+                    <td style="text-align: center;">
+                        {% if x.categoria == 'membro_batizado' %}
+                        <span style="background: #dcfce7; color: #166534; padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">{{ x.get_categoria_display }}</span>
+                        {% elif x.categoria == 'crianca' %}
+                        <span style="background: #dbeafe; color: #1e40af; padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">{{ x.get_categoria_display }}</span>
+                        {% else %}
+                        <span style="background: #f3f4f6; color: #374151; padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">{{ x.get_categoria_display }}</span>
+                        {% endif %}
                     </td>
                     <td style="text-align: center; color: var(--text-secondary);">
                         {% if x.telefone %}

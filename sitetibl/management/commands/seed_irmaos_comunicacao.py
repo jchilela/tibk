@@ -265,7 +265,7 @@ class Command(BaseCommand):
                 'localcongregacao': local_congregacao,
                 'celula': celula,
                 'culto': self._map_culto(row.get('culto', '')),
-                'batizado': self._to_bool(row.get('batizado', '')),
+                'categoria': 'membro_batizado' if self._to_bool(row.get('batizado', '')) else 'assistente',
                 'dizimista': self._map_dizimista(row.get('dizimista', '')),
                 'profissao': row.get('profissao', '').strip(),
                 'grauescolaridade': self._map_escolaridade(row.get('grauescolaridade', '')),

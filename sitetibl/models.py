@@ -194,14 +194,24 @@ class Pessoa(models.Model):
      
 class Irmao(Pessoa):
      CULTO = (('P','Português'),('I','Inglês'),)
+     CATEGORIA_CHOICES = (
+         ('membro_batizado', 'Membro (Batizado)'),
+         ('crianca', 'Criança'),
+         ('assistente', 'Assistente (Não batizado)'),
+     )
      celula = models.ForeignKey(Sitio, blank=True, null=True, default=None, on_delete = models.PROTECT, related_name="celula")
      localcongregacao = models.ForeignKey(Sitio,verbose_name="Local de Congregação", blank=True, null=True, default=None, on_delete = models.PROTECT,related_name="igreja")
      culto = models.CharField(max_length=2, choices = CULTO, default = 'P')
+     categoria = models.CharField('Categoria', max_length=20, choices=CATEGORIA_CHOICES, default='assistente')
      dizimista = models.CharField(max_length = 10, choices = ACTIVO, default = 'nao')
      batizado = models.BooleanField(default=False)
      user = models.OneToOneField(User, verbose_name="User Django", blank=True, null=True, on_delete=models.CASCADE)
      data_criacao = models.DateTimeField(auto_now_add=True)
      data_atualizacao = models.DateTimeField(auto_now=True)
+
+     def save(self, *args, **kwargs):
+         self.batizado = self.categoria == 'membro_batizado'
+         super().save(*args, **kwargs)
 
      def __str__(self):
          return '%s %s' % (self.nome, self.apelido)
