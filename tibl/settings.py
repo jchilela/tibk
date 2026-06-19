@@ -165,6 +165,11 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Session timeout — 15 minutos de inactividade
+SESSION_COOKIE_AGE = 900           # 15 min em segundos
+SESSION_SAVE_EVERY_REQUEST = True  # reinicia o timer a cada pedido (inactividade)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', "https://gestao.tibl.ao").split(',')
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', "").split(',') if os.getenv('CORS_ALLOWED_ORIGINS') else []
 
