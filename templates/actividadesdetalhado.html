@@ -25,9 +25,14 @@
                 </span>
                 <div style="display: flex; gap: 0.5rem;">
                     {% if tem_protocolo %}
-                    <a href="{% url 'sitetibl:acta_actividade_pdf' x.id %}" target="_blank" class="bt-primary"
+                    <a href="{% url 'sitetibl:acta_actividade_pdf' x.id %}" class="bt-primary"
                         style="background: #10b981; color: white; padding: 0.5rem 1rem;">
-                        <i class="fas fa-file-pdf"></i> Gerar Acta
+                        <i class="fas fa-file-signature"></i> Gerar Acta
+                    </a>
+                    <a href="{% url 'sitetibl:cartao_protocolo_pdf' x.id %}" class="bt-primary"
+                        style="background: #d97706; color: white; padding: 0.5rem 1rem;"
+                        title="Gerar cartões individuais de protocolo em PDF">
+                        <i class="fas fa-id-card"></i> Cartões
                     </a>
                     {% endif %}
                     {% if perms.sitetibl.change_actividade %}
@@ -140,11 +145,17 @@
                 <i class="fas fa-users-cog mr-2"></i> Pessoas Escaladas
             </h3>
             {% if perms.sitetibl.add_escala %}
-            <button type="button" class="bt-primary"
-                onclick="document.getElementById('modal-escalar').style.display = 'flex'"
-                style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-layer-group"></i> Escalar Irmãos
-            </button>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="/tibl/escalas/criar/?actividade={{ x.id }}"
+                    style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                    <i class="fas fa-plus"></i> Nova Escala
+                </a>
+                <button type="button" class="bt-primary"
+                    onclick="document.getElementById('modal-escalar').style.display = 'flex'"
+                    style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-layer-group"></i> Escalar em Massa
+                </button>
+            </div>
             {% endif %}
         </div>
 
@@ -172,6 +183,31 @@
                     </div>
                     <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.3rem;">
                         {% for escala in grupo.list %}
+                        {% if escala.eh_protocolo %}
+                        {% for membro in escala.irmao_protocolo.all %}
+                        <li style="display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem; background: #fffbeb; border-radius: var(--radius-sm); border: 1px solid #fde68a;">
+                            <div style="width: 26px; height: 26px; border-radius: 50%; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; flex-shrink: 0;">
+                                {{ membro.nome|first }}{{ membro.apelido|first }}
+                            </div>
+                            <div style="flex: 1;">
+                                <span style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ membro.nome }} {{ membro.apelido }}</span>
+                                <span style="display: block; font-size: 0.68rem; color: #d97706; font-weight: 600;"><i class="fas fa-shield-alt"></i> Protocolo</span>
+                                {% if membro.celula %}
+                                <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Célula: {{ membro.celula }}</span>
+                                {% endif %}
+                            </div>
+                            {% if perms.sitetibl.delete_escala %}
+                            <a href="/tibl/escalas/eliminar/{{ escala.id }}?next=/tibl/actividades/detalhe/{{ escala.actividade_id }}/" title="Remover escala de protocolo" style="color: #ef4444; opacity: 0.7; font-size: 0.75rem; line-height: 1; flex-shrink: 0; text-decoration: none;">
+                                <i class="fas fa-times-circle"></i>
+                            </a>
+                            {% endif %}
+                        </li>
+                        {% empty %}
+                        <li style="padding: 0.5rem 0.75rem; color: var(--text-muted); font-size: 0.84rem; font-style: italic; background: #fffbeb; border-radius: var(--radius-sm); border: 1px dashed #fde68a;">
+                            <i class="fas fa-exclamation-triangle" style="margin-right: 0.4rem; color: #d97706;"></i>Protocolo sem membros definidos.
+                        </li>
+                        {% endfor %}
+                        {% else %}
                         <li style="display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid #e2e8f0;">
                             <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; flex-shrink: 0;">
                                 {{ escala.irmao.nome|first }}{{ escala.irmao.apelido|first }}
@@ -188,6 +224,7 @@
                             </a>
                             {% endif %}
                         </li>
+                        {% endif %}
                         {% endfor %}
                     </ul>
                 </div>
@@ -202,7 +239,7 @@
             <i class="fas fa-user-clock" style="font-size: 3rem; color: #94a3b8; margin-bottom: 1rem;"></i>
             <p style="color: var(--text-muted); font-size: 1.1rem;">Não existem escalas registadas para esta
                 actividade.</p>
-            <a href="/tibl/escalas/criar/" class="bt-primary"
+            <a href="/tibl/escalas/criar/?actividade={{ x.id }}" class="bt-primary"
                 style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1.5rem; background: var(--primary); color: white !important;">
                 <i class="fas fa-plus"></i> Adicionar Escala
             </a>

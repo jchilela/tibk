@@ -1,0 +1,118 @@
+{% extends "base_modern.html" %}
+{% load static %}
+
+{% block title %}Acta de Protocolo — {{ actividade.designacao }}{% endblock %}
+
+{% block content %}
+<div class="list-container" style="max-width: 960px; margin: 2rem auto;">
+    <div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
+        <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 1.5rem 2rem; color: white;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="fas fa-file-signature" style="font-size: 2rem; opacity: 0.9;"></i>
+                <div>
+                    <h2 style="margin: 0; font-size: 1.35rem; color: white;">Acta de Protocolo</h2>
+                    <p style="margin: 0.35rem 0 0 0; opacity: 0.88; font-size: 0.92rem;">Preencha a presença e observações antes de gerar o PDF.</p>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 1.25rem 2rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+                <div><span style="color: var(--text-muted); font-weight: 600;">Actividade:</span> {{ actividade.designacao }}</div>
+                <div><span style="color: var(--text-muted); font-weight: 600;">Data:</span> {{ actividade.data|date:"d/m/Y" }}</div>
+                <div><span style="color: var(--text-muted); font-weight: 600;">Horário:</span> {{ actividade.inicio|time:"H:i" }} — {{ actividade.fim|time:"H:i" }}</div>
+                <div><span style="color: var(--text-muted); font-weight: 600;">Local:</span> {% if actividade.localactividade %}{{ actividade.localactividade }}{% else %}Sede{% endif %}</div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" action="{% url 'sitetibl:acta_actividade_pdf' actividade.id %}" target="_blank" id="form-acta-protocolo">
+        {% csrf_token %}
+
+        <div class="modern-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem;">
+                <i class="fas fa-users" style="margin-right: 0.4rem;"></i> Membros do Protocolo
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Indique a presença de cada irmão. Se substituído, indique o nome do substituto.</p>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="background: #f1f5f9; text-align: left;">
+                            <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1;">Nome</th>
+                            <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1;">Telefone</th>
+                            <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1;">Célula</th>
+                            <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1; min-width: 130px;">Presença</th>
+                            <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1; min-width: 160px;">Substituto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for irmao in irmaos_protocolo %}
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 0.65rem 0.75rem; font-weight: 600;">{{ irmao.nome }} {{ irmao.apelido }}</td>
+                            <td style="padding: 0.65rem 0.75rem; color: var(--text-muted);">{% if irmao.telefone %}{{ irmao.telefone }}{% else %}—{% endif %}</td>
+                            <td style="padding: 0.65rem 0.75rem; color: var(--text-muted);">{% if irmao.celula %}{{ irmao.celula }}{% else %}—{% endif %}</td>
+                            <td style="padding: 0.65rem 0.75rem;">
+                                <select name="estado_{{ irmao.id }}" class="estado-select" data-irmao-id="{{ irmao.id }}" onchange="toggleSubstituto({{ irmao.id }})" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.88rem;">
+                                    <option value="presente" selected>Presente</option>
+                                    <option value="ausente">Ausente</option>
+                                    <option value="substituido">Substituído</option>
+                                </select>
+                            </td>
+                            <td style="padding: 0.65rem 0.75rem;">
+                                <input type="text" name="substituto_{{ irmao.id }}" id="substituto_{{ irmao.id }}" placeholder="Nome do substituto" disabled style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.88rem; background: #f1f5f9;">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="modern-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem;">
+                <i class="fas fa-clipboard-list" style="margin-right: 0.4rem;"></i> Ocorrências / Observações
+            </h3>
+            <textarea name="ocorrencias" rows="5" placeholder="Registe incidentes, observações ou notas relevantes do serviço de protocolo..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.95rem; resize: vertical; font-family: inherit;"></textarea>
+        </div>
+
+        <div class="modern-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem;">
+                <i class="fas fa-pen-nib" style="margin-right: 0.4rem;"></i> Assinaturas
+            </h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div>
+                    <label for="nome_responsavel" style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Responsável pelo Protocolo</label>
+                    <input type="text" name="nome_responsavel" id="nome_responsavel" placeholder="Nome completo" style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.95rem;">
+                </div>
+                <div>
+                    <label for="nome_secretario" style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Secretário(a)</label>
+                    <input type="text" name="nome_secretario" id="nome_secretario" placeholder="Nome completo" style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.95rem;">
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap;">
+            <a href="{% url 'sitetibl:mostra_detalhe' 'actividades' actividade.id %}" class="bt-secondary" style="padding: 0.65rem 1.25rem; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+            <button type="submit" class="bt-primary" style="padding: 0.65rem 1.5rem; background: #10b981; border: none; cursor: pointer;">
+                <i class="fas fa-file-pdf"></i> Gerar PDF
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleSubstituto(irmaoId) {
+        const select = document.querySelector('select[name="estado_' + irmaoId + '"]');
+        const input = document.getElementById('substituto_' + irmaoId);
+        if (!select || !input) return;
+        const isSubst = select.value === 'substituido';
+        input.disabled = !isSubst;
+        input.style.background = isSubst ? '#ffffff' : '#f1f5f9';
+        if (!isSubst) input.value = '';
+    }
+</script>
+{% endblock %}

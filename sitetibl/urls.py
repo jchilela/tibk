@@ -44,6 +44,7 @@ urlpatterns = [
     path('actividade/<int:actividade_id>/escalas/', views.EscalasPorActividadeView.as_view(), name='escalas_por_actividade'),
     path('actividade/<int:actividade_id>/escalar-massa/', views.escalar_em_massa, name='escalar_em_massa'),
     path('actividade/<int:actividade_id>/acta/', views.acta_actividade_pdf, name='acta_actividade_pdf'),
+    path('actividade/<int:actividade_id>/cartoes/', views.cartao_protocolo_pdf, name='cartao_protocolo_pdf'),
 
     # API: municípios por província (cascading dropdown)
     path('api/municipios/<int:provincia_id>/', views.api_municipios, name='api_municipios'),

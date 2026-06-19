@@ -878,6 +878,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             Escala.objects
             .filter(actividade_id=identificador)
             .select_related('irmao', 'irmao__celula', 'funcao', 'funcao__departamento')
+            .prefetch_related('irmao_protocolo', 'irmao_protocolo__celula')
             .order_by('funcao__departamento__designacao', 'funcao__designacao', 'irmao__nome')
         )
         todas_funcoes = Funcao.objects.select_related('departamento').order_by('departamento__designacao', 'designacao')
@@ -1747,6 +1748,7 @@ def mostraCriacao(request, gestaoescolhida):
                     obj.responsavel = irmao_logado
 
             obj.save()
+            formulario.save_m2m()
 
             # ðŸ“‹ SolicitaÃ§Ã£o: notificar lÃ­deres do departamento destinatÃ¡rio
             if gestaoescolhida == 'solicitacoes':
@@ -2212,6 +2214,159 @@ def relatorioofertasportipo_pdf(request):
 
     elements.append(table)
     doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
+
+
+@login_required
+def cartao_protocolo_pdf(request, actividade_id):
+    """Gera PDF com cartões de protocolo individuais — 2 por folha A4."""
+    actividade = get_object_or_404(Actividade, id=actividade_id)
+    escalas_protocolo = (
+        Escala.objects.filter(actividade=actividade, eh_protocolo=True)
+        .select_related('funcao')
+        .prefetch_related('irmao_protocolo', 'irmao_protocolo__celula')
+    )
+
+    if not escalas_protocolo.exists():
+        messages.error(request, 'Esta actividade não possui escala de protocolo.')
+        return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
+
+    membros_funcoes = []
+    seen = set()
+    for esc in escalas_protocolo:
+        funcao_str = str(esc.funcao) if esc.funcao else 'Protocolo'
+        for membro in esc.irmao_protocolo.all():
+            if membro.id not in seen:
+                seen.add(membro.id)
+                membros_funcoes.append((membro, funcao_str))
+
+    if not membros_funcoes:
+        messages.error(request, 'Nenhum membro encontrado na escala de protocolo.')
+        return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
+
+    membros_funcoes.sort(key=lambda x: x[0].nome)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = (
+        f'inline; filename="cartoes_protocolo_{actividade_id}_{actividade.data}.pdf"'
+    )
+
+    page_w, page_h = A4
+    margin = 30
+    gap = 22
+    card_w = page_w - 2 * margin
+    card_h = (page_h - 2 * margin - gap) / 2
+
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+
+    primary      = colors.HexColor('#1e3a5f')
+    gold         = colors.HexColor('#d97706')
+    muted        = colors.HexColor('#6b7280')
+    light_blue   = colors.HexColor('#93c5fd')
+    pale_yellow  = colors.HexColor('#fef3c7')
+    amber_border = colors.HexColor('#fde68a')
+
+    def _draw_card(c, x, card_y, membro, funcao_str, idx):
+        header_h = 72
+
+        c.setFillColor(colors.HexColor('#f8fafc'))
+        c.setStrokeColor(primary)
+        c.setLineWidth(1.5)
+        c.roundRect(x, card_y, card_w, card_h, 10, fill=1, stroke=1)
+
+        c.setFillColor(primary)
+        c.setStrokeColor(primary)
+        c.roundRect(x, card_y + card_h - header_h, card_w, header_h, 10, fill=1, stroke=0)
+        c.rect(x, card_y + card_h - header_h, card_w, int(header_h / 2), fill=1, stroke=0)
+
+        if os.path.exists(logo_path):
+            try:
+                logo_sz = 54
+                c.drawImage(
+                    logo_path,
+                    x + 12,
+                    card_y + card_h - header_h + (header_h - logo_sz) / 2,
+                    width=logo_sz, height=logo_sz,
+                    preserveAspectRatio=True, mask='auto',
+                )
+            except Exception:
+                pass
+
+        c.setFillColor(colors.white)
+        c.setFont('Helvetica-Bold', 24)
+        c.drawCentredString(x + card_w / 2 + 28, card_y + card_h - header_h + 26, 'PROTOCOLO')
+
+        act_str = str(actividade.designacao)[:52]
+        c.setFont('Helvetica', 8.5)
+        c.setFillColor(light_blue)
+        c.drawCentredString(x + card_w / 2 + 28, card_y + card_h - header_h + 12, act_str)
+
+        c.setFont('Helvetica', 8)
+        c.setFillColor(colors.HexColor('#bfdbfe'))
+        c.drawRightString(x + card_w - 12, card_y + card_h - 16, actividade.data.strftime('%d/%m/%Y'))
+        c.drawRightString(
+            x + card_w - 12, card_y + card_h - 27,
+            f'{actividade.inicio.strftime("%H:%M")} — {actividade.fim.strftime("%H:%M")}',
+        )
+
+        nome_completo = f'{membro.nome} {membro.apelido}'
+        name_y = card_y + card_h - header_h - 34
+        c.setFillColor(primary)
+        c.setFont('Helvetica-Bold', 17)
+        c.drawString(x + 18, name_y, nome_completo[:40])
+
+        badge_y = name_y - 24
+        badge_w = c.stringWidth(funcao_str, 'Helvetica-Bold', 10) + 18
+        c.setFillColor(pale_yellow)
+        c.setStrokeColor(amber_border)
+        c.setLineWidth(0.5)
+        c.roundRect(x + 18, badge_y - 4, badge_w, 18, 4, fill=1, stroke=1)
+        c.setFillColor(gold)
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(x + 27, badge_y + 2, funcao_str)
+
+        div_y = badge_y - 18
+        c.setStrokeColor(colors.HexColor('#e2e8f0'))
+        c.setLineWidth(0.5)
+        c.line(x + 15, div_y, x + card_w - 15, div_y)
+
+        det_y = div_y - 16
+        c.setFont('Helvetica', 9)
+        c.setFillColor(muted)
+        if membro.celula:
+            c.drawString(x + 18, det_y, f'Célula: {membro.celula}')
+            det_y -= 14
+        if membro.telefone:
+            c.drawString(x + 18, det_y, f'Tel: {membro.telefone}')
+
+        local_str = str(actividade.localactividade or 'Sede')[:32]
+        c.setFont('Helvetica', 8.5)
+        c.setFillColor(muted)
+        c.drawRightString(x + card_w - 15, div_y - 16, f'Local: {local_str}')
+
+        sig_y  = card_y + 28
+        sig_cx = x + card_w * 0.72
+        c.setStrokeColor(colors.HexColor('#374151'))
+        c.setLineWidth(0.8)
+        c.line(sig_cx - 65, sig_y + 14, sig_cx + 65, sig_y + 14)
+        c.setFont('Helvetica', 8)
+        c.setFillColor(colors.HexColor('#374151'))
+        c.drawCentredString(sig_cx, sig_y + 3, 'Líder do Protocolo')
+
+        c.setFont('Helvetica', 7)
+        c.setFillColor(colors.HexColor('#9ca3af'))
+        c.drawString(x + 14, card_y + 10, f'#{idx + 1:02d}  ·  {actividade.data.strftime("%d/%m/%Y")}')
+
+    c = canvas.Canvas(response, pagesize=A4)
+
+    for idx, (membro, funcao_str) in enumerate(membros_funcoes):
+        if idx > 0 and idx % 2 == 0:
+            c.showPage()
+        slot = idx % 2
+        card_y = (page_h - margin - card_h) if slot == 0 else margin
+        _draw_card(c, margin, card_y, membro, funcao_str, idx)
+
+    c.save()
     return response
 
 
@@ -4660,66 +4815,98 @@ def relatorio_inactivos_pdf(request):
 
 @login_required
 def acta_actividade_pdf(request, actividade_id):
+    """Página intermédia para preencher a acta (GET) e geração do PDF (POST)."""
     actividade = get_object_or_404(Actividade, id=actividade_id)
-    escalas_protocolo = Escala.objects.filter(actividade=actividade, eh_protocolo=True)
+    escalas_protocolo = Escala.objects.filter(
+        actividade=actividade, eh_protocolo=True
+    ).prefetch_related('irmao_protocolo')
+
     if not escalas_protocolo.exists():
         messages.error(request, 'Esta actividade não possui uma escala de protocolo associada.')
-        return redirect('sitetibl:mostra_detalhe', gestaoescolhida='actividades', identificador=actividade_id)
+        return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
 
+    # Recolher todos os irmãos do protocolo (sem duplicados)
+    irmaos_set = set()
+    for esc in escalas_protocolo:
+        if esc.irmao:
+            irmaos_set.add(esc.irmao)
+        for i in esc.irmao_protocolo.all():
+            irmaos_set.add(i)
+    irmaos_protocolo = sorted(irmaos_set, key=lambda x: x.nome)
+
+    # ── GET: mostrar formulário de preenchimento ──────────────────────────
+    if request.method == 'GET':
+        return render(request, 'acta_protocolo_form.html', {
+            'actividade': actividade,
+            'irmaos_protocolo': irmaos_protocolo,
+        })
+
+    # ── POST: gerar PDF com os dados submetidos ───────────────────────────
+    ESTADO_LABELS = {
+        'presente': 'Presente',
+        'ausente': 'Ausente',
+        'substituido': 'Substituído',
+    }
+    CORES_ESTADO = {
+        'presente': colors.HexColor('#dcfce7'),
+        'ausente':  colors.HexColor('#fee2e2'),
+        'substituido': colors.HexColor('#fef9c3'),
+    }
+
+    ocorrencias = request.POST.get('ocorrencias', '').strip()
+    nome_responsavel = request.POST.get('nome_responsavel', '').strip()
+    nome_secretario  = request.POST.get('nome_secretario', '').strip()
+
+    # Estado de cada irmão e eventual substituto
+    estados = {}
+    substitutos = {}
+    for irmao in irmaos_protocolo:
+        key = f'estado_{irmao.id}'
+        sub_key = f'substituto_{irmao.id}'
+        estados[irmao.id]    = request.POST.get(key, 'presente')
+        substitutos[irmao.id] = request.POST.get(sub_key, '').strip()
+
+    # ── Construção do PDF ─────────────────────────────────────────────────
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="acta_actividade_{actividade_id}.pdf"'
+    response['Content-Disposition'] = (
+        f'inline; filename="acta_protocolo_{actividade_id}_{actividade.data}.pdf"'
+    )
 
     doc = SimpleDocTemplate(
         response,
         pagesize=A4,
-        rightMargin=2 * cm,
-        leftMargin=2 * cm,
-        topMargin=2 * cm,
-        bottomMargin=2 * cm,
-        title=f"Acta de Actividade - {actividade_id}",
-        author="Sistema TIBL"
+        rightMargin=2 * cm, leftMargin=2 * cm,
+        topMargin=2 * cm,  bottomMargin=2 * cm,
+        title=f'Acta de Protocolo — {actividade.designacao}',
+        author='Sistema TIBL',
     )
 
     styles = getSampleStyleSheet()
-    
-    # Custom styles
     title_style = ParagraphStyle(
-        'ActaTitle',
-        parent=styles['Title'],
-        fontSize=18,
-        leading=22,
+        'ActaTitle', parent=styles['Title'],
+        fontSize=16, leading=20,
         textColor=colors.HexColor('#1e3a5f'),
-        alignment=1, # Center
-        spaceAfter=15
+        alignment=1, spaceAfter=10,
     )
-    
-    section_heading = ParagraphStyle(
-        'ActaSection',
-        parent=styles['Heading2'],
-        fontSize=12,
-        leading=15,
+    section_style = ParagraphStyle(
+        'ActaSection', parent=styles['Heading2'],
+        fontSize=11, leading=14,
         textColor=colors.HexColor('#548c2f'),
-        spaceBefore=12,
-        spaceAfter=6,
-        keepWithNext=True
+        spaceBefore=10, spaceAfter=5, keepWithNext=True,
     )
-    
     body_style = ParagraphStyle(
-        'ActaBody',
-        parent=styles['Normal'],
-        fontSize=10,
-        leading=14,
-        textColor=colors.HexColor('#333333'),
-        spaceAfter=4
+        'ActaBody', parent=styles['Normal'],
+        fontSize=9, leading=13,
+        textColor=colors.HexColor('#333333'), spaceAfter=3,
     )
-    
-    meta_label_style = ParagraphStyle(
-        'ActaMetaLabel',
-        parent=styles['Normal'],
-        fontSize=10,
-        leading=14,
-        fontName='Helvetica-Bold',
-        textColor=colors.HexColor('#1e3a5f')
+    label_style = ParagraphStyle(
+        'ActaLabel', parent=styles['Normal'],
+        fontSize=9, leading=13, fontName='Helvetica-Bold',
+        textColor=colors.HexColor('#1e3a5f'),
+    )
+    sig_style = ParagraphStyle(
+        'ActaSig', parent=styles['Normal'],
+        fontSize=9, alignment=1,
     )
 
     elements = []
@@ -4727,108 +4914,148 @@ def acta_actividade_pdf(request, actividade_id):
     # Logo
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
     if os.path.exists(logo_path):
-        logo = Image(logo_path, width=70, height=70)
+        logo = Image(logo_path, width=60, height=60)
         logo.hAlign = 'CENTER'
         elements.append(logo)
-        elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # Title
-    elements.append(Paragraph("<b>ACTA DE ACTIVIDADE DE PROTOCOLO</b>", title_style))
+    elements.append(Paragraph('<b>ACTA DE PROTOCOLO</b>', title_style))
     elements.append(Paragraph("<hr color='#1e3a5f' width='100%'/>", styles['Normal']))
-    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(Paragraph('<br/>', styles['Normal']))
 
-    # Info Table
+    # ── Cabeçalho da actividade ───────────────────────────────────────────
     info_data = [
-        [Paragraph("<b>Actividade:</b>", meta_label_style), Paragraph(str(actividade.designacao), body_style)],
-        [Paragraph("<b>Tema:</b>", meta_label_style), Paragraph(actividade.tema or 'Não especificado', body_style)],
-        [Paragraph("<b>Data:</b>", meta_label_style), Paragraph(actividade.data.strftime('%d/%m/%Y'), body_style)],
-        [Paragraph("<b>Horário:</b>", meta_label_style), Paragraph(f"{actividade.inicio.strftime('%H:%M')} às {actividade.fim.strftime('%H:%M')}", body_style)],
-        [Paragraph("<b>Local:</b>", meta_label_style), Paragraph(str(actividade.localactividade or 'Sede'), body_style)],
-        [Paragraph("<b>Total Presentes:</b>", meta_label_style), Paragraph(str(actividade.totalpresentes), body_style)]
+        [Paragraph('<b>Actividade:</b>', label_style), Paragraph(str(actividade.designacao), body_style)],
+        [Paragraph('<b>Tema:</b>',        label_style), Paragraph(actividade.tema or '—', body_style)],
+        [Paragraph('<b>Data:</b>',        label_style), Paragraph(actividade.data.strftime('%d/%m/%Y'), body_style)],
+        [Paragraph('<b>Horário:</b>',     label_style), Paragraph(f"{actividade.inicio.strftime('%H:%M')} às {actividade.fim.strftime('%H:%M')}", body_style)],
+        [Paragraph('<b>Local:</b>',       label_style), Paragraph(str(actividade.localactividade or 'Sede'), body_style)],
+        [Paragraph('<b>Versos Bíblicos:</b>', label_style), Paragraph(actividade.versosbiblicos or '—', body_style)],
+        [Paragraph('<b>Hinos:</b>',       label_style), Paragraph(actividade.hinos or '—', body_style)],
     ]
-    
     info_table = Table(info_data, colWidths=[4 * cm, 13 * cm])
     info_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
+        ('VALIGN',       (0, 0), (-1, -1), 'TOP'),
+        ('BOTTOMPADDING',(0, 0), (-1, -1), 3),
+        ('TOPPADDING',   (0, 0), (-1, -1), 3),
+        ('GRID',         (0, 0), (-1, -1), 0.4, colors.HexColor('#e2e8f0')),
     ]))
     elements.append(info_table)
-    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(Paragraph('<br/>', styles['Normal']))
 
-    # Spiritual Section
-    elements.append(Paragraph("Conteúdo Espiritual", section_heading))
-    esp_data = [
-        [Paragraph("<b>Versos Bíblicos:</b>", meta_label_style), Paragraph(actividade.versosbiblicos or 'Não especificado', body_style)],
-        [Paragraph("<b>Hinos:</b>", meta_label_style), Paragraph(actividade.hinos or 'Não especificado', body_style)],
+    # ── Membros do Protocolo ──────────────────────────────────────────────
+    elements.append(Paragraph('Membros do Protocolo', section_style))
+
+    team_header = [
+        Paragraph('<b>Nome Completo</b>', label_style),
+        Paragraph('<b>Telefone</b>',     label_style),
+        Paragraph('<b>Célula</b>',       label_style),
+        Paragraph('<b>Presença</b>',     label_style),
+        Paragraph('<b>Substituto</b>',   label_style),
     ]
-    esp_table = Table(esp_data, colWidths=[4 * cm, 13 * cm])
-    esp_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
-    ]))
-    elements.append(esp_table)
-    elements.append(Paragraph("<br/>", styles['Normal']))
+    team_data = [team_header]
 
-    # Protocol Team
-    elements.append(Paragraph("Equipa de Protocolo Escalada", section_heading))
-    
-    # Gather brothers
-    irmaos_set = set()
-    for esc in escalas_protocolo.prefetch_related('irmao_protocolo', 'irmao'):
-        if esc.irmao:
-            irmaos_set.add(esc.irmao)
-        for i in esc.irmao_protocolo.all():
-            irmaos_set.add(i)
+    presentes   = 0
+    ausentes    = 0
+    substituidos = 0
 
-    team_data = [[
-        Paragraph("<b>Nome Completo</b>", meta_label_style),
-        Paragraph("<b>Telefone</b>", meta_label_style),
-        Paragraph("<b>Célula</b>", meta_label_style)
-    ]]
+    for irmao in irmaos_protocolo:
+        estado  = estados.get(irmao.id, 'presente')
+        sub_txt = substitutos.get(irmao.id, '')
+        cor     = CORES_ESTADO.get(estado, colors.white)
+        label   = ESTADO_LABELS.get(estado, estado.capitalize())
 
-    for irmao in sorted(irmaos_set, key=lambda x: x.nome):
-        team_data.append([
-            Paragraph(f"{irmao.nome} {irmao.apelido}", body_style),
+        if estado == 'presente':
+            presentes += 1
+        elif estado == 'ausente':
+            ausentes += 1
+        elif estado == 'substituido':
+            substituidos += 1
+
+        row = [
+            Paragraph(f'{irmao.nome} {irmao.apelido}', body_style),
             Paragraph(irmao.telefone or '—', body_style),
-            Paragraph(str(irmao.celula) if irmao.celula else '—', body_style)
-        ])
+            Paragraph(str(irmao.celula) if irmao.celula else '—', body_style),
+            Paragraph(label, body_style),
+            Paragraph(sub_txt or '—', body_style),
+        ]
+        team_data.append((row, cor))
 
-    team_table = Table(team_data, colWidths=[8 * cm, 4 * cm, 5 * cm])
-    team_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f8fafc')),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
-    ]))
+    # Construir tabela com cores por linha
+    raw_rows = [team_header] + [r for r, _ in team_data[1:]]
+    team_table = Table(raw_rows, colWidths=[5.5*cm, 3*cm, 3*cm, 2.5*cm, 3*cm])
+    style_cmds = [
+        ('BACKGROUND',   (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
+        ('FONTNAME',     (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('VALIGN',       (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING',(0, 0), (-1, -1), 4),
+        ('TOPPADDING',   (0, 0), (-1, -1), 4),
+        ('GRID',         (0, 0), (-1, -1), 0.4, colors.HexColor('#cbd5e1')),
+    ]
+    for idx, (_, cor) in enumerate(team_data[1:], start=1):
+        style_cmds.append(('BACKGROUND', (0, idx), (-1, idx), cor))
+    team_table.setStyle(TableStyle(style_cmds))
     elements.append(team_table)
-    elements.append(Paragraph("<br/>", styles['Normal']))
+    elements.append(Paragraph('<br/>', styles['Normal']))
 
-    # Observations / Report Section
-    elements.append(Paragraph("Relatório / Observações da Actividade", section_heading))
-    obs_text = actividade.observacao or "Nenhuma observação ou ocorrência registada para esta actividade."
-    elements.append(Paragraph(obs_text, body_style))
-    elements.append(Paragraph("<br/><br/>", styles['Normal']))
-
-    # Signatures
-    sig_data = [
+    # Resumo de presenças
+    resumo_data = [
         [
-            Paragraph("<hr color='#cbd5e1' width='80%'/><b>Responsável pelo Protocolo</b>", ParagraphStyle('sig', parent=styles['Normal'], alignment=1)),
-            Paragraph("<hr color='#cbd5e1' width='80%'/><b>Líder da Actividade / Culto</b>", ParagraphStyle('sig', parent=styles['Normal'], alignment=1))
+            Paragraph(f'<b>Presentes:</b> {presentes}', body_style),
+            Paragraph(f'<b>Ausentes:</b> {ausentes}', body_style),
+            Paragraph(f'<b>Substituídos:</b> {substituidos}', body_style),
+            Paragraph(f'<b>Total:</b> {len(irmaos_protocolo)}', body_style),
         ]
     ]
+    resumo_table = Table(resumo_data, colWidths=[4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm])
+    resumo_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8fafc')),
+        ('BOX',        (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+        ('INNERGRID',  (0, 0), (-1, -1), 0.4, colors.HexColor('#e2e8f0')),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    ]))
+    elements.append(resumo_table)
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Ocorrências ───────────────────────────────────────────────────────
+    elements.append(Paragraph('Ocorrências / Observações', section_style))
+    elements.append(Paragraph(
+        ocorrencias if ocorrencias else 'Sem ocorrências registadas.',
+        body_style,
+    ))
+    elements.append(Paragraph('<br/><br/>', styles['Normal']))
+
+    # ── Assinaturas ───────────────────────────────────────────────────────
+    elements.append(Paragraph('Assinaturas', section_style))
+
+    linha_resp = nome_responsavel if nome_responsavel else '_' * 38
+    linha_sec  = nome_secretario  if nome_secretario  else '_' * 38
+
+    sig_data = [[
+        Paragraph(
+            f'<br/><br/><br/>______________________________<br/>{linha_resp}<br/><b>Responsável pelo Protocolo</b>',
+            sig_style,
+        ),
+        Paragraph(
+            f'<br/><br/><br/>______________________________<br/>{linha_sec}<br/><b>Secretário(a)</b>',
+            sig_style,
+        ),
+    ]]
     sig_table = Table(sig_data, colWidths=[8.5 * cm, 8.5 * cm])
     sig_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('TOPPADDING', (0, 0), (-1, -1), 20),
+        ('ALIGN',  (0, 0), (-1, -1), 'CENTER'),
     ]))
     elements.append(sig_table)
 
-    doc.build(elements)
+    # Data de emissão
+    elements.append(Paragraph('<br/>', styles['Normal']))
+    elements.append(Paragraph(
+        f'Emitido em {date.today().strftime("%d/%m/%Y")} pelo Sistema TIBL',
+        ParagraphStyle('footer', parent=styles['Normal'], fontSize=8,
+                       textColor=colors.HexColor('#94a3b8'), alignment=2),
+    ))
+
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
     return response
 

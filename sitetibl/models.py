@@ -377,7 +377,7 @@ class Escala(models.Model):
          return '%s %s %s' % (self.irmao, self.actividade, self.funcao)
      def clean(self):
          from django.core.exceptions import ValidationError
-         if self.eh_protocolo and self.irmao_protocolo.count() > 10:
+         if self.eh_protocolo and self.pk and self.irmao_protocolo.count() > 10:
              raise ValidationError('Máximo de 10 irmãos permitidos para protocolo')
      class Admin:
          pass

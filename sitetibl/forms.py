@@ -585,7 +585,7 @@ class EscalaForm(ModelForm):
         self.fields['actividade'].label = 'Actividade'
         self.fields['actividade'].queryset = (
             Actividade.objects.select_related('designacao', 'departamento')
-            .filter(parent_event__isnull=True)
+            .filter(parent_event__isnull=True, data__gte=date.today())
             .order_by('data', 'designacao__designacao')
         )
         self.fields['funcao'].label = 'FunÃ§Ã£o'
@@ -610,10 +610,12 @@ class EscalaForm(ModelForm):
         eh_protocolo = cleaned_data.get('eh_protocolo')
         irmao_protocolo = cleaned_data.get('irmao_protocolo')
         
-        if eh_protocolo and irmao_protocolo.count() > 10:
+        count = irmao_protocolo.count() if irmao_protocolo is not None else 0
+
+        if eh_protocolo and count > 10:
             raise forms.ValidationError('Máximo de 10 irmãos permitidos para protocolo')
-        
-        if eh_protocolo and irmao_protocolo.count() == 0:
+
+        if eh_protocolo and count == 0:
             raise forms.ValidationError('Selecione pelo menos 1 irmão se é protocolo')
         
         return cleaned_data
