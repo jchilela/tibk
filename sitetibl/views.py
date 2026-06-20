@@ -4978,26 +4978,21 @@ def acta_actividade_pdf(request, actividade_id):
     ESTADO_LABELS = {
         'presente': 'Presente',
         'ausente': 'Ausente',
-        'substituido': 'Substituído',
     }
     CORES_ESTADO = {
         'presente': colors.HexColor('#dcfce7'),
         'ausente':  colors.HexColor('#fee2e2'),
-        'substituido': colors.HexColor('#fef9c3'),
     }
 
     ocorrencias = request.POST.get('ocorrencias', '').strip()
     nome_responsavel = request.POST.get('nome_responsavel', '').strip()
     nome_secretario  = request.POST.get('nome_secretario', '').strip()
 
-    # Estado de cada irmão e eventual substituto
+    # Estado de cada irmão
     estados = {}
-    substitutos = {}
     for irmao in irmaos_protocolo:
         key = f'estado_{irmao.id}'
-        sub_key = f'substituto_{irmao.id}'
-        estados[irmao.id]    = request.POST.get(key, 'presente')
-        substitutos[irmao.id] = request.POST.get(sub_key, '').strip()
+        estados[irmao.id] = request.POST.get(key, 'presente')
 
     # ── Construção do PDF ─────────────────────────────────────────────────
     response = HttpResponse(content_type='application/pdf')
@@ -5083,39 +5078,33 @@ def acta_actividade_pdf(request, actividade_id):
         Paragraph('<b>Telefone</b>',     label_style),
         Paragraph('<b>Célula</b>',       label_style),
         Paragraph('<b>Presença</b>',     label_style),
-        Paragraph('<b>Substituto</b>',   label_style),
     ]
     team_data = [team_header]
 
-    presentes   = 0
-    ausentes    = 0
-    substituidos = 0
+    presentes = 0
+    ausentes  = 0
 
     for irmao in irmaos_protocolo:
-        estado  = estados.get(irmao.id, 'presente')
-        sub_txt = substitutos.get(irmao.id, '')
-        cor     = CORES_ESTADO.get(estado, colors.white)
-        label   = ESTADO_LABELS.get(estado, estado.capitalize())
+        estado = estados.get(irmao.id, 'presente')
+        cor    = CORES_ESTADO.get(estado, colors.white)
+        label  = ESTADO_LABELS.get(estado, estado.capitalize())
 
         if estado == 'presente':
             presentes += 1
-        elif estado == 'ausente':
+        else:
             ausentes += 1
-        elif estado == 'substituido':
-            substituidos += 1
 
         row = [
             Paragraph(f'{irmao.nome} {irmao.apelido}', body_style),
             Paragraph(irmao.telefone or '—', body_style),
             Paragraph(str(irmao.celula) if irmao.celula else '—', body_style),
             Paragraph(label, body_style),
-            Paragraph(sub_txt or '—', body_style),
         ]
         team_data.append((row, cor))
 
     # Construir tabela com cores por linha
     raw_rows = [team_header] + [r for r, _ in team_data[1:]]
-    team_table = Table(raw_rows, colWidths=[5.5*cm, 3*cm, 3*cm, 2.5*cm, 3*cm])
+    team_table = Table(raw_rows, colWidths=[6*cm, 3.5*cm, 3.5*cm, 4*cm])
     style_cmds = [
         ('BACKGROUND',   (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
         ('FONTNAME',     (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -5135,11 +5124,10 @@ def acta_actividade_pdf(request, actividade_id):
         [
             Paragraph(f'<b>Presentes:</b> {presentes}', body_style),
             Paragraph(f'<b>Ausentes:</b> {ausentes}', body_style),
-            Paragraph(f'<b>Substituídos:</b> {substituidos}', body_style),
             Paragraph(f'<b>Total:</b> {len(irmaos_protocolo)}', body_style),
         ]
     ]
-    resumo_table = Table(resumo_data, colWidths=[4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm])
+    resumo_table = Table(resumo_data, colWidths=[5.67*cm, 5.67*cm, 5.66*cm])
     resumo_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8fafc')),
         ('BOX',        (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),

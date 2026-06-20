@@ -32,7 +32,7 @@
             <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem;">
                 <i class="fas fa-users" style="margin-right: 0.4rem;"></i> Membros do Protocolo
             </h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Indique a presença de cada irmão. Se substituído, indique o nome do substituto.</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Indique a presença de cada irmão.</p>
 
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
@@ -42,7 +42,6 @@
                             <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1;">Telefone</th>
                             <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1;">Célula</th>
                             <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1; min-width: 130px;">Presença</th>
-                            <th style="padding: 0.65rem 0.75rem; border-bottom: 2px solid #cbd5e1; min-width: 160px;">Substituto</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -52,14 +51,10 @@
                             <td style="padding: 0.65rem 0.75rem; color: var(--text-muted);">{% if irmao.telefone %}{{ irmao.telefone }}{% else %}—{% endif %}</td>
                             <td style="padding: 0.65rem 0.75rem; color: var(--text-muted);">{% if irmao.celula %}{{ irmao.celula }}{% else %}—{% endif %}</td>
                             <td style="padding: 0.65rem 0.75rem;">
-                                <select name="estado_{{ irmao.id }}" class="estado-select" data-irmao-id="{{ irmao.id }}" onchange="toggleSubstituto({{ irmao.id }})" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.88rem;">
+                                <select name="estado_{{ irmao.id }}" class="estado-select" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.88rem;">
                                     <option value="presente" selected>Presente</option>
                                     <option value="ausente">Ausente</option>
-                                    <option value="substituido">Substituído</option>
                                 </select>
-                            </td>
-                            <td style="padding: 0.65rem 0.75rem;">
-                                <input type="text" name="substituto_{{ irmao.id }}" id="substituto_{{ irmao.id }}" placeholder="Nome do substituto" disabled style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.88rem; background: #f1f5f9;">
                             </td>
                         </tr>
                         {% endfor %}
@@ -103,16 +98,3 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    function toggleSubstituto(irmaoId) {
-        const select = document.querySelector('select[name="estado_' + irmaoId + '"]');
-        const input = document.getElementById('substituto_' + irmaoId);
-        if (!select || !input) return;
-        const isSubst = select.value === 'substituido';
-        input.disabled = !isSubst;
-        input.style.background = isSubst ? '#ffffff' : '#f1f5f9';
-        if (!isSubst) input.value = '';
-    }
-</script>
-{% endblock %}
