@@ -2257,119 +2257,205 @@ def cartao_protocolo_pdf(request, actividade_id):
     )
 
     page_w, page_h = A4
-    margin = 30
-    gap = 22
-    card_w = page_w - 2 * margin
-    card_h = (page_h - 2 * margin - gap) / 2
+    margin_x = 36
+    margin_y = 36
+    card_w = page_w - 2 * margin_x
+    card_h = page_h - 2 * margin_y
 
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
 
     primary      = colors.HexColor('#1e3a5f')
+    primary_dark = colors.HexColor('#0f2044')
     gold         = colors.HexColor('#d97706')
-    muted        = colors.HexColor('#6b7280')
+    gold_light   = colors.HexColor('#fef3c7')
+    gold_border  = colors.HexColor('#fde68a')
     light_blue   = colors.HexColor('#93c5fd')
-    pale_yellow  = colors.HexColor('#fef3c7')
-    amber_border = colors.HexColor('#fde68a')
+    pale_blue    = colors.HexColor('#bfdbfe')
+    muted        = colors.HexColor('#6b7280')
+    ink          = colors.HexColor('#1f2937')
+    divider      = colors.HexColor('#e2e8f0')
 
-    def _draw_card(c, x, card_y, membro, funcao_str, idx):
-        header_h = 72
+    HEADER_H  = 130
+    FOOTER_H  = 75
+    ACCENT_W  = 8
+    BODY_PAD  = ACCENT_W + 22
 
-        c.setFillColor(colors.HexColor('#f8fafc'))
-        c.setStrokeColor(primary)
-        c.setLineWidth(1.5)
-        c.roundRect(x, card_y, card_w, card_h, 10, fill=1, stroke=1)
-
+    def _label_value(c, lx, ly, label, value, label_w=90):
+        """Draw a bold label + regular value on the same line."""
+        c.setFont('Helvetica-Bold', 12)
         c.setFillColor(primary)
-        c.setStrokeColor(primary)
-        c.roundRect(x, card_y + card_h - header_h, card_w, header_h, 10, fill=1, stroke=0)
-        c.rect(x, card_y + card_h - header_h, card_w, int(header_h / 2), fill=1, stroke=0)
+        c.drawString(lx, ly, label)
+        c.setFont('Helvetica', 12)
+        c.setFillColor(ink)
+        c.drawString(lx + label_w, ly, str(value)[:55])
 
+    def _draw_card(c, membro, funcao_str, idx):
+        x      = margin_x
+        card_y = margin_y
+
+        # ── Card background ──────────────────────────────────────────────
+        c.setFillColor(colors.white)
+        c.setStrokeColor(primary)
+        c.setLineWidth(2)
+        c.roundRect(x, card_y, card_w, card_h, 14, fill=1, stroke=1)
+
+        # ── Header band ──────────────────────────────────────────────────
+        header_top = card_y + card_h
+        c.setFillColor(primary_dark)
+        c.roundRect(x, header_top - HEADER_H, card_w, HEADER_H, 14, fill=1, stroke=0)
+        c.rect(x, header_top - HEADER_H, card_w, HEADER_H // 2, fill=1, stroke=0)
+
+        # Thin gold stripe at bottom of header
+        c.setFillColor(gold)
+        c.rect(x, header_top - HEADER_H - 4, card_w, 4, fill=1, stroke=0)
+
+        # Logo
         if os.path.exists(logo_path):
             try:
-                logo_sz = 54
+                logo_sz = 90
                 c.drawImage(
                     logo_path,
-                    x + 12,
-                    card_y + card_h - header_h + (header_h - logo_sz) / 2,
+                    x + 18,
+                    header_top - HEADER_H + (HEADER_H - logo_sz) / 2,
                     width=logo_sz, height=logo_sz,
                     preserveAspectRatio=True, mask='auto',
                 )
             except Exception:
                 pass
 
+        # Title
+        title_x = x + 126
         c.setFillColor(colors.white)
-        c.setFont('Helvetica-Bold', 24)
-        c.drawCentredString(x + card_w / 2 + 28, card_y + card_h - header_h + 26, 'PROTOCOLO')
+        c.setFont('Helvetica-Bold', 30)
+        c.drawString(title_x, header_top - 50, 'CREDENCIAL DE PROTOCOLO')
 
-        act_str = str(actividade.designacao)[:52]
-        c.setFont('Helvetica', 8.5)
+        # Church name
+        c.setFont('Helvetica', 13)
         c.setFillColor(light_blue)
-        c.drawCentredString(x + card_w / 2 + 28, card_y + card_h - header_h + 12, act_str)
+        c.drawString(title_x, header_top - 68, 'TIBL — Trabalho Integral Bíblico Local')
 
-        c.setFont('Helvetica', 8)
-        c.setFillColor(colors.HexColor('#bfdbfe'))
-        c.drawRightString(x + card_w - 12, card_y + card_h - 16, actividade.data.strftime('%d/%m/%Y'))
+        # Separator in header
+        c.setStrokeColor(colors.HexColor('#334e7a'))
+        c.setLineWidth(0.8)
+        c.line(title_x, header_top - 80, x + card_w - 18, header_top - 80)
+
+        # Activity name inside header
+        act_str = str(actividade.designacao)
+        c.setFont('Helvetica', 12)
+        c.setFillColor(pale_blue)
+        c.drawString(title_x, header_top - 97, act_str[:62])
+
+        # Date top-right
+        c.setFont('Helvetica-Bold', 13)
+        c.setFillColor(colors.white)
+        c.drawRightString(x + card_w - 18, header_top - 22, actividade.data.strftime('%d/%m/%Y'))
+        c.setFont('Helvetica', 11)
+        c.setFillColor(pale_blue)
         c.drawRightString(
-            x + card_w - 12, card_y + card_h - 27,
-            f'{actividade.inicio.strftime("%H:%M")} — {actividade.fim.strftime("%H:%M")}',
+            x + card_w - 18, header_top - 38,
+            f'{actividade.inicio.strftime("%H:%M")}  —  {actividade.fim.strftime("%H:%M")}',
         )
+        local_str = str(actividade.localactividade or 'Sede')
+        c.setFont('Helvetica', 10)
+        c.setFillColor(light_blue)
+        c.drawRightString(x + card_w - 18, header_top - 52, local_str[:40])
 
-        nome_completo = f'{membro.nome} {membro.apelido}'
-        name_y = card_y + card_h - header_h - 34
-        c.setFillColor(primary)
-        c.setFont('Helvetica-Bold', 17)
-        c.drawString(x + 18, name_y, nome_completo[:40])
-
-        badge_y = name_y - 24
-        badge_w = c.stringWidth(funcao_str, 'Helvetica-Bold', 10) + 18
-        c.setFillColor(pale_yellow)
-        c.setStrokeColor(amber_border)
-        c.setLineWidth(0.5)
-        c.roundRect(x + 18, badge_y - 4, badge_w, 18, 4, fill=1, stroke=1)
+        # ── Left gold accent stripe (body only) ──────────────────────────
+        body_top_y  = card_y + FOOTER_H
+        body_h      = card_h - HEADER_H - 4 - FOOTER_H
         c.setFillColor(gold)
-        c.setFont('Helvetica-Bold', 10)
-        c.drawString(x + 27, badge_y + 2, funcao_str)
+        c.rect(x, body_top_y, ACCENT_W, body_h, fill=1, stroke=0)
 
-        div_y = badge_y - 18
-        c.setStrokeColor(colors.HexColor('#e2e8f0'))
-        c.setLineWidth(0.5)
-        c.line(x + 15, div_y, x + card_w - 15, div_y)
+        # ── Member name ──────────────────────────────────────────────────
+        body_start_y = card_y + card_h - HEADER_H - 4
+        nome_completo = f'{membro.nome} {membro.apelido}'
+        name_y = body_start_y - 50
+        c.setFillColor(primary)
+        c.setFont('Helvetica-Bold', 34)
+        # Shrink font if name is very long
+        font_sz = 34
+        while c.stringWidth(nome_completo, 'Helvetica-Bold', font_sz) > card_w - BODY_PAD - 20 and font_sz > 20:
+            font_sz -= 1
+        c.setFont('Helvetica-Bold', font_sz)
+        c.drawString(x + BODY_PAD, name_y, nome_completo)
 
-        det_y = div_y - 16
+        # Underline the name in gold
+        name_w = c.stringWidth(nome_completo, 'Helvetica-Bold', font_sz)
+        c.setStrokeColor(gold)
+        c.setLineWidth(2.5)
+        c.line(x + BODY_PAD, name_y - 6, x + BODY_PAD + name_w, name_y - 6)
+
+        # ── Function badge ────────────────────────────────────────────────
+        badge_y  = name_y - 44
+        badge_w  = c.stringWidth(funcao_str, 'Helvetica-Bold', 14) + 28
+        badge_h  = 26
+        c.setFillColor(gold_light)
+        c.setStrokeColor(gold_border)
+        c.setLineWidth(1.2)
+        c.roundRect(x + BODY_PAD, badge_y - 6, badge_w, badge_h, 6, fill=1, stroke=1)
+        c.setFillColor(gold)
+        c.setFont('Helvetica-Bold', 14)
+        c.drawString(x + BODY_PAD + 14, badge_y + 4, funcao_str)
+
+        # ── Divider ───────────────────────────────────────────────────────
+        div_y = badge_y - 26
+        c.setStrokeColor(divider)
+        c.setLineWidth(0.8)
+        c.line(x + ACCENT_W + 12, div_y, x + card_w - 18, div_y)
+
+        # ── Detail fields ─────────────────────────────────────────────────
+        det_y = div_y - 24
+        LINE  = 22
+
+        _label_value(c, x + BODY_PAD, det_y, 'Actividade:', act_str[:55])
+        det_y -= LINE
+
+        if membro.celula:
+            _label_value(c, x + BODY_PAD, det_y, 'Célula:', str(membro.celula))
+            det_y -= LINE
+
+        if membro.telefone:
+            _label_value(c, x + BODY_PAD, det_y, 'Telefone:', membro.telefone)
+            det_y -= LINE
+
+        if hasattr(membro, 'email') and membro.email:
+            _label_value(c, x + BODY_PAD, det_y, 'Email:', membro.email[:55])
+
+        # ── Footer zone ───────────────────────────────────────────────────
+        footer_top = card_y + FOOTER_H
+        c.setStrokeColor(divider)
+        c.setLineWidth(0.8)
+        c.line(x + 12, footer_top, x + card_w - 12, footer_top)
+
+        sig1_cx = x + card_w * 0.27
+        sig2_cx = x + card_w * 0.73
+        sig_line_y = card_y + FOOTER_H - 22
+
+        c.setStrokeColor(ink)
+        c.setLineWidth(0.9)
+        c.line(sig1_cx - 80, sig_line_y + 18, sig1_cx + 80, sig_line_y + 18)
+        c.line(sig2_cx - 80, sig_line_y + 18, sig2_cx + 80, sig_line_y + 18)
+
+        c.setFont('Helvetica', 11)
+        c.setFillColor(ink)
+        c.drawCentredString(sig1_cx, sig_line_y + 5, 'Líder do Protocolo')
+        c.drawCentredString(sig2_cx, sig_line_y + 5, 'Responsável da Actividade')
+
+        # Card number bottom-left
         c.setFont('Helvetica', 9)
         c.setFillColor(muted)
-        if membro.celula:
-            c.drawString(x + 18, det_y, f'Célula: {membro.celula}')
-            det_y -= 14
-        if membro.telefone:
-            c.drawString(x + 18, det_y, f'Tel: {membro.telefone}')
+        c.drawString(x + 16, card_y + 10, f'N.º {idx + 1:02d}  ·  TIBL  ·  {actividade.data.strftime("%d/%m/%Y")}')
 
-        local_str = str(actividade.localactividade or 'Sede')[:32]
-        c.setFont('Helvetica', 8.5)
-        c.setFillColor(muted)
-        c.drawRightString(x + card_w - 15, div_y - 16, f'Local: {local_str}')
-
-        sig_y  = card_y + 28
-        sig_cx = x + card_w * 0.72
-        c.setStrokeColor(colors.HexColor('#374151'))
-        c.setLineWidth(0.8)
-        c.line(sig_cx - 65, sig_y + 14, sig_cx + 65, sig_y + 14)
-        c.setFont('Helvetica', 8)
-        c.setFillColor(colors.HexColor('#374151'))
-        c.drawCentredString(sig_cx, sig_y + 3, 'Líder do Protocolo')
-
-        c.setFont('Helvetica', 7)
-        c.setFillColor(colors.HexColor('#9ca3af'))
-        c.drawString(x + 14, card_y + 10, f'#{idx + 1:02d}  ·  {actividade.data.strftime("%d/%m/%Y")}')
+        # Bottom gold bar
+        c.setFillColor(gold)
+        c.roundRect(x, card_y, card_w, 7, 4, fill=1, stroke=0)
 
     c = canvas.Canvas(response, pagesize=A4)
 
     for idx, (membro, funcao_str) in enumerate(membros_funcoes):
-        if idx > 0 and idx % 2 == 0:
+        if idx > 0:
             c.showPage()
-        slot = idx % 2
-        card_y = (page_h - margin - card_h) if slot == 0 else margin
-        _draw_card(c, margin, card_y, membro, funcao_str, idx)
+        _draw_card(c, membro, funcao_str, idx)
 
     c.save()
     return response
