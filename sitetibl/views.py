@@ -1751,6 +1751,11 @@ def mostraCriacao(request, gestaoescolhida):
             formulario.save_m2m()
 
             # ðŸ“‹ SolicitaÃ§Ã£o: notificar lÃ­deres do departamento destinatÃ¡rio
+            # Escala de protocolo: notificar automaticamente todos os membros escalados
+            if gestaoescolhida == 'escalas' and getattr(obj, 'eh_protocolo', False):
+                for membro_proto in obj.irmao_protocolo.all():
+                    _notificar_protocolo_escalado(membro_proto, obj, obj.actividade)
+
             if gestaoescolhida == 'solicitacoes':
                 HistoricoSolicitacao.objects.create(
                     solicitacao=obj, estado_anterior='',
