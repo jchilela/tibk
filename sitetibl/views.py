@@ -2375,6 +2375,28 @@ def cartao_protocolo_pdf(request, actividade_id):
     return response
 
 
+_TELCOSMS_URL = 'https://telcosms.co.ao/send_message'
+
+
+def _enviar_sms_telco(telefone, texto):
+    """Envia um SMS individual via TelcoSMS. Regista falhas no logger sem lançar excepção."""
+    sms_data = {
+        'message': {
+            'api_key_app': _telcosms_api_key(),
+            'phone_number': telefone,
+            'message_body': texto,
+        }
+    }
+    try:
+        resp = requests.post(_TELCOSMS_URL, json=sms_data, timeout=10)
+        if resp.status_code == 200:
+            logger.info('SMS enviado para %s', telefone)
+        else:
+            logger.error('Falha SMS para %s — status %s: %s', telefone, resp.status_code, resp.text)
+    except Exception as e:
+        logger.error('Erro SMS para %s: %s', telefone, e)
+
+
 def _notificar_protocolo_escalado(irmao, escala, actividade):
     """Envia email e SMS ao membro escalado para o protocolo."""
     funcao_str = str(escala.funcao) if escala.funcao else 'Protocolo'
@@ -2417,21 +2439,7 @@ def _notificar_protocolo_escalado(irmao, escala, actividade):
             f'TIBL — Foi escalado(a) para o Protocolo da actividade "{act_str}" '
             f'em {data_str} as {hora_str}. Local: {local_str}. Deus abencoe!'
         )
-        sms_data = {
-            'message': {
-                'api_key_app': _telcosms_api_key(),
-                'phone_number': irmao.telefone,
-                'message_body': sms_texto,
-            }
-        }
-        try:
-            resp = requests.post('https://telcosms.co.ao/send_message', json=sms_data, timeout=10)
-            if resp.status_code == 200:
-                logger.info('SMS de protocolo enviado para %s', irmao.telefone)
-            else:
-                logger.error('Falha SMS protocolo para %s — status %s', irmao.telefone, resp.status_code)
-        except Exception as e:
-            logger.error('Erro SMS protocolo para %s: %s', irmao.telefone, e)
+        _enviar_sms_telco(irmao.telefone, sms_texto)
 
 
 @login_required
@@ -4952,11 +4960,9 @@ def acta_actividade_pdf(request, actividade_id):
         messages.error(request, 'Esta actividade não possui uma escala de protocolo associada.')
         return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
 
-    # Recolher todos os irmãos do protocolo (sem duplicados)
+    # Recolher todos os irmãos do protocolo via M2M (sem duplicados)
     irmaos_set = set()
     for esc in escalas_protocolo:
-        if esc.irmao:
-            irmaos_set.add(esc.irmao)
         for i in esc.irmao_protocolo.all():
             irmaos_set.add(i)
     irmaos_protocolo = sorted(irmaos_set, key=lambda x: x.nome)
