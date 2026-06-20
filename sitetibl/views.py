@@ -2370,6 +2370,128 @@ def cartao_protocolo_pdf(request, actividade_id):
     return response
 
 
+def _notificar_protocolo_escalado(irmao, escala, actividade):
+    """Envia email e SMS ao membro escalado para o protocolo."""
+    funcao_str = str(escala.funcao) if escala.funcao else 'Protocolo'
+    local_str  = str(actividade.localactividade or 'Sede')
+    data_str   = actividade.data.strftime('%d/%m/%Y')
+    hora_str   = f'{actividade.inicio.strftime("%H:%M")} — {actividade.fim.strftime("%H:%M")}'
+    act_str    = str(actividade.designacao)
+    dept_str   = str(escala.funcao.departamento) if escala.funcao and escala.funcao.departamento else ''
+
+    if irmao.email:
+        try:
+            context = {
+                'nome': irmao.nome,
+                'apelido': irmao.apelido,
+                'actividade': act_str,
+                'data': data_str,
+                'hora': hora_str,
+                'local': local_str,
+                'funcao': funcao_str,
+                'departamento': dept_str,
+            }
+            html_content = render_to_string('emails/email_protocolo_escalado.html', context)
+            msg = EmailMultiAlternatives(
+                subject=f'Escala de Protocolo — {act_str} ({data_str})',
+                body=(
+                    f'Olá {irmao.nome}, foi escalado(a) para o Protocolo da actividade '
+                    f'"{act_str}" em {data_str} às {hora_str}. Local: {local_str}.'
+                ),
+                from_email=None,
+                to=[irmao.email],
+            )
+            msg.attach_alternative(html_content, 'text/html')
+            msg.send()
+            logger.info('Email de protocolo enviado para %s', irmao.email)
+        except Exception as e:
+            logger.error('Falha ao enviar email de protocolo para %s: %s', irmao.email, e)
+
+    if irmao.telefone:
+        sms_texto = (
+            f'TIBL — Foi escalado(a) para o Protocolo da actividade "{act_str}" '
+            f'em {data_str} as {hora_str}. Local: {local_str}. Deus abencoe!'
+        )
+        sms_data = {
+            'message': {
+                'api_key_app': _telcosms_api_key(),
+                'phone_number': irmao.telefone,
+                'message_body': sms_texto,
+            }
+        }
+        try:
+            resp = requests.post('https://telcosms.co.ao/send_message', json=sms_data, timeout=10)
+            if resp.status_code == 200:
+                logger.info('SMS de protocolo enviado para %s', irmao.telefone)
+            else:
+                logger.error('Falha SMS protocolo para %s — status %s', irmao.telefone, resp.status_code)
+        except Exception as e:
+            logger.error('Erro SMS protocolo para %s: %s', irmao.telefone, e)
+
+
+@login_required
+def substituir_membro_protocolo(request, escala_id, irmao_id):
+    """Substitui um membro numa escala de protocolo e notifica o novo membro."""
+    from django.core.exceptions import PermissionDenied
+    if not request.user.has_perm('sitetibl.change_escala'):
+        raise PermissionDenied
+
+    escala          = get_object_or_404(Escala, id=escala_id, eh_protocolo=True)
+    membro_original = get_object_or_404(Irmao, id=irmao_id)
+    actividade      = escala.actividade
+
+    if not escala.irmao_protocolo.filter(id=irmao_id).exists():
+        messages.error(request, 'Este membro não faz parte desta escala de protocolo.')
+        return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade.id]))
+
+    ja_escalados_ids = set(escala.irmao_protocolo.values_list('id', flat=True))
+    irmaos_disponiveis = (
+        Irmao.objects.select_related('celula')
+        .exclude(id__in=ja_escalados_ids)
+        .order_by('nome', 'apelido')
+    )
+
+    if request.method == 'GET':
+        return render(request, 'substituir_protocolo.html', {
+            'escala': escala,
+            'membro_original': membro_original,
+            'irmaos_disponiveis': irmaos_disponiveis,
+        })
+
+    novo_irmao_id = request.POST.get('novo_irmao_id', '').strip()
+    if not novo_irmao_id:
+        return render(request, 'substituir_protocolo.html', {
+            'escala': escala,
+            'membro_original': membro_original,
+            'irmaos_disponiveis': irmaos_disponiveis,
+            'form_error': 'Seleccione um irmão para efectuar a substituição.',
+        })
+
+    try:
+        novo_irmao = Irmao.objects.get(id=int(novo_irmao_id))
+    except (Irmao.DoesNotExist, ValueError):
+        return render(request, 'substituir_protocolo.html', {
+            'escala': escala,
+            'membro_original': membro_original,
+            'irmaos_disponiveis': irmaos_disponiveis,
+            'form_error': 'Irmão seleccionado não encontrado.',
+        })
+
+    escala.irmao_protocolo.remove(membro_original)
+    escala.irmao_protocolo.add(novo_irmao)
+
+    if escala.irmao_id == membro_original.id:
+        escala.irmao = novo_irmao
+        escala.save(update_fields=['irmao'])
+
+    _notificar_protocolo_escalado(novo_irmao, escala, actividade)
+
+    messages.success(
+        request,
+        f'{membro_original.nome} {membro_original.apelido} substituído(a) por '
+        f'{novo_irmao.nome} {novo_irmao.apelido}. Notificação enviada.',
+    )
+    return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade.id]))
 
 
 @login_required
