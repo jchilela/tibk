@@ -2257,10 +2257,10 @@ def cartao_protocolo_pdf(request, actividade_id):
     )
 
     page_w, page_h = A4
-    margin_x = 36
-    margin_y = 36
-    card_w = page_w - 2 * margin_x
-    card_h = page_h - 2 * margin_y
+    margin  = 28
+    gap     = 20
+    card_w  = page_w - 2 * margin
+    card_h  = (page_h - 2 * margin - gap) / 2
 
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
 
@@ -2273,49 +2273,59 @@ def cartao_protocolo_pdf(request, actividade_id):
     pale_blue    = colors.HexColor('#bfdbfe')
     muted        = colors.HexColor('#6b7280')
     ink          = colors.HexColor('#1f2937')
-    divider      = colors.HexColor('#e2e8f0')
+    divider_col  = colors.HexColor('#e2e8f0')
 
-    HEADER_H  = 130
-    FOOTER_H  = 75
-    ACCENT_W  = 8
-    BODY_PAD  = ACCENT_W + 22
+    HEADER_H = 80
+    FOOTER_H = 46
+    ACCENT_W = 6
+    BODY_PAD = ACCENT_W + 15
+    # max text width available in card body
+    MAX_TXT  = card_w - BODY_PAD - 16
 
-    def _label_value(c, lx, ly, label, value, label_w=90):
-        """Draw a bold label + regular value on the same line."""
-        c.setFont('Helvetica-Bold', 12)
+    def _fit_str(canvas_obj, text, font, size, max_w):
+        """Truncate text with ellipsis until it fits within max_w."""
+        t = text
+        while canvas_obj.stringWidth(t, font, size) > max_w and len(t) > 1:
+            t = t[:-1]
+        if t != text:
+            t = t[:-1] + '…'
+        return t
+
+    def _label_value(c, lx, ly, label, value, label_w=68):
+        lbl_font, val_font, sz = 'Helvetica-Bold', 'Helvetica', 9
+        c.setFont(lbl_font, sz)
         c.setFillColor(primary)
         c.drawString(lx, ly, label)
-        c.setFont('Helvetica', 12)
+        c.setFont(val_font, sz)
         c.setFillColor(ink)
-        c.drawString(lx + label_w, ly, str(value)[:55])
+        val_str = _fit_str(c, str(value), val_font, sz, MAX_TXT - label_w)
+        c.drawString(lx + label_w, ly, val_str)
 
-    def _draw_card(c, membro, funcao_str, idx):
-        x      = margin_x
-        card_y = margin_y
+    def _draw_card(c, x, card_y, membro, funcao_str, idx):
 
-        # ── Card background ──────────────────────────────────────────────
+        # ── Card background ───────────────────────────────────────────────
         c.setFillColor(colors.white)
         c.setStrokeColor(primary)
-        c.setLineWidth(2)
-        c.roundRect(x, card_y, card_w, card_h, 14, fill=1, stroke=1)
+        c.setLineWidth(1.5)
+        c.roundRect(x, card_y, card_w, card_h, 10, fill=1, stroke=1)
 
-        # ── Header band ──────────────────────────────────────────────────
+        # ── Header band ───────────────────────────────────────────────────
         header_top = card_y + card_h
         c.setFillColor(primary_dark)
-        c.roundRect(x, header_top - HEADER_H, card_w, HEADER_H, 14, fill=1, stroke=0)
+        c.roundRect(x, header_top - HEADER_H, card_w, HEADER_H, 10, fill=1, stroke=0)
         c.rect(x, header_top - HEADER_H, card_w, HEADER_H // 2, fill=1, stroke=0)
 
-        # Thin gold stripe at bottom of header
+        # Gold accent under header
         c.setFillColor(gold)
-        c.rect(x, header_top - HEADER_H - 4, card_w, 4, fill=1, stroke=0)
+        c.rect(x, header_top - HEADER_H - 3, card_w, 3, fill=1, stroke=0)
 
         # Logo
         if os.path.exists(logo_path):
             try:
-                logo_sz = 90
+                logo_sz = 58
                 c.drawImage(
                     logo_path,
-                    x + 18,
+                    x + 12,
                     header_top - HEADER_H + (HEADER_H - logo_sz) / 2,
                     width=logo_sz, height=logo_sz,
                     preserveAspectRatio=True, mask='auto',
@@ -2323,91 +2333,89 @@ def cartao_protocolo_pdf(request, actividade_id):
             except Exception:
                 pass
 
-        # Title
-        title_x = x + 126
+        # Title & church name
+        title_x = x + 82
         c.setFillColor(colors.white)
-        c.setFont('Helvetica-Bold', 30)
-        c.drawString(title_x, header_top - 50, 'CREDENCIAL DE PROTOCOLO')
+        c.setFont('Helvetica-Bold', 17)
+        c.drawString(title_x, header_top - 22, 'CREDENCIAL DE PROTOCOLO')
 
-        # Church name
-        c.setFont('Helvetica', 13)
+        c.setFont('Helvetica', 9)
         c.setFillColor(light_blue)
-        c.drawString(title_x, header_top - 68, 'TIBL — Trabalho Integral Bíblico Local')
+        c.drawString(title_x, header_top - 35, 'TIBL — Trabalho Integral Bíblico Local')
 
-        # Separator in header
+        # Thin separator inside header
         c.setStrokeColor(colors.HexColor('#334e7a'))
-        c.setLineWidth(0.8)
-        c.line(title_x, header_top - 80, x + card_w - 18, header_top - 80)
+        c.setLineWidth(0.6)
+        c.line(title_x, header_top - 44, x + card_w - 14, header_top - 44)
 
         # Activity name inside header
         act_str = str(actividade.designacao)
-        c.setFont('Helvetica', 12)
+        act_fitted = _fit_str(c, act_str, 'Helvetica', 8, card_w - 82 - 100 - 14)
+        c.setFont('Helvetica', 8)
         c.setFillColor(pale_blue)
-        c.drawString(title_x, header_top - 97, act_str[:62])
+        c.drawString(title_x, header_top - 56, act_fitted)
 
-        # Date top-right
-        c.setFont('Helvetica-Bold', 13)
+        # Date / time / local — top right
+        c.setFont('Helvetica-Bold', 10)
         c.setFillColor(colors.white)
-        c.drawRightString(x + card_w - 18, header_top - 22, actividade.data.strftime('%d/%m/%Y'))
-        c.setFont('Helvetica', 11)
+        c.drawRightString(x + card_w - 12, header_top - 17, actividade.data.strftime('%d/%m/%Y'))
+        c.setFont('Helvetica', 8.5)
         c.setFillColor(pale_blue)
         c.drawRightString(
-            x + card_w - 18, header_top - 38,
-            f'{actividade.inicio.strftime("%H:%M")}  —  {actividade.fim.strftime("%H:%M")}',
+            x + card_w - 12, header_top - 29,
+            f'{actividade.inicio.strftime("%H:%M")} — {actividade.fim.strftime("%H:%M")}',
         )
-        local_str = str(actividade.localactividade or 'Sede')
-        c.setFont('Helvetica', 10)
+        local_str = _fit_str(c, str(actividade.localactividade or 'Sede'), 'Helvetica', 8, 110)
+        c.setFont('Helvetica', 8)
         c.setFillColor(light_blue)
-        c.drawRightString(x + card_w - 18, header_top - 52, local_str[:40])
+        c.drawRightString(x + card_w - 12, header_top - 40, local_str)
 
-        # ── Left gold accent stripe (body only) ──────────────────────────
-        body_top_y  = card_y + FOOTER_H
-        body_h      = card_h - HEADER_H - 4 - FOOTER_H
+        # ── Left gold accent stripe (body only) ───────────────────────────
+        body_bot = card_y + FOOTER_H
+        body_h   = card_h - HEADER_H - 3 - FOOTER_H
         c.setFillColor(gold)
-        c.rect(x, body_top_y, ACCENT_W, body_h, fill=1, stroke=0)
+        c.rect(x, body_bot, ACCENT_W, body_h, fill=1, stroke=0)
 
-        # ── Member name ──────────────────────────────────────────────────
-        body_start_y = card_y + card_h - HEADER_H - 4
+        # ── Member name ───────────────────────────────────────────────────
+        body_start_y = card_y + card_h - HEADER_H - 3
         nome_completo = f'{membro.nome} {membro.apelido}'
-        name_y = body_start_y - 50
-        c.setFillColor(primary)
-        c.setFont('Helvetica-Bold', 34)
-        # Shrink font if name is very long
-        font_sz = 34
-        while c.stringWidth(nome_completo, 'Helvetica-Bold', font_sz) > card_w - BODY_PAD - 20 and font_sz > 20:
+        name_y   = body_start_y - 32
+        font_sz  = 22
+        while c.stringWidth(nome_completo, 'Helvetica-Bold', font_sz) > MAX_TXT and font_sz > 13:
             font_sz -= 1
+        c.setFillColor(primary)
         c.setFont('Helvetica-Bold', font_sz)
         c.drawString(x + BODY_PAD, name_y, nome_completo)
 
-        # Underline the name in gold
+        # Gold underline
         name_w = c.stringWidth(nome_completo, 'Helvetica-Bold', font_sz)
         c.setStrokeColor(gold)
-        c.setLineWidth(2.5)
-        c.line(x + BODY_PAD, name_y - 6, x + BODY_PAD + name_w, name_y - 6)
+        c.setLineWidth(2)
+        c.line(x + BODY_PAD, name_y - 5, x + BODY_PAD + name_w, name_y - 5)
 
         # ── Function badge ────────────────────────────────────────────────
-        badge_y  = name_y - 44
-        badge_w  = c.stringWidth(funcao_str, 'Helvetica-Bold', 14) + 28
-        badge_h  = 26
+        badge_y = name_y - 30
+        func_fitted = _fit_str(c, funcao_str, 'Helvetica-Bold', 10, MAX_TXT - 20)
+        badge_w = c.stringWidth(func_fitted, 'Helvetica-Bold', 10) + 20
         c.setFillColor(gold_light)
         c.setStrokeColor(gold_border)
-        c.setLineWidth(1.2)
-        c.roundRect(x + BODY_PAD, badge_y - 6, badge_w, badge_h, 6, fill=1, stroke=1)
+        c.setLineWidth(0.8)
+        c.roundRect(x + BODY_PAD, badge_y - 5, badge_w, 20, 4, fill=1, stroke=1)
         c.setFillColor(gold)
-        c.setFont('Helvetica-Bold', 14)
-        c.drawString(x + BODY_PAD + 14, badge_y + 4, funcao_str)
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(x + BODY_PAD + 10, badge_y + 3, func_fitted)
 
         # ── Divider ───────────────────────────────────────────────────────
-        div_y = badge_y - 26
-        c.setStrokeColor(divider)
-        c.setLineWidth(0.8)
-        c.line(x + ACCENT_W + 12, div_y, x + card_w - 18, div_y)
+        div_y = badge_y - 16
+        c.setStrokeColor(divider_col)
+        c.setLineWidth(0.6)
+        c.line(x + ACCENT_W + 10, div_y, x + card_w - 14, div_y)
 
         # ── Detail fields ─────────────────────────────────────────────────
-        det_y = div_y - 24
-        LINE  = 22
+        det_y = div_y - 14
+        LINE  = 15
 
-        _label_value(c, x + BODY_PAD, det_y, 'Actividade:', act_str[:55])
+        _label_value(c, x + BODY_PAD, det_y, 'Actividade:', act_str)
         det_y -= LINE
 
         if membro.celula:
@@ -2419,43 +2427,45 @@ def cartao_protocolo_pdf(request, actividade_id):
             det_y -= LINE
 
         if hasattr(membro, 'email') and membro.email:
-            _label_value(c, x + BODY_PAD, det_y, 'Email:', membro.email[:55])
+            _label_value(c, x + BODY_PAD, det_y, 'Email:', membro.email)
 
         # ── Footer zone ───────────────────────────────────────────────────
         footer_top = card_y + FOOTER_H
-        c.setStrokeColor(divider)
-        c.setLineWidth(0.8)
-        c.line(x + 12, footer_top, x + card_w - 12, footer_top)
+        c.setStrokeColor(divider_col)
+        c.setLineWidth(0.6)
+        c.line(x + 10, footer_top, x + card_w - 10, footer_top)
 
-        sig1_cx = x + card_w * 0.27
-        sig2_cx = x + card_w * 0.73
-        sig_line_y = card_y + FOOTER_H - 22
+        sig1_cx   = x + card_w * 0.27
+        sig2_cx   = x + card_w * 0.73
+        sig_line_y = card_y + FOOTER_H - 16
 
         c.setStrokeColor(ink)
-        c.setLineWidth(0.9)
-        c.line(sig1_cx - 80, sig_line_y + 18, sig1_cx + 80, sig_line_y + 18)
-        c.line(sig2_cx - 80, sig_line_y + 18, sig2_cx + 80, sig_line_y + 18)
+        c.setLineWidth(0.7)
+        c.line(sig1_cx - 65, sig_line_y + 14, sig1_cx + 65, sig_line_y + 14)
+        c.line(sig2_cx - 65, sig_line_y + 14, sig2_cx + 65, sig_line_y + 14)
 
-        c.setFont('Helvetica', 11)
+        c.setFont('Helvetica', 8)
         c.setFillColor(ink)
-        c.drawCentredString(sig1_cx, sig_line_y + 5, 'Líder do Protocolo')
-        c.drawCentredString(sig2_cx, sig_line_y + 5, 'Responsável da Actividade')
+        c.drawCentredString(sig1_cx, sig_line_y + 3, 'Líder do Protocolo')
+        c.drawCentredString(sig2_cx, sig_line_y + 3, 'Responsável da Actividade')
 
-        # Card number bottom-left
-        c.setFont('Helvetica', 9)
+        # Card number
+        c.setFont('Helvetica', 7)
         c.setFillColor(muted)
-        c.drawString(x + 16, card_y + 10, f'N.º {idx + 1:02d}  ·  TIBL  ·  {actividade.data.strftime("%d/%m/%Y")}')
+        c.drawString(x + 12, card_y + 8, f'N.º {idx + 1:02d}  ·  TIBL  ·  {actividade.data.strftime("%d/%m/%Y")}')
 
         # Bottom gold bar
         c.setFillColor(gold)
-        c.roundRect(x, card_y, card_w, 7, 4, fill=1, stroke=0)
+        c.roundRect(x, card_y, card_w, 5, 3, fill=1, stroke=0)
 
     c = canvas.Canvas(response, pagesize=A4)
 
     for idx, (membro, funcao_str) in enumerate(membros_funcoes):
-        if idx > 0:
+        if idx > 0 and idx % 2 == 0:
             c.showPage()
-        _draw_card(c, membro, funcao_str, idx)
+        slot   = idx % 2
+        card_y = (page_h - margin - card_h) if slot == 0 else margin
+        _draw_card(c, margin, card_y, membro, funcao_str, idx)
 
     c.save()
     return response
