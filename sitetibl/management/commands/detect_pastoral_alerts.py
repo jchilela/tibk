@@ -93,7 +93,7 @@ class Command(BaseCommand):
         novos = Irmao.objects.filter(
             data_criacao__lt=limite,
             batizado=False,
-        )
+        ).exclude(categoria='crianca')
         for irmao in novos:
             tem_caso = CasoPastoral.objects.filter(
                 membro=irmao,

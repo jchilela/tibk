@@ -177,6 +177,40 @@ class IrmaoForm(ModelForm):
             # Criação: município vazio até escolher província
             self.fields['municipio'].queryset = Municipio.objects.none()
 
+    @staticmethod
+    def _idade_em_anos(datanascimento):
+        if not datanascimento:
+            return None
+        hoje = date.today()
+        anos = hoje.year - datanascimento.year
+        if (hoje.month, hoje.day) < (datanascimento.month, datanascimento.day):
+            anos -= 1
+        return anos
+
+    def clean(self):
+        cleaned_data = super().clean()
+        categoria = cleaned_data.get('categoria')
+        datanascimento = cleaned_data.get('datanascimento')
+        idade = self._idade_em_anos(datanascimento)
+
+        # Criança é derivada automaticamente pela idade (<18).
+        if idade is not None and idade < 18:
+            cleaned_data['categoria'] = 'crianca'
+        elif categoria == 'crianca':
+            if idade is None:
+                self.add_error(
+                    'datanascimento',
+                    'Indique a data de nascimento para registar uma criança.',
+                )
+            else:
+                self.add_error(
+                    'categoria',
+                    'Maior de idade não pode ser registado como Criança. '
+                    'Escolha Membro ou Assistente.',
+                )
+
+        return cleaned_data
+
 class AjudaForm(ModelForm):
     class Meta:
         model = Ajuda
