@@ -478,4 +478,52 @@
   });
 </script>
 
+<script>
+  // Formulário de irmão: adapta os campos visíveis conforme a categoria.
+  document.addEventListener('DOMContentLoaded', function () {
+    const catSelect = document.getElementById('id_categoria');
+    const ehFormMembro = document.getElementById('id_dizimista') && document.getElementById('id_celula');
+    if (!catSelect || !ehFormMembro) {
+      return;
+    }
+
+    const camposPorCategoria = {
+      crianca: ['id_profissao', 'id_especialidade', 'id_grauescolaridade', 'id_localdetrabalho', 'id_dizimista', 'id_culto'],
+      assistente: ['id_dizimista'],
+    };
+    const esconderDepartamentos = { crianca: true, assistente: true };
+    const todosOsCampos = ['id_profissao', 'id_especialidade', 'id_grauescolaridade', 'id_localdetrabalho', 'id_dizimista', 'id_culto'];
+
+    function grupoDe(id) {
+      const el = document.getElementById(id);
+      return el ? el.closest('.form-group') : null;
+    }
+    function grupoDepartamentos() {
+      const el = document.querySelector('[name="departamentos"]');
+      return el ? el.closest('.form-group') : null;
+    }
+
+    function aplicarCategoria() {
+      const cat = catSelect.value;
+      todosOsCampos.forEach(function (id) {
+        const g = grupoDe(id);
+        if (g) g.style.display = '';
+      });
+      const gDep = grupoDepartamentos();
+      if (gDep) gDep.style.display = '';
+
+      (camposPorCategoria[cat] || []).forEach(function (id) {
+        const g = grupoDe(id);
+        if (g) g.style.display = 'none';
+      });
+      if (esconderDepartamentos[cat] && gDep) {
+        gDep.style.display = 'none';
+      }
+    }
+
+    catSelect.addEventListener('change', aplicarCategoria);
+    aplicarCategoria();
+  });
+</script>
+
 {% endblock %}

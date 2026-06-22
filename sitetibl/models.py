@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 from django.db import models
-from datetime import datetime
+from datetime import datetime, date
 from django.utils import timezone
 from multiselectfield import MultiSelectField
 from django.contrib.auth.models import User
@@ -187,6 +187,24 @@ class Pessoa(models.Model):
      telefonewhatsapp = models.CharField("Telefone do Whatsapp",max_length=50, blank=True)
      email = models.EmailField( blank=True)
      observacao = models.TextField("Observação", blank=True)
+
+     @property
+     def idade(self):
+         """Idade em anos a partir da data de nascimento (None se desconhecida)."""
+         if not self.datanascimento:
+             return None
+         hoje = date.today()
+         anos = hoje.year - self.datanascimento.year
+         if (hoje.month, hoje.day) < (self.datanascimento.month, self.datanascimento.day):
+             anos -= 1
+         return anos
+
+     @property
+     def e_menor(self):
+         """True quando a idade conhecida é inferior a 18 anos."""
+         idade = self.idade
+         return idade is not None and idade < 18
+
      def __str__(self):
          return '%s %s %s' % (self.nome, self.apelido, self.outrosnomes)
      class Admin:
@@ -195,9 +213,9 @@ class Pessoa(models.Model):
 class Irmao(Pessoa):
      CULTO = (('P','Português'),('I','Inglês'),)
      CATEGORIA_CHOICES = (
-         ('membro_batizado', 'Membro (Batizado)'),
+         ('membro_batizado', 'Membro'),
          ('crianca', 'Criança'),
-         ('assistente', 'Assistente (Não batizado)'),
+         ('assistente', 'Assistente'),
      )
      celula = models.ForeignKey(Sitio, blank=True, null=True, default=None, on_delete = models.PROTECT, related_name="celula")
      localcongregacao = models.ForeignKey(Sitio,verbose_name="Local de Congregação", blank=True, null=True, default=None, on_delete = models.PROTECT,related_name="igreja")
@@ -210,6 +228,9 @@ class Irmao(Pessoa):
      data_atualizacao = models.DateTimeField(auto_now=True)
 
      def save(self, *args, **kwargs):
+         # Rede de segurança: idade conhecida abaixo de 18 implica categoria 'crianca'.
+         if self.e_menor:
+             self.categoria = 'crianca'
          self.batizado = self.categoria == 'membro_batizado'
          super().save(*args, **kwargs)
 

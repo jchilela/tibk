@@ -58,8 +58,12 @@
                     <span style="font-weight: 700; color: #10b981;">{{ retrato.total_batizados }} <small style="font-weight: 400; color: var(--text-muted);">({{ retrato.pct_batizados }}%)</small></span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem;">Não Baptizados</span>
+                    <span style="font-size: 0.85rem;">Não Baptizados <small style="color: var(--text-muted);">(adultos)</small></span>
                     <span style="font-weight: 700; color: #3b82f6;">{{ retrato.total_nao_batizados }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.4rem;">
+                    <span style="font-size: 0.85rem;"><i class="fas fa-child" style="color: #6366f1;"></i> Crianças</span>
+                    <span style="font-weight: 700; color: #6366f1;">{{ retrato.total_criancas }}</span>
                 </div>
                 <div style="background: #e5e7eb; border-radius: 4px; height: 6px; margin-top: 0.75rem; overflow: hidden;">
                     <div style="background: #10b981; width: {{ retrato.pct_batizados }}%; height: 100%;"></div>

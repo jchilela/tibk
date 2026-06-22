@@ -4177,7 +4177,7 @@ def pastoral_dashboard(request):
     ).values_list('membro_id', flat=True)
     novos_sem_acomp = Irmao.objects.filter(
         data_criacao__lt=trinta_dias, batizado=False,
-    ).exclude(id__in=novos_ids_com_caso).count()
+    ).exclude(categoria='crianca').exclude(id__in=novos_ids_com_caso).count()
 
     visitantes_recorrentes = VisitanteRecorrente.objects.filter(
         estado='visitante', numero_visitas__gte=3
@@ -4195,8 +4195,10 @@ def pastoral_dashboard(request):
 
     # ── Retrato da Congregação ────────────────────────────────
     total_membros = Irmao.objects.count()
+    total_criancas = Irmao.objects.filter(categoria='crianca').count()
     total_batizados = Irmao.objects.filter(batizado=True).count()
-    total_nao_batizados = total_membros - total_batizados
+    # Não batizados conta apenas adultos (exclui crianças).
+    total_nao_batizados = total_membros - total_batizados - total_criancas
     total_dizimistas = Irmao.objects.filter(dizimista='sim').count()
     total_masculino = Irmao.objects.filter(sexo='M').count()
     total_feminino = Irmao.objects.filter(sexo='F').count()
@@ -4210,6 +4212,7 @@ def pastoral_dashboard(request):
 
     retrato = {
         'total_membros': total_membros,
+        'total_criancas': total_criancas,
         'total_batizados': total_batizados,
         'pct_batizados': pct(total_batizados, total_membros),
         'total_nao_batizados': total_nao_batizados,
@@ -4405,7 +4408,7 @@ def pastoral_novos(request):
     trinta_dias = now() - td(days=30)
     novos = Irmao.objects.filter(
         data_criacao__lt=trinta_dias, batizado=False,
-    ).exclude(id__in=novos_ids_com_caso).select_related('celula').order_by('-data_criacao')
+    ).exclude(categoria='crianca').exclude(id__in=novos_ids_com_caso).select_related('celula').order_by('-data_criacao')
 
     paginador = Paginator(novos, 30)
     pagina = request.GET.get('pagina', 1)
