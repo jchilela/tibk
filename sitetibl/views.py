@@ -1555,7 +1555,6 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         context = {'registoachado' : registoachado, 'gestaoescolhida' : gestaoescolhida}
     return render(request, ficheirodetalhado, context)
 
-@login_required
 def _eliminar_actividade_com_dependencias(actividade):
     """
     Elimina actividade (e ocorrências-filho) após limpar a tabela legacy
@@ -1582,6 +1581,7 @@ def _eliminar_actividade_com_dependencias(actividade):
         actividade.delete()
 
 
+@login_required
 def mostraEliminacao(request, gestaoescolhida, id):
     lista = {'irmaos':Irmao, 
              'ajudas':Ajuda, 
