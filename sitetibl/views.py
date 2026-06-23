@@ -12,7 +12,7 @@ from django import forms
 from django.urls import reverse
 from django.template import loader
 from django.db.models import Sum, Count, F, Q, Case, When, Value, IntegerField
-from django.db import IntegrityError
+from django.db import IntegrityError, connection, transaction
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import permission_required
 from reportlab.lib.pagesizes import A4
@@ -1556,6 +1556,32 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
     return render(request, ficheirodetalhado, context)
 
 @login_required
+def _eliminar_actividade_com_dependencias(actividade):
+    """
+    Elimina actividade (e ocorrências-filho) após limpar a tabela legacy
+    sitetibl_escala_irmao_protocolo, que bloqueia CASCADE das escalas em MySQL.
+    """
+    actividade_ids = [actividade.id]
+    actividade_ids.extend(
+        Actividade.objects.filter(parent_event_id=actividade.id).values_list('id', flat=True)
+    )
+    escala_ids = list(
+        Escala.objects.filter(actividade_id__in=actividade_ids).values_list('id', flat=True)
+    )
+
+    with transaction.atomic():
+        if escala_ids:
+            table = 'sitetibl_escala_irmao_protocolo'
+            if table in connection.introspection.table_names():
+                placeholders = ','.join(['%s'] * len(escala_ids))
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        f'DELETE FROM {table} WHERE escala_id IN ({placeholders})',
+                        escala_ids,
+                    )
+        actividade.delete()
+
+
 def mostraEliminacao(request, gestaoescolhida, id):
     lista = {'irmaos':Irmao, 
              'ajudas':Ajuda, 
@@ -1612,7 +1638,22 @@ def mostraEliminacao(request, gestaoescolhida, id):
                 return redirect('index')
 
     if request.method == 'POST':
-        registo.delete()
+        try:
+            if gestaoescolhida == 'actividades':
+                _eliminar_actividade_com_dependencias(registo)
+            else:
+                registo.delete()
+        except IntegrityError:
+            logger.exception('Falha ao eliminar %s id=%s', gestaoescolhida, id)
+            messages.error(
+                request,
+                'Não foi possível eliminar: existem registos associados que impedem a operação.',
+            )
+            next_url = request.POST.get('next', '')
+            if next_url and next_url.startswith('/'):
+                return redirect(next_url)
+            return redirect('index')
+
         messages.success(request, 'Eliminação foi bem sucedida')
         next_url = request.POST.get('next', '')
         if next_url and next_url.startswith('/'):
