@@ -1,7 +1,7 @@
 {% extends "base_modern.html" %}
 {% load static %}
 
-{% block title %}Acta de Protocolo — {{ actividade.designacao }}{% endblock %}
+{% block title %}Acta da Actividade — {{ actividade.designacao }}{% endblock %}
 
 {% block content %}
 <div class="list-container" style="max-width: 960px; margin: 2rem auto;">
@@ -10,7 +10,7 @@
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <i class="fas fa-file-signature" style="font-size: 2rem; opacity: 0.9;"></i>
                 <div>
-                    <h2 style="margin: 0; font-size: 1.35rem; color: white;">Acta de Protocolo</h2>
+                    <h2 style="margin: 0; font-size: 1.35rem; color: white;">Acta da Actividade</h2>
                     <p style="margin: 0.35rem 0 0 0; opacity: 0.88; font-size: 0.92rem;">Preencha a presença e observações antes de gerar o PDF.</p>
                 </div>
             </div>
@@ -30,7 +30,7 @@
 
         <div class="modern-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
             <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem;">
-                <i class="fas fa-users" style="margin-right: 0.4rem;"></i> Membros do Protocolo
+                <i class="fas fa-users" style="margin-right: 0.4rem;"></i> Membros Escalados
             </h3>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Indique a presença de cada irmão.</p>
 
@@ -67,7 +67,7 @@
             <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--primary-dark); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem;">
                 <i class="fas fa-clipboard-list" style="margin-right: 0.4rem;"></i> Ocorrências / Observações
             </h3>
-            <textarea name="ocorrencias" rows="5" placeholder="Registe incidentes, observações ou notas relevantes do serviço de protocolo..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.95rem; resize: vertical; font-family: inherit;"></textarea>
+            <textarea name="ocorrencias" rows="5" placeholder="Registe incidentes, observações ou notas relevantes da actividade..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.95rem; resize: vertical; font-family: inherit;"></textarea>
         </div>
 
         <div class="modern-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
@@ -76,7 +76,7 @@
             </h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div>
-                    <label for="nome_responsavel" style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Responsável pelo Protocolo</label>
+                    <label for="nome_responsavel" style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Responsável pela Actividade</label>
                     <input type="text" name="nome_responsavel" id="nome_responsavel" placeholder="Nome completo" style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.95rem;">
                 </div>
                 <div>

@@ -8,96 +8,12 @@
 <div class="list-container" style="max-width: 760px; margin: 0 auto;">
 <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem;">
     <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);">Nova Escala</h2>
-    <p style="color: var(--text-muted); font-size: 0.9rem;">Associe um irmão a uma actividade e função, ou crie uma escala de protocolo com até 10 irmãos.</p>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Associe um ou mais irmãos a uma actividade e função.</p>
 </div>
 
-<!-- Workflow Stepper -->
-<div style="margin-bottom: 1.75rem; padding: 0.9rem 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);">
-    <p style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin: 0 0 0.65rem 0;"><i class="fas fa-route" style="margin-right: 0.35rem;"></i>Fluxo — Actividade de Protocolo</p>
-    <div style="display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap;">
-        <a href="/tibl/actividades/criar/" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.7rem;border-radius:20px;background:#dcfce7;color:#166534;font-size:0.78rem;font-weight:600;text-decoration:none;" title="Criar nova actividade">
-            <i class="fas fa-calendar-plus"></i> 1. Criar Actividade
-        </a>
-        <i class="fas fa-chevron-right" style="color:#cbd5e1;font-size:0.65rem;"></i>
-        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.8rem;border-radius:20px;background:var(--primary);color:white;font-size:0.78rem;font-weight:700;box-shadow:0 2px 6px rgba(30,58,138,0.2);">
-            <i class="fas fa-layer-group"></i> 2. Escala de Protocolo
-        </span>
-        <i class="fas fa-chevron-right" style="color:#cbd5e1;font-size:0.65rem;"></i>
-        <a id="step-link-detalhe" href="#" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.7rem;border-radius:20px;background:#f1f5f9;color:#94a3b8;font-size:0.78rem;font-weight:600;text-decoration:none;pointer-events:none;" title="Seleccione uma actividade para activar">
-            <i class="fas fa-info-circle"></i> 3. Detalhe da Actividade
-        </a>
-        <i class="fas fa-chevron-right" style="color:#cbd5e1;font-size:0.65rem;"></i>
-        <a id="step-link-acta" href="#" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.7rem;border-radius:20px;background:#f1f5f9;color:#94a3b8;font-size:0.78rem;font-weight:600;text-decoration:none;pointer-events:none;" title="Marque 'É Protocolo?' e seleccione uma actividade para activar">
-            <i class="fas fa-file-signature"></i> 4. Gerar Acta
-        </a>
-    </div>
-</div>
-
-    <div class="modern-card" style="padding: 2rem;">
+<div class="modern-card" style="padding: 2rem;">
         <form method="POST">
             {% csrf_token %}
-
-                        <!-- Secção: Protocolo -->
-            <div style="margin-bottom: 1.75rem; padding: 1rem; background: #f0f4f8; border-radius: var(--radius-sm); border: 1px solid #dbeafe;">
-                <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: var(--primary-dark); cursor: pointer; margin-bottom: 0.5rem;">
-                    <input type="checkbox" name="eh_protocolo" id="id_eh_protocolo"
-                        style="width: 1.2rem; height: 1.2rem; accent-color: var(--primary); cursor: pointer;"
-                        onchange="toggleProtocoloFields(this.checked)">
-                    <span>É Protocolo?</span>
-                </label>
-                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 0.75rem 2rem;">Ao marcar, a selecção de irmão individual abaixo fica desactivada. Seleccione até 10 irmãos na lista abaixo.</p>
-                {% if formulario.eh_protocolo.errors %}
-                <p style="color: #ef4444; font-size: 0.85rem;">{{ formulario.eh_protocolo.errors|join:", " }}</p>
-                {% endif %}
-                
-                <!-- Irmãos do Protocolo (hidden initially) -->
-                                <div id="protocolo-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #cbd5e1;">
-
-                    <!-- Aviso de notificações automáticas -->
-                    <div style="display: flex; align-items: flex-start; gap: 0.6rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1rem;">
-                        <i class="fas fa-bell" style="color: #d97706; margin-top: 0.1rem; flex-shrink: 0;"></i>
-                        <div style="font-size: 0.85rem; color: #78350f; line-height: 1.5;">
-                            <strong>Notificações automáticas activas:</strong>
-                            ao guardar, cada irmão seleccionado receberá um <strong>email e SMS</strong> de confirmação.
-                            Um <strong>lembrete adicional</strong> será enviado automaticamente <strong>48 horas antes</strong> da actividade.
-                        </div>
-                    </div>
-
-                    <label for="id_irmao_protocolo" style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">
-                        Selecione os Irmãos
-                        <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(máximo 10)</span>
-                    </label>
-                    <input type="text" id="protocolo-filtro" placeholder="Pesquisar irmão..."
-                        style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.9rem; margin-bottom: 0.5rem; box-sizing: border-box;"
-                        oninput="filtrarProtocolo(this.value)">
-                    <div style="border: 1px solid #cbd5e1; border-radius: var(--radius-sm); max-height: 280px; overflow-y: auto; background: white;">
-                        <div style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid #e2e8f0; background: #f8fafc; position: sticky; top: 0;">
-                            <span id="protocolo-count">0/10 irmãos selecionados</span>
-                        </div>
-                        <div id="protocolo-lista">
-                            {% for irmao in todos_irmaos %}
-                            <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" 
-                                onmouseover="this.style.background='#f8fafc'" 
-                                onmouseout="this.style.background='transparent'"
-                                data-nome="{{ irmao.nome }} {{ irmao.apelido }}">
-                                <input type="checkbox" name="irmao_protocolo" value="{{ irmao.id }}"
-                                    style="width: 1.1rem; height: 1.1rem; accent-color: var(--primary); cursor: pointer;"
-                                    onchange="updateProtocoloCount()">
-                                <div style="flex: 1;">
-                                    <span style="font-weight: 500; font-size: 0.95rem; color: var(--text-main);">{{ irmao.nome }} {{ irmao.apelido }}</span>
-                                    {% if irmao.celula %}
-                                    <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">Célula: {{ irmao.celula }}</span>
-                                    {% endif %}
-                                </div>
-                            </label>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% if formulario.irmao_protocolo.errors %}
-                    <p style="color: #ef4444; font-size: 0.85rem; margin-top: 0.3rem;">{{ formulario.irmao_protocolo.errors|join:", " }}</p>
-                    {% endif %}
-                </div>
-            </div>
 
             <!-- Secção: Actividade -->
             <div style="margin-bottom: 1.75rem;">
@@ -114,7 +30,7 @@
             <div style="margin-bottom: 1.75rem;">
                 <label for="filtro-dept-form" style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">
                     Filtrar por Departamento
-                    <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(opcional — filtra irmão e função)</span>
+                    <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(filtra irmãos e funções por departamento)</span>
                 </label>
                 <select id="filtro-dept-form"
                     style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 1rem; background: white;"
@@ -126,17 +42,18 @@
                 </select>
             </div>
 
-                        <!-- Secção: Irmão (oculta quando é protocolo) -->
+                        <!-- Secção: Irmão -->
                         <div id="secao-irmao-principal" style="margin-bottom: 1.75rem;">
                             <label for="id_irmao" style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">
-                                Irmão
+                                Irmãos
+                                <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(selecione um ou mais)</span>
                             </label>
                             <input type="text" id="filtro-nome-irmao" placeholder="Pesquisar por nome..."
                                 style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 0.9rem; margin-bottom: 0.5rem; box-sizing: border-box;"
                                 oninput="filtrarNomeIrmao(this.value)">
                             <div style="border: 1px solid #cbd5e1; border-radius: var(--radius-sm); max-height: 260px; overflow-y: auto; background: #f8fafc;">
                                 <div style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid #e2e8f0; background: white; position: sticky; top: 0;">
-                                    <span id="contagem-irmaos-visiveis"></span>
+                                    <span id="contagem-irmaos-visiveis"></span> — <span id="contagem-selecionados" style="font-weight: 600; color: var(--primary);">0 selecionados</span>
                                 </div>
                                 <div id="lista-irmaos-form">
                                     {% for irmao in todos_irmaos %}
@@ -144,9 +61,9 @@
                                         data-id="{{ irmao.id }}"
                                         data-nome="{{ irmao.nome }} {{ irmao.apelido }}"
                                         style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; cursor: pointer; border-bottom: 1px solid #f1f5f9;">
-                                        <input type="radio" name="irmao_escolhido" value="{{ irmao.id }}"
+                                        <input type="checkbox" name="irmaos_selecionados" value="{{ irmao.id }}"
                                             style="width: 1.1rem; height: 1.1rem; accent-color: var(--primary);"
-                                            onchange="syncIrmaoHidden(this.value)">
+                                            onchange="updateContagemSelecionados()">
                                         <div>
                                             <span style="font-weight: 500; font-size: 0.95rem; color: var(--text-main);">{{ irmao.nome }} {{ irmao.apelido }}</span>
                                             {% if irmao.celula %}
@@ -157,15 +74,10 @@
                                     {% endfor %}
                                 </div>
                             </div>
-                            {# Hidden field que o formulário submete (escala normal) #}
-                            <input type="hidden" name="irmao" id="hidden-irmao-id">
                             {% if formulario.irmao.errors %}
                             <p style="color: #ef4444; font-size: 0.85rem; margin-top: 0.3rem;">{{ formulario.irmao.errors|join:", " }}</p>
                             {% endif %}
                         </div>
-                        {# Campo hidden usado quando é protocolo — preenchido automaticamente via JS com o 1º irmão selecionado #}
-                        <input type="hidden" name="irmao" id="hidden-irmao-protocolo-id" style="display: none;">
-
             <!-- Secção: Função -->
             <div style="margin-bottom: 1.75rem;">
                 <label for="id_funcao" style="display: block; font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">
@@ -219,25 +131,17 @@
     const IRMAO_DEPTS_FORM = {{ irmao_depts_json|safe }};
     let activeDept = '';
 
-            function syncIrmaoHidden(val) {
-        document.getElementById('hidden-irmao-id').value = val;
-    }
-
-    // Quando protocolo activo, sincronizar o 1º irmão selecionado como irmão principal
-    function syncIrmaoProtocolo() {
-        const checked = document.querySelectorAll('input[name="irmao_protocolo"]:checked');
-        const hiddenProto = document.getElementById('hidden-irmao-protocolo-id');
-        hiddenProto.value = checked.length > 0 ? checked[0].value : '';
+    function updateContagemSelecionados() {
+        const checked = document.querySelectorAll('input[name="irmaos_selecionados"]:checked');
+        const span = document.getElementById('contagem-selecionados');
+        if (span) {
+            span.textContent = `${checked.length} selecionado${checked.length === 1 ? '' : 's'}`;
+        }
     }
 
     function filtrarPorDept(deptId) {
         activeDept = deptId;
-        const ehProtocolo = document.getElementById('id_eh_protocolo').checked;
-        if (ehProtocolo) {
-            aplicarFiltrosProtocolo();
-        } else {
-            aplicarFiltros();
-        }
+        aplicarFiltros();
         // Filtra funções
         document.querySelectorAll('#id_funcao option[data-dept]').forEach(opt => {
             opt.style.display = (!deptId || opt.dataset.dept === String(deptId)) ? '' : 'none';
@@ -272,137 +176,11 @@
         if (cnt) cnt.textContent = `${visiveis} irmão(s)`;
     }
 
-    // Filtra a lista de irmãos do protocolo (usa o mesmo campo de pesquisa do protocolo)
-    function filtrarProtocolo(txt) {
-        const filter = (txt || '').toLowerCase();
-        let visiveis = 0;
-        document.querySelectorAll('#protocolo-lista label').forEach(label => {
-            const nome = label.dataset.nome.toLowerCase();
-            const iid = label.dataset.id;
-            const depts = IRMAO_DEPTS_FORM[iid] || [];
-            const deptOk = !activeDept || depts.map(String).includes(String(activeDept));
-            const nomeOk = !filter || nome.includes(filter);
-            const show = deptOk && nomeOk;
-            label.style.display = show ? 'flex' : 'none';
-            if (show) visiveis++;
-        });
-    }
-
-    // Aplica filtro de departamento à lista do protocolo
-    function aplicarFiltrosProtocolo() {
-        filtrarProtocolo(document.getElementById('protocolo-filtro').value);
-    }
-
-    function toggleProtocoloFields(checked) {
-        const protocoloSection = document.getElementById('protocolo-section');
-        const filtroProtocolo = document.getElementById('protocolo-filtro');
-        const secaoIrmaoPrincipal = document.getElementById('secao-irmao-principal');
-        const hiddenPrincipal = document.getElementById('hidden-irmao-id');
-        const hiddenProto = document.getElementById('hidden-irmao-protocolo-id');
-
-        if (checked) {
-            secaoIrmaoPrincipal.style.display = 'none';
-            hiddenPrincipal.removeAttribute('name');
-            hiddenProto.setAttribute('name', 'irmao');
-            protocoloSection.style.display = 'block';
-            filtroProtocolo.style.display = 'block';
-            aplicarFiltrosProtocolo();
-            syncIrmaoProtocolo();
-        } else {
-            secaoIrmaoPrincipal.style.display = 'block';
-            hiddenPrincipal.setAttribute('name', 'irmao');
-            hiddenProto.removeAttribute('name');
-            hiddenProto.value = '';
-            protocoloSection.style.display = 'none';
-            filtroProtocolo.style.display = 'none';
-            filtroProtocolo.value = '';
-            document.querySelectorAll('input[name="irmao_protocolo"]').forEach(cb => {
-                cb.checked = false;
-                cb.disabled = false;
-            });
-            updateProtocoloCount();
-        }
-    }
-
-    function updateProtocoloCount() {
-        const checkboxes = document.querySelectorAll('input[name="irmao_protocolo"]:checked');
-        const count = checkboxes.length;
-
-        if (count > 10) {
-            checkboxes[checkboxes.length - 1].checked = false;
-            updateProtocoloCount();
-            return;
-        }
-
-        const countSpan = document.getElementById('protocolo-count');
-        if (countSpan) {
-            countSpan.textContent = `${count}/10 irmãos selecionados`;
-            countSpan.style.color = count === 10 ? '#ef4444' : (count > 0 ? 'var(--primary)' : 'var(--text-muted)');
-        }
-
-        syncIrmaoProtocolo();
-
-        // Bloquear checkboxes não marcados quando limite atingido
-        document.querySelectorAll('input[name="irmao_protocolo"]').forEach(cb => {
-            if (!cb.checked) cb.disabled = count >= 10;
-        });
-    }
-
-    function updateStepLinks() {
-        const sel = document.getElementById('id_actividade');
-        const proto = document.getElementById('id_eh_protocolo');
-        const actId = sel ? sel.value : '';
-        const isProto = proto ? proto.checked : false;
-
-        const stepDetalhe = document.getElementById('step-link-detalhe');
-        const stepActa    = document.getElementById('step-link-acta');
-
-        if (actId) {
-            const urlDetalhe = '/tibl/actividades/detalhe/' + actId + '/';
-            const urlActa    = '/tibl/actividade/' + actId + '/acta/';
-
-            stepDetalhe.href = urlDetalhe;
-            stepDetalhe.style.background    = '#dbeafe';
-            stepDetalhe.style.color         = '#1e40af';
-            stepDetalhe.style.pointerEvents = 'auto';
-            stepDetalhe.title = 'Ver detalhe da actividade seleccionada';
-
-            if (isProto) {
-                stepActa.href = urlActa;
-                stepActa.style.background    = '#d1fae5';
-                stepActa.style.color         = '#065f46';
-                stepActa.style.pointerEvents = 'auto';
-                stepActa.title = 'Preencher e gerar acta de protocolo';
-            } else {
-                stepActa.href = '#';
-                stepActa.style.background    = '#f1f5f9';
-                stepActa.style.color         = '#94a3b8';
-                stepActa.style.pointerEvents = 'none';
-                stepActa.title = "Marque 'É Protocolo?' para activar";
-            }
-        } else {
-            [stepDetalhe, stepActa].forEach(function(el) {
-                el.href = '#';
-                el.style.background    = '#f1f5f9';
-                el.style.color         = '#94a3b8';
-                el.style.pointerEvents = 'none';
-            });
-            stepDetalhe.title = 'Seleccione uma actividade para activar';
-            stepActa.title    = "Seleccione uma actividade e marque 'É Protocolo?'";
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
         aplicarFiltros('');
-        const ehProtocolo = document.getElementById('id_eh_protocolo');
-        if (ehProtocolo && ehProtocolo.checked) {
-            toggleProtocoloFields(true);
-        }
-        updateStepLinks();
-        const actSel = document.getElementById('id_actividade');
-        if (actSel) actSel.addEventListener('change', updateStepLinks);
-        if (ehProtocolo) ehProtocolo.addEventListener('change', updateStepLinks);
+        updateContagemSelecionados();
         const actPreFill = new URLSearchParams(window.location.search).get('actividade');
+        const actSel = document.getElementById('id_actividade');
         if (actPreFill && actSel) {
             actSel.value = actPreFill;
             actSel.dispatchEvent(new Event('change'));

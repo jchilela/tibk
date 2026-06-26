@@ -2,7 +2,7 @@
 {% load static %}
 {% load verificagrupo %}
 
-{% block title %}Substituição de Membro — Protocolo{% endblock %}
+{% block title %}Substituição de Membro — Escala{% endblock %}
 
 {% block content %}
 <div class="modern-container">
@@ -14,7 +14,7 @@
         </a>
         <h2 style="margin: 0.5rem 0 0; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
             <i class="fas fa-exchange-alt" style="color: #d97706;"></i>
-            Substituição de Membro do Protocolo
+            Substituição de Membro da Escala
         </h2>
     </div>
 
@@ -27,7 +27,7 @@
             <div><span style="font-weight: 600; color: var(--primary);">Actividade:</span> {{ escala.actividade.designacao }}</div>
             <div><span style="font-weight: 600; color: var(--primary);">Data:</span> {{ escala.actividade.data|date:"d/m/Y" }}</div>
             <div><span style="font-weight: 600; color: var(--primary);">Hora:</span> {{ escala.actividade.inicio|time:"H:i" }} — {{ escala.actividade.fim|time:"H:i" }}</div>
-            <div><span style="font-weight: 600; color: var(--primary);">Função:</span> {% if escala.funcao %}{{ escala.funcao }}{% else %}Protocolo{% endif %}</div>
+            <div><span style="font-weight: 600; color: var(--primary);">Função:</span> {% if escala.funcao %}{{ escala.funcao }}{% else %}Participante{% endif %}</div>
             <div><span style="font-weight: 600; color: #ef4444;">A substituir:</span> <strong>{{ membro_original.nome }} {{ membro_original.apelido }}</strong></div>
         </div>
     </div>

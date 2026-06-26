@@ -24,15 +24,15 @@
                     <i class="fas fa-church"></i> Evento de Culto / Actividade
                 </span>
                 <div style="display: flex; gap: 0.5rem;">
-                    {% if tem_protocolo %}
+                    {% if tem_escalas %}
                     <a href="{% url 'sitetibl:acta_actividade_pdf' x.id %}" class="bt-primary"
                         style="background: #10b981; color: white; padding: 0.5rem 1rem;">
                         <i class="fas fa-file-signature"></i> Gerar Acta
                     </a>
                     <a href="{% url 'sitetibl:cartao_protocolo_pdf' x.id %}" class="bt-primary"
                         style="background: #d97706; color: white; padding: 0.5rem 1rem;"
-                        title="Gerar cartões individuais de protocolo em PDF">
-                        <i class="fas fa-id-card"></i> Cartões
+                        title="Gerar credenciais individuais em PDF">
+                        <i class="fas fa-id-card"></i> Credenciais
                     </a>
                     {% endif %}
                     {% if perms.sitetibl.change_actividade %}
@@ -225,11 +225,18 @@
                                 <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Célula: {{ escala.irmao.celula }}</span>
                                 {% endif %}
                             </div>
+                            <div style="display: flex; gap: 0.3rem; flex-shrink: 0;">
+                            {% if perms.sitetibl.change_escala %}
+                            <a href="{% url 'sitetibl:substituir_membro_protocolo' escala.id escala.irmao.id %}" title="Substituir este membro" style="color: var(--primary); opacity: 0.85; font-size: 0.75rem; line-height: 1; text-decoration: none;">
+                                <i class="fas fa-exchange-alt"></i>
+                            </a>
+                            {% endif %}
                             {% if perms.sitetibl.delete_escala %}
-                            <a href="/tibl/escalas/eliminar/{{ escala.id }}?next=/tibl/actividades/detalhe/{{ escala.actividade_id }}/" title="Remover da escala" style="color: #ef4444; opacity: 0.7; font-size: 0.75rem; line-height: 1; flex-shrink: 0; text-decoration: none;">
+                            <a href="/tibl/escalas/eliminar/{{ escala.id }}?next=/tibl/actividades/detalhe/{{ escala.actividade_id }}/" title="Remover da escala" style="color: #ef4444; opacity: 0.7; font-size: 0.75rem; line-height: 1; text-decoration: none;">
                                 <i class="fas fa-times-circle"></i>
                             </a>
                             {% endif %}
+                            </div>
                         </li>
                         {% endif %}
                         {% endfor %}

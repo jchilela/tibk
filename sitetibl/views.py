@@ -898,6 +898,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'departamentos': departamentos,
             'irmao_depts_json': json.dumps({str(k): v for k, v in _irmao_depts.items()}),
             'tem_protocolo': escalas_da_actividade.filter(eh_protocolo=True).exists(),
+            'tem_escalas': escalas_da_actividade.exists(),
         }
     elif gestaoescolhida == 'departamentos':
         mandatos_departamento = (
@@ -1683,6 +1684,37 @@ def mostraCriacao(request, gestaoescolhida):
     if request.method == 'POST':
         formulario = form_class(request.POST, request.FILES)
         if formulario.is_valid():
+
+            # Escalas: selecção múltipla de irmãos — criar uma escala por irmão
+            if gestaoescolhida == 'escalas':
+                irmaos_ids = request.POST.getlist('irmaos_selecionados')
+                if not irmaos_ids:
+                    messages.error(request, 'Seleccione pelo menos um irmão.')
+                else:
+                    actividade = formulario.cleaned_data['actividade']
+                    funcao = formulario.cleaned_data.get('funcao')
+                    criados = 0
+                    duplicados = 0
+                    for iid in irmaos_ids:
+                        irmao = Irmao.objects.filter(id=iid).first()
+                        if not irmao:
+                            continue
+                        _, created = Escala.objects.get_or_create(
+                            irmao=irmao, actividade=actividade, funcao=funcao,
+                        )
+                        if created:
+                            criados += 1
+                        else:
+                            duplicados += 1
+                    if criados > 0:
+                        msg = f'{criados} escala(s) criada(s) com sucesso!'
+                        if duplicados > 0:
+                            msg += f' ({duplicados} já existia(m) e foram ignoradas)'
+                        messages.success(request, msg)
+                    else:
+                        messages.warning(request, 'Todos os irmãos seleccionados já estavam escalados para esta actividade com esta função.')
+                    return redirect(f'/tibl/actividades/detalhe/{actividade.id}/')
+
             obj = formulario.save(commit=False)
 
             # âš ï¸ VerificaÃ§Ã£o de conflito de horÃ¡rio para actividades
@@ -1751,11 +1783,6 @@ def mostraCriacao(request, gestaoescolhida):
             formulario.save_m2m()
 
             # ðŸ“‹ SolicitaÃ§Ã£o: notificar lÃ­deres do departamento destinatÃ¡rio
-            # Escala de protocolo: notificar automaticamente todos os membros escalados
-            if gestaoescolhida == 'escalas' and getattr(obj, 'eh_protocolo', False):
-                for membro_proto in obj.irmao_protocolo.all():
-                    _notificar_protocolo_escalado(membro_proto, obj, obj.actividade)
-
             if gestaoescolhida == 'solicitacoes':
                 HistoricoSolicitacao.objects.create(
                     solicitacao=obj, estado_anterior='',
@@ -2224,29 +2251,35 @@ def relatorioofertasportipo_pdf(request):
 
 @login_required
 def cartao_protocolo_pdf(request, actividade_id):
-    """Gera PDF com cartões de protocolo individuais — 2 por folha A4."""
+    """Gera PDF com credenciais individuais — 2 por folha A4."""
     actividade = get_object_or_404(Actividade, id=actividade_id)
-    escalas_protocolo = (
-        Escala.objects.filter(actividade=actividade, eh_protocolo=True)
-        .select_related('funcao')
+    todas_escalas = (
+        Escala.objects.filter(actividade=actividade)
+        .select_related('irmao', 'irmao__celula', 'funcao')
         .prefetch_related('irmao_protocolo', 'irmao_protocolo__celula')
     )
 
-    if not escalas_protocolo.exists():
-        messages.error(request, 'Esta actividade não possui escala de protocolo.')
+    if not todas_escalas.exists():
+        messages.error(request, 'Esta actividade não possui escalas associadas.')
         return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
 
     membros_funcoes = []
     seen = set()
-    for esc in escalas_protocolo:
-        funcao_str = str(esc.funcao) if esc.funcao else 'Protocolo'
-        for membro in esc.irmao_protocolo.all():
+    for esc in todas_escalas:
+        funcao_str = str(esc.funcao) if esc.funcao else 'Participante'
+        if esc.eh_protocolo:
+            for membro in esc.irmao_protocolo.all():
+                if membro.id not in seen:
+                    seen.add(membro.id)
+                    membros_funcoes.append((membro, funcao_str))
+        else:
+            membro = esc.irmao
             if membro.id not in seen:
                 seen.add(membro.id)
                 membros_funcoes.append((membro, funcao_str))
 
     if not membros_funcoes:
-        messages.error(request, 'Nenhum membro encontrado na escala de protocolo.')
+        messages.error(request, 'Nenhum membro encontrado nas escalas desta actividade.')
         return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
 
     membros_funcoes.sort(key=lambda x: x[0].nome)
@@ -2337,11 +2370,11 @@ def cartao_protocolo_pdf(request, actividade_id):
         title_x = x + 82
         c.setFillColor(colors.white)
         c.setFont('Helvetica-Bold', 17)
-        c.drawString(title_x, header_top - 22, 'CREDENCIAL DE PROTOCOLO')
+        c.drawString(title_x, header_top - 22, 'CREDENCIAL')
 
         c.setFont('Helvetica', 9)
         c.setFillColor(light_blue)
-        c.drawString(title_x, header_top - 35, 'TIBL — Trabalho Integral Bíblico Local')
+        c.drawString(title_x, header_top - 35, 'Terceira Igreja Batista de Luanda')
 
         # Thin separator inside header
         c.setStrokeColor(colors.HexColor('#334e7a'))
@@ -2446,7 +2479,7 @@ def cartao_protocolo_pdf(request, actividade_id):
 
         c.setFont('Helvetica', 8)
         c.setFillColor(ink)
-        c.drawCentredString(sig1_cx, sig_line_y + 3, 'Líder do Protocolo')
+        c.drawCentredString(sig1_cx, sig_line_y + 3, 'Líder Responsável')
         c.drawCentredString(sig2_cx, sig_line_y + 3, 'Responsável da Actividade')
 
         # Card number
@@ -2540,20 +2573,28 @@ def _notificar_protocolo_escalado(irmao, escala, actividade):
 
 @login_required
 def substituir_membro_protocolo(request, escala_id, irmao_id):
-    """Substitui um membro numa escala de protocolo e notifica o novo membro."""
+    """Substitui um membro numa escala (protocolo M2M ou normal FK) e notifica o novo membro."""
     from django.core.exceptions import PermissionDenied
     if not request.user.has_perm('sitetibl.change_escala'):
         raise PermissionDenied
 
-    escala          = get_object_or_404(Escala, id=escala_id, eh_protocolo=True)
+    escala          = get_object_or_404(Escala, id=escala_id)
     membro_original = get_object_or_404(Irmao, id=irmao_id)
     actividade      = escala.actividade
 
-    if not escala.irmao_protocolo.filter(id=irmao_id).exists():
-        messages.error(request, 'Este membro não faz parte desta escala de protocolo.')
-        return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade.id]))
+    if escala.eh_protocolo:
+        if not escala.irmao_protocolo.filter(id=irmao_id).exists():
+            messages.error(request, 'Este membro não faz parte desta escala.')
+            return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade.id]))
+        ja_escalados_ids = set(escala.irmao_protocolo.values_list('id', flat=True))
+    else:
+        if escala.irmao_id != int(irmao_id):
+            messages.error(request, 'Este membro não faz parte desta escala.')
+            return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade.id]))
+        ja_escalados_ids = set(
+            Escala.objects.filter(actividade=actividade).values_list('irmao_id', flat=True)
+        )
 
-    ja_escalados_ids = set(escala.irmao_protocolo.values_list('id', flat=True))
     irmaos_disponiveis = (
         Irmao.objects.select_related('celula')
         .exclude(id__in=ja_escalados_ids)
@@ -2586,10 +2627,13 @@ def substituir_membro_protocolo(request, escala_id, irmao_id):
             'form_error': 'Irmão seleccionado não encontrado.',
         })
 
-    escala.irmao_protocolo.remove(membro_original)
-    escala.irmao_protocolo.add(novo_irmao)
-
-    if escala.irmao_id == membro_original.id:
+    if escala.eh_protocolo:
+        escala.irmao_protocolo.remove(membro_original)
+        escala.irmao_protocolo.add(novo_irmao)
+        if escala.irmao_id == membro_original.id:
+            escala.irmao = novo_irmao
+            escala.save(update_fields=['irmao'])
+    else:
         escala.irmao = novo_irmao
         escala.save(update_fields=['irmao'])
 
@@ -5048,19 +5092,20 @@ def relatorio_inactivos_pdf(request):
 def acta_actividade_pdf(request, actividade_id):
     """Página intermédia para preencher a acta (GET) e geração do PDF (POST)."""
     actividade = get_object_or_404(Actividade, id=actividade_id)
-    escalas_protocolo = Escala.objects.filter(
-        actividade=actividade, eh_protocolo=True
-    ).prefetch_related('irmao_protocolo')
+    todas_escalas = Escala.objects.filter(actividade=actividade).select_related('irmao', 'irmao__celula', 'funcao')
 
-    if not escalas_protocolo.exists():
-        messages.error(request, 'Esta actividade não possui uma escala de protocolo associada.')
+    if not todas_escalas.exists():
+        messages.error(request, 'Esta actividade não possui escalas associadas.')
         return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
 
-    # Recolher todos os irmãos do protocolo via M2M (sem duplicados)
+    # Recolher todos os irmãos de todas as escalas (protocolo via M2M + normal via FK), sem duplicados
     irmaos_set = set()
-    for esc in escalas_protocolo:
-        for i in esc.irmao_protocolo.all():
-            irmaos_set.add(i)
+    for esc in todas_escalas:
+        if esc.eh_protocolo:
+            for i in esc.irmao_protocolo.all():
+                irmaos_set.add(i)
+        else:
+            irmaos_set.add(esc.irmao)
     irmaos_protocolo = sorted(irmaos_set, key=lambda x: x.nome)
 
     # ── GET: mostrar formulário de preenchimento ──────────────────────────
@@ -5093,7 +5138,7 @@ def acta_actividade_pdf(request, actividade_id):
     # ── Construção do PDF ─────────────────────────────────────────────────
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = (
-        f'inline; filename="acta_protocolo_{actividade_id}_{actividade.data}.pdf"'
+        f'inline; filename="acta_actividade_{actividade_id}_{actividade.data}.pdf"'
     )
 
     doc = SimpleDocTemplate(
@@ -5101,7 +5146,7 @@ def acta_actividade_pdf(request, actividade_id):
         pagesize=A4,
         rightMargin=2 * cm, leftMargin=2 * cm,
         topMargin=2 * cm,  bottomMargin=2 * cm,
-        title=f'Acta de Protocolo — {actividade.designacao}',
+        title=f'Acta da Actividade — {actividade.designacao}',
         author='Sistema TIBL',
     )
 
@@ -5142,7 +5187,7 @@ def acta_actividade_pdf(request, actividade_id):
         logo.hAlign = 'CENTER'
         elements.append(logo)
 
-    elements.append(Paragraph('<b>ACTA DE PROTOCOLO</b>', title_style))
+    elements.append(Paragraph('<b>ACTA DA ACTIVIDADE</b>', title_style))
     elements.append(Paragraph("<hr color='#1e3a5f' width='100%'/>", styles['Normal']))
     elements.append(Paragraph('<br/>', styles['Normal']))
 
@@ -5167,7 +5212,7 @@ def acta_actividade_pdf(request, actividade_id):
     elements.append(Paragraph('<br/>', styles['Normal']))
 
     # ── Membros do Protocolo ──────────────────────────────────────────────
-    elements.append(Paragraph('Membros do Protocolo', section_style))
+    elements.append(Paragraph('Membros Escalados', section_style))
 
     team_header = [
         Paragraph('<b>Nome Completo</b>', label_style),
@@ -5250,7 +5295,7 @@ def acta_actividade_pdf(request, actividade_id):
 
     sig_data = [[
         Paragraph(
-            f'<br/><br/><br/>______________________________<br/>{linha_resp}<br/><b>Responsável pelo Protocolo</b>',
+            f'<br/><br/><br/>______________________________<br/>{linha_resp}<br/><b>Responsável pela Actividade</b>',
             sig_style,
         ),
         Paragraph(
