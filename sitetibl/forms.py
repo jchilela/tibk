@@ -51,7 +51,7 @@ from django.contrib.auth.forms import PasswordResetForm as DjangoPasswordResetFo
 
 
 class MeuPerfilForm(ModelForm):
-    """Campos que o prÃ³prio utilizador pode alterar no seu perfil."""
+    """Campos que o próprio utilizador pode alterar no seu perfil."""
     class Meta:
         model = Irmao
         fields = ['foto', 'telefone', 'telefonewhatsapp', 'email']
@@ -73,7 +73,7 @@ class MeuPerfilPasswordForm(DjangoPasswordChangeForm):
         self.fields['new_password1'].label = 'Nova senha'
         self.fields['new_password1'].help_text = (
             'A senha deve ter pelo menos 8 caracteres. '
-            'NÃ£o pode ser apenas nÃºmeros nem semelhante ao nome de utilizador.'
+            'Não pode ser apenas números nem semelhante ao nome de utilizador.'
         )
         self.fields['new_password2'].label = 'Confirmar nova senha'
         self.fields['new_password2'].help_text = 'Repita a nova senha para confirmar.'
@@ -104,7 +104,7 @@ class ContabancariaForm(forms.ModelForm):
         #Estilos bootstrap
         widgets = {
             'banco': forms.Select(attrs={'class': 'form-control'}),
-            'numeroconta': forms.TextInput(attrs={'class': 'form-control','placeholder': 'NÂº da Conta'}),
+            'numeroconta': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Nº da Conta'}),
             'iban': forms.TextInput(attrs={'class': 'form-control','placeholder': 'AO06...'}),
             'moeda': forms.Select(attrs={'class': 'form-control'}),
             'proprietario': forms.Select(attrs={'class': 'form-control'}),
@@ -117,7 +117,7 @@ class IrmaoForm(ModelForm):
         validators=[
             RegexValidator(
                 regex=r'^\d{9}$',
-                message='O telefone deve conter exatamente 9 nÃºmeros.'
+                message='O telefone deve conter exatamente 9 números.'
             )
         ]
     )
@@ -133,16 +133,16 @@ class IrmaoForm(ModelForm):
     class Meta:
         model = Irmao
         fields = [
-            # --- IdentificaÃ§Ã£o pessoal ---
+            # --- Identificação pessoal ---
             'nome', 'apelido', 'outrosnomes', 'sexo', 'foto',
             'datanascimento', 'estadocivil',
             # --- Contactos ---
             'telefone', 'telefonewhatsapp', 'email',
-            # --- LocalizaÃ§Ã£o ---
+            # --- Localização ---
             'ruaenumero', 'bairro', 'provincia', 'municipio',
-            # --- Vida eclesiÃ¡stica ---
+            # --- Vida eclesiástica ---
             'localcongregacao', 'celula', 'culto', 'batizado', 'dizimista',
-            # --- ProfissÃ£o e trabalho ---
+            # --- Profissão e trabalho ---
             'profissao', 'especialidade', 'grauescolaridade', 'localdetrabalho',
             # --- Outros ---
             'observacao',
@@ -154,18 +154,18 @@ class IrmaoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Filtrar dropdowns: sÃ³ cÃ©lulas ou sÃ³ igrejas
+        # Filtrar dropdowns: só células ou só igrejas
         self.fields['celula'].queryset = Sitio.objects.filter(tipo='2')
         self.fields['localcongregacao'].queryset = Sitio.objects.filter(tipo='1')
 
-        # Cascading: municÃ­pio depende da provÃ­ncia seleccionada
+        # Cascading: município depende da província seleccionada
         if self.instance and self.instance.pk and self.instance.provincia_id:
-            # EdiÃ§Ã£o: mostrar municÃ­pios da provÃ­ncia do registo
+            # Edição: mostrar municípios da província do registo
             self.fields['municipio'].queryset = Municipio.objects.filter(
                 provincia_id=self.instance.provincia_id
             )
         elif 'provincia' in self.data:
-            # POST: filtrar pela provÃ­ncia enviada
+            # POST: filtrar pela província enviada
             try:
                 provincia_id = int(self.data.get('provincia'))
                 self.fields['municipio'].queryset = Municipio.objects.filter(
@@ -174,7 +174,7 @@ class IrmaoForm(ModelForm):
             except (ValueError, TypeError):
                 self.fields['municipio'].queryset = Municipio.objects.none()
         else:
-            # CriaÃ§Ã£o: municÃ­pio vazio atÃ© escolher provÃ­ncia
+            # Criação: município vazio até escolher província
             self.fields['municipio'].queryset = Municipio.objects.none()
 
 class AjudaForm(ModelForm):
@@ -210,13 +210,13 @@ class BancoForm(ModelForm):
         email = self.cleaned_data.get('email')
 
         if not email:
-            raise forms.ValidationError("O email Ã© obrigatÃ³rio.")
+            raise forms.ValidationError("O email é obrigatório.")
 
-        # ValidaÃ§Ã£o explÃ­cita de email vÃ¡lido
+        # Validação explícita de email válido
         try:
             validate_email(email)
         except ValidationError:
-            raise forms.ValidationError("Digite um email vÃ¡lido.")
+            raise forms.ValidationError("Digite um email válido.")
 
         return email.lower()
 
@@ -224,15 +224,15 @@ class BancoForm(ModelForm):
         telefone = self.cleaned_data.get('telefone')
 
         if not telefone:
-            raise forms.ValidationError("O telefone Ã© obrigatÃ³rio.")
+            raise forms.ValidationError("O telefone é obrigatório.")
 
-        # Permitir apenas nÃºmeros
+        # Permitir apenas números
         if not telefone.isdigit():
-            raise forms.ValidationError("O telefone deve conter apenas nÃºmeros.")
+            raise forms.ValidationError("O telefone deve conter apenas números.")
 
-        # (Opcional) validar tamanho â€” exemplo: 9 dÃ­gitos
+        # (Opcional) validar tamanho — exemplo: 9 dígitos
         if len(telefone) < 9:
-            raise forms.ValidationError("O telefone deve conter no minimo 9 dÃ­gitos.")
+            raise forms.ValidationError("O telefone deve conter no minimo 9 dígitos.")
 
         return telefone
 
@@ -244,7 +244,7 @@ class ContabancariaForm(ModelForm):
         model = Contabancaria
         fields = '__all__'
         labels = {
-            'is_active': 'EstÃ¡ activo',
+            'is_active': 'Está activo',
         }
         widgets = {
             'numeroconta': forms.TextInput(attrs={
@@ -260,15 +260,15 @@ class ContabancariaForm(ModelForm):
         numero = self.cleaned_data.get('numeroconta')
 
         if not numero:
-            raise forms.ValidationError("O nÃºmero da conta Ã© obrigatÃ³rio.")
+            raise forms.ValidationError("O número da conta é obrigatório.")
 
-        # Apenas nÃºmeros
+        # Apenas números
         if not numero.isdigit():
-            raise forms.ValidationError("O nÃºmero da conta deve conter apenas nÃºmeros.")
+            raise forms.ValidationError("O número da conta deve conter apenas números.")
 
-        # Exemplo: mÃ­nimo de 10 dÃ­gitos (ajuste conforme o banco)
+        # Exemplo: mínimo de 10 dígitos (ajuste conforme o banco)
         if len(numero) < 10:
-            raise forms.ValidationError("O nÃºmero da conta deve conter no mÃ­nimo 10 dÃ­gitos.")
+            raise forms.ValidationError("O número da conta deve conter no mínimo 10 dígitos.")
 
         return numero
 
@@ -276,24 +276,24 @@ class ContabancariaForm(ModelForm):
         iban = self.cleaned_data.get('iban')
 
         if not iban:
-            raise forms.ValidationError("O IBAN Ã© obrigatÃ³rio.")
+            raise forms.ValidationError("O IBAN é obrigatório.")
 
         iban = iban.replace(' ', '').upper()
 
-        # ValidaÃ§Ã£o especÃ­fica para Angola (AO)
+        # Validação específica para Angola (AO)
         if not iban.startswith('AO'):
-            raise forms.ValidationError("O IBAN deve ser de Angola e comeÃ§ar com (AO06).")
+            raise forms.ValidationError("O IBAN deve ser de Angola e começar com (AO06).")
         
-        # ValidaÃ§Ã£o bÃ¡sica de IBAN (estrutura)
+        # Validação básica de IBAN (estrutura)
         if not re.match(r'^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$', iban):
-            raise forms.ValidationError("IBAN invÃ¡lido.")
+            raise forms.ValidationError("IBAN inválido.")
 
 
         return iban
 
 class ActividadeForm(ModelForm):
     designacao = forms.CharField(
-        label='DesignaÃ§Ã£o',
+        label='Designação',
         max_length=200,
         widget=forms.TextInput(attrs={'placeholder': 'Nome da actividade...'}),
     )
@@ -301,11 +301,11 @@ class ActividadeForm(ModelForm):
         choices=[
             ('6', 'Domingo'),
             ('0', 'Segunda-feira'),
-            ('1', 'TerÃ§a-feira'),
+            ('1', 'Terça-feira'),
             ('2', 'Quarta-feira'),
             ('3', 'Quinta-feira'),
             ('4', 'Sexta-feira'),
-            ('5', 'SÃ¡bado'),
+            ('5', 'Sábado'),
         ],
         label='Dias da Semana',
         required=False,
@@ -314,10 +314,10 @@ class ActividadeForm(ModelForm):
     frequencia = forms.ChoiceField(
         choices=[
             ('WEEKLY', 'Semanal'),
-            ('DAILY', 'DiÃ¡ria'),
+            ('DAILY', 'Diária'),
             ('MONTHLY', 'Mensal'),
         ],
-        label='FrequÃªncia',
+        label='Frequência',
         required=False,
         initial='WEEKLY',
     )
@@ -335,29 +335,29 @@ class ActividadeForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # PrÃ©-preencher com o valor actual ao editar
+        # Pré-preencher com o valor actual ao editar
         if self.instance and self.instance.pk and self.instance.designacao_id:
             self.initial['designacao'] = self.instance.designacao.designacao
-        # PrÃ©-preencher os dias ao editar
+        # Pré-preencher os dias ao editar
         if self.instance and self.instance.pk and self.instance.dias_semana:
             self.initial['dias_semana'] = self.instance.dias_semana.split(',')
-        # PrÃ©-preencher frequÃªncia pelo evento existente
+        # Pré-preencher frequência pelo evento existente
         if self.instance and self.instance.pk and self.instance.event_id:
             self.initial['frequencia'] = self.instance.event.rule.frequency if self.instance.event.rule else 'WEEKLY'
 
-        # Labels legÃ­veis
-        self.fields['inicio'].label = 'Hora de InÃ­cio'
+        # Labels legíveis
+        self.fields['inicio'].label = 'Hora de Início'
         self.fields['fim'].label = 'Hora de Fim'
         self.fields['data'].label = 'Data'
         self.fields['tema'].label = 'Tema'
         self.fields['localactividade'].label = 'Local'
-        self.fields['versosbiblicos'].label = 'Versos BÃ­blicos'
+        self.fields['versosbiblicos'].label = 'Versos Bíblicos'
         self.fields['hinos'].label = 'Hinos'
         self.fields['totalpresentes'].label = 'Total de Presentes'
         self.fields['departamento'].label = 'Departamento'
-        self.fields['is_recorrente'].label = 'Ã‰ Recorrente?'
-        self.fields['recorrencia_fim'].label = 'RecorrÃªncia atÃ©'
-        self.fields['frequencia'].label = 'FrequÃªncia'
+        self.fields['is_recorrente'].label = 'É Recorrente?'
+        self.fields['recorrencia_fim'].label = 'Recorrência até'
+        self.fields['frequencia'].label = 'Frequência'
 
         # Campos opcionais
         self.fields['totalpresentes'].required = False
@@ -371,11 +371,11 @@ class ActividadeForm(ModelForm):
         self.fields['recorrencia_fim'].required = False
 
     def clean_designacao(self):
-        """Converte a string para instÃ¢ncia Listaactividades durante a validaÃ§Ã£o,
-        antes de _post_clean() tentar atribuÃ­-la ao campo FK do modelo."""
+        """Converte a string para instância Listaactividades durante a validação,
+        antes de _post_clean() tentar atribuí-la ao campo FK do modelo."""
         nome = self.cleaned_data.get('designacao', '').strip()
         if not nome:
-            raise forms.ValidationError('Este campo Ã© obrigatÃ³rio.')
+            raise forms.ValidationError('Este campo é obrigatório.')
         lista_obj, _ = Listaactividades.objects.get_or_create(designacao=nome)
         return lista_obj
 
@@ -386,19 +386,19 @@ class ActividadeForm(ModelForm):
         recorrencia_fim = cleaned.get('recorrencia_fim')
         is_recorrente = cleaned.get('is_recorrente')
         if data and data < datetime.date.today():
-            self.add_error('data', 'NÃ£o Ã© possÃ­vel criar actividades com data no passado.')
+            self.add_error('data', 'Não é possível criar actividades com data no passado.')
         if is_recorrente and recorrencia_fim:
             if data and recorrencia_fim <= data:
-                self.add_error('recorrencia_fim', 'A data de fim da recorrÃªncia deve ser posterior Ã  data da actividade.')
+                self.add_error('recorrencia_fim', 'A data de fim da recorrência deve ser posterior Ã  data da actividade.')
         return cleaned
 
     def save(self, commit=True):
         import datetime
-        # clean_designacao() jÃ¡ devolveu um Listaactividades, super().save() atribui-o correctamente
+        # clean_designacao() já devolveu um Listaactividades, super().save() atribui-o correctamente
         instance = super().save(commit=False)
         if instance.totalpresentes is None:
             instance.totalpresentes = 0
-        # Guardar dias da semana como string separada por vÃ­rgula
+        # Guardar dias da semana como string separada por vírgula
         dias = self.cleaned_data.get('dias_semana') or []
         instance.dias_semana = ','.join(sorted(dias))
 
@@ -468,20 +468,20 @@ class ActividadeForm(ModelForm):
 DIAS_SEMANA_CHOICES = [
     (6, 'Domingo'),
     (0, 'Segunda-feira'),
-    (1, 'TerÃ§a-feira'),
+    (1, 'Terça-feira'),
     (2, 'Quarta-feira'),
     (3, 'Quinta-feira'),
     (4, 'Sexta-feira'),
-    (5, 'SÃ¡bado'),
+    (5, 'Sábado'),
 ]
 
 
 class ActividadesRecorrentesForm(forms.Form):
-    """Cria mÃºltiplas actividades de uma vez para uma sÃ©rie semanal."""
+    """Cria múltiplas actividades de uma vez para uma série semanal."""
     nome_actividade = forms.CharField(
-        label='DesignaÃ§Ã£o da Actividade',
+        label='Designação da Actividade',
         max_length=200,
-        widget=forms.TextInput(attrs={'placeholder': 'Ex.: Culto de Oracao, Estudo BÃ­blico...'}),
+        widget=forms.TextInput(attrs={'placeholder': 'Ex.: Culto de Oracao, Estudo Bíblico...'}),
     )
     departamento = forms.ModelChoiceField(
         queryset=Departamento.objects.all().order_by('designacao'),
@@ -496,7 +496,7 @@ class ActividadesRecorrentesForm(forms.Form):
         empty_label='Seleccione...',
     )
     inicio = forms.TimeField(
-        label='Hora de InÃ­cio',
+        label='Hora de Início',
         widget=forms.TimeInput(attrs={'type': 'time'}),
     )
     fim = forms.TimeField(
@@ -504,7 +504,7 @@ class ActividadesRecorrentesForm(forms.Form):
         widget=forms.TimeInput(attrs={'type': 'time'}),
     )
     data_inicio = forms.DateField(
-        label='Data de InÃ­cio',
+        label='Data de Início',
         widget=forms.DateInput(attrs={'type': 'date'}),
     )
     data_fim = forms.DateField(
@@ -526,9 +526,9 @@ class ActividadesRecorrentesForm(forms.Form):
         dias = cleaned.get('dias_semana')
 
         if data_inicio and data_fim and data_fim < data_inicio:
-            raise forms.ValidationError('A data de fim deve ser igual ou posterior Ã  data de inÃ­cio.')
+            raise forms.ValidationError('A data de fim deve ser igual ou posterior Ã  data de início.')
         if inicio and fim and fim <= inicio:
-            raise forms.ValidationError('A hora de fim deve ser posterior Ã  hora de inÃ­cio.')
+            raise forms.ValidationError('A hora de fim deve ser posterior Ã  hora de início.')
         if not dias:
             raise forms.ValidationError('Seleccione pelo menos um dia da semana.')
         return cleaned
@@ -538,13 +538,13 @@ class DepartamentoForm(ModelForm):
     lider_departamento = forms.ModelChoiceField(
         queryset=Irmao.objects.order_by('nome', 'apelido'),
         required=False,
-        label='LÃ­der do Departamento',
+        label='Líder do Departamento',
         widget=forms.Select(attrs={'class': 'tomselect'}),
     )
     vice_lider_departamento = forms.ModelChoiceField(
         queryset=Irmao.objects.order_by('nome', 'apelido'),
         required=False,
-        label='Vice-LÃ­der do Departamento',
+        label='Vice-Líder do Departamento',
         widget=forms.Select(attrs={'class': 'tomselect'}),
     )
 
@@ -555,7 +555,7 @@ class DepartamentoForm(ModelForm):
 class MandatoForm(ModelForm):
     irmao = forms.ModelChoiceField(
         queryset=Irmao.objects.order_by('nome', 'apelido'),
-        label='IrmÃ£o',
+        label='Irmão',
         widget=forms.Select(attrs={'class': 'tomselect'}),
     )
 
@@ -568,7 +568,7 @@ class MandatoForm(ModelForm):
         }
 
     def validate_unique(self):
-        # Ignorar erro de unique_together â€” o view trata de actualizar o existente
+        # Ignorar erro de unique_together — o view trata de actualizar o existente
         pass
 
 class EscalaForm(ModelForm):
@@ -578,7 +578,7 @@ class EscalaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['irmao'].label = 'IrmÃ£o'
+        self.fields['irmao'].label = 'Irmão'
         self.fields['irmao'].required = False
         self.fields['irmao'].queryset = (
             Irmao.objects.select_related('celula').order_by('nome', 'apelido')
@@ -589,7 +589,7 @@ class EscalaForm(ModelForm):
             .filter(data__gte=date.today())
             .order_by('data', 'designacao__designacao')
         )
-        self.fields['funcao'].label = 'FunÃ§Ã£o'
+        self.fields['funcao'].label = 'Função'
         self.fields['funcao'].required = False
         self.fields['funcao'].queryset = (
             Funcao.objects.select_related('departamento')
@@ -601,7 +601,7 @@ class DizimoofertaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Evita N+1 ao montar as opÃ§Ãµes de actividade (usa Actividade.__str__).
+        # Evita N+1 ao montar as opções de actividade (usa Actividade.__str__).
         if 'actividade' in self.fields:
             self.fields['actividade'].queryset = (
                 Actividade.objects
@@ -657,7 +657,7 @@ class OfertaForm(ModelForm):
         model = TipoOferta
         fields = '__all__'
         widgets = {
-            'designacao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'DesignaÃ§Ã£o da Oferta'}),
+            'designacao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Designação da Oferta'}),
         }
 
 class SaidacaixaForm(ModelForm):
@@ -675,7 +675,7 @@ class SaidacaixaForm(ModelForm):
 
        
         if valor < 0:
-            raise forms.ValidationError("O valor digitado nÃ£o pode ser negativo.")
+            raise forms.ValidationError("O valor digitado não pode ser negativo.")
         
         return valor
 
@@ -694,7 +694,7 @@ class EntradacaixaForm(ModelForm):
 
        
         if valor < 0:
-            raise forms.ValidationError("O valor digitado nÃ£o pode ser negativo.")
+            raise forms.ValidationError("O valor digitado não pode ser negativo.")
         
         return valor
 
@@ -787,7 +787,7 @@ class  RelatorioSemanalCelulaForm(ModelForm):
             'data_reuniao': forms.DateInput(attrs={'type': 'date'})
         }
        
-#ExclusÃ£o de um determinado campo no formulario de cadastro
+#Exclusão de um determinado campo no formulario de cadastro
 class PedidoSaidaForm(ModelForm):
     class Meta:
         model = PedidoSaida
@@ -843,7 +843,7 @@ class EnvioMensagemForm(ModelForm):
         fields = '__all__'
         labels = {
             'quemenviou': 'Quem enviou',
-            'destinatarios': 'DestinatÃ¡rios',
+            'destinatarios': 'Destinatários',
             'mensagem': 'Mensagem',
         }
         widgets = {
@@ -873,7 +873,7 @@ class SolicitacaoForm(ModelForm):
             'moeda': forms.Select(attrs={'class': 'form-control'}),
             'centro_custo': forms.Select(attrs={'class': 'form-control'}),
             'tipificacao_custo': forms.Select(attrs={'class': 'form-control'}),
-            'iban': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IBAN para transferÃªncia'}),
+            'iban': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IBAN para transferência'}),
             'justificativa_custo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Justifique o custo solicitado...'}),
         }
 
@@ -898,7 +898,7 @@ class SolicitacaoUpdateForm(ModelForm):
             'moeda': forms.Select(attrs={'class': 'form-control'}),
             'centro_custo': forms.Select(attrs={'class': 'form-control'}),
             'tipificacao_custo': forms.Select(attrs={'class': 'form-control'}),
-            'iban': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IBAN para transferÃªncia'}),
+            'iban': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IBAN para transferência'}),
             'justificativa_custo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Justifique o custo solicitado...'}),
         }
 

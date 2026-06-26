@@ -130,13 +130,13 @@ from sitetibl.forms import VisitanteRecorrenteForm
 from django.contrib.auth import update_session_auth_hash
 from datetime import timedelta
 
-PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'BiÃ©','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kwanza Norte','KZS':'Kwanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
+PROVINCIAS = {'BNG':'Bengo','BGL':'Benguela','BIE':'Bié','CAB':'Cabinda','CNE':'Cunene','HMB':'Huambo','HLA':'Huila','KKG':'Kuando kubango','KZN':'Kwanza Norte','KZS':'Kwanza Sul','LDA':'Luanda','LDN':'Lunda Norte','LDS':'Lunda Sul','MLG':'Malange','MXC':'Moxico','NMB':'Namibe','UGE':'Uige','ZAR':'Zaire'}
 
-MOEDA = {'AKZ':'Kwanza','USD':'USA DÃ³lar','EU':'Euro','R':'Reais','RAN':'ZA Rands','NAMD':'DÃ³lar Namibiano', 'LB':'Libra Inglesa'}
+MOEDA = {'AKZ':'Kwanza','USD':'USA Dólar','EU':'Euro','R':'Reais','RAN':'ZA Rands','NAMD':'Dólar Namibiano', 'LB':'Libra Inglesa'}
 
 
 def _sincronizar_status_legado_pedidosaida(pedido):
-    """MantÃ©m o FK legado status_de_aprovacao coerente com o novo campo estado."""
+    """Mantém o FK legado status_de_aprovacao coerente com o novo campo estado."""
     mapa = {
         'pendente': 'Em analise',
         'em_analise': 'Em analise',
@@ -150,12 +150,12 @@ def _sincronizar_status_legado_pedidosaida(pedido):
     status = Status_Aprovacao.objects.filter(designacao__iexact=designacao).first()
     if status and pedido.status_de_aprovacao_id != status.id:
         pedido.status_de_aprovacao = status
-MESES = {'1':'Janeiro','2':'Fevereiro','3':'MarÃ§o','4':'Abril','5':'Maio','6':'Junho','7':'Julho','8':'Agosto','9':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'}
-TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta bÃ¡sica','5':'Casamento','6':'Outra'}
+MESES = {'1':'Janeiro','2':'Fevereiro','3':'Março','4':'Abril','5':'Maio','6':'Junho','7':'Julho','8':'Agosto','9':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'}
+TIPO = {'1':'Saude','2':'Falecimento','3':'Propina','4':'Cesta básica','5':'Casamento','6':'Outra'}
 
 
 def _enviar_sms_solicitacao(mensagem_sms, user_ids):
-    """Envia SMS de solicitaÃ§Ã£o aos destinatÃ¡rios que nÃ£o tÃªm email registado."""
+    """Envia SMS de solicitação aos destinatários que não têm email registado."""
     if not user_ids:
         return
     users_sem_email = User.objects.filter(id__in=user_ids).filter(Q(email='') | Q(email__isnull=True))
@@ -177,18 +177,18 @@ def _enviar_sms_solicitacao(mensagem_sms, user_ids):
         try:
             response = requests.post(sms_url, json=sms_data, timeout=10)
             if response.status_code == 200:
-                logger.info('SMS de solicitaÃ§Ã£o enviado para %s', irmao.telefone)
+                logger.info('SMS de solicitação enviado para %s', irmao.telefone)
             else:
                 logger.warning(
-                    'Falha SMS solicitaÃ§Ã£o para %s â€” status %s: %s',
+                    'Falha SMS solicitação para %s — status %s: %s',
                     irmao.telefone, response.status_code, response.text,
                 )
         except Exception as e:
-            logger.error('Erro SMS solicitaÃ§Ã£o para %s: %s', irmao.telefone, e)
+            logger.error('Erro SMS solicitação para %s: %s', irmao.telefone, e)
 
 
 def _user_ids_lideranca_dept(departamento):
-    """Retorna user_ids de todos os lÃ­deres activos de um departamento (lÃ­der, vice, secretÃ¡rio)."""
+    """Retorna user_ids de todos os líderes activos de um departamento (líder, vice, secretário)."""
     ids = set()
     if departamento.lider_departamento and departamento.lider_departamento.user_id:
         ids.add(departamento.lider_departamento.user_id)
@@ -204,16 +204,16 @@ def _user_ids_lideranca_dept(departamento):
 
 
 def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsavel):
-    """Cria NotificacaoSistema e envia email para os envolvidos na mudanÃ§a de estado."""
+    """Cria NotificacaoSistema e envia email para os envolvidos na mudança de estado."""
     ESTADO_LABELS = dict(SolicitacaoInterdepartamental.ESTADO_CHOICES)
     label_novo = ESTADO_LABELS.get(estado_novo, estado_novo)
     label_anterior = ESTADO_LABELS.get(estado_anterior, estado_anterior) if estado_anterior else ''
     url = reverse('sitetibl:mostra_detalhe', args=['solicitacoes', solicitacao.id])
-    titulo = f'SolicitaÃ§Ã£o #{solicitacao.id} â€” {label_novo}'
+    titulo = f'Solicitação #{solicitacao.id} — {label_novo}'
     if estado_anterior:
-        mensagem = f'A solicitaÃ§Ã£o "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.'
+        mensagem = f'A solicitação "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.'
     else:
-        mensagem = f'Foi criada uma nova solicitaÃ§Ã£o "{solicitacao.assunto}" â€” {label_novo}.'
+        mensagem = f'Foi criada uma nova solicitação "{solicitacao.assunto}" — {label_novo}.'
 
     destinatarios = set()
     if solicitacao.solicitante and solicitacao.solicitante.user_id:
@@ -233,17 +233,17 @@ def _notificar_solicitacao(solicitacao, estado_anterior, estado_novo, responsave
     if notifs:
         NotificacaoSistema.objects.bulk_create(notifs)
 
-    # Enviar email para os lÃ­deres envolvidos; SMS para quem nÃ£o tem email
+    # Enviar email para os líderes envolvidos; SMS para quem não tem email
     _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, destinatarios)
     sms_texto = (
-        f'TIBL - SolicitaÃ§Ã£o #{solicitacao.id}: "{solicitacao.assunto[:60]}". '
+        f'TIBL - Solicitação #{solicitacao.id}: "{solicitacao.assunto[:60]}". '
         f'Estado: {label_novo}. Consulte o portal: gestao.tibl.ao'
     )
     _enviar_sms_solicitacao(sms_texto, destinatarios)
 
 
 def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_anterior, label_novo, responsavel, user_ids):
-    """Envia email HTML aos lÃ­deres envolvidos numa mudanÃ§a de estado."""
+    """Envia email HTML aos líderes envolvidos numa mudança de estado."""
     if not user_ids:
         return
     users = User.objects.filter(id__in=user_ids, email__gt='').select_related()
@@ -253,11 +253,11 @@ def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_a
 
     resp_nome = f'{responsavel.nome} {responsavel.apelido}' if responsavel else ''
     if label_anterior:
-        msg_texto = f'A solicitaÃ§Ã£o "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.'
+        msg_texto = f'A solicitação "{solicitacao.assunto}" mudou de estado de {label_anterior} para {label_novo}.'
     else:
-        msg_texto = f'Foi criada uma nova solicitaÃ§Ã£o "{solicitacao.assunto}" â€” {label_novo}.'
+        msg_texto = f'Foi criada uma nova solicitação "{solicitacao.assunto}" — {label_novo}.'
     context = {
-        'titulo': f'SolicitaÃ§Ã£o #{solicitacao.id} â€” {label_novo}',
+        'titulo': f'Solicitação #{solicitacao.id} — {label_novo}',
         'mensagem': msg_texto,
         'novo_estado': estado_novo,
         'estado_display': label_novo,
@@ -282,18 +282,18 @@ def _enviar_email_solicitacao(solicitacao, estado_anterior, estado_novo, label_a
             )
             msg.attach_alternative(html_content, 'text/html')
             msg.send()
-        logger.info('Emails de solicitaÃ§Ã£o #%s enviados para %s', solicitacao.id, emails_to)
+        logger.info('Emails de solicitação #%s enviados para %s', solicitacao.id, emails_to)
     except Exception as e:
-        logger.error('Falha ao enviar emails de solicitaÃ§Ã£o #%s: %s', solicitacao.id, e)
+        logger.error('Falha ao enviar emails de solicitação #%s: %s', solicitacao.id, e)
 
 
 def _notificar_comentario_solicitacao(solicitacao, autor, texto):
-    """Cria notificaÃ§Ã£o in-app e envia email quando alguÃ©m comenta numa solicitaÃ§Ã£o."""
+    """Cria notificação in-app e envia email quando alguém comenta numa solicitação."""
     url = reverse('sitetibl:mostra_detalhe', args=['solicitacoes', solicitacao.id])
-    titulo = f'Novo comentÃ¡rio â€” SolicitaÃ§Ã£o #{solicitacao.id}'
-    mensagem = f'{autor.nome} {autor.apelido} comentou na solicitaÃ§Ã£o "{solicitacao.assunto}": {texto[:100]}'
+    titulo = f'Novo comentário — Solicitação #{solicitacao.id}'
+    mensagem = f'{autor.nome} {autor.apelido} comentou na solicitação "{solicitacao.assunto}": {texto[:100]}'
 
-    # Recolher todos os lÃ­deres envolvidos (lÃ­der, vice, secretÃ¡rio de ambos os departamentos)
+    # Recolher todos os líderes envolvidos (líder, vice, secretário de ambos os departamentos)
     destinatarios = set()
     if solicitacao.solicitante and solicitacao.solicitante.user_id:
         destinatarios.add(solicitacao.solicitante.user_id)
@@ -302,11 +302,11 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
     if solicitacao.departamento_solicitante:
         destinatarios.update(_user_ids_lideranca_dept(solicitacao.departamento_solicitante))
 
-    # Excluir o autor do comentÃ¡rio
+    # Excluir o autor do comentário
     if autor.user_id:
         destinatarios.discard(autor.user_id)
 
-    # NotificaÃ§Ãµes in-app
+    # Notificações in-app
     notifs = [
         NotificacaoSistema(destinatario_id=uid, titulo=titulo, mensagem=mensagem, url=url)
         for uid in destinatarios
@@ -348,21 +348,21 @@ def _notificar_comentario_solicitacao(solicitacao, autor, texto):
             )
             msg.attach_alternative(html_content, 'text/html')
             msg.send()
-        logger.info('Emails de comentÃ¡rio solicitaÃ§Ã£o #%s enviados para %s', solicitacao.id, emails_to)
+        logger.info('Emails de comentário solicitação #%s enviados para %s', solicitacao.id, emails_to)
     except Exception as e:
-        logger.error('Falha ao enviar emails de comentÃ¡rio solicitaÃ§Ã£o #%s: %s', solicitacao.id, e)
+        logger.error('Falha ao enviar emails de comentário solicitação #%s: %s', solicitacao.id, e)
 
     sms_texto = (
-        f'TIBL - Novo comentÃ¡rio na SolicitaÃ§Ã£o #{solicitacao.id}: "{solicitacao.assunto[:60]}". '
+        f'TIBL - Novo comentário na Solicitação #{solicitacao.id}: "{solicitacao.assunto[:60]}". '
         f'Por: {autor.nome} {autor.apelido}. Consulte o portal: gestao.tibl.ao'
     )
     _enviar_sms_solicitacao(sms_texto, destinatarios)
 
 
 def _notificar_caso_pastoral(caso, actor, mensagem_texto):
-    """Cria notificaÃ§Ã£o in-app e envia email para os envolvidos num caso pastoral."""
+    """Cria notificação in-app e envia email para os envolvidos num caso pastoral."""
     url = reverse('sitetibl:mostra_detalhe', args=['casospastorais', caso.id])
-    titulo = f'Caso Pastoral â€” {caso.titulo}'
+    titulo = f'Caso Pastoral — {caso.titulo}'
 
     destinatarios = set()
     if caso.responsavel and caso.responsavel.user_id:
@@ -395,7 +395,7 @@ def _notificar_caso_pastoral(caso, actor, mensagem_texto):
         'caso_estado': ESTADO_LABELS.get(caso.estado, caso.estado),
         'caso_prioridade': caso.get_prioridade_display(),
         'membro': str(caso.membro),
-        'responsavel': str(caso.responsavel) if caso.responsavel else 'NÃ£o atribuÃ­do',
+        'responsavel': str(caso.responsavel) if caso.responsavel else 'Não atribuído',
     }
     try:
         html_content = render_to_string('emails/email_alerta_pastoral.html', context)
@@ -417,7 +417,7 @@ def comeco(request):
 
 @login_required
 def api_municipios(request, provincia_id):
-    """Retorna municÃ­pios de uma provÃ­ncia em JSON (para cascading dropdown)."""
+    """Retorna municípios de uma província em JSON (para cascading dropdown)."""
     municipios = Municipio.objects.filter(
         provincia_id=provincia_id
     ).order_by('nome').values('id', 'nome')
@@ -426,7 +426,7 @@ def api_municipios(request, provincia_id):
 
 @login_required
 def api_funcoes_por_actividade(request, actividade_id):
-    """Retorna funÃ§Ãµes relevantes para o departamento da actividade + genÃ©ricas."""
+    """Retorna funções relevantes para o departamento da actividade + genéricas."""
     actividade = get_object_or_404(Actividade, id=actividade_id)
     if actividade.departamento_id:
         funcoes = Funcao.objects.filter(
@@ -445,7 +445,7 @@ def index(request):
 @login_required
 def mostraGestao(request,gestaoescolhida,pagina):
     if gestaoescolhida == 'irmaos' and not request.user.has_perm('sitetibl.change_irmao'):
-        messages.error(request, 'Acesso negado! NÃ£o tem permissÃ£o para consultar a gestÃ£o de irmÃ£os.')
+        messages.error(request, 'Acesso negado! Não tem permissão para consultar a gestão de irmãos.')
         return redirect('index')
 
     lista = {'escalas' : Escala.objects.select_related('irmao', 'actividade', 'actividade__departamento', 'funcao', 'funcao__departamento'), 
@@ -737,15 +737,15 @@ def mostraActualizacao(request, gestaoescolhida, id):
     
     model = lista[gestaoescolhida]
   
-    # ðŸ” verificaÃ§Ã£o dinÃ¢mica
+    # ðŸ” verificação dinâmica
     perm = f'{model._meta.app_label}.change_{model._meta.model_name}'
     if not request.user.has_perm(perm):
-        messages.error(request, 'Acesso negado! VocÃª nÃ£o tem permissÃ£o para actualizar registros.')
+        messages.error(request, 'Acesso negado! Você não tem permissão para actualizar registros.')
         return redirect('index')
 
     registo = get_object_or_404(model, id=id)
 
-    # ðŸ” VerificaÃ§Ã£o de propriedade para actividades
+    # ðŸ” Verificação de propriedade para actividades
     if gestaoescolhida == 'actividades':
         papel_elevado = request.user.has_perm('sitetibl.change_mandato')
         if not papel_elevado:
@@ -758,7 +758,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         id=registo.departamento_id,
                     ).exists()
             if not pode_editar:
-                messages.error(request, 'SÃ³ pode editar actividades que criou ou do seu departamento.')
+                messages.error(request, 'Só pode editar actividades que criou ou do seu departamento.')
                 return redirect('index')
 
     if request.method == 'GET':
@@ -780,7 +780,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
         if formulario.is_valid():
             obj = formulario.save(commit=False)
 
-            # âš ï¸ VerificaÃ§Ã£o de conflito de horÃ¡rio para actividades
+            # âš ï¸ Verificação de conflito de horário para actividades
             if gestaoescolhida == 'actividades':
                 data = formulario.cleaned_data['data']
                 inicio = formulario.cleaned_data['inicio']
@@ -795,25 +795,25 @@ def mostraActualizacao(request, gestaoescolhida, id):
                     primeiro = conflitos.first()
                     messages.error(
                         request,
-                        f'Conflito de horÃ¡rio: jÃ¡ existe uma actividade "{primeiro.designacao}" '
-                        f'das {primeiro.inicio} Ã s {primeiro.fim} neste dia com horÃ¡rio sobrepÃ³vel.'
+                        f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
+                        f'das {primeiro.inicio} Ã s {primeiro.fim} neste dia com horário sobrepóvel.'
                     )
                     return render(request, 'actividades_form.html', {'formulario': formulario, 'id': id, 'is_update': True})
                 elif mesma_data_diferente.exists():
                     messages.warning(
                         request,
-                        'JÃ¡ existe outra actividade neste dia com horÃ¡rio diferente. '
+                        'Já existe outra actividade neste dia com horário diferente. '
                         'Se for num local diferente, pode prosseguir normalmente.'
                     )
 
             obj.save()
-            messages.success(request, 'ActualizaÃ§Ã£o foi bem sucedida')
+            messages.success(request, 'Actualização foi bem sucedida')
             if gestaoescolhida == 'solicitacoes':
                 return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=['solicitacoes', id]))
             return HttpResponseRedirect(reverse('index'))
 
         else:
-            messages.error(request, 'Foram encontrados erros ao preencher o formulÃ¡rio.')
+            messages.error(request, 'Foram encontrados erros ao preencher o formulário.')
             tmpl = 'actividades_form.html' if gestaoescolhida == 'actividades' else 'formulario_actualizacao.html'
             return render(request, tmpl, {
                 'formulario': formulario,
@@ -825,7 +825,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
 @login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
     if gestaoescolhida == 'irmaos' and not request.user.has_perm('sitetibl.change_irmao'):
-        messages.error(request, 'Acesso negado! NÃ£o tem permissÃ£o para consultar detalhes de irmÃ£os.')
+        messages.error(request, 'Acesso negado! Não tem permissão para consultar detalhes de irmãos.')
         return redirect('index')
 
     lista_qs = {
@@ -884,7 +884,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         todas_funcoes = Funcao.objects.select_related('departamento').order_by('departamento__designacao', 'designacao')
         todos_irmaos = Irmao.objects.select_related('celula', 'localcongregacao').order_by('nome', 'apelido')
         departamentos = Departamento.objects.order_by('designacao')
-        # mapa irmao_id â†’ [departamento_id, â€¦] para filtro JS no modal
+        # mapa irmao_id â†’ [departamento_id, …] para filtro JS no modal
         from collections import defaultdict
         _irmao_depts = defaultdict(list)
         for m in Mandato.objects.values('irmao_id', 'departamento_id'):
@@ -917,10 +917,10 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             irmao_logado is not None
             and mandatos_departamento.filter(irmao_id=irmao_logado.id, funcao='secretario').exists()
         )
-        # PapÃ©is elevados (Pastor/Secretaria/Admin) gerem qualquer dept;
-        # LD/VLD e SecretÃ¡rio departamental sÃ³ gerem o dept onde tÃªm cargo.
+        # Papéis elevados (Pastor/Secretaria/Admin) gerem qualquer dept;
+        # LD/VLD e Secretário departamental só gerem o dept onde têm cargo.
         papel_elevado_dept = request.user.has_perm('sitetibl.change_mandato')
-        # SecretÃ¡rio departamental pode adicionar mas nÃ£o remover membros (sem permissÃ£o de delete)
+        # Secretário departamental pode adicionar mas não remover membros (sem permissão de delete)
         pode_gerir_membros = lidera_departamento or papel_elevado_dept or e_secretario_dept
         pode_remover_membros = lidera_departamento or papel_elevado_dept
 
@@ -938,13 +938,13 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     funcao = 'membro'
 
                 if not irmao_ids:
-                    messages.error(request, 'Seleccione pelo menos um irmÃ£o para adicionar ao departamento.')
+                    messages.error(request, 'Seleccione pelo menos um irmão para adicionar ao departamento.')
                 else:
                     FUNCOES_EXCLUSIVAS = Mandato.FUNCOES_EXCLUSIVAS
-                    # Cargo exclusivo com vÃ¡rios irmÃ£os selecionados â†’ forÃ§ar 'membro'
+                    # Cargo exclusivo com vários irmãos selecionados â†’ forçar 'membro'
                     if funcao in FUNCOES_EXCLUSIVAS and len(irmao_ids) > 1:
                         funcao = 'membro'
-                        messages.warning(request, 'Cargo exclusivo nÃ£o pode ser atribuÃ­do a vÃ¡rios irmÃ£os de uma vez. Cargo alterado para Membro.')
+                        messages.warning(request, 'Cargo exclusivo não pode ser atribuído a vários irmãos de uma vez. Cargo alterado para Membro.')
                     elif funcao in FUNCOES_EXCLUSIVAS:
                         # Remover cargo exclusivo do ocupante anterior
                         ocupante = Mandato.objects.filter(
@@ -992,11 +992,11 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     if partes:
                         messages.success(request, ' e '.join(partes) + ' com sucesso.')
                     else:
-                        messages.info(request, 'Nenhuma alteraÃ§Ã£o efectuada â€” os irmÃ£os jÃ¡ pertencem ao departamento com esse cargo.')
+                        messages.info(request, 'Nenhuma alteração efectuada — os irmãos já pertencem ao departamento com esse cargo.')
 
             elif action == 'remove_member':
                 if not pode_remover_membros:
-                    messages.error(request, 'Apenas o lÃ­der do departamento ou um administrador pode remover membros.')
+                    messages.error(request, 'Apenas o líder do departamento ou um administrador pode remover membros.')
                     return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
                 mandato_id = request.POST.get('mandato_id', '').strip()
                 mandato = Mandato.objects.filter(id=mandato_id, departamento_id=identificador).first()
@@ -1013,30 +1013,30 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
 
             elif action == 'add_funcao':
                 if not (lidera_departamento or request.user.has_perm('sitetibl.add_funcao')):
-                    messages.error(request, 'Sem permissÃ£o para adicionar funÃ§Ãµes.')
+                    messages.error(request, 'Sem permissão para adicionar funções.')
                 else:
                     nome_funcao = request.POST.get('nome_funcao', '').strip()
                     if not nome_funcao:
-                        messages.error(request, 'O nome da funÃ§Ã£o nÃ£o pode estar vazio.')
+                        messages.error(request, 'O nome da função não pode estar vazio.')
                     elif Funcao.objects.filter(designacao=nome_funcao, departamento_id=identificador).exists():
-                        messages.warning(request, 'Esta funÃ§Ã£o jÃ¡ existe neste departamento.')
+                        messages.warning(request, 'Esta função já existe neste departamento.')
                     else:
                         Funcao.objects.create(designacao=nome_funcao, departamento_id=identificador)
-                        messages.success(request, f'FunÃ§Ã£o "{nome_funcao}" adicionada ao departamento.')
+                        messages.success(request, f'Função "{nome_funcao}" adicionada ao departamento.')
 
             elif action == 'remove_funcao':
                 if not (lidera_departamento or request.user.has_perm('sitetibl.delete_funcao')):
-                    messages.error(request, 'Sem permissÃ£o para remover funÃ§Ãµes.')
+                    messages.error(request, 'Sem permissão para remover funções.')
                 else:
                     funcao_id = request.POST.get('funcao_id', '').strip()
                     func = Funcao.objects.filter(id=funcao_id, departamento_id=identificador).first()
                     if func is None:
-                        messages.error(request, 'FunÃ§Ã£o nÃ£o encontrada neste departamento.')
+                        messages.error(request, 'Função não encontrada neste departamento.')
                     elif Escala.objects.filter(funcao=func).exists():
-                        messages.warning(request, f'NÃ£o Ã© possÃ­vel remover "{func.designacao}" porque jÃ¡ estÃ¡ em uso em escalas.')
+                        messages.warning(request, f'Não é possível remover "{func.designacao}" porque já está em uso em escalas.')
                     else:
                         func.delete()
-                        messages.success(request, 'FunÃ§Ã£o removida do departamento.')
+                        messages.success(request, 'Função removida do departamento.')
 
             return HttpResponseRedirect(reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador]))
 
@@ -1323,7 +1323,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             elif action == 'rejeitar':
                 obs = request.POST.get('observacao', '').strip()
                 if not obs:
-                    messages.error(request, 'Ã‰ obrigatÃ³rio indicar o motivo da rejeiÃ§Ã£o.')
+                    messages.error(request, 'É obrigatório indicar o motivo da rejeição.')
                 else:
                     registo.estado = 'rejeitado'
                     registo.estado_pagamento = 'nao_aplicavel'
@@ -1340,7 +1340,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 _sincronizar_status_legado_pedidosaida(registo)
                 registo.save(update_fields=['estado', 'status_de_aprovacao', 'data_atualizacao'])
                 notificar_mudanca_estado_pedido(registo, 'em_analise', irmao_logado)
-                messages.info(request, 'Pedido marcado como "Em AnÃ¡lise".')
+                messages.info(request, 'Pedido marcado como "Em Análise".')
 
             elif action == 'marcar_pago':
                 comprovativo = request.FILES.get('comprovativo')
@@ -1372,7 +1372,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         if request.method == 'POST':
             action = request.POST.get('action', '').strip()
 
-            # ComentÃ¡rio â€” qualquer utilizador com view permission pode comentar
+            # Comentário — qualquer utilizador com view permission pode comentar
             if action == 'comentar' and irmao_logado:
                 texto = request.POST.get('comentario_texto', '').strip()
                 if texto:
@@ -1382,14 +1382,14 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                         texto=texto, anexo=anexo_coment or '',
                     )
                     _notificar_comentario_solicitacao(registo, irmao_logado, texto)
-                    messages.success(request, 'ComentÃ¡rio adicionado.')
+                    messages.success(request, 'Comentário adicionado.')
                 else:
-                    messages.error(request, 'O comentÃ¡rio nÃ£o pode estar vazio.')
+                    messages.error(request, 'O comentário não pode estar vazio.')
                 return HttpResponseRedirect(
                     reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
                 )
 
-            # TransiÃ§Ãµes de estado â€” requer permissÃ£o change
+            # Transições de estado — requer permissão change
             if pode_responder:
                 estado_anterior = registo.estado
                 anexo = request.FILES.get('documento_anexo')
@@ -1403,7 +1403,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                         documento_anexo=anexo or '',
                     )
                     _notificar_solicitacao(registo, estado_anterior, 'em_analise', irmao_logado)
-                    messages.info(request, 'SolicitaÃ§Ã£o marcada como "Em AnÃ¡lise".')
+                    messages.info(request, 'Solicitação marcada como "Em Análise".')
 
                 elif action == 'aprovar' and registo.pode_transitar_para('aprovado'):
                     obs = request.POST.get('justificacao', '').strip()
@@ -1420,12 +1420,12 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                         documento_anexo=anexo or '',
                     )
                     _notificar_solicitacao(registo, estado_anterior, 'aprovado', irmao_logado)
-                    messages.success(request, 'SolicitaÃ§Ã£o aprovada com sucesso.')
+                    messages.success(request, 'Solicitação aprovada com sucesso.')
 
                 elif action == 'rejeitar' and registo.pode_transitar_para('rejeitado'):
                     obs = request.POST.get('justificacao', '').strip()
                     if not obs:
-                        messages.error(request, 'Ã‰ obrigatÃ³rio indicar o motivo da rejeiÃ§Ã£o.')
+                        messages.error(request, 'É obrigatório indicar o motivo da rejeição.')
                     else:
                         registo.estado = 'rejeitado'
                         registo.responsavel_resposta = irmao_logado
@@ -1438,7 +1438,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                             documento_anexo=anexo or '',
                         )
                         _notificar_solicitacao(registo, estado_anterior, 'rejeitado', irmao_logado)
-                        messages.success(request, 'SolicitaÃ§Ã£o rejeitada.')
+                        messages.success(request, 'Solicitação rejeitada.')
 
                 elif action == 'concluir' and registo.pode_transitar_para('concluido'):
                     obs = request.POST.get('justificacao', '').strip()
@@ -1451,7 +1451,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                         documento_anexo=anexo or '',
                     )
                     _notificar_solicitacao(registo, estado_anterior, 'concluido', irmao_logado)
-                    messages.success(request, 'SolicitaÃ§Ã£o concluÃ­da.')
+                    messages.success(request, 'Solicitação concluída.')
 
                 elif action == 'registar_pagamento' and registo.estado == 'aprovado' and registo.categoria == 'verba':
                     obs = request.POST.get('justificacao', '').strip()
@@ -1470,7 +1470,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                     _notificar_solicitacao(registo, estado_anterior, 'aprovado', irmao_logado)
                     messages.success(request, 'Pagamento registado com sucesso.')
                 else:
-                    messages.error(request, 'TransiÃ§Ã£o de estado invÃ¡lida.')
+                    messages.error(request, 'Transição de estado inválida.')
 
                 return HttpResponseRedirect(
                     reverse('sitetibl:mostra_detalhe', args=[gestaoescolhida, identificador])
@@ -1490,7 +1490,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             is_pastor = request.user.is_superuser or request.user.groups.filter(name='Pastor').exists()
             is_envolvido = irmao_logado and (registo.responsavel == irmao_logado or registo.criado_por == irmao_logado)
             if not is_pastor and not is_envolvido:
-                messages.error(request, 'Acesso negado. Este caso Ã© confidencial.')
+                messages.error(request, 'Acesso negado. Este caso é confidencial.')
                 return redirect('index')
 
         registos_acompanhamento = RegistoAcompanhamento.objects.filter(caso=registo).select_related('realizado_por').order_by('-data')
@@ -1599,15 +1599,15 @@ def mostraEliminacao(request, gestaoescolhida, id):
         messages.error(request, f'Tipo de registo desconhecido: {gestaoescolhida}')
         return redirect('index')
 
-    # ðŸ” verificaÃ§Ã£o dinÃ¢mica
+    # ðŸ” verificação dinâmica
     perm = f'{model._meta.app_label}.delete_{model._meta.model_name}'
     if not request.user.has_perm(perm):
-        messages.error(request, 'Acesso negado! VocÃª nÃ£o tem permissÃ£o para eliminar registros.')
+        messages.error(request, 'Acesso negado! Você não tem permissão para eliminar registros.')
         return redirect('index')
 
     registo = get_object_or_404(model, id=id)
 
-    # ðŸ” VerificaÃ§Ã£o de propriedade para actividades
+    # ðŸ” Verificação de propriedade para actividades
     if gestaoescolhida == 'actividades':
         papel_elevado = request.user.has_perm('sitetibl.change_mandato')
         if not papel_elevado:
@@ -1620,18 +1620,18 @@ def mostraEliminacao(request, gestaoescolhida, id):
                         id=registo.departamento_id,
                     ).exists()
             if not pode_eliminar:
-                messages.error(request, 'SÃ³ pode eliminar actividades que criou ou do seu departamento.')
+                messages.error(request, 'Só pode eliminar actividades que criou ou do seu departamento.')
                 return redirect('index')
 
     if request.method == 'POST':
         registo.delete()
-        messages.success(request, 'EliminaÃ§Ã£o foi bem sucedida')
+        messages.success(request, 'Eliminação foi bem sucedida')
         next_url = request.POST.get('next', '')
         if next_url and next_url.startswith('/'):
             return redirect(next_url)
         return redirect('index')
 
-    # GET â†’ mostra confirmaÃ§Ã£o
+    # GET â†’ mostra confirmação
     next_url = request.GET.get('next', '')
     if next_url and not next_url.startswith('/'):
         next_url = ''
@@ -1670,7 +1670,7 @@ def mostraCriacao(request, gestaoescolhida):
                         }
     form_class = listaformularios.get(gestaoescolhida)
     if not form_class:
-        messages.error(request, 'Tipo de formulÃ¡rio invÃ¡lido.')
+        messages.error(request, 'Tipo de formulário inválido.')
         return redirect('index')
 
     # ðŸ” MODEL CORRETO
@@ -1678,7 +1678,7 @@ def mostraCriacao(request, gestaoescolhida):
     perm = f'{model._meta.app_label}.add_{model._meta.model_name}'
 
     if not request.user.has_perm(perm):
-        messages.error(request, 'Acesso negado! VocÃª nÃ£o tem permissÃ£o criar novos registros.')
+        messages.error(request, 'Acesso negado! Você não tem permissão criar novos registros.')
         return redirect('index')
 
     if request.method == 'POST':
@@ -1717,7 +1717,7 @@ def mostraCriacao(request, gestaoescolhida):
 
             obj = formulario.save(commit=False)
 
-            # âš ï¸ VerificaÃ§Ã£o de conflito de horÃ¡rio para actividades
+            # âš ï¸ Verificação de conflito de horário para actividades
             if gestaoescolhida == 'actividades':
                 data = formulario.cleaned_data['data']
                 inicio = formulario.cleaned_data['inicio']
@@ -1732,18 +1732,18 @@ def mostraCriacao(request, gestaoescolhida):
                     primeiro = conflitos.first()
                     messages.error(
                         request,
-                        f'Conflito de horÃ¡rio: jÃ¡ existe uma actividade "{primeiro.designacao}" '
-                        f'das {primeiro.inicio} Ã s {primeiro.fim} neste dia com horÃ¡rio sobrepÃ³vel.'
+                        f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
+                        f'das {primeiro.inicio} Ã s {primeiro.fim} neste dia com horário sobrepóvel.'
                     )
                     return render(request, 'actividades_form.html', {'formulario': formulario, 'is_update': False})
                 elif mesma_data_diferente.exists():
                     messages.warning(
                         request,
-                        'JÃ¡ existe outra actividade neste dia com horÃ¡rio diferente. '
+                        'Já existe outra actividade neste dia com horário diferente. '
                         'Se for num local diferente, pode prosseguir normalmente.'
                     )
 
-            # ðŸ“‹ Pedido de SaÃ­da: definir requerente e estado inicial antes do primeiro save
+            # ðŸ“‹ Pedido de Saída: definir requerente e estado inicial antes do primeiro save
             if gestaoescolhida == 'pedidosaida':
                 irmao_req = Irmao.objects.filter(user=request.user).first()
                 if irmao_req:
@@ -1751,11 +1751,11 @@ def mostraCriacao(request, gestaoescolhida):
                 obj.estado = 'pendente'
                 obj.estado_pagamento = 'nao_aplicavel'
 
-            # ðŸ“‹ SolicitaÃ§Ã£o Interdepartamental: auto-preencher solicitante e dept
+            # ðŸ“‹ Solicitação Interdepartamental: auto-preencher solicitante e dept
             if gestaoescolhida == 'solicitacoes':
                 irmao_sol = Irmao.objects.filter(user=request.user).first()
                 if not irmao_sol:
-                    messages.error(request, 'O seu utilizador nÃ£o estÃ¡ associado a nenhum registo de IrmÃ£o. Contacte o administrador.')
+                    messages.error(request, 'O seu utilizador não está associado a nenhum registo de Irmão. Contacte o administrador.')
                     return render(request, gestaoescolhida + '.html', {'formulario': formulario, 'is_update': False})
                 obj.solicitante = irmao_sol
                 if not obj.departamento_solicitante_id:
@@ -1782,7 +1782,7 @@ def mostraCriacao(request, gestaoescolhida):
             obj.save()
             formulario.save_m2m()
 
-            # ðŸ“‹ SolicitaÃ§Ã£o: notificar lÃ­deres do departamento destinatÃ¡rio
+            # ðŸ“‹ Solicitação: notificar líderes do departamento destinatário
             if gestaoescolhida == 'solicitacoes':
                 HistoricoSolicitacao.objects.create(
                     solicitacao=obj, estado_anterior='',
@@ -1795,11 +1795,11 @@ def mostraCriacao(request, gestaoescolhida):
                 obj.criado_por = request.user
                 obj.save(update_fields=['criado_por'])
 
-            # ðŸ“‹ Pedido de SaÃ­da: jÃ¡ definido antes do save, nada a fazer aqui
+            # ðŸ“‹ Pedido de Saída: já definido antes do save, nada a fazer aqui
             if gestaoescolhida == 'pedidosaida':
                 pass
 
-            # Se for IrmÃ£o e o utilizador escolheu departamentos, criar Mandatos
+            # Se for Irmão e o utilizador escolheu departamentos, criar Mandatos
             if gestaoescolhida == 'irmaos':
                 departamentos = formulario.cleaned_data.get('departamentos')
                 if departamentos:
@@ -1809,7 +1809,7 @@ def mostraCriacao(request, gestaoescolhida):
                             defaults={'funcao': 'membro'},
                         )
             messages.success(request, 'Dados salvos com sucesso!')
-            # ApÃ³s criar uma escala, redirecionar para o detalhe da actividade
+            # Após criar uma escala, redirecionar para o detalhe da actividade
             if gestaoescolhida == 'escalas' and hasattr(obj, 'actividade_id') and obj.actividade_id:
                 return redirect(f'/tibl/actividades/detalhe/{obj.actividade_id}/')
             if gestaoescolhida == 'solicitacoes':
@@ -1821,7 +1821,7 @@ def mostraCriacao(request, gestaoescolhida):
                 return redirect(reverse('sitetibl:mostra_gestao', args=['visitantes', 1]))
             return redirect('index')
         else:
-            messages.error(request, 'Foram encontrados erros ao preencher o formulÃ¡rio')
+            messages.error(request, 'Foram encontrados erros ao preencher o formulário')
     else:
         formulario = form_class()
 
@@ -1924,7 +1924,7 @@ def encontraContasbancarias(request):
 @login_required
 def inativaContabancaria(request, id):
     if not request.user.has_perm('sitetibl.change_contabancaria'):
-        messages.error(request, 'Acesso negado para inativar conta bancÃ¡ria.')
+        messages.error(request, 'Acesso negado para inativar conta bancária.')
         return redirect('index')
 
     conta = get_object_or_404(Contabancaria, id=id)
@@ -1937,7 +1937,7 @@ def inativaContabancaria(request, id):
 @login_required
 def reativaContabancaria(request, id):
     if not request.user.has_perm('sitetibl.change_contabancaria'):
-        messages.error(request, 'Acesso negado para reativar conta bancÃ¡ria.')
+        messages.error(request, 'Acesso negado para reativar conta bancária.')
         return redirect('index')
 
     conta = get_object_or_404(Contabancaria, id=id)
@@ -2649,13 +2649,13 @@ def substituir_membro_protocolo(request, escala_id, irmao_id):
 
 @login_required
 def visualizar_recibo_dizimo(request, dizimo_id):
-    messages.warning(request, f'Recibo de dÃ­zimo #{dizimo_id} nÃ£o estÃ¡ disponÃ­vel nesta branch.')
+    messages.warning(request, f'Recibo de dízimo #{dizimo_id} não está disponível nesta branch.')
     return redirect('index')
 
 
 @login_required
 def gerar_recibo_dizimo(request, dizimo_id):
-    messages.warning(request, f'GeraÃ§Ã£o de recibo de dÃ­zimo #{dizimo_id} nÃ£o estÃ¡ disponÃ­vel nesta branch.')
+    messages.warning(request, f'Geração de recibo de dízimo #{dizimo_id} não está disponível nesta branch.')
     return redirect('index')
 
 @login_required
@@ -2772,7 +2772,7 @@ def encontraDepartamentos(request):
     if funcaov:
         kwargs['funcao'] = funcaov
     resultado = Mandato.objects.values('departamento_id', 'departamento__designacao', 'funcao', 'irmao__nome', 'irmao__apelido').filter(**kwargs).order_by('departamento__designacao')
-    # Mapear valor bruto do cargo para etiqueta legÃ­vel
+    # Mapear valor bruto do cargo para etiqueta legível
     cargo_map = dict(Mandato.FUNCAO_CHOICES)
     resultado = list(resultado)
     for r in resultado:
@@ -2980,7 +2980,7 @@ def encontraEnvioMensagem(request):
 @login_required
 def criarEnvioMensagem(request):
     if not request.user.has_perm('sitetibl.add_enviomensagem'):
-        messages.error(request, 'Acesso negado! VocÃª nÃ£o tem permissÃ£o para enviar mensagens.')
+        messages.error(request, 'Acesso negado! Você não tem permissão para enviar mensagens.')
         return redirect('index')
 
     irmaos = Irmao.objects.select_related('celula').prefetch_related('integrantes_departamento').order_by('nome', 'apelido')
@@ -2993,7 +2993,7 @@ def criarEnvioMensagem(request):
             messages.success(request, 'Mensagem enviada com sucesso!')
             return redirect('index')
         else:
-            messages.error(request, 'Foram encontrados erros ao preencher o formulÃ¡rio.')
+            messages.error(request, 'Foram encontrados erros ao preencher o formulário.')
     else:
         formulario = EnvioMensagemForm()
 
@@ -3052,9 +3052,9 @@ def encontraEscalas(request):
 
 @login_required
 def criar_actividades_recorrentes(request):
-    """Cria mÃºltiplas actividades para uma sÃ©rie semanal recorrente."""
+    """Cria múltiplas actividades para uma série semanal recorrente."""
     if not request.user.has_perm('sitetibl.add_actividade'):
-        messages.error(request, 'Acesso negado! NÃ£o tem permissÃ£o para criar actividades.')
+        messages.error(request, 'Acesso negado! Não tem permissão para criar actividades.')
         return redirect('index')
 
     if request.method == 'POST':
@@ -3084,7 +3084,7 @@ def criar_actividades_recorrentes(request):
                 criado_por=request.user,
             )
 
-            messages.success(request, f'SÃ©rie recorrente "{tipo_nome}" criada com sucesso.')
+            messages.success(request, f'Série recorrente "{tipo_nome}" criada com sucesso.')
             return redirect('sitetibl:mostra_gestao', gestaoescolhida='actividades', pagina=1)
     else:
         form = ActividadesRecorrentesForm()
@@ -3100,7 +3100,7 @@ class EscalasPorActividadeView(APIView):
             actividade = Actividade.objects.get(id=actividade_id)
         except Actividade.DoesNotExist:
             return Response(
-                {"erro": "Actividade nÃ£o encontrada"},
+                {"erro": "Actividade não encontrada"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -3126,7 +3126,7 @@ def dashboardIrmaos(request):
         .annotate(mes=TruncMonth('data_criacao'))
         .values('mes')
         .annotate(total=Count('id'))
-        .order_by('mes')   # ordem cronolÃ³gica
+        .order_by('mes')   # ordem cronológica
     )
 
     # Cria todos os meses com valor zero
@@ -3134,11 +3134,11 @@ def dashboardIrmaos(request):
     for i in range(1, 13):
         meses[i] = 0
 
-    # Preenche os meses que tÃªm dados
+    # Preenche os meses que têm dados
     for item in queryset:
         meses[item['mes'].month] = item['total']
 
-    # Labels dinÃ¢micos: mÃªs + ano
+    # Labels dinâmicos: mês + ano
     labels = [f"{mes} {ano}" for mes in ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']]
     data = list(meses.values())
 
@@ -3183,7 +3183,7 @@ def dashboardPedidosSaidaSemana(request):
         .annotate(total=Count('id'))
     )
 
-    # Django: 1=Dom, 2=Seg, 3=Ter, ..., 7=SÃ¡b
+    # Django: 1=Dom, 2=Seg, 3=Ter, ..., 7=Sáb
     dias = {
         1: 'Dom',
         2: 'Seg',
@@ -3191,7 +3191,7 @@ def dashboardPedidosSaidaSemana(request):
         4: 'Qua',
         5: 'Qui',
         6: 'Sex',
-        7: 'SÃ¡b',
+        7: 'Sáb',
     }
 
     # Inicializa todos os dias com zero
@@ -3299,7 +3299,7 @@ def dashboardCrescimentoMembros(request):
         .order_by('mes')
     )
 
-    # Meses padrÃ£o
+    # Meses padrão
     meses = {i: 0 for i in range(1, 13)}
     labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
 
@@ -3324,7 +3324,7 @@ def dashboardCrescimentoMembros(request):
 
 @login_required
 def dashboardDepartamentosMembros(request):
-    """NÃºmero de membros por departamento â€” grÃ¡fico de barras horizontais."""
+    """Número de membros por departamento — gráfico de barras horizontais."""
     dados = (
         Mandato.objects
         .values('departamento__designacao')
@@ -3336,10 +3336,10 @@ def dashboardDepartamentosMembros(request):
     return JsonResponse({"labels": labels, "data": data})
 
 
-#VIEWS QUE GERAM RELATÃ“RIOS
+#VIEWS QUE GERAM RELATÓRIOS
 @login_required
 def meu_perfil(request):
-    """PÃ¡gina de perfil pessoal: actualiza contactos e senha."""
+    """Página de perfil pessoal: actualiza contactos e senha."""
     try:
         irmao = request.user.irmao
     except Irmao.DoesNotExist:
@@ -3391,7 +3391,7 @@ def relatorio_irmaos_pdf(request):
         leftMargin=40,
         topMargin=40,
         bottomMargin=40,
-        title="RelatÃ³rio de IrmÃ£os",
+        title="Relatório de Irmãos",
         author="Sistema TIBL"
     )
 
@@ -3408,10 +3408,10 @@ def relatorio_irmaos_pdf(request):
 
     elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # ðŸ”¹ TÃTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
         Paragraph(
-            "<b>RelatÃ³rio Geral de IrmÃ£os</b>",
+            "<b>Relatório Geral de Irmãos</b>",
             styles['Title']
         )
     )
@@ -3428,8 +3428,8 @@ def relatorio_irmaos_pdf(request):
         data.append([
             irmao.nome,
             irmao.telefone or '-',
-            'Sim' if irmao.dizimista else 'NÃ£o',
-            'Sim' if irmao.batizado else 'NÃ£o'
+            'Sim' if irmao.dizimista else 'Não',
+            'Sim' if irmao.batizado else 'Não'
         ])
 
     # ðŸ”¹ TABELA
@@ -3469,7 +3469,7 @@ def relatorio_dizimos_pdf(request):
         leftMargin=40,
         topMargin=40,
         bottomMargin=40,
-        title="RelatÃ³rio de Dizimos",
+        title="Relatório de Dizimos",
         author="Sistema TIBL"
     )
 
@@ -3492,16 +3492,16 @@ def relatorio_dizimos_pdf(request):
 
     elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # ðŸ”¹ TÃTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
-        Paragraph("<b>RelatÃ³rio de DÃ­zimos e Ofertas</b>", styles['Title'])
+        Paragraph("<b>Relatório de Dízimos e Ofertas</b>", styles['Title'])
     )
 
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
     # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [
-        ['IrmÃ£o', 'Telefone', 'Tipo de Oferta', 'Valor', 'Moeda', 'Data']
+        ['Irmão', 'Telefone', 'Tipo de Oferta', 'Valor', 'Moeda', 'Data']
     ]
 
     # ðŸ”¹ DADOS
@@ -3556,7 +3556,7 @@ def relatorio_departamentos_pdf(request):
     doc = SimpleDocTemplate(
         response,
         pagesize=A4,
-        title="RelatÃ³rio de Departamentos",
+        title="Relatório de Departamentos",
         author="Sistema TIBL"
     )
 
@@ -3577,16 +3577,16 @@ def relatorio_departamentos_pdf(request):
         logo.hAlign = 'CENTER'
         elements.append(logo)
 
-    # ðŸ”¹ TÃTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
-        Paragraph("<b>RelatÃ³rio de Departamentos</b>", styles['Title'])
+        Paragraph("<b>Relatório de Departamentos</b>", styles['Title'])
     )
 
    
     elements.append(Paragraph("<br/>", styles['Normal']))
 
     # ðŸ”¹ TABELA
-    data = [['Departamento', 'LÃ­der', 'Vice-LÃ­der']]
+    data = [['Departamento', 'Líder', 'Vice-Líder']]
 
     for d in Departamento.objects.all():
         data.append([
@@ -3627,7 +3627,7 @@ def relatorio_escalas_pdf(request):
         leftMargin=40,
         topMargin=40,
         bottomMargin=40,
-        title="RelatÃ³rio de Escalas",
+        title="Relatório de Escalas",
         author="Sistema TIBL"
     )
 
@@ -3650,19 +3650,19 @@ def relatorio_escalas_pdf(request):
 
     elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # ðŸ”¹ TÃTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
-        Paragraph("<b>RelatÃ³rio Geral de Escalas</b>", styles['Title'])
+        Paragraph("<b>Relatório Geral de Escalas</b>", styles['Title'])
     )
 
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
     # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [[
-        'IrmÃ£o',
+        'Irmão',
         'Actividade',
-        'FunÃ§Ã£o',
-        'InÃ­cio',
+        'Função',
+        'Início',
         'Fim',
         'Data'
     ]]
@@ -3715,7 +3715,7 @@ def relatorio_actividades_pdf(request):
         leftMargin=2 * cm,
         topMargin=2 * cm,
         bottomMargin=2 * cm,
-        title="RelatÃ³rio de Actividades",
+        title="Relatório de Actividades",
         author="Sistema TIBL"
     )
 
@@ -3739,16 +3739,16 @@ def relatorio_actividades_pdf(request):
         logo.hAlign = 'CENTER'
         elements.append(logo)
 
-    # ðŸ”¹ TÃTULO
-    elements.append(Paragraph("RelatÃ³rio de Actividades", title_style))
+    # ðŸ”¹ TÍTULO
+    elements.append(Paragraph("Relatório de Actividades", title_style))
 
     elements.append(Paragraph("<br/>", styles['Normal']))
 
     # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [
         [
-            "DesignaÃ§Ã£o",
-            "InÃ­cio",
+            "Designação",
+            "Início",
             "Fim",
             "Data",
             "Tema",
@@ -3782,7 +3782,7 @@ def relatorio_actividades_pdf(request):
     )
 
     table.setStyle(TableStyle([
-        # CabeÃ§alho
+        # Cabeçalho
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#548c2f')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -3818,14 +3818,14 @@ def relatorio_inventario_patrimonio_pdf(request):
         leftMargin=40,
         topMargin=40,
         bottomMargin=40,
-        title="RelatÃ³rio de InventÃ¡rio de PatrimÃ³nio",
+        title="Relatório de Inventário de Património",
         author="Sistema TIBL"
     )
 
     styles = getSampleStyleSheet()
     elements = []
 
-    # ðŸ”¹ ESTILO PARA CÃ‰LULAS (QUEBRA DE LINHA)
+    # ðŸ”¹ ESTILO PARA CÉLULAS (QUEBRA DE LINHA)
     cell_style = ParagraphStyle(
         'CellStyle',
         parent=styles['Normal'],
@@ -3848,19 +3848,19 @@ def relatorio_inventario_patrimonio_pdf(request):
         elements.append(logo)
         elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # ðŸ”¹ TÃTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
-        Paragraph("<b>RelatÃ³rio de InventÃ¡rio de PatrimÃ³nio</b>", styles['Title'])
+        Paragraph("<b>Relatório de Inventário de Património</b>", styles['Title'])
     )
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
     # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [[
         'Nome',
-        'DescriÃ§Ã£o',
+        'Descrição',
         'Categoria',
-        'CÃ³digo',
-        'PreÃ§o',
+        'Código',
+        'Preço',
         'Moeda',
         'Quantidade'
     ]]
@@ -3919,14 +3919,14 @@ def relatorio_saida_caixa_pdf(request):
         leftMargin=40,
         topMargin=40,
         bottomMargin=40,
-        title="RelatÃ³rio de SaÃ­das de Caixa",
+        title="Relatório de Saídas de Caixa",
         author="Sistema TIBL"
     )
 
     styles = getSampleStyleSheet()
     elements = []
 
-    # ðŸ”¹ Estilo para quebra automÃ¡tica nas cÃ©lulas
+    # ðŸ”¹ Estilo para quebra automática nas células
     cell_style = ParagraphStyle(
         'CellStyle',
         parent=styles['Normal'],
@@ -3949,9 +3949,9 @@ def relatorio_saida_caixa_pdf(request):
         elements.append(logo)
         elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # ðŸ”¹ TÃTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
-        Paragraph("<b>RelatÃ³rio de SaÃ­das de Caixa</b>", styles['Title'])
+        Paragraph("<b>Relatório de Saídas de Caixa</b>", styles['Title'])
     )
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
@@ -4019,34 +4019,34 @@ def dashboard(request):
     hoje = dt_date.today()
     user = request.user
 
-    # --- VersÃ­culo do dia (roda pela data para variar diariamente) ---
+    # --- Versículo do dia (roda pela data para variar diariamente) ---
     VERSICULOS = [
-        {'texto': 'Porque eu bem sei os pensamentos que penso de vÃ³s, diz o Senhor; pensamentos de paz e nÃ£o de mal, para vos dar o fim que esperais.', 'ref': 'Jeremias 29:11'},
+        {'texto': 'Porque eu bem sei os pensamentos que penso de vós, diz o Senhor; pensamentos de paz e não de mal, para vos dar o fim que esperais.', 'ref': 'Jeremias 29:11'},
         {'texto': 'Tudo posso naquele que me fortalece.', 'ref': 'Filipenses 4:13'},
-        {'texto': 'O Senhor Ã© o meu pastor; nada me faltarÃ¡.', 'ref': 'Salmos 23:1'},
-        {'texto': 'Confia no Senhor de todo o teu coraÃ§Ã£o e nÃ£o te estribes no teu prÃ³prio entendimento.', 'ref': 'ProvÃ©rbios 3:5'},
-        {'texto': 'Mas os que esperam no Senhor renovarÃ£o as suas forÃ§as; subirÃ£o com asas como Ã¡guias; correrÃ£o e nÃ£o se cansarÃ£o; caminharÃ£o e nÃ£o se fatigarÃ£o.', 'ref': 'IsaÃ­as 40:31'},
-        {'texto': 'NÃ£o temas, porque eu sou contigo; nÃ£o te assombres, porque eu sou o teu Deus; eu te fortaleÃ§o, e te ajudo, e te sustento com a destra da minha justiÃ§a.', 'ref': 'IsaÃ­as 41:10'},
-        {'texto': 'DÃ¡ instruÃ§Ã£o ao sÃ¡bio, e ele se farÃ¡ mais sÃ¡bio; ensina ao justo, e ele crescerÃ¡ em entendimento.', 'ref': 'ProvÃ©rbios 9:9'},
-        {'texto': 'O amor Ã© paciente, o amor Ã© bondoso. NÃ£o inveja, nÃ£o se vangloria, nÃ£o se orgulha.', 'ref': '1 CorÃ­ntios 13:4'},
+        {'texto': 'O Senhor é o meu pastor; nada me faltará.', 'ref': 'Salmos 23:1'},
+        {'texto': 'Confia no Senhor de todo o teu coração e não te estribes no teu próprio entendimento.', 'ref': 'Provérbios 3:5'},
+        {'texto': 'Mas os que esperam no Senhor renovarão as suas forças; subirão com asas como águias; correrão e não se cansarão; caminharão e não se fatigarão.', 'ref': 'Isaías 40:31'},
+        {'texto': 'Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça.', 'ref': 'Isaías 41:10'},
+        {'texto': 'Dá instrução ao sábio, e ele se fará mais sábio; ensina ao justo, e ele crescerá em entendimento.', 'ref': 'Provérbios 9:9'},
+        {'texto': 'O amor é paciente, o amor é bondoso. Não inveja, não se vangloria, não se orgulha.', 'ref': '1 Coríntios 13:4'},
         {'texto': 'Alegrai-vos sempre no Senhor; outra vez digo: alegrai-vos.', 'ref': 'Filipenses 4:4'},
         {'texto': 'Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.', 'ref': 'Mateus 11:28'},
-        {'texto': 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigÃ©nito, para que todo aquele que nele crÃª nÃ£o pereÃ§a, mas tenha a vida eterna.', 'ref': 'JoÃ£o 3:16'},
+        {'texto': 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigénito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.', 'ref': 'João 3:16'},
         {'texto': 'E sabemos que todas as coisas contribuem juntamente para o bem daqueles que amam a Deus.', 'ref': 'Romanos 8:28'},
-        {'texto': 'SÃª forte e corajoso; nÃ£o temas, nem te espantes, porque o Senhor, teu Deus, Ã© contigo por onde quer que andares.', 'ref': 'JosuÃ© 1:9'},
-        {'texto': 'O Senhor Ã© a minha luz e a minha salvaÃ§Ã£o; a quem temerei? O Senhor Ã© a forÃ§a da minha vida; de quem me recearei?', 'ref': 'Salmos 27:1'},
-        {'texto': 'LanÃ§ando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vÃ³s.', 'ref': '1 Pedro 5:7'},
-        {'texto': 'Sede fortes e corajosos, nÃ£o temais, nem vos assusteis por causa deles, pois o Senhor, vosso Deus, Ã© quem vai convosco; nÃ£o vos deixarÃ¡, nem vos desampararÃ¡.', 'ref': 'DeuteronÃ³mio 31:6'},
-        {'texto': 'Eu sou a videira, vÃ³s, as varas; quem estÃ¡ em mim, e eu nele, este dÃ¡ muito fruto, porque sem mim nada podeis fazer.', 'ref': 'JoÃ£o 15:5'},
-        {'texto': 'A tua palavra Ã© lÃ¢mpada que ilumina os meus passos e luz que clareia o meu caminho.', 'ref': 'Salmos 119:105'},
-        {'texto': 'Porque onde estiverem dois ou trÃªs reunidos em meu nome, aÃ­ estou eu no meio deles.', 'ref': 'Mateus 18:20'},
-        {'texto': 'Entrega o teu caminho ao Senhor; confia nele, e ele tudo farÃ¡.', 'ref': 'Salmos 37:5'},
-        {'texto': 'IrmÃ£os, nÃ£o julgo havÃª-lo alcanÃ§ado; mas uma coisa faÃ§o: esquecendo-me das coisas que ficaram para trÃ¡s e avanÃ§ando para as que estÃ£o adiante, prossigo para o alvo.', 'ref': 'Filipenses 3:13-14'},
+        {'texto': 'Sê forte e corajoso; não temas, nem te espantes, porque o Senhor, teu Deus, é contigo por onde quer que andares.', 'ref': 'Josué 1:9'},
+        {'texto': 'O Senhor é a minha luz e a minha salvação; a quem temerei? O Senhor é a força da minha vida; de quem me recearei?', 'ref': 'Salmos 27:1'},
+        {'texto': 'Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós.', 'ref': '1 Pedro 5:7'},
+        {'texto': 'Sede fortes e corajosos, não temais, nem vos assusteis por causa deles, pois o Senhor, vosso Deus, é quem vai convosco; não vos deixará, nem vos desamparará.', 'ref': 'Deuteronómio 31:6'},
+        {'texto': 'Eu sou a videira, vós, as varas; quem está em mim, e eu nele, este dá muito fruto, porque sem mim nada podeis fazer.', 'ref': 'João 15:5'},
+        {'texto': 'A tua palavra é lâmpada que ilumina os meus passos e luz que clareia o meu caminho.', 'ref': 'Salmos 119:105'},
+        {'texto': 'Porque onde estiverem dois ou três reunidos em meu nome, aí estou eu no meio deles.', 'ref': 'Mateus 18:20'},
+        {'texto': 'Entrega o teu caminho ao Senhor; confia nele, e ele tudo fará.', 'ref': 'Salmos 37:5'},
+        {'texto': 'Irmãos, não julgo havê-lo alcançado; mas uma coisa faço: esquecendo-me das coisas que ficaram para trás e avançando para as que estão adiante, prossigo para o alvo.', 'ref': 'Filipenses 3:13-14'},
     ]
     idx_versiculo = hoje.toordinal() % len(VERSICULOS)
     versiculo_do_dia = VERSICULOS[idx_versiculo]
 
-    # --- Dados visÃ­veis para TODOS ---
+    # --- Dados visíveis para TODOS ---
     anuncios = Anuncio.objects.order_by('-data')[:5]
 
     proximas_actividades = (
@@ -4058,7 +4058,7 @@ def dashboard(request):
         .order_by('data', 'inicio')[:5]
     )
 
-    # Escalas do membro logado + verificaÃ§Ã£o de cÃ©lula
+    # Escalas do membro logado + verificação de célula
     minhas_escalas_list = []
     irmao_obj = Irmao.objects.filter(user=user).select_related('celula').first()
     tem_celula = False
@@ -4073,7 +4073,7 @@ def dashboard(request):
         minhas_escalas_futuras, _ = _normalizar_escalas_por_ocorrencia(minhas_escalas_base, hoje)
         minhas_escalas_list = minhas_escalas_futuras[:5]
 
-    # Aniversariantes do mÃªs
+    # Aniversariantes do mês
     aniversariantes = (
         Irmao.objects
         .filter(datanascimento__month=hoje.month)
@@ -4088,21 +4088,21 @@ def dashboard(request):
         .order_by('aniversario_ja_passou', 'aniversario_dia', 'nome', 'apelido')[:10]
     )
 
-    # Alertas de aniversÃ¡rio de hoje
+    # Alertas de aniversário de hoje
     aniversarios_alerta = []
     aniversariantes_hoje = Irmao.objects.filter(
         datanascimento__month=hoje.month,
         datanascimento__day=hoje.day,
     )
     for a in aniversariantes_hoje:
-        prefixo = 'da irmÃ£' if a.sexo == 'F' else 'do irmÃ£o'
+        prefixo = 'da irmã' if a.sexo == 'F' else 'do irmão'
         aniversarios_alerta.append({
             'tipo': 'today',
-            'mensagem': f'ðŸŽ‚ Hoje Ã© aniversÃ¡rio {prefixo} {a.nome} {a.apelido}!',
+            'mensagem': f'ðŸŽ‚ Hoje é aniversário {prefixo} {a.nome} {a.apelido}!',
             'data_iso': hoje.isoformat(),
         })
 
-    # --- Dados financeiros (passados apenas se utilizador tem permissÃ£o) ---
+    # --- Dados financeiros (passados apenas se utilizador tem permissão) ---
     pedidos_pendentes = None
     saldos_bancarios = None
     total_membros = Irmao.objects.count()
@@ -4148,8 +4148,8 @@ def root_redirect(request):
 
 def _normalizar_escalas_por_ocorrencia(escalas, hoje):
     """
-    Para escalas ligadas a actividade-pai recorrente, usa a ocorrÃªncia-filho
-    relevante para exibiÃ§Ã£o (prÃ³xima futura ou mais recente passada).
+    Para escalas ligadas a actividade-pai recorrente, usa a ocorrência-filho
+    relevante para exibição (próxima futura ou mais recente passada).
     """
     import datetime as _dt
 
@@ -4227,7 +4227,7 @@ def minhas_escalas(request):
 
     irmao_obj = Irmao.objects.filter(user=request.user).first()
     if not irmao_obj:
-        messages.warning(request, 'O seu utilizador nÃ£o estÃ¡ associado a nenhum perfil de irmÃ£o.')
+        messages.warning(request, 'O seu utilizador não está associado a nenhum perfil de irmão.')
         return render(request, 'minhasescalas.html', {
             'escalas_futuras': [],
             'escalas_passadas': [],
@@ -4268,7 +4268,7 @@ def escalar_em_massa(request, actividade_id):
                     continue
                 ids_processados.add(irmao_id)
                 
-                # Evitar que o membro seja escalado duas vezes na mesma Actividade (mesmo que com funÃ§Ãµes diferentes)
+                # Evitar que o membro seja escalado duas vezes na mesma Actividade (mesmo que com funções diferentes)
                 if not Escala.objects.filter(actividade=actividade, irmao_id=irmao_id).exists():
                     try:
                         Escala.objects.create(
@@ -4281,16 +4281,16 @@ def escalar_em_massa(request, actividade_id):
                         continue
 
             if novos:
-                messages.success(request, f'{novos} irmÃ£os escalados para {funcao.designacao} com sucesso!')
+                messages.success(request, f'{novos} irmãos escalados para {funcao.designacao} com sucesso!')
             else:
-                messages.info(request, 'As pessoas selecionadas jÃ¡ estavam escaladas para esta actividade.')
+                messages.info(request, 'As pessoas selecionadas já estavam escaladas para esta actividade.')
                 
     # Redirect back to the details page regardless of success/failure
     return redirect(f'/tibl/actividades/detalhe/{actividade_id}/')
 
 
 # ---------------------------------------------------------------------------
-# FullCalendar JSON feed â€” actividades
+# FullCalendar JSON feed — actividades
 # ---------------------------------------------------------------------------
 
 @login_required
@@ -4298,8 +4298,8 @@ def actividades_feed(request):
     """
     Endpoint JSON para o FullCalendar.
     - Actividades simples: devolvidas directamente da BD para o intervalo pedido.
-    - Actividades recorrentes: ocorrÃªncias calculadas dinamicamente via rrule.
-      Suporta recorrÃªncias sem data de fim â€” expande atÃ© ao limite do intervalo.
+    - Actividades recorrentes: ocorrências calculadas dinamicamente via rrule.
+      Suporta recorrências sem data de fim — expande até ao limite do intervalo.
     """
     if not request.user.has_perm('sitetibl.view_actividade'):
         return JsonResponse({'error': 'Acesso negado'}, status=403)
@@ -4313,14 +4313,14 @@ def actividades_feed(request):
         start = _dt.date.fromisoformat(start_str[:10])
         end = _dt.date.fromisoformat(end_str[:10])
     except (ValueError, TypeError):
-        return JsonResponse({'error': 'ParÃ¢metros start/end invÃ¡lidos'}, status=400)
+        return JsonResponse({'error': 'Parâmetros start/end inválidos'}, status=400)
 
     FREQ_MAP = {'WEEKLY': WEEKLY, 'DAILY': DAILY, 'MONTHLY': MONTHLY}
     WEEKDAY_MAP = {0: MO, 1: TU, 2: WE, 3: TH, 4: FR, 5: SA, 6: SU}
 
     events = []
 
-    # --- 1. Actividades simples (nÃ£o recorrentes, sem pai) ---
+    # --- 1. Actividades simples (não recorrentes, sem pai) ---
     simples = (
         Actividade.objects
         .select_related('designacao', 'departamento', 'localactividade')
@@ -4346,9 +4346,9 @@ def actividades_feed(request):
             },
         })
 
-    # --- 2. Actividades recorrentes â€” expansÃ£o dinÃ¢mica via rrule ---
-    # Pais cujo perÃ­odo de recorrÃªncia intersecta o intervalo pedido:
-    #   inÃ­cio â‰¤ fim do intervalo  E  (sem recorrencia_fim  OU  recorrencia_fim â‰¥ inÃ­cio)
+    # --- 2. Actividades recorrentes — expansão dinâmica via rrule ---
+    # Pais cujo período de recorrência intersecta o intervalo pedido:
+    #   início â‰¤ fim do intervalo  E  (sem recorrencia_fim  OU  recorrencia_fim â‰¥ início)
     parents = (
         Actividade.objects
         .select_related('designacao', 'departamento', 'localactividade', 'event__rule')
@@ -4374,13 +4374,13 @@ def actividades_feed(request):
         hora_fim = parent.fim or _dt.time(23, 59)
         dtstart = _dt.datetime.combine(parent.data, hora_inicio)
 
-        # Limite da expansÃ£o: respeitar recorrencia_fim ou usar o fim do intervalo pedido
+        # Limite da expansão: respeitar recorrencia_fim ou usar o fim do intervalo pedido
         if parent.recorrencia_fim:
             until = _dt.datetime.combine(parent.recorrencia_fim, hora_fim)
         else:
             until = _dt.datetime.combine(end, hora_fim)
 
-        # FrequÃªncia via Rule do django-scheduler (por omissÃ£o WEEKLY)
+        # Frequência via Rule do django-scheduler (por omissão WEEKLY)
         freq_str = 'WEEKLY'
         try:
             if parent.event_id and parent.event and parent.event.rule_id:
@@ -4432,27 +4432,27 @@ def actividades_feed(request):
 
 
 # ---------------------------------------------------------------------------
-# Vista de calendÃ¡rio â€” actividades
+# Vista de calendário — actividades
 # ---------------------------------------------------------------------------
 
 @login_required
 def actividades_calendario(request):
-    """Vista de calendÃ¡rio visual (FullCalendar v6)."""
+    """Vista de calendário visual (FullCalendar v6)."""
     if not request.user.has_perm('sitetibl.view_actividade'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para ver o calendÃ¡rio de actividades.')
+        messages.error(request, 'Não tem permissão para ver o calendário de actividades.')
         return redirect('sitetibl:comeco')
     feed_url = '/tibl/api/actividades/feed/'
     return render(request, 'actividades_calendario.html', {'feed_url': feed_url})
 
 # ---------------------------------------------------------------------------
-# DocumentaÃ§Ã£o do utilizador â€” serve o site estÃ¡tico gerado pelo ProperDocs
+# Documentação do utilizador — serve o site estático gerado pelo ProperDocs
 # ---------------------------------------------------------------------------
 def serve_documentacao(request, path=''):
     site_dir = Path(settings.BASE_DIR) / 'docs' / 'site'
 
     file_path = site_dir / path if path else site_dir / 'index.html'
 
-    # DirectÃ³rios â†’ tentar index.html dentro deles
+    # Directórios â†’ tentar index.html dentro deles
     if file_path.is_dir():
         file_path = file_path / 'index.html'
 
@@ -4496,7 +4496,7 @@ def encontraSolicitacoes(request):
 def pastoral_dashboard(request):
     """Painel principal pastoral com KPIs, insights, alertas, casos e aniversariantes."""
     if not request.user.has_perm('sitetibl.view_casopastoral'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para aceder ao painel pastoral.')
+        messages.error(request, 'Não tem permissão para aceder ao painel pastoral.')
         return redirect('index')
 
     from datetime import timedelta as td
@@ -4504,7 +4504,7 @@ def pastoral_dashboard(request):
     hoje = date.today()
     irmao_logado = Irmao.objects.filter(user=request.user).first()
 
-    # â”€â”€ KPIs de atenÃ§Ã£o pastoral â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”€â”€ KPIs de atenção pastoral â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     alertas_novos = AlertaPastoral.objects.filter(estado='novo').count()
     casos_abertos = CasoPastoral.objects.filter(estado__in=['aberto', 'em_acompanhamento']).count()
 
@@ -4520,7 +4520,7 @@ def pastoral_dashboard(request):
         estado='visitante', numero_visitas__gte=3
     ).count()
 
-    # Inactivos: apenas membros que jÃ¡ participaram alguma vez mas nÃ£o nos Ãºltimos 60 dias
+    # Inactivos: apenas membros que já participaram alguma vez mas não nos últimos 60 dias
     sessenta_dias = hoje - td(days=60)
     alguma_vez_ids = Escala.objects.values_list('irmao_id', flat=True).distinct()
     activos_ids = Escala.objects.filter(
@@ -4530,7 +4530,7 @@ def pastoral_dashboard(request):
         id__in=alguma_vez_ids
     ).exclude(id__in=activos_ids).count()
 
-    # â”€â”€ Retrato da CongregaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”€â”€ Retrato da Congregação â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     total_membros = Irmao.objects.count()
     total_batizados = Irmao.objects.filter(batizado=True).count()
     total_nao_batizados = total_membros - total_batizados
@@ -4580,10 +4580,10 @@ def pastoral_dashboard(request):
     # â”€â”€ Aniversariantes (DB-level, com tratamento de virada de ano) â”€â”€â”€
     semana_fim = hoje + td(days=7)
     aniversariantes = []
-    # Gera lista de (mÃªs, dia) para os prÃ³ximos 7 dias
+    # Gera lista de (mês, dia) para os próximos 7 dias
     dias_para_verificar = [(hoje + td(days=i)) for i in range(8)]
     pares_mes_dia = [(d.month, d.day) for d in dias_para_verificar]
-    # Filtra por mÃªs/dia via Python (mais simples e compatÃ­vel com SQLite e MySQL)
+    # Filtra por mês/dia via Python (mais simples e compatível com SQLite e MySQL)
     candidatos = Irmao.objects.exclude(datanascimento__isnull=True).only(
         'nome', 'apelido', 'datanascimento'
     )
@@ -4621,7 +4621,7 @@ def pastoral_dashboard(request):
 def pastoral_alertas(request):
     """Lista de alertas pastorais com filtros."""
     if not request.user.has_perm('sitetibl.view_alertapastoral'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para ver alertas pastorais.')
+        messages.error(request, 'Não tem permissão para ver alertas pastorais.')
         return redirect('index')
 
     qs = AlertaPastoral.objects.select_related('membro', 'celula', 'caso_associado')
@@ -4650,7 +4650,7 @@ def pastoral_alertas(request):
 def pastoral_alerta_accao(request, alerta_id):
     """Mudar estado de um alerta ou criar caso a partir dele."""
     if not request.user.has_perm('sitetibl.change_alertapastoral'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para gerir alertas.')
+        messages.error(request, 'Não tem permissão para gerir alertas.')
         return redirect('sitetibl:pastoral_alertas')
 
     alerta = get_object_or_404(AlertaPastoral, id=alerta_id)
@@ -4685,7 +4685,7 @@ def pastoral_alerta_accao(request, alerta_id):
                 messages.success(request, f'Caso pastoral #{caso.id} criado a partir do alerta.')
                 return redirect(reverse('sitetibl:mostra_detalhe', args=['casospastorais', caso.id]))
             else:
-                messages.error(request, 'NÃ£o Ã© possÃ­vel criar caso â€” alerta sem membro associado.')
+                messages.error(request, 'Não é possível criar caso — alerta sem membro associado.')
 
     return redirect('sitetibl:pastoral_alertas')
 
@@ -4694,7 +4694,7 @@ def pastoral_alerta_accao(request, alerta_id):
 def pastoral_inactivos(request):
     """Lista de membros inactivos."""
     if not request.user.has_perm('sitetibl.view_casopastoral'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para aceder ao painel pastoral.')
+        messages.error(request, 'Não tem permissão para aceder ao painel pastoral.')
         return redirect('index')
 
     from datetime import timedelta as td
@@ -4702,12 +4702,12 @@ def pastoral_inactivos(request):
     dias_limite = int(request.GET.get('dias', 60))
     limite = hoje - td(days=dias_limite)
 
-    # IDs de irmÃ£os activos
+    # IDs de irmãos activos
     activos_ids = Escala.objects.filter(
         actividade__data__gte=limite
     ).values_list('irmao_id', flat=True).distinct()
 
-    # Ãšltima participaÃ§Ã£o de cada irmÃ£o inactivo
+    # Última participação de cada irmão inactivo
     from django.db.models import Max
     inactivos = (
         Irmao.objects.exclude(id__in=activos_ids)
@@ -4732,7 +4732,7 @@ def pastoral_inactivos(request):
 def pastoral_novos(request):
     """Novos convertidos sem acompanhamento."""
     if not request.user.has_perm('sitetibl.view_casopastoral'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para aceder ao painel pastoral.')
+        messages.error(request, 'Não tem permissão para aceder ao painel pastoral.')
         return redirect('index')
 
     from datetime import timedelta as td
@@ -4753,11 +4753,11 @@ def pastoral_novos(request):
     return render(request, 'pastoral_novos.html', context)
 
 
-# â”€â”€ APIs JSON para grÃ¡ficos pastorais â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”€â”€ APIs JSON para gráficos pastorais â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @login_required
 def pastoral_api_tendencias(request):
-    """Novos membros, baptismos e visitantes por mÃªs (12 meses)."""
+    """Novos membros, baptismos e visitantes por mês (12 meses)."""
     from datetime import timedelta as td
     hoje = date.today()
     inicio = hoje - td(days=365)
@@ -4796,7 +4796,7 @@ def pastoral_api_tendencias(request):
 
 @login_required
 def pastoral_api_celulas(request):
-    """ParticipaÃ§Ã£o mÃ©dia por cÃ©lula nas Ãºltimas 8 semanas."""
+    """Participação média por célula nas últimas 8 semanas."""
     from datetime import timedelta as td
     hoje = date.today()
     inicio = hoje - td(weeks=8)
@@ -4857,13 +4857,13 @@ def pastoral_api_casos_resumo(request):
     return JsonResponse({'por_tipo': por_tipo, 'por_estado': por_estado})
 
 
-# â”€â”€ RelatÃ³rios PDF Pastorais â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”€â”€ Relatórios PDF Pastorais â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @login_required
 def relatorio_pastoral_selecionar_mes(request):
-    """PÃ¡gina de seleÃ§Ã£o do mÃªs para o relatÃ³rio pastoral mensal."""
+    """Página de seleção do mês para o relatório pastoral mensal."""
     if not request.user.has_perm('sitetibl.view_casopastoral'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para gerar relatÃ³rios pastorais.')
+        messages.error(request, 'Não tem permissão para gerar relatórios pastorais.')
         return redirect('index')
 
     from django.db.models.functions import TruncMonth
@@ -4905,7 +4905,7 @@ def relatorio_pastoral_selecionar_mes(request):
     )
 
     hoje = date.today()
-    MESES_PT = ['Janeiro','Fevereiro','MarÃ§o','Abril','Maio','Junho',
+    MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                 'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 
     meses_opcoes = [
@@ -4916,7 +4916,7 @@ def relatorio_pastoral_selecionar_mes(request):
         for m in todos_meses
     ]
 
-    # Se nÃ£o hÃ¡ registos em nenhum mÃªs, mostrar pelo menos o mÃªs actual
+    # Se não há registos em nenhum mês, mostrar pelo menos o mês actual
     if not meses_opcoes:
         meses_opcoes = [{
             'valor': f'{hoje.year}-{hoje.month:02d}',
@@ -4930,15 +4930,15 @@ def relatorio_pastoral_selecionar_mes(request):
 
 @login_required
 def relatorio_pastoral_mensal_pdf(request):
-    """RelatÃ³rio Pastoral Mensal em PDF."""
+    """Relatório Pastoral Mensal em PDF."""
     if not request.user.has_perm('sitetibl.view_casopastoral'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para gerar relatÃ³rios pastorais.')
+        messages.error(request, 'Não tem permissão para gerar relatórios pastorais.')
         return redirect('index')
 
     from datetime import timedelta as td
     hoje = date.today()
 
-    # Aceitar mÃªs/ano via GET param (ex: ?mes=2024-03)
+    # Aceitar mês/ano via GET param (ex: ?mes=2024-03)
     mes_param = request.GET.get('mes', '')
     try:
         ano_sel, mes_sel = int(mes_param.split('-')[0]), int(mes_param.split('-')[1])
@@ -4946,12 +4946,12 @@ def relatorio_pastoral_mensal_pdf(request):
     except (ValueError, IndexError, AttributeError):
         primeiro_dia = hoje.replace(day=1)
 
-    # Ãšltimo dia do mÃªs selecionado
+    # Último dia do mês selecionado
     import calendar
     ultimo_dia = date(primeiro_dia.year, primeiro_dia.month,
                       calendar.monthrange(primeiro_dia.year, primeiro_dia.month)[1])
 
-    MESES_PT = ['Janeiro','Fevereiro','MarÃ§o','Abril','Maio','Junho',
+    MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                 'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
     label_mes = f'{MESES_PT[primeiro_dia.month - 1]} {primeiro_dia.year}'
 
@@ -4967,7 +4967,7 @@ def relatorio_pastoral_mensal_pdf(request):
     normal = styles['Normal']
 
     elements = []
-    elements.append(Paragraph(f'RelatÃ³rio Pastoral Mensal â€” {label_mes}', titulo_style))
+    elements.append(Paragraph(f'Relatório Pastoral Mensal — {label_mes}', titulo_style))
     elements.append(Paragraph(f'Gerado em {hoje.strftime("%d/%m/%Y")}', normal))
     elements.append(Paragraph('<br/>', normal))
 
@@ -4981,14 +4981,14 @@ def relatorio_pastoral_mensal_pdf(request):
 
     kpi_data = [
         ['Indicador', 'Valor'],
-        ['Novos membros no mÃªs', str(novos_mes)],
-        ['Baptismos no mÃªs', str(baptismos_mes)],
+        ['Novos membros no mês', str(novos_mes)],
+        ['Baptismos no mês', str(baptismos_mes)],
         ['Casos pastorais abertos', str(casos_abertos)],
-        ['Casos resolvidos no mÃªs', str(casos_resolvidos_mes)],
-        ['Alertas gerados no mÃªs', str(alertas_mes)],
-        ['Novos visitantes no mÃªs', str(visitantes_mes)],
+        ['Casos resolvidos no mês', str(casos_resolvidos_mes)],
+        ['Alertas gerados no mês', str(alertas_mes)],
+        ['Novos visitantes no mês', str(visitantes_mes)],
     ]
-    elements.append(Paragraph('Indicadores do MÃªs', subtitulo_style))
+    elements.append(Paragraph('Indicadores do Mês', subtitulo_style))
     t = Table(kpi_data, colWidths=[12*cm, 5*cm])
     t.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
@@ -5007,14 +5007,14 @@ def relatorio_pastoral_mensal_pdf(request):
 
     if casos:
         elements.append(Paragraph('Casos em Acompanhamento', subtitulo_style))
-        caso_data = [['Membro', 'Tipo', 'Prioridade', 'Estado', 'ResponsÃ¡vel']]
+        caso_data = [['Membro', 'Tipo', 'Prioridade', 'Estado', 'Responsável']]
         for c in casos:
             caso_data.append([
                 str(c.membro),
                 c.get_tipo_display(),
                 c.get_prioridade_display(),
                 c.get_estado_display(),
-                str(c.responsavel) if c.responsavel else 'â€”',
+                str(c.responsavel) if c.responsavel else '—',
             ])
         t2 = Table(caso_data, colWidths=[4*cm, 3*cm, 2.5*cm, 3*cm, 4*cm])
         t2.setStyle(TableStyle([
@@ -5034,7 +5034,7 @@ def relatorio_pastoral_mensal_pdf(request):
 def relatorio_inactivos_pdf(request):
     """PDF com lista de membros inactivos."""
     if not request.user.has_perm('sitetibl.view_casopastoral'):
-        messages.error(request, 'NÃ£o tem permissÃ£o para gerar relatÃ³rios pastorais.')
+        messages.error(request, 'Não tem permissão para gerar relatórios pastorais.')
         return redirect('index')
 
     from datetime import timedelta as td
@@ -5064,13 +5064,13 @@ def relatorio_inactivos_pdf(request):
     elements.append(Paragraph(f'Gerado em {hoje.strftime("%d/%m/%Y")}', normal))
     elements.append(Paragraph('<br/>', normal))
 
-    data_table = [['Nome', 'CÃ©lula', 'Ãšltima ParticipaÃ§Ã£o', 'Dias Inactivo']]
+    data_table = [['Nome', 'Célula', 'Última Participação', 'Dias Inactivo']]
     for i in inactivos:
         ult = i.ultima_participacao
-        dias = (hoje - ult).days if ult else 'â€”'
+        dias = (hoje - ult).days if ult else '—'
         data_table.append([
             f'{i.nome} {i.apelido}',
-            str(i.celula) if i.celula else 'â€”',
+            str(i.celula) if i.celula else '—',
             ult.strftime('%d/%m/%Y') if ult else 'Nunca',
             str(dias),
         ])
