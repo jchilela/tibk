@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 30px auto; background-color: #ffffff; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.12); overflow: hidden; }
+        .header { background-color: #1e3a5f; color: #ffffff; padding: 22px 20px; text-align: center; }
+        .header h2 { margin: 0 0 6px; font-size: 22px; letter-spacing: 0.04em; }
+        .header .badge-protocolo { display: inline-block; background-color: #d97706; color: #fff; border-radius: 20px; padding: 3px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+        .content { padding: 25px; color: #333333; line-height: 1.65; font-size: 15px; }
+        .details { background-color: #fffbeb; border-left: 4px solid #d97706; padding: 15px 20px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+        .details p { margin: 6px 0; font-size: 14px; }
+        .details span { font-weight: bold; color: #92400e; }
+        .alert-box { background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 4px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; color: #7c2d12; }
+        .footer { background-color: #f1f1f1; text-align: center; padding: 15px; font-size: 12px; color: #666666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Escala de Protocolo</h2>
+            <div class="badge-protocolo">Protocolo</div>
+            <p style="margin: 8px 0 0; font-size: 13px; opacity: 0.85;">Terceira Igreja Baptista de Luanda</p>
+        </div>
+        <div class="content">
+            <p>Olá <strong>{{ nome }} {{ apelido }}</strong>,</p>
+            <p>Foi escalado(a) para servir no <strong>Protocolo</strong> da seguinte actividade:</p>
+
+            <div class="details">
+                <p><span>Actividade:</span> {{ actividade }}</p>
+                <p><span>Data:</span> {{ data }}</p>
+                {% if hora %}<p><span>Hora:</span> {{ hora }}</p>{% endif %}
+                {% if local %}<p><span>Local:</span> {{ local }}</p>{% endif %}
+                <p><span>Função:</span> {{ funcao }}</p>
+                {% if departamento %}<p><span>Departamento:</span> {{ departamento }}</p>{% endif %}
+            </div>
+
+            <div class="alert-box">
+                <strong>⚠️ Atenção:</strong> Por favor, confirme a sua disponibilidade e chegue com antecedência ao local indicado.
+            </div>
+
+            <p>Que Deus abençoe o seu serviço! 🙏</p>
+        </div>
+        <div class="footer">
+            <p><strong>Terceira Igreja Baptista de Luanda</strong></p>
+            <p>E-mail automático. Por favor, não responda.</p>
+        </div>
+    </div>
+</body>
+</html>

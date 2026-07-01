@@ -1,4 +1,4 @@
-from sitetibl.models import Irmao
+﻿from sitetibl.models import Irmao
 from sitetibl.models import Ajuda
 from sitetibl.models import Cestabasica
 from sitetibl.models import Banco
@@ -423,7 +423,7 @@ class ActividadeForm(ModelForm):
             self.add_error('data', 'Não é possível criar actividades com data no passado.')
         if is_recorrente and recorrencia_fim:
             if data and recorrencia_fim <= data:
-                self.add_error('recorrencia_fim', 'A data de fim da recorrência deve ser posterior à data da actividade.')
+                self.add_error('recorrencia_fim', 'A data de fim da recorrência deve ser posterior Ã  data da actividade.')
         return cleaned
 
     def save(self, commit=True):
@@ -560,9 +560,9 @@ class ActividadesRecorrentesForm(forms.Form):
         dias = cleaned.get('dias_semana')
 
         if data_inicio and data_fim and data_fim < data_inicio:
-            raise forms.ValidationError('A data de fim deve ser igual ou posterior à data de início.')
+            raise forms.ValidationError('A data de fim deve ser igual ou posterior Ã  data de início.')
         if inicio and fim and fim <= inicio:
-            raise forms.ValidationError('A hora de fim deve ser posterior à hora de início.')
+            raise forms.ValidationError('A hora de fim deve ser posterior Ã  hora de início.')
         if not dias:
             raise forms.ValidationError('Seleccione pelo menos um dia da semana.')
         return cleaned
@@ -613,13 +613,14 @@ class EscalaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['irmao'].label = 'Irmão'
+        self.fields['irmao'].required = False
         self.fields['irmao'].queryset = (
             Irmao.objects.select_related('celula').order_by('nome', 'apelido')
         )
         self.fields['actividade'].label = 'Actividade'
         self.fields['actividade'].queryset = (
             Actividade.objects.select_related('designacao', 'departamento')
-            .filter(parent_event__isnull=True)
+            .filter(data__gte=date.today())
             .order_by('data', 'designacao__designacao')
         )
         self.fields['funcao'].label = 'Função'
@@ -628,6 +629,7 @@ class EscalaForm(ModelForm):
             Funcao.objects.select_related('departamento')
             .order_by('departamento__designacao', 'designacao')
         )
+
 
 class DizimoofertaForm(ModelForm):
     def __init__(self, *args, **kwargs):
@@ -1006,3 +1008,5 @@ class VisitanteRecorrenteForm(ModelForm):
             'ultima_visita': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+
