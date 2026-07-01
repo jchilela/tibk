@@ -399,11 +399,17 @@ class Actividade(models.Model):
          pass
 
 class Escala(models.Model):
-     irmao = models.ForeignKey(Irmao, on_delete = models.CASCADE)
+     irmao = models.ForeignKey(Irmao, on_delete = models.CASCADE, help_text='Irmão principal da escala')
      actividade = models.ForeignKey(Actividade, on_delete = models.CASCADE)
      funcao = models.ForeignKey(Funcao, on_delete = models.CASCADE, blank=True, null=True)
+     eh_protocolo = models.BooleanField(default=False, verbose_name='É Protocolo?', help_text='Marque se esta escala é para protocolo (permite múltiplos irmãos)')
+     irmao_protocolo = models.ManyToManyField(Irmao, related_name='escalas_protocolo', blank=True, verbose_name='Irmãos do Protocolo (máx. 10)', help_text='Selecione até 10 irmãos para protocolo')
      def __str__(self):
          return '%s %s %s' % (self.irmao, self.actividade, self.funcao)
+     def clean(self):
+         from django.core.exceptions import ValidationError
+         if self.eh_protocolo and self.pk and self.irmao_protocolo.count() > 10:
+             raise ValidationError('Máximo de 10 irmãos permitidos para protocolo')
      class Admin:
          pass
      class Meta:

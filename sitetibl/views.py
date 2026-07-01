@@ -553,13 +553,11 @@ def mostraGestao(request,gestaoescolhida,pagina):
             'funcao__designacao',
         )
     elif gestaoescolhida == 'actividades':
-        resultado = lista[gestaoescolhida].all().annotate(
-            is_passado=Case(
-                When(data__lt=date.today(), then=Value(1)),
-                default=Value(0),
-                output_field=IntegerField(),
-            )
-        ).order_by('is_passado', 'data')
+        mostrar_historico = request.GET.get('historico') == '1'
+        if mostrar_historico:
+            resultado = lista[gestaoescolhida].filter(data__lt=date.today()).order_by('-data')
+        else:
+            resultado = lista[gestaoescolhida].filter(data__gte=date.today()).order_by('data')
     elif gestaoescolhida == 'dizimosofertas':
         _do_nomev = request.GET.get('nomev', '').strip()
         _do_apelidov = request.GET.get('apelidov', '').strip()
@@ -581,9 +579,10 @@ def mostraGestao(request,gestaoescolhida,pagina):
     else:
         resultado = lista[gestaoescolhida].all().order_by('id') 
     paginador = Paginator(resultado, 20)
-    paginaresultado = paginador.get_page(pagina)
+    pagina_final = request.GET.get('pagina', pagina)
+    paginaresultado = paginador.get_page(pagina_final)
     if (gestaoescolhida == 'ajudas') or (gestaoescolhida == 'cestas') or (gestaoescolhida == 'actividades'):
-        context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao'), 'hoje': date.today() }
+        context = { 'bb':paginaresultado, 'listameses' : MESES, 'tipoajuda' : Tipoajuda.objects.values('id','designacao'), 'listafuncoes' : Funcao.objects.values('id','designacao'), 'listaactividades' : Listaactividades.objects.values('id','designacao'), 'hoje': date.today(), 'mostrar_historico': request.GET.get('historico') == '1' }
     elif gestaoescolhida == 'departamentos':
         context = { 'bb':paginaresultado, 'listadepartamentos' : Departamento.objects.values('id','designacao'), 'funcao_choices': Mandato.FUNCAO_CHOICES}
     elif gestaoescolhida == 'contasbancarias':
@@ -678,7 +677,8 @@ def mostraGestao(request,gestaoescolhida,pagina):
         context = { 'bb':paginaresultado, 'listameses' : MESES }
 
     paginador = Paginator(resultado, 20)
-    paginaresultado = paginador.get_page(pagina)
+    pagina_final = request.GET.get('pagina', pagina)
+    paginaresultado = paginador.get_page(pagina_final)
     return render(request, gestaoescolhida + '.html', context)
 
 
@@ -737,7 +737,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
     
     model = lista[gestaoescolhida]
   
-    # 🔐 verificação dinâmica
+    # ðŸ” verificação dinâmica
     perm = f'{model._meta.app_label}.change_{model._meta.model_name}'
     if not request.user.has_perm(perm):
         messages.error(request, 'Acesso negado! Você não tem permissão para actualizar registros.')
@@ -745,7 +745,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
 
     registo = get_object_or_404(model, id=id)
 
-    # 🔐 Verificação de propriedade para actividades
+    # ðŸ” Verificação de propriedade para actividades
     if gestaoescolhida == 'actividades':
         papel_elevado = request.user.has_perm('sitetibl.change_mandato')
         if not papel_elevado:
@@ -780,7 +780,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
         if formulario.is_valid():
             obj = formulario.save(commit=False)
 
-            # ⚠️ Verificação de conflito de horário para actividades
+            # âš ï¸ Verificação de conflito de horário para actividades
             if gestaoescolhida == 'actividades':
                 data = formulario.cleaned_data['data']
                 inicio = formulario.cleaned_data['inicio']
@@ -796,7 +796,7 @@ def mostraActualizacao(request, gestaoescolhida, id):
                     messages.error(
                         request,
                         f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
-                        f'das {primeiro.inicio} às {primeiro.fim} neste dia com horário sobrepóvel.'
+                        f'das {primeiro.inicio} Ã s {primeiro.fim} neste dia com horário sobrepóvel.'
                     )
                     return render(request, 'actividades_form.html', {'formulario': formulario, 'id': id, 'is_update': True})
                 elif mesma_data_diferente.exists():
@@ -878,12 +878,13 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             Escala.objects
             .filter(actividade_id=identificador)
             .select_related('irmao', 'irmao__celula', 'funcao', 'funcao__departamento')
+            .prefetch_related('irmao_protocolo', 'irmao_protocolo__celula')
             .order_by('funcao__departamento__designacao', 'funcao__designacao', 'irmao__nome')
         )
         todas_funcoes = Funcao.objects.select_related('departamento').order_by('departamento__designacao', 'designacao')
         todos_irmaos = Irmao.objects.select_related('celula', 'localcongregacao').order_by('nome', 'apelido')
         departamentos = Departamento.objects.order_by('designacao')
-        # mapa irmao_id → [departamento_id, …] para filtro JS no modal
+        # mapa irmao_id â†’ [departamento_id, …] para filtro JS no modal
         from collections import defaultdict
         _irmao_depts = defaultdict(list)
         for m in Mandato.objects.values('irmao_id', 'departamento_id'):
@@ -896,6 +897,8 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'todos_irmaos': todos_irmaos,
             'departamentos': departamentos,
             'irmao_depts_json': json.dumps({str(k): v for k, v in _irmao_depts.items()}),
+            'tem_protocolo': escalas_da_actividade.filter(eh_protocolo=True).exists(),
+            'tem_escalas': escalas_da_actividade.exists(),
         }
     elif gestaoescolhida == 'departamentos':
         mandatos_departamento = (
@@ -931,8 +934,9 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 if not irmao_ids:
                     messages.error(request, 'Seleccione pelo menos um irmão para adicionar ao departamento.')
                 else:
-                    FUNCOES_EXCLUSIVAS = {'lider', 'vice_lider', 'secretario', 'tesoureiro', 'coordenador'}
+                    FUNCOES_EXCLUSIVAS = Mandato.FUNCOES_EXCLUSIVAS
                     # Cargo exclusivo com vários irmãos selecionados → forçar 'membro'
+
                     if funcao in FUNCOES_EXCLUSIVAS and len(irmao_ids) > 1:
                         funcao = 'membro'
                         messages.warning(request, 'Cargo exclusivo não pode ser atribuído a vários irmãos de uma vez. Cargo alterado para Membro.')
@@ -1613,7 +1617,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
         messages.error(request, f'Tipo de registo desconhecido: {gestaoescolhida}')
         return redirect('index')
 
-    # 🔐 verificação dinâmica
+    # ðŸ” verificação dinâmica
     perm = f'{model._meta.app_label}.delete_{model._meta.model_name}'
     if not request.user.has_perm(perm):
         messages.error(request, 'Acesso negado! Você não tem permissão para eliminar registros.')
@@ -1621,7 +1625,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
 
     registo = get_object_or_404(model, id=id)
 
-    # 🔐 Verificação de propriedade para actividades
+    # ðŸ” Verificação de propriedade para actividades
     if gestaoescolhida == 'actividades':
         papel_elevado = request.user.has_perm('sitetibl.change_mandato')
         if not papel_elevado:
@@ -1660,7 +1664,7 @@ def mostraEliminacao(request, gestaoescolhida, id):
             return redirect(next_url)
         return redirect('index')
 
-    # GET → mostra confirmação
+    # GET â†’ mostra confirmação
     next_url = request.GET.get('next', '')
     if next_url and not next_url.startswith('/'):
         next_url = ''
@@ -1702,7 +1706,7 @@ def mostraCriacao(request, gestaoescolhida):
         messages.error(request, 'Tipo de formulário inválido.')
         return redirect('index')
 
-    # 🔐 MODEL CORRETO
+    # ðŸ” MODEL CORRETO
     model = form_class._meta.model
     perm = f'{model._meta.app_label}.add_{model._meta.model_name}'
 
@@ -1713,9 +1717,40 @@ def mostraCriacao(request, gestaoescolhida):
     if request.method == 'POST':
         formulario = form_class(request.POST, request.FILES)
         if formulario.is_valid():
+
+            # Escalas: selecção múltipla de irmãos — criar uma escala por irmão
+            if gestaoescolhida == 'escalas':
+                irmaos_ids = request.POST.getlist('irmaos_selecionados')
+                if not irmaos_ids:
+                    messages.error(request, 'Seleccione pelo menos um irmão.')
+                else:
+                    actividade = formulario.cleaned_data['actividade']
+                    funcao = formulario.cleaned_data.get('funcao')
+                    criados = 0
+                    duplicados = 0
+                    for iid in irmaos_ids:
+                        irmao = Irmao.objects.filter(id=iid).first()
+                        if not irmao:
+                            continue
+                        _, created = Escala.objects.get_or_create(
+                            irmao=irmao, actividade=actividade, funcao=funcao,
+                        )
+                        if created:
+                            criados += 1
+                        else:
+                            duplicados += 1
+                    if criados > 0:
+                        msg = f'{criados} escala(s) criada(s) com sucesso!'
+                        if duplicados > 0:
+                            msg += f' ({duplicados} já existia(m) e foram ignoradas)'
+                        messages.success(request, msg)
+                    else:
+                        messages.warning(request, 'Todos os irmãos seleccionados já estavam escalados para esta actividade com esta função.')
+                    return redirect(f'/tibl/actividades/detalhe/{actividade.id}/')
+
             obj = formulario.save(commit=False)
 
-            # ⚠️ Verificação de conflito de horário para actividades
+            # âš ï¸ Verificação de conflito de horário para actividades
             if gestaoescolhida == 'actividades':
                 data = formulario.cleaned_data['data']
                 inicio = formulario.cleaned_data['inicio']
@@ -1731,7 +1766,7 @@ def mostraCriacao(request, gestaoescolhida):
                     messages.error(
                         request,
                         f'Conflito de horário: já existe uma actividade "{primeiro.designacao}" '
-                        f'das {primeiro.inicio} às {primeiro.fim} neste dia com horário sobrepóvel.'
+                        f'das {primeiro.inicio} Ã s {primeiro.fim} neste dia com horário sobrepóvel.'
                     )
                     return render(request, 'actividades_form.html', {'formulario': formulario, 'is_update': False})
                 elif mesma_data_diferente.exists():
@@ -1741,7 +1776,7 @@ def mostraCriacao(request, gestaoescolhida):
                         'Se for num local diferente, pode prosseguir normalmente.'
                     )
 
-            # 📋 Pedido de Saída: definir requerente e estado inicial antes do primeiro save
+            # ðŸ“‹ Pedido de Saída: definir requerente e estado inicial antes do primeiro save
             if gestaoescolhida == 'pedidosaida':
                 irmao_req = Irmao.objects.filter(user=request.user).first()
                 if irmao_req:
@@ -1749,7 +1784,7 @@ def mostraCriacao(request, gestaoescolhida):
                 obj.estado = 'pendente'
                 obj.estado_pagamento = 'nao_aplicavel'
 
-            # 📋 Solicitação Interdepartamental: auto-preencher solicitante e dept
+            # ðŸ“‹ Solicitação Interdepartamental: auto-preencher solicitante e dept
             if gestaoescolhida == 'solicitacoes':
                 irmao_sol = Irmao.objects.filter(user=request.user).first()
                 if not irmao_sol:
@@ -1764,7 +1799,7 @@ def mostraCriacao(request, gestaoescolhida):
                         obj.departamento_solicitante = depts.first()
                 obj.estado = 'pendente'
 
-            # 📋 Caso Pastoral: auto-preencher criado_por
+            # ðŸ“‹ Caso Pastoral: auto-preencher criado_por
             if gestaoescolhida == 'casospastorais':
                 irmao_logado = Irmao.objects.filter(user=request.user).first()
                 if irmao_logado:
@@ -1773,8 +1808,9 @@ def mostraCriacao(request, gestaoescolhida):
                     obj.responsavel = irmao_logado
 
             obj.save()
+            formulario.save_m2m()
 
-            # 📋 Solicitação: notificar líderes do departamento destinatário
+            # ðŸ“‹ Solicitação: notificar líderes do departamento destinatário
             if gestaoescolhida == 'solicitacoes':
                 HistoricoSolicitacao.objects.create(
                     solicitacao=obj, estado_anterior='',
@@ -1782,12 +1818,12 @@ def mostraCriacao(request, gestaoescolhida):
                 )
                 _notificar_solicitacao(obj, '', 'pendente', irmao_sol)
 
-            # 👤 Regista o criador nas actividades
+            # ðŸ‘¤ Regista o criador nas actividades
             if gestaoescolhida == 'actividades':
                 obj.criado_por = request.user
                 obj.save(update_fields=['criado_por'])
 
-            # 📋 Pedido de Saída: já definido antes do save, nada a fazer aqui
+            # ðŸ“‹ Pedido de Saída: já definido antes do save, nada a fazer aqui
             if gestaoescolhida == 'pedidosaida':
                 pass
 
@@ -2242,6 +2278,402 @@ def relatorioofertasportipo_pdf(request):
     return response
 
 
+@login_required
+def cartao_protocolo_pdf(request, actividade_id):
+    """Gera PDF com credenciais individuais — 2 por folha A4."""
+    actividade = get_object_or_404(Actividade, id=actividade_id)
+    todas_escalas = (
+        Escala.objects.filter(actividade=actividade)
+        .select_related('irmao', 'irmao__celula', 'funcao')
+        .prefetch_related('irmao_protocolo', 'irmao_protocolo__celula')
+    )
+
+    if not todas_escalas.exists():
+        messages.error(request, 'Esta actividade não possui escalas associadas.')
+        return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
+
+    membros_funcoes = []
+    seen = set()
+    for esc in todas_escalas:
+        funcao_str = str(esc.funcao) if esc.funcao else 'Participante'
+        if esc.eh_protocolo:
+            for membro in esc.irmao_protocolo.all():
+                if membro.id not in seen:
+                    seen.add(membro.id)
+                    membros_funcoes.append((membro, funcao_str))
+        else:
+            membro = esc.irmao
+            if membro.id not in seen:
+                seen.add(membro.id)
+                membros_funcoes.append((membro, funcao_str))
+
+    if not membros_funcoes:
+        messages.error(request, 'Nenhum membro encontrado nas escalas desta actividade.')
+        return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
+
+    membros_funcoes.sort(key=lambda x: x[0].nome)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = (
+        f'inline; filename="cartoes_protocolo_{actividade_id}_{actividade.data}.pdf"'
+    )
+
+    page_w, page_h = A4
+    margin  = 28
+    gap     = 20
+    card_w  = page_w - 2 * margin
+    card_h  = (page_h - 2 * margin - gap) / 2
+
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+
+    primary      = colors.HexColor('#1e3a5f')
+    primary_dark = colors.HexColor('#0f2044')
+    gold         = colors.HexColor('#d97706')
+    gold_light   = colors.HexColor('#fef3c7')
+    gold_border  = colors.HexColor('#fde68a')
+    light_blue   = colors.HexColor('#93c5fd')
+    pale_blue    = colors.HexColor('#bfdbfe')
+    muted        = colors.HexColor('#6b7280')
+    ink          = colors.HexColor('#1f2937')
+    divider_col  = colors.HexColor('#e2e8f0')
+
+    HEADER_H = 80
+    FOOTER_H = 46
+    ACCENT_W = 6
+    BODY_PAD = ACCENT_W + 15
+    # max text width available in card body
+    MAX_TXT  = card_w - BODY_PAD - 16
+
+    def _fit_str(canvas_obj, text, font, size, max_w):
+        """Truncate text with ellipsis until it fits within max_w."""
+        t = text
+        while canvas_obj.stringWidth(t, font, size) > max_w and len(t) > 1:
+            t = t[:-1]
+        if t != text:
+            t = t[:-1] + '…'
+        return t
+
+    def _label_value(c, lx, ly, label, value, label_w=68):
+        lbl_font, val_font, sz = 'Helvetica-Bold', 'Helvetica', 9
+        c.setFont(lbl_font, sz)
+        c.setFillColor(primary)
+        c.drawString(lx, ly, label)
+        c.setFont(val_font, sz)
+        c.setFillColor(ink)
+        val_str = _fit_str(c, str(value), val_font, sz, MAX_TXT - label_w)
+        c.drawString(lx + label_w, ly, val_str)
+
+    def _draw_card(c, x, card_y, membro, funcao_str, idx):
+
+        # ── Card background ───────────────────────────────────────────────
+        c.setFillColor(colors.white)
+        c.setStrokeColor(primary)
+        c.setLineWidth(1.5)
+        c.roundRect(x, card_y, card_w, card_h, 10, fill=1, stroke=1)
+
+        # ── Header band ───────────────────────────────────────────────────
+        header_top = card_y + card_h
+        c.setFillColor(primary_dark)
+        c.roundRect(x, header_top - HEADER_H, card_w, HEADER_H, 10, fill=1, stroke=0)
+        c.rect(x, header_top - HEADER_H, card_w, HEADER_H // 2, fill=1, stroke=0)
+
+        # Gold accent under header
+        c.setFillColor(gold)
+        c.rect(x, header_top - HEADER_H - 3, card_w, 3, fill=1, stroke=0)
+
+        # Logo
+        if os.path.exists(logo_path):
+            try:
+                logo_sz = 58
+                c.drawImage(
+                    logo_path,
+                    x + 12,
+                    header_top - HEADER_H + (HEADER_H - logo_sz) / 2,
+                    width=logo_sz, height=logo_sz,
+                    preserveAspectRatio=True, mask='auto',
+                )
+            except Exception:
+                pass
+
+        # Title & church name
+        title_x = x + 82
+        c.setFillColor(colors.white)
+        c.setFont('Helvetica-Bold', 17)
+        c.drawString(title_x, header_top - 22, 'CREDENCIAL')
+
+        c.setFont('Helvetica', 9)
+        c.setFillColor(light_blue)
+        c.drawString(title_x, header_top - 35, 'Terceira Igreja Batista de Luanda')
+
+        # Thin separator inside header
+        c.setStrokeColor(colors.HexColor('#334e7a'))
+        c.setLineWidth(0.6)
+        c.line(title_x, header_top - 44, x + card_w - 14, header_top - 44)
+
+        # Activity name inside header
+        act_str = str(actividade.designacao)
+        act_fitted = _fit_str(c, act_str, 'Helvetica', 8, card_w - 82 - 100 - 14)
+        c.setFont('Helvetica', 8)
+        c.setFillColor(pale_blue)
+        c.drawString(title_x, header_top - 56, act_fitted)
+
+        # Date / time / local — top right
+        c.setFont('Helvetica-Bold', 10)
+        c.setFillColor(colors.white)
+        c.drawRightString(x + card_w - 12, header_top - 17, actividade.data.strftime('%d/%m/%Y'))
+        c.setFont('Helvetica', 8.5)
+        c.setFillColor(pale_blue)
+        c.drawRightString(
+            x + card_w - 12, header_top - 29,
+            f'{actividade.inicio.strftime("%H:%M")} — {actividade.fim.strftime("%H:%M")}',
+        )
+        local_str = _fit_str(c, str(actividade.localactividade or 'Sede'), 'Helvetica', 8, 110)
+        c.setFont('Helvetica', 8)
+        c.setFillColor(light_blue)
+        c.drawRightString(x + card_w - 12, header_top - 40, local_str)
+
+        # ── Left gold accent stripe (body only) ───────────────────────────
+        body_bot = card_y + FOOTER_H
+        body_h   = card_h - HEADER_H - 3 - FOOTER_H
+        c.setFillColor(gold)
+        c.rect(x, body_bot, ACCENT_W, body_h, fill=1, stroke=0)
+
+        # ── Member name ───────────────────────────────────────────────────
+        body_start_y = card_y + card_h - HEADER_H - 3
+        nome_completo = f'{membro.nome} {membro.apelido}'
+        name_y   = body_start_y - 32
+        font_sz  = 22
+        while c.stringWidth(nome_completo, 'Helvetica-Bold', font_sz) > MAX_TXT and font_sz > 13:
+            font_sz -= 1
+        c.setFillColor(primary)
+        c.setFont('Helvetica-Bold', font_sz)
+        c.drawString(x + BODY_PAD, name_y, nome_completo)
+
+        # Gold underline
+        name_w = c.stringWidth(nome_completo, 'Helvetica-Bold', font_sz)
+        c.setStrokeColor(gold)
+        c.setLineWidth(2)
+        c.line(x + BODY_PAD, name_y - 5, x + BODY_PAD + name_w, name_y - 5)
+
+        # ── Function badge ────────────────────────────────────────────────
+        badge_y = name_y - 30
+        func_fitted = _fit_str(c, funcao_str, 'Helvetica-Bold', 10, MAX_TXT - 20)
+        badge_w = c.stringWidth(func_fitted, 'Helvetica-Bold', 10) + 20
+        c.setFillColor(gold_light)
+        c.setStrokeColor(gold_border)
+        c.setLineWidth(0.8)
+        c.roundRect(x + BODY_PAD, badge_y - 5, badge_w, 20, 4, fill=1, stroke=1)
+        c.setFillColor(gold)
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(x + BODY_PAD + 10, badge_y + 3, func_fitted)
+
+        # ── Divider ───────────────────────────────────────────────────────
+        div_y = badge_y - 16
+        c.setStrokeColor(divider_col)
+        c.setLineWidth(0.6)
+        c.line(x + ACCENT_W + 10, div_y, x + card_w - 14, div_y)
+
+        # ── Detail fields ─────────────────────────────────────────────────
+        det_y = div_y - 14
+        LINE  = 15
+
+        _label_value(c, x + BODY_PAD, det_y, 'Actividade:', act_str)
+        det_y -= LINE
+
+        if membro.celula:
+            _label_value(c, x + BODY_PAD, det_y, 'Célula:', str(membro.celula))
+            det_y -= LINE
+
+        if membro.telefone:
+            _label_value(c, x + BODY_PAD, det_y, 'Telefone:', membro.telefone)
+            det_y -= LINE
+
+        if hasattr(membro, 'email') and membro.email:
+            _label_value(c, x + BODY_PAD, det_y, 'Email:', membro.email)
+
+        # ── Footer zone ───────────────────────────────────────────────────
+        footer_top = card_y + FOOTER_H
+        c.setStrokeColor(divider_col)
+        c.setLineWidth(0.6)
+        c.line(x + 10, footer_top, x + card_w - 10, footer_top)
+
+        sig1_cx   = x + card_w * 0.27
+        sig2_cx   = x + card_w * 0.73
+        sig_line_y = card_y + FOOTER_H - 16
+
+        c.setStrokeColor(ink)
+        c.setLineWidth(0.7)
+        c.line(sig1_cx - 65, sig_line_y + 14, sig1_cx + 65, sig_line_y + 14)
+        c.line(sig2_cx - 65, sig_line_y + 14, sig2_cx + 65, sig_line_y + 14)
+
+        c.setFont('Helvetica', 8)
+        c.setFillColor(ink)
+        c.drawCentredString(sig1_cx, sig_line_y + 3, 'Líder Responsável')
+        c.drawCentredString(sig2_cx, sig_line_y + 3, 'Responsável da Actividade')
+
+        # Card number
+        c.setFont('Helvetica', 7)
+        c.setFillColor(muted)
+        c.drawString(x + 12, card_y + 8, f'N.º {idx + 1:02d}  ·  TIBL  ·  {actividade.data.strftime("%d/%m/%Y")}')
+
+        # Bottom gold bar
+        c.setFillColor(gold)
+        c.roundRect(x, card_y, card_w, 5, 3, fill=1, stroke=0)
+
+    c = canvas.Canvas(response, pagesize=A4)
+
+    for idx, (membro, funcao_str) in enumerate(membros_funcoes):
+        if idx > 0 and idx % 2 == 0:
+            c.showPage()
+        slot   = idx % 2
+        card_y = (page_h - margin - card_h) if slot == 0 else margin
+        _draw_card(c, margin, card_y, membro, funcao_str, idx)
+
+    c.save()
+    return response
+
+
+_TELCOSMS_URL = 'https://telcosms.co.ao/send_message'
+
+
+def _enviar_sms_telco(telefone, texto):
+    """Envia um SMS individual via TelcoSMS. Regista falhas no logger sem lançar excepção."""
+    sms_data = {
+        'message': {
+            'api_key_app': _telcosms_api_key(),
+            'phone_number': telefone,
+            'message_body': texto,
+        }
+    }
+    try:
+        resp = requests.post(_TELCOSMS_URL, json=sms_data, timeout=10)
+        if resp.status_code == 200:
+            logger.info('SMS enviado para %s', telefone)
+        else:
+            logger.error('Falha SMS para %s — status %s: %s', telefone, resp.status_code, resp.text)
+    except Exception as e:
+        logger.error('Erro SMS para %s: %s', telefone, e)
+
+
+def _notificar_protocolo_escalado(irmao, escala, actividade):
+    """Envia email e SMS ao membro escalado para o protocolo."""
+    funcao_str = str(escala.funcao) if escala.funcao else 'Protocolo'
+    local_str  = str(actividade.localactividade or 'Sede')
+    data_str   = actividade.data.strftime('%d/%m/%Y')
+    hora_str   = f'{actividade.inicio.strftime("%H:%M")} — {actividade.fim.strftime("%H:%M")}'
+    act_str    = str(actividade.designacao)
+    dept_str   = str(escala.funcao.departamento) if escala.funcao and escala.funcao.departamento else ''
+
+    if irmao.email:
+        try:
+            context = {
+                'nome': irmao.nome,
+                'apelido': irmao.apelido,
+                'actividade': act_str,
+                'data': data_str,
+                'hora': hora_str,
+                'local': local_str,
+                'funcao': funcao_str,
+                'departamento': dept_str,
+            }
+            html_content = render_to_string('emails/email_protocolo_escalado.html', context)
+            msg = EmailMultiAlternatives(
+                subject=f'Escala de Protocolo — {act_str} ({data_str})',
+                body=(
+                    f'Olá {irmao.nome}, foi escalado(a) para o Protocolo da actividade '
+                    f'"{act_str}" em {data_str} às {hora_str}. Local: {local_str}.'
+                ),
+                from_email=None,
+                to=[irmao.email],
+            )
+            msg.attach_alternative(html_content, 'text/html')
+            msg.send()
+            logger.info('Email de protocolo enviado para %s', irmao.email)
+        except Exception as e:
+            logger.error('Falha ao enviar email de protocolo para %s: %s', irmao.email, e)
+
+    if irmao.telefone:
+        sms_texto = (
+            f'TIBL — Foi escalado(a) para o Protocolo da actividade "{act_str}" '
+            f'em {data_str} as {hora_str}. Local: {local_str}. Deus abencoe!'
+        )
+        _enviar_sms_telco(irmao.telefone, sms_texto)
+
+
+@login_required
+def substituir_membro_protocolo(request, escala_id, irmao_id):
+    """Substitui um membro numa escala (protocolo M2M ou normal FK) e notifica o novo membro."""
+    from django.core.exceptions import PermissionDenied
+    if not request.user.has_perm('sitetibl.change_escala'):
+        raise PermissionDenied
+
+    escala          = get_object_or_404(Escala, id=escala_id)
+    membro_original = get_object_or_404(Irmao, id=irmao_id)
+    actividade      = escala.actividade
+
+    if escala.eh_protocolo:
+        if not escala.irmao_protocolo.filter(id=irmao_id).exists():
+            messages.error(request, 'Este membro não faz parte desta escala.')
+            return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade.id]))
+        ja_escalados_ids = set(escala.irmao_protocolo.values_list('id', flat=True))
+    else:
+        if escala.irmao_id != int(irmao_id):
+            messages.error(request, 'Este membro não faz parte desta escala.')
+            return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade.id]))
+        ja_escalados_ids = set(
+            Escala.objects.filter(actividade=actividade).values_list('irmao_id', flat=True)
+        )
+
+    irmaos_disponiveis = (
+        Irmao.objects.select_related('celula')
+        .exclude(id__in=ja_escalados_ids)
+        .order_by('nome', 'apelido')
+    )
+
+    if request.method == 'GET':
+        return render(request, 'substituir_protocolo.html', {
+            'escala': escala,
+            'membro_original': membro_original,
+            'irmaos_disponiveis': irmaos_disponiveis,
+        })
+
+    novo_irmao_id = request.POST.get('novo_irmao_id', '').strip()
+    if not novo_irmao_id:
+        return render(request, 'substituir_protocolo.html', {
+            'escala': escala,
+            'membro_original': membro_original,
+            'irmaos_disponiveis': irmaos_disponiveis,
+            'form_error': 'Seleccione um irmão para efectuar a substituição.',
+        })
+
+    try:
+        novo_irmao = Irmao.objects.get(id=int(novo_irmao_id))
+    except (Irmao.DoesNotExist, ValueError):
+        return render(request, 'substituir_protocolo.html', {
+            'escala': escala,
+            'membro_original': membro_original,
+            'irmaos_disponiveis': irmaos_disponiveis,
+            'form_error': 'Irmão seleccionado não encontrado.',
+        })
+
+    if escala.eh_protocolo:
+        escala.irmao_protocolo.remove(membro_original)
+        escala.irmao_protocolo.add(novo_irmao)
+        if escala.irmao_id == membro_original.id:
+            escala.irmao = novo_irmao
+            escala.save(update_fields=['irmao'])
+    else:
+        escala.irmao = novo_irmao
+        escala.save(update_fields=['irmao'])
+
+    _notificar_protocolo_escalado(novo_irmao, escala, actividade)
+
+    messages.success(
+        request,
+        f'{membro_original.nome} {membro_original.apelido} substituído(a) por '
+        f'{novo_irmao.nome} {novo_irmao.apelido}. Notificação enviada.',
+    )
+    return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade.id]))
 
 
 @login_required
@@ -3102,7 +3534,7 @@ def relatorio_irmaos_pdf(request):
     elements = []
     styles = getSampleStyleSheet()
 
-    # 🔹 LOGO
+    # ðŸ”¹ LOGO
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
 
     if os.path.exists(logo_path):
@@ -3112,7 +3544,7 @@ def relatorio_irmaos_pdf(request):
 
     elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # 🔹 TÍTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
         Paragraph(
             "<b>Relatório Geral de Irmãos</b>",
@@ -3122,12 +3554,12 @@ def relatorio_irmaos_pdf(request):
 
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
-    # 🔹 CABEÇALHO DA TABELA
+    # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [
         ['Nome', 'Telefone', 'Categoria', 'Dizimista']
     ]
 
-    # 🔹 DADOS
+    # ðŸ”¹ DADOS
     for irmao in Irmao.objects.all():
         data.append([
             irmao.nome,
@@ -3136,7 +3568,7 @@ def relatorio_irmaos_pdf(request):
             'Sim' if irmao.dizimista == 'sim' else 'Não',
         ])
 
-    # 🔹 TABELA
+    # ðŸ”¹ TABELA
     table = Table(data, colWidths=[160, 110, 90, 90])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#548c2f')),
@@ -3180,7 +3612,7 @@ def relatorio_dizimos_pdf(request):
     styles = getSampleStyleSheet()
     elements = []
 
-    # 🔹 LOGO
+    # ðŸ”¹ LOGO
     logo_path = os.path.join(
         settings.BASE_DIR,
         'static',
@@ -3196,19 +3628,19 @@ def relatorio_dizimos_pdf(request):
 
     elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # 🔹 TÍTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
         Paragraph("<b>Relatório de Dízimos e Ofertas</b>", styles['Title'])
     )
 
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
-    # 🔹 CABEÇALHO DA TABELA
+    # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [
         ['Irmão', 'Telefone', 'Tipo de Oferta', 'Valor', 'Moeda', 'Data']
     ]
 
-    # 🔹 DADOS
+    # ðŸ”¹ DADOS
     queryset = Dizimooferta.objects.select_related(
         'irmao', 'tipooferta'
     ).order_by('-datacorrespondente')
@@ -3223,7 +3655,7 @@ def relatorio_dizimos_pdf(request):
             d.datacorrespondente.strftime('%d/%m/%Y')
         ])
 
-    # 🔹 TABELA
+    # ðŸ”¹ TABELA
     table = Table(
         data,
         colWidths=[110, 80, 100, 70, 50, 70]
@@ -3267,7 +3699,7 @@ def relatorio_departamentos_pdf(request):
     styles = getSampleStyleSheet()
     elements = []
 
-    # 🔹 LOGO
+    # ðŸ”¹ LOGO
     logo_path = os.path.join(
         settings.BASE_DIR,
         'static',
@@ -3281,7 +3713,7 @@ def relatorio_departamentos_pdf(request):
         logo.hAlign = 'CENTER'
         elements.append(logo)
 
-    # 🔹 TÍTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
         Paragraph("<b>Relatório de Departamentos</b>", styles['Title'])
     )
@@ -3289,7 +3721,7 @@ def relatorio_departamentos_pdf(request):
    
     elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # 🔹 TABELA
+    # ðŸ”¹ TABELA
     data = [['Departamento', 'Líder', 'Vice-Líder']]
 
     for d in Departamento.objects.all():
@@ -3338,7 +3770,7 @@ def relatorio_escalas_pdf(request):
     styles = getSampleStyleSheet()
     elements = []
 
-    # 🔹 LOGO
+    # ðŸ”¹ LOGO
     logo_path = os.path.join(
         settings.BASE_DIR,
         'static',
@@ -3354,14 +3786,14 @@ def relatorio_escalas_pdf(request):
 
     elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # 🔹 TÍTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
         Paragraph("<b>Relatório Geral de Escalas</b>", styles['Title'])
     )
 
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
-    # 🔹 CABEÇALHO DA TABELA
+    # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [[
         'Irmão',
         'Actividade',
@@ -3371,7 +3803,7 @@ def relatorio_escalas_pdf(request):
         'Data'
     ]]
 
-    # 🔹 DADOS
+    # ðŸ”¹ DADOS
     for escala in Escala.objects.select_related('irmao', 'actividade').all():
         data.append([
             escala.irmao.nome if escala.irmao else '-',
@@ -3382,7 +3814,7 @@ def relatorio_escalas_pdf(request):
             escala.actividade.data.strftime('%d/%m/%Y') if escala.actividade and escala.actividade.data else '-',
         ])
 
-    # 🔹 TABELA
+    # ðŸ”¹ TABELA
     table = Table(data, colWidths=[90, 120, 70, 60, 60, 70])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#548c2f')),
@@ -3435,7 +3867,7 @@ def relatorio_actividades_pdf(request):
         wordWrap='CJK'
     )
 
-    # 🔹 LOGO
+    # ðŸ”¹ LOGO
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
 
     if os.path.exists(logo_path):
@@ -3443,12 +3875,12 @@ def relatorio_actividades_pdf(request):
         logo.hAlign = 'CENTER'
         elements.append(logo)
 
-    # 🔹 TÍTULO
+    # ðŸ”¹ TÍTULO
     elements.append(Paragraph("Relatório de Actividades", title_style))
 
     elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # 🔹 CABEÇALHO DA TABELA
+    # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [
         [
             "Designação",
@@ -3460,7 +3892,7 @@ def relatorio_actividades_pdf(request):
         ]
     ]
 
-    # 🔹 DADOS
+    # ðŸ”¹ DADOS
     for actividade in Actividade.objects.all():
         data.append([
             Paragraph(str(actividade.designacao or '-'), cell_style),
@@ -3471,7 +3903,7 @@ def relatorio_actividades_pdf(request):
             Paragraph(str(actividade.localactividade or '-'), cell_style),
         ])
 
-    # 🔹 TABELA
+    # ðŸ”¹ TABELA
     table = Table(
         data,
         colWidths=[
@@ -3529,7 +3961,7 @@ def relatorio_inventario_patrimonio_pdf(request):
     styles = getSampleStyleSheet()
     elements = []
 
-    # 🔹 ESTILO PARA CÉLULAS (QUEBRA DE LINHA)
+    # ðŸ”¹ ESTILO PARA CÉLULAS (QUEBRA DE LINHA)
     cell_style = ParagraphStyle(
         'CellStyle',
         parent=styles['Normal'],
@@ -3537,7 +3969,7 @@ def relatorio_inventario_patrimonio_pdf(request):
         leading=11
     )
 
-    # 🔹 LOGO
+    # ðŸ”¹ LOGO
     logo_path = os.path.join(
         settings.BASE_DIR,
         'static',
@@ -3552,13 +3984,13 @@ def relatorio_inventario_patrimonio_pdf(request):
         elements.append(logo)
         elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # 🔹 TÍTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
         Paragraph("<b>Relatório de Inventário de Património</b>", styles['Title'])
     )
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
-    # 🔹 CABEÇALHO DA TABELA
+    # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [[
         'Nome',
         'Descrição',
@@ -3569,7 +4001,7 @@ def relatorio_inventario_patrimonio_pdf(request):
         'Quantidade'
     ]]
 
-    # 🔹 DADOS
+    # ðŸ”¹ DADOS
     for i in InventarioPatrimonio.objects.all():
         data.append([
             Paragraph(i.nome or '-', cell_style),
@@ -3581,7 +4013,7 @@ def relatorio_inventario_patrimonio_pdf(request):
             Paragraph(str(i.quantidade), cell_style),
         ])
 
-    # 🔹 TABELA
+    # ðŸ”¹ TABELA
     table = Table(
         data,
         colWidths=[70, 110, 80, 60, 50, 40, 50]
@@ -3630,7 +4062,7 @@ def relatorio_saida_caixa_pdf(request):
     styles = getSampleStyleSheet()
     elements = []
 
-    # 🔹 Estilo para quebra automática nas células
+    # ðŸ”¹ Estilo para quebra automática nas células
     cell_style = ParagraphStyle(
         'CellStyle',
         parent=styles['Normal'],
@@ -3638,7 +4070,7 @@ def relatorio_saida_caixa_pdf(request):
         leading=11
     )
 
-    # 🔹 LOGO
+    # ðŸ”¹ LOGO
     logo_path = os.path.join(
         settings.BASE_DIR,
         'static',
@@ -3653,13 +4085,13 @@ def relatorio_saida_caixa_pdf(request):
         elements.append(logo)
         elements.append(Paragraph("<br/>", styles['Normal']))
 
-    # 🔹 TÍTULO
+    # ðŸ”¹ TÍTULO
     elements.append(
         Paragraph("<b>Relatório de Saídas de Caixa</b>", styles['Title'])
     )
     elements.append(Paragraph("<br/><br/>", styles['Normal']))
 
-    # 🔹 CABEÇALHO DA TABELA
+    # ðŸ”¹ CABEÃ‡ALHO DA TABELA
     data = [[
         'Departamento',
         'Projecto',
@@ -3671,7 +4103,7 @@ def relatorio_saida_caixa_pdf(request):
         'Data'
     ]]
 
-    # 🔹 DADOS
+    # ðŸ”¹ DADOS
     for p in PedidoSaida.objects.all():
         data.append([
             Paragraph(str(p.departamento) if p.departamento else '-', cell_style),
@@ -3687,7 +4119,7 @@ def relatorio_saida_caixa_pdf(request):
             ),
         ])
 
-    # 🔹 TABELA
+    # ðŸ”¹ TABELA
     table = Table(
         data,
         colWidths=[80, 70, 55, 40, 70, 55, 60, 50]
@@ -3802,7 +4234,7 @@ def dashboard(request):
         prefixo = 'da irmã' if a.sexo == 'F' else 'do irmão'
         aniversarios_alerta.append({
             'tipo': 'today',
-            'mensagem': f'🎂 Hoje é aniversário {prefixo} {a.nome} {a.apelido}!',
+            'mensagem': f'ðŸŽ‚ Hoje é aniversário {prefixo} {a.nome} {a.apelido}!',
             'data_iso': hoje.isoformat(),
         })
 
@@ -4052,7 +4484,7 @@ def actividades_feed(request):
 
     # --- 2. Actividades recorrentes — expansão dinâmica via rrule ---
     # Pais cujo período de recorrência intersecta o intervalo pedido:
-    #   início ≤ fim do intervalo  E  (sem recorrencia_fim  OU  recorrencia_fim ≥ início)
+    #   início â‰¤ fim do intervalo  E  (sem recorrencia_fim  OU  recorrencia_fim â‰¥ início)
     parents = (
         Actividade.objects
         .select_related('designacao', 'departamento', 'localactividade', 'event__rule')
@@ -4156,7 +4588,7 @@ def serve_documentacao(request, path=''):
 
     file_path = site_dir / path if path else site_dir / 'index.html'
 
-    # Directórios → tentar index.html dentro deles
+    # Directórios â†’ tentar index.html dentro deles
     if file_path.is_dir():
         file_path = file_path / 'index.html'
 
@@ -4192,9 +4624,9 @@ def encontraSolicitacoes(request):
     return render(request, 'solicitacoesfiltradas.html', {'bb': paginaresultado, 'dd': dd})
 
 
-# ═══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # PAINEL DE ACOMPANHAMENTO PASTORAL
-# ═══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_required
 def pastoral_dashboard(request):
@@ -4208,7 +4640,7 @@ def pastoral_dashboard(request):
     hoje = date.today()
     irmao_logado = Irmao.objects.filter(user=request.user).first()
 
-    # ── KPIs de atenção pastoral ──────────────────────────────
+    # â”€â”€ KPIs de atenção pastoral â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     alertas_novos = AlertaPastoral.objects.filter(estado='novo').count()
     casos_abertos = CasoPastoral.objects.filter(estado__in=['aberto', 'em_acompanhamento']).count()
 
@@ -4234,12 +4666,13 @@ def pastoral_dashboard(request):
         id__in=alguma_vez_ids
     ).exclude(id__in=activos_ids).count()
 
-    # ── Retrato da Congregação ────────────────────────────────
+    # â”€â”€ Retrato da Congregação â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     total_membros = Irmao.objects.count()
     total_criancas = Irmao.objects.filter(categoria='crianca').count()
     total_batizados = Irmao.objects.filter(batizado=True).count()
-    # Não batizados conta apenas adultos (exclui crianças).
+# Não batizados conta apenas adultos (exclui crianças).
     total_nao_batizados = total_membros - total_batizados - total_criancas
+
     total_dizimistas = Irmao.objects.filter(dizimista='sim').count()
     total_masculino = Irmao.objects.filter(sexo='M').count()
     total_feminino = Irmao.objects.filter(sexo='F').count()
@@ -4269,7 +4702,7 @@ def pastoral_dashboard(request):
         'pct_com_celula': pct(total_com_celula, total_membros),
     }
 
-    # ── Alertas e Casos ───────────────────────────────────────
+    # â”€â”€ Alertas e Casos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     alertas_urgentes = AlertaPastoral.objects.filter(
         estado__in=['novo', 'visto']
     ).select_related('membro', 'celula').order_by('-data_criacao')[:10]
@@ -4283,7 +4716,7 @@ def pastoral_dashboard(request):
             Q(confidencial=False) | Q(responsavel=irmao_logado) | Q(criado_por=irmao_logado)
         )
 
-    # ── Aniversariantes (DB-level, com tratamento de virada de ano) ───
+    # â”€â”€ Aniversariantes (DB-level, com tratamento de virada de ano) â”€â”€â”€
     semana_fim = hoje + td(days=7)
     aniversariantes = []
     # Gera lista de (mês, dia) para os próximos 7 dias
@@ -4459,7 +4892,7 @@ def pastoral_novos(request):
     return render(request, 'pastoral_novos.html', context)
 
 
-# ── APIs JSON para gráficos pastorais ──────────────────────────
+# â”€â”€ APIs JSON para gráficos pastorais â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @login_required
 def pastoral_api_tendencias(request):
@@ -4563,7 +4996,7 @@ def pastoral_api_casos_resumo(request):
     return JsonResponse({'por_tipo': por_tipo, 'por_estado': por_estado})
 
 
-# ── Relatórios PDF Pastorais ──────────────────────────────────
+# â”€â”€ Relatórios PDF Pastorais â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @login_required
 def relatorio_pastoral_selecionar_mes(request):
@@ -4792,3 +5225,238 @@ def relatorio_inactivos_pdf(request):
     elements.append(t)
     doc.build(elements)
     return response
+
+
+@login_required
+def acta_actividade_pdf(request, actividade_id):
+    """Página intermédia para preencher a acta (GET) e geração do PDF (POST)."""
+    actividade = get_object_or_404(Actividade, id=actividade_id)
+    todas_escalas = Escala.objects.filter(actividade=actividade).select_related('irmao', 'irmao__celula', 'funcao')
+
+    if not todas_escalas.exists():
+        messages.error(request, 'Esta actividade não possui escalas associadas.')
+        return redirect(reverse('sitetibl:mostra_detalhe', args=['actividades', actividade_id]))
+
+    # Recolher todos os irmãos de todas as escalas (protocolo via M2M + normal via FK), sem duplicados
+    irmaos_set = set()
+    for esc in todas_escalas:
+        if esc.eh_protocolo:
+            for i in esc.irmao_protocolo.all():
+                irmaos_set.add(i)
+        else:
+            irmaos_set.add(esc.irmao)
+    irmaos_protocolo = sorted(irmaos_set, key=lambda x: x.nome)
+
+    # ── GET: mostrar formulário de preenchimento ──────────────────────────
+    if request.method == 'GET':
+        return render(request, 'acta_protocolo_form.html', {
+            'actividade': actividade,
+            'irmaos_protocolo': irmaos_protocolo,
+        })
+
+    # ── POST: gerar PDF com os dados submetidos ───────────────────────────
+    ESTADO_LABELS = {
+        'presente': 'Presente',
+        'ausente': 'Ausente',
+    }
+    CORES_ESTADO = {
+        'presente': colors.HexColor('#dcfce7'),
+        'ausente':  colors.HexColor('#fee2e2'),
+    }
+
+    ocorrencias = request.POST.get('ocorrencias', '').strip()
+    nome_responsavel = request.POST.get('nome_responsavel', '').strip()
+    nome_secretario  = request.POST.get('nome_secretario', '').strip()
+
+    # Estado de cada irmão
+    estados = {}
+    for irmao in irmaos_protocolo:
+        key = f'estado_{irmao.id}'
+        estados[irmao.id] = request.POST.get(key, 'presente')
+
+    # ── Construção do PDF ─────────────────────────────────────────────────
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = (
+        f'inline; filename="acta_actividade_{actividade_id}_{actividade.data}.pdf"'
+    )
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=2 * cm, leftMargin=2 * cm,
+        topMargin=2 * cm,  bottomMargin=2 * cm,
+        title=f'Acta da Actividade — {actividade.designacao}',
+        author='Sistema TIBL',
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'ActaTitle', parent=styles['Title'],
+        fontSize=16, leading=20,
+        textColor=colors.HexColor('#1e3a5f'),
+        alignment=1, spaceAfter=10,
+    )
+    section_style = ParagraphStyle(
+        'ActaSection', parent=styles['Heading2'],
+        fontSize=11, leading=14,
+        textColor=colors.HexColor('#548c2f'),
+        spaceBefore=10, spaceAfter=5, keepWithNext=True,
+    )
+    body_style = ParagraphStyle(
+        'ActaBody', parent=styles['Normal'],
+        fontSize=9, leading=13,
+        textColor=colors.HexColor('#333333'), spaceAfter=3,
+    )
+    label_style = ParagraphStyle(
+        'ActaLabel', parent=styles['Normal'],
+        fontSize=9, leading=13, fontName='Helvetica-Bold',
+        textColor=colors.HexColor('#1e3a5f'),
+    )
+    sig_style = ParagraphStyle(
+        'ActaSig', parent=styles['Normal'],
+        fontSize=9, alignment=1,
+    )
+
+    elements = []
+
+    # Logo
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=60, height=60)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+
+    elements.append(Paragraph('<b>ACTA DA ACTIVIDADE</b>', title_style))
+    elements.append(Paragraph("<hr color='#1e3a5f' width='100%'/>", styles['Normal']))
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Cabeçalho da actividade ───────────────────────────────────────────
+    info_data = [
+        [Paragraph('<b>Actividade:</b>', label_style), Paragraph(str(actividade.designacao), body_style)],
+        [Paragraph('<b>Tema:</b>',        label_style), Paragraph(actividade.tema or '—', body_style)],
+        [Paragraph('<b>Data:</b>',        label_style), Paragraph(actividade.data.strftime('%d/%m/%Y'), body_style)],
+        [Paragraph('<b>Horário:</b>',     label_style), Paragraph(f"{actividade.inicio.strftime('%H:%M')} às {actividade.fim.strftime('%H:%M')}", body_style)],
+        [Paragraph('<b>Local:</b>',       label_style), Paragraph(str(actividade.localactividade or 'Sede'), body_style)],
+        [Paragraph('<b>Versos Bíblicos:</b>', label_style), Paragraph(actividade.versosbiblicos or '—', body_style)],
+        [Paragraph('<b>Hinos:</b>',       label_style), Paragraph(actividade.hinos or '—', body_style)],
+    ]
+    info_table = Table(info_data, colWidths=[4 * cm, 13 * cm])
+    info_table.setStyle(TableStyle([
+        ('VALIGN',       (0, 0), (-1, -1), 'TOP'),
+        ('BOTTOMPADDING',(0, 0), (-1, -1), 3),
+        ('TOPPADDING',   (0, 0), (-1, -1), 3),
+        ('GRID',         (0, 0), (-1, -1), 0.4, colors.HexColor('#e2e8f0')),
+    ]))
+    elements.append(info_table)
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Membros do Protocolo ──────────────────────────────────────────────
+    elements.append(Paragraph('Membros Escalados', section_style))
+
+    team_header = [
+        Paragraph('<b>Nome Completo</b>', label_style),
+        Paragraph('<b>Telefone</b>',     label_style),
+        Paragraph('<b>Célula</b>',       label_style),
+        Paragraph('<b>Presença</b>',     label_style),
+    ]
+    team_data = [team_header]
+
+    presentes = 0
+    ausentes  = 0
+
+    for irmao in irmaos_protocolo:
+        estado = estados.get(irmao.id, 'presente')
+        cor    = CORES_ESTADO.get(estado, colors.white)
+        label  = ESTADO_LABELS.get(estado, estado.capitalize())
+
+        if estado == 'presente':
+            presentes += 1
+        else:
+            ausentes += 1
+
+        row = [
+            Paragraph(f'{irmao.nome} {irmao.apelido}', body_style),
+            Paragraph(irmao.telefone or '—', body_style),
+            Paragraph(str(irmao.celula) if irmao.celula else '—', body_style),
+            Paragraph(label, body_style),
+        ]
+        team_data.append((row, cor))
+
+    # Construir tabela com cores por linha
+    raw_rows = [team_header] + [r for r, _ in team_data[1:]]
+    team_table = Table(raw_rows, colWidths=[6*cm, 3.5*cm, 3.5*cm, 4*cm])
+    style_cmds = [
+        ('BACKGROUND',   (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
+        ('FONTNAME',     (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('VALIGN',       (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING',(0, 0), (-1, -1), 4),
+        ('TOPPADDING',   (0, 0), (-1, -1), 4),
+        ('GRID',         (0, 0), (-1, -1), 0.4, colors.HexColor('#cbd5e1')),
+    ]
+    for idx, (_, cor) in enumerate(team_data[1:], start=1):
+        style_cmds.append(('BACKGROUND', (0, idx), (-1, idx), cor))
+    team_table.setStyle(TableStyle(style_cmds))
+    elements.append(team_table)
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # Resumo de presenças
+    resumo_data = [
+        [
+            Paragraph(f'<b>Presentes:</b> {presentes}', body_style),
+            Paragraph(f'<b>Ausentes:</b> {ausentes}', body_style),
+            Paragraph(f'<b>Total:</b> {len(irmaos_protocolo)}', body_style),
+        ]
+    ]
+    resumo_table = Table(resumo_data, colWidths=[5.67*cm, 5.67*cm, 5.66*cm])
+    resumo_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8fafc')),
+        ('BOX',        (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+        ('INNERGRID',  (0, 0), (-1, -1), 0.4, colors.HexColor('#e2e8f0')),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    ]))
+    elements.append(resumo_table)
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Ocorrências ───────────────────────────────────────────────────────
+    elements.append(Paragraph('Ocorrências / Observações', section_style))
+    elements.append(Paragraph(
+        ocorrencias if ocorrencias else 'Sem ocorrências registadas.',
+        body_style,
+    ))
+    elements.append(Paragraph('<br/><br/>', styles['Normal']))
+
+    # ── Assinaturas ───────────────────────────────────────────────────────
+    elements.append(Paragraph('Assinaturas', section_style))
+
+    linha_resp = nome_responsavel if nome_responsavel else '_' * 38
+    linha_sec  = nome_secretario  if nome_secretario  else '_' * 38
+
+    sig_data = [[
+        Paragraph(
+            f'<br/><br/><br/>______________________________<br/>{linha_resp}<br/><b>Responsável pela Actividade</b>',
+            sig_style,
+        ),
+        Paragraph(
+            f'<br/><br/><br/>______________________________<br/>{linha_sec}<br/><b>Secretário(a)</b>',
+            sig_style,
+        ),
+    ]]
+    sig_table = Table(sig_data, colWidths=[8.5 * cm, 8.5 * cm])
+    sig_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN',  (0, 0), (-1, -1), 'CENTER'),
+    ]))
+    elements.append(sig_table)
+
+    # Data de emissão
+    elements.append(Paragraph('<br/>', styles['Normal']))
+    elements.append(Paragraph(
+        f'Emitido em {date.today().strftime("%d/%m/%Y")} pelo Sistema TIBL',
+        ParagraphStyle('footer', parent=styles['Normal'], fontSize=8,
+                       textColor=colors.HexColor('#94a3b8'), alignment=2),
+    ))
+
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
+
