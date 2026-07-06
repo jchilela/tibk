@@ -1,0 +1,179 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Balanço Financeiro{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">
+            <i class="fas fa-balance-scale-right"></i> Balanço Financeiro
+        </h2>
+        <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+            <a href="{% url 'sitetibl:balanco_financeiro_excel' %}?{{ request.GET.urlencode }}" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: #1d6f42; color: white;">
+                <i class="fas fa-file-excel"></i> Exportar Excel
+            </a>
+            <button onclick="window.print()" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--primary); color: white;">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+            <a href="{% url 'pagina_relatorios' %}" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: var(--primary-dark); color: white;">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtrar Balanço</h3>
+        <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) auto; gap: 1rem; align-items: flex-end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Periodicidade</label>
+                <select name="periodo" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="semanal" {% if periodo == "semanal" %}selected{% endif %}>Semanal</option>
+                    <option value="mensal" {% if periodo == "mensal" %}selected{% endif %}>Mensal</option>
+                    <option value="trimestral" {% if periodo == "trimestral" %}selected{% endif %}>Trimestral</option>
+                    <option value="anual" {% if periodo == "anual" %}selected{% endif %}>Anual</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Ano</label>
+                <select name="ano" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="todos" {% if ano == "todos" %}selected{% endif %}>Todos</option>
+                    <option value="2023" {% if ano == "2023" %}selected{% endif %}>2023</option>
+                    <option value="2024" {% if ano == "2024" %}selected{% endif %}>2024</option>
+                    <option value="2025" {% if ano == "2025" %}selected{% endif %}>2025</option>
+                    <option value="2026" {% if ano == "2026" %}selected{% endif %}>2026</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Data início (opcional)</label>
+                <input type="date" name="datainicio" value="{{ datainicio }}" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Data fim (opcional)</label>
+                <input type="date" name="datafim" value="{{ datafim }}" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted); font-weight: 600;">Moeda</label>
+                <select name="moeda" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="" {% if not moeda %}selected{% endif %}>Todas</option>
+                    {% for codigo, designacao in moeda_choices %}
+                    <option value="{{ codigo }}" {% if moeda == codigo %}selected{% endif %}>{{ designacao }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="bt-primary" style="padding: 0.6rem 1.2rem; background-color: var(--primary); color: white;">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </form>
+        <p style="margin-top: 0.8rem; font-size: 0.78rem; color: var(--text-muted);">
+            <i class="fas fa-info-circle"></i> Se preencher "Data início" e "Data fim", estes têm prioridade sobre o Ano seleccionado.
+            Nota: se não especificar moeda, os valores de moedas diferentes serão somados em conjunto.
+        </p>
+    </div>
+
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;"><i class="fas fa-exchange-alt mr-2"></i> Movimento Geral (Banco + Caixa)</h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <i class="fas fa-info-circle"></i> O saldo transita sempre de um ano/período para o outro — o "Saldo Transitado" reflecte todo o histórico anterior ao intervalo filtrado.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="padding: 1rem; background: linear-gradient(135deg, #7f8c8d, #566573); border-radius: var(--radius-sm); color: white;">
+                <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Saldo Transitado (Anterior)</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_inicial|floatformat:2 }}</div>
+            </div>
+            <div style="padding: 1rem; background: linear-gradient(135deg, #2980b9, #1f618d); border-radius: var(--radius-sm); color: white;">
+                <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Entradas Gerais</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ total_entradas_gerais|floatformat:2 }}</div>
+            </div>
+            <div style="padding: 1rem; background: linear-gradient(135deg, #c0392b, #922b21); border-radius: var(--radius-sm); color: white;">
+                <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Saídas Gerais</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ total_saidas_gerais|floatformat:2 }}</div>
+            </div>
+            <div style="padding: 1rem; background: linear-gradient(135deg, #16a085, #117864); border-radius: var(--radius-sm); color: white;">
+                <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Movimento Líquido do Período</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_geral|floatformat:2 }}</div>
+            </div>
+            <div class="{% if saldo_final >= 0 %}saldo-card-positivo{% else %}saldo-card-negativo{% endif %}" style="padding: 1rem; border-radius: var(--radius-sm); color: white;">
+                <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Saldo Final Transitado</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_final|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if linhas %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">Período</th>
+                    <th style="text-align: right;">Entradas Gerais</th>
+                    <th style="text-align: right;">Saídas Gerais</th>
+                    <th style="text-align: right;">Saldo do Período</th>
+                    <th style="text-align: right;">Saldo Acumulado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for linha in linhas %}
+                <tr>
+                    <td style="font-weight: 600;">{{ linha.label }}</td>
+                    <td style="text-align: right;">{{ linha.entradas_gerais|floatformat:2 }}</td>
+                    <td style="text-align: right;">{{ linha.saidas_gerais|floatformat:2 }}</td>
+                    <td class="{% if linha.saldo_periodo < 0 %}texto-negativo{% else %}texto-positivo{% endif %}" style="text-align: right; font-weight: 700;">{{ linha.saldo_periodo|floatformat:2 }}</td>
+                    <td style="text-align: right; font-weight: 700;">{{ linha.saldo_acumulado|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: var(--bg-sidebar); font-weight: 700; border-top: 2px solid var(--primary);">
+                    <td style="color: white;">Total Geral</td>
+                    <td style="text-align: right; color: white;">{{ total_entradas_gerais|floatformat:2 }}</td>
+                    <td style="text-align: right; color: white;">{{ total_saidas_gerais|floatformat:2 }}</td>
+                    <td style="text-align: right; color: white;">{{ saldo_geral|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 3rem;">
+        <i class="fas fa-file-alt" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+        <p style="color: var(--text-muted);">Nenhum registo encontrado para o período seleccionado.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .saldo-card-positivo {
+        background: linear-gradient(135deg, #16a085, #117864);
+    }
+    .saldo-card-negativo {
+        background: linear-gradient(135deg, #e74c3c, #922b21);
+    }
+    .texto-positivo {
+        color: #16a085;
+    }
+    .texto-negativo {
+        color: #c0392b;
+    }
+
+    @media print {
+        .modern-card:first-of-type,
+        button[onclick*="print"],
+        .bt-primary {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .list-container {
+            box-shadow: none !important;
+        }
+
+        .modern-table {
+            page-break-inside: avoid;
+        }
+    }
+</style>
+{% endblock %}

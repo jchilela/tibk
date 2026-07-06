@@ -106,7 +106,22 @@
     </div>
     {% endif %}
 
-    {% if perms.sitetibl.view_saidacaixa %}
+    {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entrada or perms.sitetibl.view_saida %}
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--success-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            📊
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Balanço Financeiro</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Saldos semanais, mensais,
+            trimestrais e anuais de dízimos, ofertas e movimento geral</p>
+        <a href="{% url 'sitetibl:balanco_financeiro' %}" class="bt-primary" style="font-size: 0.85rem;">
+            <i class="fas fa-chart-line"></i> Ver Balanço
+        </a>
+    </div>
+    {% endif %}
+
+    {% if perms.sitetibl.view_saida %}
     <div class="modern-card" style="text-align: center; padding: 2rem;">
         <div
             style="width: 56px; height: 56px; background: var(--danger-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">

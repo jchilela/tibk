@@ -72,8 +72,8 @@ class Command(BaseCommand):
         ], crud)
         pastor_perms |= self._perms_for(app, ['departamento'], ['view', 'change'])
         pastor_perms |= self._perms_for(app, [
-            'sitio', 'dizimooferta', 'entradabanco', 'saidabanco',
-            'entradacaixa', 'saidacaixa', 'banco', 'contabancaria',
+            'sitio', 'dizimooferta', 'entrada', 'saida',
+            'banco', 'contabancaria',
             'orcamentodepartamento', 'inventariopatrimonio',
             'cestabasica', 'pagamentoservico',
         ], ['view'])
@@ -82,8 +82,8 @@ class Command(BaseCommand):
 
         fin_grp = Group.objects.get(name='Financeiro')
         fin_perms = self._perms_for(app, [
-            'dizimooferta', 'entradabanco', 'saidabanco',
-            'entradacaixa', 'saidacaixa', 'contabancaria', 'banco',
+            'dizimooferta', 'entrada', 'saida',
+            'contabancaria', 'banco',
             'pedidosaida', 'orcamentodepartamento', 'pagamentoservico',
         ], crud)
         fin_perms |= self._perms_for(app, [
@@ -101,7 +101,7 @@ class Command(BaseCommand):
             'inventariopatrimonio', 'cestabasica', 'ajuda',
         ], crud)
         sec_perms |= self._perms_for(app, [
-            'dizimooferta', 'entradabanco', 'entradacaixa', 'pedidosaida',
+            'dizimooferta', 'entrada', 'pedidosaida',
         ], ['view'])
         sec_grp.permissions.set(sec_perms)
         self.stdout.write(f'Secretaria: {sec_perms.count()} permissoes atribuidas')

@@ -19,10 +19,8 @@ from sitetibl.models import Escala
 from sitetibl.models import Profissao
 from sitetibl.models import Rubricaentrada
 from sitetibl.models import Rubricasaida
-from sitetibl.models import Saidacaixa
-from sitetibl.models import Saidabanco
-from sitetibl.models import Entradacaixa
-from sitetibl.models import Entradabanco
+from sitetibl.models import Entrada
+from sitetibl.models import Saida
 from sitetibl.models import Dizimooferta
 from sitetibl.models import Pagamentoservico
 from sitetibl.models import Gruporubrica
@@ -76,10 +74,8 @@ admin.site.register(Escala)
 admin.site.register(Profissao)
 admin.site.register(Rubricaentrada)
 admin.site.register(Rubricasaida)
-admin.site.register(Saidacaixa)
-admin.site.register(Saidabanco)
-admin.site.register(Entradacaixa)
-admin.site.register(Entradabanco)
+admin.site.register(Entrada)
+admin.site.register(Saida)
 admin.site.register(Dizimooferta)
 admin.site.register(Pagamentoservico)
 admin.site.register(Gruporubrica)

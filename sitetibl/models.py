@@ -321,25 +321,31 @@ class Contabancaria(models.Model):
      # ✅ saldo dinâmico
      def saldo_actual(self):
 
-        entradas = Entradabanco.objects.filter(
-            contaaacreditar=self
+        entradas = Entrada.objects.filter(
+            tipo='banco', contaaacreditar=self
         ).aggregate(
             total=Coalesce(Sum('valor'), 0, output_field=DecimalField())
         )['total']
 
-        saidas = Saidabanco.objects.filter(
-            conta=self
+        saidas = Saida.objects.filter(
+            tipo='banco', conta=self
         ).aggregate(
             total=Coalesce(Sum('valor'), 0, output_field=DecimalField())
         )['total']
 
-        transferencias_saida = Entradabanco.objects.filter(
-            contaorigem=self
+        transferencias_saida = Entrada.objects.filter(
+            tipo='banco', contaorigem=self
         ).aggregate(
             total=Coalesce(Sum('valor'), 0, output_field=DecimalField())
         )['total']
 
-        return self.saldo + entradas - saidas - transferencias_saida
+        transferencias_entrada = Saida.objects.filter(
+            tipo='banco', contaaacreditar=self
+        ).aggregate(
+            total=Coalesce(Sum('valor'), 0, output_field=DecimalField())
+        )['total']
+
+        return self.saldo + entradas - saidas - transferencias_saida + transferencias_entrada
 
      def __str__(self):
         return self.numeroconta
@@ -463,111 +469,82 @@ class Servico(models.Model):
      class Admin:
          pass
 
-class Entradacaixa(models.Model):
-    valor = models.DecimalField(max_digits = 11, decimal_places = 2)
-    moeda = models.CharField(max_length=50, choices = MOEDA, default = "AKZ")
-    data = models.DateField()
-    hora = models.TimeField()
-    responsavel = models.ForeignKey(Irmao, on_delete = models.CASCADE)
-    rubrica = models.ForeignKey(Rubricaentrada, on_delete = models.CASCADE)
-    observacao = models.TextField("Observação", blank = True)
-    def __str__(self):
-        return '%s %s' % (self.valor, self.data)
-    class Admin:
-        pass
+TIPO_MOVIMENTO = (('caixa', 'Caixa'), ('banco', 'Banco'),)
 
-class Saidacaixa(models.Model):
-    valor = models.DecimalField(max_digits = 11, decimal_places = 2)
-    moeda = models.CharField(max_length=50, choices = MOEDA, default = "AKZ")
-    data = models.DateField(default = datetime.today)
-    hora = models.TimeField(default = timezone.now)
-    responsavel = models.ForeignKey(Irmao, on_delete = models.CASCADE)
-    rubrica = models.ForeignKey(Rubricasaida, on_delete = models.CASCADE)
-    datacontrolo = models.DateField( auto_now = True)
-    observacao = models.TextField("Observação", blank = True)
-    def __str__(self):
-        return '%s %s' % (self.valor, self.data)
-    class Admin:
-        pass
-
-class Entradabanco(models.Model):
-    contaaacreditar = models.ForeignKey(Contabancaria, on_delete = models.CASCADE,  blank = True, null = True)
-    valor = models.DecimalField(max_digits = 11, decimal_places = 2)
-    moeda = models.CharField(max_length=50, choices = MOEDA, default = "AKZ")
-    data = models.DateField(default = datetime.today)
-    hora = models.TimeField(default = timezone.now)
-    via = models.CharField(max_length = 200, choices = VIA)
-    rubrica = models.ForeignKey(Rubricaentrada, on_delete = models.CASCADE)
-    contaorigem = models.ForeignKey(Contabancaria, related_name = 'contadeprovinencia', on_delete = models.CASCADE, blank = True, null = True)
-    responsavel = models.ForeignKey(Irmao, on_delete = models.CASCADE)
-    datacontrolo = models.DateField( auto_now = True)
-    observacao = models.TextField("Observação", blank = True)
+class Entrada(models.Model):
+    tipo = models.CharField('Tipo', max_length=10, choices=TIPO_MOVIMENTO, default='caixa')
+    valor = models.DecimalField(max_digits=11, decimal_places=2)
+    moeda = models.CharField(max_length=50, choices=MOEDA, default="AKZ")
+    data = models.DateField(default=datetime.today)
+    hora = models.TimeField(default=timezone.now)
+    rubrica = models.ForeignKey(Rubricaentrada, on_delete=models.CASCADE)
+    responsavel = models.ForeignKey(Irmao, on_delete=models.CASCADE)
+    observacao = models.TextField("Observação", blank=True)
+    datacontrolo = models.DateField(auto_now=True)
+    # Campos exclusivos para banco (opcionais quando tipo=caixa)
+    contaaacreditar = models.ForeignKey(Contabancaria, verbose_name='Conta a creditar', on_delete=models.CASCADE, blank=True, null=True)
+    via = models.CharField('Via', max_length=200, choices=VIA, blank=True)
+    contaorigem = models.ForeignKey(Contabancaria, related_name='entradas_origem', verbose_name='Conta origem (transferência)', on_delete=models.CASCADE, blank=True, null=True)
 
     def clean(self):
-
-        # valida apenas se for transferência
-        if self.contaorigem:
-
-            saldo_origem = self.contaorigem.saldo_actual()
-
-            if self.valor > saldo_origem:
-                raise ValidationError(
-                    {"valor": f"Saldo insuficiente na conta origem ({saldo_origem})"}
-                )
-
-            if self.contaorigem == self.contaaacreditar:
-                raise ValidationError(
-                    "Conta origem não pode ser igual à conta destino."
-                )
+        if self.tipo == 'banco':
+            if not self.contaaacreditar:
+                raise ValidationError({"contaaacreditar": "Conta bancária é obrigatória para entradas de banco."})
+            if self.contaorigem:
+                saldo_origem = self.contaorigem.saldo_actual()
+                if self.valor > saldo_origem:
+                    raise ValidationError({"valor": f"Saldo insuficiente na conta origem ({saldo_origem})"})
+                if self.contaorigem == self.contaaacreditar:
+                    raise ValidationError("Conta origem não pode ser igual à conta destino.")
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return '%s %s %s' % (self.valor, self.contaaacreditar, self.data)
+        return '%s %s %s' % (self.valor, self.get_tipo_display(), self.data)
     class Admin:
         pass
 
-class Saidabanco(models.Model):
-    conta = models.ForeignKey(Contabancaria, on_delete = models.CASCADE)
-    valor = models.DecimalField(max_digits = 11, decimal_places = 2)
-    moeda = models.CharField(max_length=50, choices = MOEDA, default = "AKZ")
-    data = models.DateField(default = datetime.today)
-    hora = models.TimeField(default = timezone.now)
-    rubrica = models.ForeignKey(Rubricaentrada, on_delete = models.CASCADE)
-    responsavel = models.ForeignKey(Irmao, on_delete = models.CASCADE)
-    contaaacreditar = models.ForeignKey(Contabancaria, related_name = 'contadestino', blank = True, null = True, on_delete = models.CASCADE)
-    datacontrolo = models.DateField( auto_now = True)
-    observacao = models.TextField("Observação", blank = True)
+class Saida(models.Model):
+    tipo = models.CharField('Tipo', max_length=10, choices=TIPO_MOVIMENTO, default='caixa')
+    valor = models.DecimalField(max_digits=11, decimal_places=2)
+    moeda = models.CharField(max_length=50, choices=MOEDA, default="AKZ")
+    data = models.DateField(default=datetime.today)
+    hora = models.TimeField(default=timezone.now)
+    rubrica = models.ForeignKey(Rubricasaida, on_delete=models.CASCADE)
+    responsavel = models.ForeignKey(Irmao, on_delete=models.CASCADE)
+    observacao = models.TextField("Observação", blank=True)
+    datacontrolo = models.DateField(auto_now=True)
+    # Campos exclusivos para banco (opcionais quando tipo=caixa)
+    conta = models.ForeignKey(Contabancaria, verbose_name='Conta', on_delete=models.CASCADE, blank=True, null=True)
+    contaaacreditar = models.ForeignKey(Contabancaria, related_name='saidas_destino', verbose_name='Conta a creditar (transferência)', on_delete=models.CASCADE, blank=True, null=True)
 
     def clean(self):
-
-        saldo = self.conta.saldo_actual()
-
-        # quando editar registo existente
-        if self.pk:
-            anterior = Saidabanco.objects.get(pk=self.pk)
-            saldo += anterior.valor
-
-        if self.valor > saldo:
-            raise ValidationError(
-                {"valor": f"Saldo insuficiente. Saldo actual: {saldo}"}
-            )
+        if self.tipo == 'banco':
+            if not self.conta:
+                raise ValidationError({"conta": "Conta bancária é obrigatória para saídas de banco."})
+            if self.contaaacreditar and self.contaaacreditar == self.conta:
+                raise ValidationError("Conta a creditar não pode ser igual à conta de origem.")
+            saldo = self.conta.saldo_actual()
+            if self.pk:
+                anterior = Saida.objects.get(pk=self.pk)
+                saldo += anterior.valor
+            if self.valor > saldo:
+                raise ValidationError({"valor": f"Saldo insuficiente. Saldo actual: {saldo}"})
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return '%s %s %s' % (self.valor, self.conta, self.data)
+        return '%s %s %s' % (self.valor, self.get_tipo_display(), self.data)
     class Admin:
         pass
 
 class Cestabasica(models.Model):
     codigo = models.DateField(unique = True)
-    saiudobanco = models.ForeignKey(Saidabanco, verbose_name='Saiu do banco', blank = True, null = True, on_delete = models.CASCADE)
-    saiudacaixa = models.ForeignKey(Saidacaixa, verbose_name='Saiu da caixa', blank = True, null = True, on_delete = models.CASCADE)
+    saida = models.ForeignKey('Saida', verbose_name='Saída', blank=True, null=True, on_delete=models.CASCADE)
     Datadisponvalor = models.DateField('Valor diponiblizado aos',blank = True, null = True)
     observacao = models.TextField('Observação', blank = True)
     def __str__(self):
@@ -594,14 +571,10 @@ class Dizimooferta(models.Model):
     actividade = models.ForeignKey(Actividade, on_delete = models.CASCADE, blank = True, null = True)
     datacontrolo = models.DateField( auto_now = True)
     dataregisto = models.DateField(default = datetime.today)
-    entradabanco = models.ForeignKey(Entradabanco, blank = True, null = True, on_delete = models.CASCADE)
-    entradacaixa = models.ForeignKey(Entradacaixa, blank = True, null = True, on_delete = models.CASCADE)
+    entrada = models.ForeignKey(Entrada, blank=True, null=True, on_delete=models.CASCADE)
 
     def clean(self):
-        if self.entradabanco and self.entradacaixa:
-            raise ValidationError(
-                "O dízimo/oferta só pode estar vinculado ao banco ou à caixa, nunca aos dois."
-            )
+        pass
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -626,8 +599,7 @@ class Ajuda(models.Model):
      valor = models.DecimalField('Valor[AKZ]', max_digits = 11, decimal_places = 2, default =0)
      cesta = models.ForeignKey(Cestabasica, on_delete = models.CASCADE, blank = True, null = True)
      data = models.DateField()
-     saiudobanco = models.ForeignKey(Saidabanco, verbose_name='Saiu do banco', blank = True, null = True, on_delete = models.CASCADE)
-     saiudacaixa = models.ForeignKey(Saidacaixa, verbose_name='Saiu da caixa', blank = True, null = True, on_delete = models.CASCADE)
+     saida = models.ForeignKey('Saida', verbose_name='Saída', blank=True, null=True, on_delete=models.CASCADE)
      observacao = models.TextField('Observação', blank = True, null = True)
      def __str__(self):
          return '%s %s' % (self.beneficiario, self.patrocinador)
@@ -640,8 +612,7 @@ class Pagamentoservico(models.Model):
     moeda = models.CharField(max_length=50, choices = MOEDA, default = "AKZ")
     data = models.DateField(default = datetime.today)
     responsavel = models.ForeignKey(Irmao, on_delete = models.CASCADE)
-    saiudobanco = models.ForeignKey(Saidabanco, verbose_name='Saiu do banco', blank = True, null = True, on_delete = models.CASCADE)
-    saiudacaixa = models.ForeignKey(Saidacaixa, verbose_name='Saiu da caixa', blank = True, null = True, on_delete = models.CASCADE)
+    saida = models.ForeignKey('Saida', verbose_name='Saída', blank=True, null=True, on_delete=models.CASCADE)
     def __str__(self):
         return '%s %s %s' % (self.servico, self.valor, self.data)
     class Admin:

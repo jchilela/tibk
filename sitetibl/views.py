@@ -67,10 +67,8 @@ from sitetibl.models import Mandato
 from sitetibl.models import Escala
 from sitetibl.models import Rubricaentrada
 from sitetibl.models import Rubricasaida
-from sitetibl.models import Saidacaixa
-from sitetibl.models import Saidabanco
-from sitetibl.models import Entradacaixa
-from sitetibl.models import Entradabanco
+from sitetibl.models import Entrada
+from sitetibl.models import Saida
 from sitetibl.models import Dizimooferta
 from sitetibl.models import Pagamentoservico
 from sitetibl.models import Gruporubrica
@@ -105,10 +103,8 @@ from sitetibl.forms import ActividadeForm
 from sitetibl.forms import DepartamentoForm
 from sitetibl.forms import MandatoForm
 from sitetibl.forms import EscalaForm
-from sitetibl.forms import SaidacaixaForm
-from sitetibl.forms import SaidabancoForm
-from sitetibl.forms import EntradacaixaForm
-from sitetibl.forms import EntradabancoForm
+from sitetibl.forms import EntradaForm
+from sitetibl.forms import SaidaForm
 from sitetibl.forms import DizimoofertaForm
 from sitetibl.forms import PagamentoservicoForm
 from sitetibl.forms import GruporubricaForm
@@ -440,6 +436,15 @@ def index(request):
 
 @login_required
 def mostraGestao(request,gestaoescolhida,pagina):
+    LEGACY_GESTAO_MAP = {
+        'entradabancos': 'entradas',
+        'saidabancos': 'saidas',
+        'entradascaixa': 'entradas',
+        'saidascaixa': 'saidas',
+    }
+    if gestaoescolhida in LEGACY_GESTAO_MAP:
+        return redirect('sitetibl:mostra_gestao', gestaoescolhida=LEGACY_GESTAO_MAP[gestaoescolhida], pagina=pagina)
+
     if gestaoescolhida == 'irmaos' and not request.user.has_perm('sitetibl.change_irmao'):
         messages.error(request, 'Acesso negado! Não tem permissão para consultar a gestão de irmãos.')
         return redirect('index')
@@ -448,15 +453,13 @@ def mostraGestao(request,gestaoescolhida,pagina):
              'mandatos': Mandato.objects.select_related('irmao', 'departamento'), 
              'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'), 
              'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'), 
-             'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'), 
+             'cestas': Cestabasica.objects.select_related('saida'), 
              'bancos': Banco.objects, 
              'contasbancarias' : Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'), 
              'actividades' : Actividade.objects.select_related('designacao', 'localactividade').filter(parent_event__isnull=True), 
              'departamentos' : Departamento.objects.select_related('lider_departamento', 'vice_lider_departamento'),
-             'entradabancos' : Entradabanco.objects.select_related('contaaacreditar', 'rubrica', 'responsavel'), 
-             'saidabancos' : Saidabanco.objects.select_related('conta', 'rubrica', 'responsavel'), 
-             'entradascaixa' : Entradacaixa.objects.select_related('responsavel', 'rubrica'), 
-             'saidascaixa' : Saidacaixa.objects.select_related('responsavel', 'rubrica'), 
+             'entradas' : Entrada.objects.select_related('rubrica', 'responsavel', 'contaaacreditar'), 
+             'saidas' : Saida.objects.select_related('rubrica', 'responsavel', 'conta'), 
              'dizimosofertas' : Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade'),
              'relatoriosemanalcelula' : RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel'), 
              'pedidosaida' : PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador'),
@@ -596,7 +599,7 @@ def mostraGestao(request,gestaoescolhida,pagina):
             'filtro_ibanv': request.GET.get('ibanv', ''),
             'filtro_moedav': request.GET.get('moedav', ''),
         }
-    elif (gestaoescolhida == 'entradascaixa') or (gestaoescolhida == 'saidascaixa') or (gestaoescolhida == 'entradabancos') or (gestaoescolhida == 'saidabancos'):
+    elif (gestaoescolhida == 'entradas') or (gestaoescolhida == 'saidas'):
         context = { 'bb':paginaresultado, 'listarubricasentrada' : Rubricaentrada.objects.values('id', 'designacao'), 'listarubricassaida' : Rubricasaida.objects.values('id', 'designacao'), 'listameses' : MESES, 'listacontasigreja' : Contabancaria.objects.values('id','numeroconta','instituicao_id').filter(instituicao_id=1) }
     elif gestaoescolhida == 'irmaos':
         context = {
@@ -684,6 +687,15 @@ def mostraGestao(request,gestaoescolhida,pagina):
 
 @login_required
 def mostraActualizacao(request, gestaoescolhida, id):
+    LEGACY_GESTAO_MAP = {
+        'entradabancos': 'entradas',
+        'saidabancos': 'saidas',
+        'entradascaixa': 'entradas',
+        'saidascaixa': 'saidas',
+    }
+    if gestaoescolhida in LEGACY_GESTAO_MAP:
+        return redirect('sitetibl:mostra_actualizacao', gestaoescolhida=LEGACY_GESTAO_MAP[gestaoescolhida], id=id)
+
     lista = {'escalas' : Escala, 
              'mandatos': Mandato, 
              'irmaos':Irmao, 
@@ -693,10 +705,8 @@ def mostraActualizacao(request, gestaoescolhida, id):
              'contasbancarias' : Contabancaria, 
              'actividades' : Actividade, 
              'departamentos' : Departamento, 
-             'entradabancos' : Entradabanco, 
-             'saidabancos' : Saidabanco, 
-             'entradascaixa' : Entradacaixa, 
-             'saidascaixa' : Saidacaixa, 
+             'entradas' : Entrada, 
+             'saidas' : Saida, 
              'dizimosofertas' : Dizimooferta,
              'relatoriosemanalcelula' : RelatorioSemanalCelula, 
              'pedidosaida' : PedidoSaida,
@@ -718,10 +728,8 @@ def mostraActualizacao(request, gestaoescolhida, id):
                         'contasbancarias' : ContabancariaForm, 
                         'actividades' : ActividadeForm, 
                         'departamentos' : DepartamentoForm, 
-                        'entradabancos' : EntradabancoForm, 
-                        'saidabancos' : SaidabancoForm, 
-                        'entradascaixa' : EntradacaixaForm, 
-                        'saidascaixa' : SaidacaixaForm, 
+                        'entradas' : EntradaForm, 
+                        'saidas' : SaidaForm, 
                         'dizimosofertas' : DizimoofertaForm, 
                         'relatoriosemanalcelula' : RelatorioSemanalCelulaForm,
                         'pedidosaida' : PedidoSaidaUpdateForm,
@@ -822,8 +830,16 @@ def mostraActualizacao(request, gestaoescolhida, id):
             })
 
 @login_required
-@login_required
 def mostraDetalhe(request, gestaoescolhida, identificador):
+    LEGACY_GESTAO_MAP = {
+        'entradabancos': 'entradas',
+        'saidabancos': 'saidas',
+        'entradascaixa': 'entradas',
+        'saidascaixa': 'saidas',
+    }
+    if gestaoescolhida in LEGACY_GESTAO_MAP:
+        return redirect('sitetibl:mostra_detalhe', gestaoescolhida=LEGACY_GESTAO_MAP[gestaoescolhida], identificador=identificador)
+
     if gestaoescolhida == 'irmaos' and not request.user.has_perm('sitetibl.change_irmao'):
         messages.error(request, 'Acesso negado! Não tem permissão para consultar detalhes de irmãos.')
         return redirect('index')
@@ -831,15 +847,13 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
     lista_qs = {
         'irmaos': Irmao.objects.select_related('celula', 'localcongregacao', 'provincia', 'municipio'),
         'ajudas': Ajuda.objects.select_related('beneficiario', 'patrocinador', 'cesta'),
-        'cestas': Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa'),
+        'cestas': Cestabasica.objects.select_related('saida'),
         'bancos': Banco.objects,
         'contasbancarias': Contabancaria.objects.select_related('banco', 'proprietario', 'instituicao'),
         'actividades': Actividade.objects.select_related('designacao', 'localactividade'),
         'departamentos': Departamento.objects.select_related('lider_departamento', 'vice_lider_departamento'),
-        'entradabancos': Entradabanco.objects.select_related('contaaacreditar', 'rubrica', 'responsavel'),
-        'saidabancos': Saidabanco.objects.select_related('conta', 'rubrica', 'responsavel'),
-        'entradascaixa': Entradacaixa.objects.select_related('responsavel', 'rubrica'),
-        'saidascaixa': Saidacaixa.objects.select_related('responsavel', 'rubrica'),
+        'entradas': Entrada.objects.select_related('rubrica', 'responsavel', 'contaaacreditar'),
+        'saidas': Saida.objects.select_related('rubrica', 'responsavel', 'conta'),
         'dizimosofertas': Dizimooferta.objects.select_related('irmao', 'tipooferta', 'actividade'),
         'relatoriosemanalcelula': RelatorioSemanalCelula.objects.select_related('nome_celula', 'lider_responsavel'),
         'pedidosaida': PedidoSaida.objects.select_related('departamento', 'requerente', 'status_de_aprovacao', 'aprovador'),
@@ -1050,15 +1064,15 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
         }
     elif gestaoescolhida == 'contasbancarias':
         entradas_conta = (
-            Entradabanco.objects
+            Entrada.objects
             .select_related('rubrica', 'responsavel', 'contaorigem')
-            .filter(contaaacreditar_id=identificador)
+            .filter(tipo='banco', contaaacreditar_id=identificador)
             .order_by('-data', '-hora')
         )
         saidas_conta = (
-            Saidabanco.objects
+            Saida.objects
             .select_related('rubrica', 'responsavel', 'contaaacreditar')
-            .filter(conta_id=identificador)
+            .filter(tipo='banco', conta_id=identificador)
             .order_by('-data', '-hora')
         )
         total_entradas = entradas_conta.aggregate(total=Sum('valor')).get('total') or 0
@@ -1081,15 +1095,15 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             .order_by('numeroconta')
         )
         entradas_banco = (
-            Entradabanco.objects
+            Entrada.objects
             .select_related('contaaacreditar', 'rubrica')
-            .filter(contaaacreditar__banco_id=identificador)
+            .filter(tipo='banco', contaaacreditar__banco_id=identificador)
             .order_by('-data', '-hora')[:6]
         )
         saidas_banco = (
-            Saidabanco.objects
+            Saida.objects
             .select_related('conta', 'rubrica')
-            .filter(conta__banco_id=identificador)
+            .filter(tipo='banco', conta__banco_id=identificador)
             .order_by('-data', '-hora')[:6]
         )
         total_contas = contas_banco.count()
@@ -1104,70 +1118,38 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'total_contas_banco': total_contas,
             'total_saldo_banco': total_saldo_banco,
         }
-    elif gestaoescolhida == 'entradabancos':
-        conta_destino_id = registo.contaaacreditar_id
-        entradas_relacionadas = Entradabanco.objects.none()
-        saidas_relacionadas = Saidabanco.objects.none()
-        if conta_destino_id:
+    elif gestaoescolhida == 'entradas':
+        if registo.tipo == 'banco' and registo.contaaacreditar_id:
+            conta_destino_id = registo.contaaacreditar_id
             entradas_relacionadas = (
-                Entradabanco.objects
+                Entrada.objects
                 .select_related('rubrica')
-                .filter(contaaacreditar_id=conta_destino_id)
+                .filter(tipo='banco', contaaacreditar_id=conta_destino_id)
                 .exclude(id=identificador)
                 .order_by('-data', '-hora')[:6]
             )
             saidas_relacionadas = (
-                Saidabanco.objects
+                Saida.objects
                 .select_related('rubrica')
-                .filter(conta_id=conta_destino_id)
+                .filter(tipo='banco', conta_id=conta_destino_id)
                 .order_by('-data', '-hora')[:6]
             )
-        context = {
-            'registoachado': registoachado,
-            'gestaoescolhida': gestaoescolhida,
-            'entradas_relacionadas': entradas_relacionadas,
-            'saidas_relacionadas': saidas_relacionadas,
-        }
-    elif gestaoescolhida == 'saidabancos':
-        conta_origem_id = registo.conta_id
-        entradas_relacionadas = Entradabanco.objects.none()
-        saidas_relacionadas = Saidabanco.objects.none()
-        if conta_origem_id:
+        else:
             entradas_relacionadas = (
-                Entradabanco.objects
-                .select_related('rubrica')
-                .filter(contaaacreditar_id=conta_origem_id)
-                .order_by('-data', '-hora')[:6]
-            )
-            saidas_relacionadas = (
-                Saidabanco.objects
-                .select_related('rubrica')
-                .filter(conta_id=conta_origem_id)
+                Entrada.objects
+                .select_related('rubrica', 'responsavel')
+                .filter(tipo='caixa', rubrica_id=registo.rubrica_id)
                 .exclude(id=identificador)
                 .order_by('-data', '-hora')[:6]
             )
-        context = {
-            'registoachado': registoachado,
-            'gestaoescolhida': gestaoescolhida,
-            'entradas_relacionadas': entradas_relacionadas,
-            'saidas_relacionadas': saidas_relacionadas,
-        }
-    elif gestaoescolhida == 'entradascaixa':
-        entradas_relacionadas = (
-            Entradacaixa.objects
-            .select_related('rubrica', 'responsavel')
-            .filter(rubrica_id=registo.rubrica_id)
-            .exclude(id=identificador)
-            .order_by('-data', '-hora')[:6]
-        )
-        saidas_relacionadas = (
-            Saidacaixa.objects
-            .select_related('rubrica', 'responsavel')
-            .filter(responsavel_id=registo.responsavel_id)
-            .order_by('-data', '-hora')[:6]
-        )
+            saidas_relacionadas = (
+                Saida.objects
+                .select_related('rubrica', 'responsavel')
+                .filter(tipo='caixa', responsavel_id=registo.responsavel_id)
+                .order_by('-data', '-hora')[:6]
+            )
         total_entradas_rubrica = (
-            Entradacaixa.objects
+            Entrada.objects
             .filter(rubrica_id=registo.rubrica_id)
             .aggregate(total=Sum('valor'))
             .get('total') or 0
@@ -1179,22 +1161,38 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'saidas_relacionadas': saidas_relacionadas,
             'total_entradas_rubrica': total_entradas_rubrica,
         }
-    elif gestaoescolhida == 'saidascaixa':
-        saidas_relacionadas = (
-            Saidacaixa.objects
-            .select_related('rubrica', 'responsavel')
-            .filter(rubrica_id=registo.rubrica_id)
-            .exclude(id=identificador)
-            .order_by('-data', '-hora')[:6]
-        )
-        entradas_relacionadas = (
-            Entradacaixa.objects
-            .select_related('rubrica', 'responsavel')
-            .filter(responsavel_id=registo.responsavel_id)
-            .order_by('-data', '-hora')[:6]
-        )
+    elif gestaoescolhida == 'saidas':
+        if registo.tipo == 'banco' and registo.conta_id:
+            conta_origem_id = registo.conta_id
+            entradas_relacionadas = (
+                Entrada.objects
+                .select_related('rubrica')
+                .filter(tipo='banco', contaaacreditar_id=conta_origem_id)
+                .order_by('-data', '-hora')[:6]
+            )
+            saidas_relacionadas = (
+                Saida.objects
+                .select_related('rubrica')
+                .filter(tipo='banco', conta_id=conta_origem_id)
+                .exclude(id=identificador)
+                .order_by('-data', '-hora')[:6]
+            )
+        else:
+            saidas_relacionadas = (
+                Saida.objects
+                .select_related('rubrica', 'responsavel')
+                .filter(tipo='caixa', rubrica_id=registo.rubrica_id)
+                .exclude(id=identificador)
+                .order_by('-data', '-hora')[:6]
+            )
+            entradas_relacionadas = (
+                Entrada.objects
+                .select_related('rubrica', 'responsavel')
+                .filter(tipo='caixa', responsavel_id=registo.responsavel_id)
+                .order_by('-data', '-hora')[:6]
+            )
         total_saidas_rubrica = (
-            Saidacaixa.objects
+            Saida.objects
             .filter(rubrica_id=registo.rubrica_id)
             .aggregate(total=Sum('valor'))
             .get('total') or 0
@@ -1561,6 +1559,15 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
 
 @login_required
 def mostraEliminacao(request, gestaoescolhida, id):
+    LEGACY_GESTAO_MAP = {
+        'entradabancos': 'entradas',
+        'saidabancos': 'saidas',
+        'entradascaixa': 'entradas',
+        'saidascaixa': 'saidas',
+    }
+    if gestaoescolhida in LEGACY_GESTAO_MAP:
+        return redirect('sitetibl:mostra_eliminacao', gestaoescolhida=LEGACY_GESTAO_MAP[gestaoescolhida], id=id)
+
     lista = {'irmaos':Irmao, 
              'ajudas':Ajuda, 
              'cestas': Cestabasica, 
@@ -1568,10 +1575,8 @@ def mostraEliminacao(request, gestaoescolhida, id):
              'contasbancarias' : Contabancaria, 
              'actividades' : Actividade, 
              'departamentos' : Departamento, 
-             'entradabancos' : Entradabanco, 
-             'saidabancos' : Saidabanco, 
-             'entradascaixa' : Entradacaixa, 
-             'saidascaixa' : Saidacaixa, 
+             'entradas' : Entrada, 
+             'saidas' : Saida, 
              'dizimosofertas' : Dizimooferta,
              'relatoriosemanalcelula' : RelatorioSemanalCelula, 
              'pedidosaida' : PedidoSaida,
@@ -1635,6 +1640,15 @@ def mostraEliminacao(request, gestaoescolhida, id):
 
 @login_required
 def mostraCriacao(request, gestaoescolhida):
+    LEGACY_GESTAO_MAP = {
+        'entradabancos': 'entradas',
+        'saidabancos': 'saidas',
+        'entradascaixa': 'entradas',
+        'saidascaixa': 'saidas',
+    }
+    if gestaoescolhida in LEGACY_GESTAO_MAP:
+        return redirect('sitetibl:mostra_criacao', gestaoescolhida=LEGACY_GESTAO_MAP[gestaoescolhida])
+
     listaformularios = {'escalas' : EscalaForm, 
                         'mandatos': MandatoForm, 
                         'irmaos':IrmaoForm, 
@@ -1644,10 +1658,8 @@ def mostraCriacao(request, gestaoescolhida):
                         'contasbancarias' : ContabancariaForm, 
                         'actividades' : ActividadeForm, 
                         'departamentos' : DepartamentoForm, 
-                        'entradabancos' : EntradabancoForm, 
-                        'saidabancos' : SaidabancoForm, 
-                        'entradascaixa' : EntradacaixaForm, 
-                        'saidascaixa' : SaidacaixaForm, 
+                        'entradas' : EntradaForm, 
+                        'saidas' : SaidaForm, 
                         'dizimosofertas' : DizimoofertaForm,
                         'relatoriosemanalcelula' : RelatorioSemanalCelulaForm, 
                         'pedidosaida':PedidoSaidaForm,
@@ -2238,6 +2250,46 @@ def relatorioofertasportipo_pdf(request):
 
 
 @login_required
+def balanco_financeiro(request):
+    from django.core.exceptions import PermissionDenied
+    from .financeiro_utils import build_balanco_financeiro
+
+    if not (
+        request.user.has_perm('sitetibl.view_dizimooferta')
+        or request.user.has_perm('sitetibl.view_entrada')
+        or request.user.has_perm('sitetibl.view_saida')
+    ):
+        raise PermissionDenied
+
+    context = build_balanco_financeiro(request.GET)
+    return render(request, 'balancofinanceiro.html', context)
+
+
+@login_required
+def balanco_financeiro_excel(request):
+    from django.core.exceptions import PermissionDenied
+    from .financeiro_utils import build_balanco_financeiro, gerar_excel_balanco_financeiro
+
+    if not (
+        request.user.has_perm('sitetibl.view_dizimooferta')
+        or request.user.has_perm('sitetibl.view_entrada')
+        or request.user.has_perm('sitetibl.view_saida')
+    ):
+        raise PermissionDenied
+
+    context = build_balanco_financeiro(request.GET)
+    buffer = gerar_excel_balanco_financeiro(context)
+
+    response = HttpResponse(
+        buffer.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    nome_ficheiro = f"balanco_financeiro_{context['periodo']}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{nome_ficheiro}"'
+    return response
+
+
+@login_required
 def cartao_protocolo_pdf(request, actividade_id):
     """Gera PDF com credenciais individuais — 2 por folha A4."""
     actividade = get_object_or_404(Actividade, id=actividade_id)
@@ -2679,7 +2731,7 @@ def encontraCestas(request):
         del kwargs['codigo__month']
     if (anov == '0'):
         del kwargs['codigo__year']
-    resultado = Cestabasica.objects.select_related('saiudobanco', 'saiudacaixa').filter(**kwargs)
+    resultado = Cestabasica.objects.select_related('saida').filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
     dd = dict(request.GET.lists())
@@ -2794,97 +2846,52 @@ def encontraDizimosofertas(request):
     return render(request,'dizimosofertasfiltradas.html', {'bb':paginaresultado})
 
 @login_required
-def encontraSaidascaixa(request):
-    rubricav = int(request.GET['rubricav'])
-    mesv= request.GET['mesv']
-    anov= request.GET['anov']
-    pagina= request.GET['pagina']
-    kwargs= {'rubrica' : rubricav, 'data__month':mesv, 'data__year' : anov}
-    if (mesv == '0'):
-        del kwargs['data__month']
-    if (anov == '0'):
-        del kwargs['data__year']
-    if (rubricav == 0):
-        del kwargs['rubrica']
-    resultado = Saidacaixa.objects.filter(**kwargs)
+def encontraEntradas(request):
+    tipov = request.GET.get('tipov', '').strip()
+    rubricav = int(request.GET.get('rubricav', 0))
+    mesv = request.GET.get('mesv', '0')
+    anov = request.GET.get('anov', '0')
+    pagina = request.GET.get('pagina', 1)
+    contabancariav = int(request.GET.get('contabancariav', 0))
+    kwargs = {}
+    if tipov:
+        kwargs['tipo'] = tipov
+    if rubricav:
+        kwargs['rubrica'] = rubricav
+    if mesv != '0':
+        kwargs['data__month'] = mesv
+    if anov != '0':
+        kwargs['data__year'] = anov
+    if contabancariav:
+        kwargs['contaaacreditar'] = contabancariav
+    resultado = Entrada.objects.filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
-    dd = dict(request.GET.lists())
-    del dd['pagina']
-    cc = request.META['QUERY_STRING']
-    return render(request,'saidascaixafiltradas.html', {'bb':paginaresultado})
+    return render(request, 'entradasfiltradas.html', {'bb': paginaresultado})
 
 @login_required
-def encontraEntradascaixa(request):
-    rubricav = int(request.GET['rubricav'])
-    mesv= request.GET['mesv']
-    anov= request.GET['anov']
-    pagina= request.GET['pagina']
-    kwargs= {'rubrica' : rubricav, 'data__month':mesv, 'data__year' : anov}
-    if (mesv == '0'):
-        del kwargs['data__month']
-    if (anov == '0'):
-        del kwargs['data__year']
-    if (rubricav == 0):
-        del kwargs['rubrica']
-    resultado = Entradacaixa.objects.filter(**kwargs)
+def encontraSaidas(request):
+    tipov = request.GET.get('tipov', '').strip()
+    rubricav = int(request.GET.get('rubricav', 0))
+    mesv = request.GET.get('mesv', '0')
+    anov = request.GET.get('anov', '0')
+    pagina = request.GET.get('pagina', 1)
+    contabancariav = int(request.GET.get('contabancariav', 0))
+    kwargs = {}
+    if tipov:
+        kwargs['tipo'] = tipov
+    if rubricav:
+        kwargs['rubrica'] = rubricav
+    if mesv != '0':
+        kwargs['data__month'] = mesv
+    if anov != '0':
+        kwargs['data__year'] = anov
+    if contabancariav:
+        kwargs['conta'] = contabancariav
+    resultado = Saida.objects.filter(**kwargs)
     paginador = Paginator(resultado, 20)
     paginaresultado = paginador.get_page(pagina)
-    dd = dict(request.GET.lists())
-    del dd['pagina']
-    cc = request.META['QUERY_STRING']
-    return render(request,'entradascaixafiltradas.html', {'bb':paginaresultado})
-
-@login_required
-def encontraSaidasbanco(request):
-    contabancariav = int(request.GET['contabancariav'])
-    rubricav = int(request.GET['rubricav'])
-    mesv= request.GET['mesv']
-    anov= request.GET['anov']
-    pagina= request.GET['pagina']
-    kwargs= {'conta' : contabancariav, 'aquisicao__rubrica_id' : rubricav, 'data__month' : mesv, 'data__year' : anov}
-    if (mesv == '0'):
-        del kwargs['data__month']
-    if (anov == '0'):
-        del kwargs['data__year']
-    if (rubricav == 0):
-        del kwargs['aquisicao__rubrica_id']
-    if (contabancariav == 0):
-        del kwargs['conta']
-    resultado = Saidabanco.objects.filter(**kwargs)
-    paginador = Paginator(resultado, 20)
-    paginaresultado = paginador.get_page(pagina)
-    dd = dict(request.GET.lists())
-    del dd['pagina']
-    cc = request.META['QUERY_STRING']
-    return render(request,'saidasbancofiltradas.html', {'bb':paginaresultado})
-
-@login_required
-def encontraEntradasbanco(request):
-    contabancariav = int(request.GET['contabancariav'])
-    rubricav = int(request.GET['rubricav'])
-    viav = request.GET.get('viav', '0')
-    mesv= request.GET['mesv']
-    anov= request.GET['anov']
-    pagina= request.GET['pagina']
-    kwargs= {'contaaacreditar':contabancariav, 'rubrica':rubricav, 'via':viav, 'data__month':mesv, 'data__year':anov}
-    if (mesv == '0'):
-        del kwargs['data__month']
-    if (anov == '0'):
-        del kwargs['data__year']
-    if (rubricav == 0):
-        del kwargs['rubrica']
-    if (viav == '0'):
-        del kwargs['via']
-    if (contabancariav == 0):
-        del kwargs['contaaacreditar']
-    resultado = Entradabanco.objects.filter(**kwargs)
-    paginador = Paginator(resultado, 20)
-    paginaresultado = paginador.get_page(pagina)
-    dd = dict(request.GET.lists())
-    del dd['pagina']
-    cc = request.META['QUERY_STRING']
-    return render(request,'entradasbancofiltradas.html', {'bb':paginaresultado})
+    return render(request, 'saidasfiltradas.html', {'bb': paginaresultado})
 
 
 @login_required
@@ -4002,7 +4009,7 @@ def relatorio_inventario_patrimonio_pdf(request):
 
 
 @login_required
-@permission_required('sitetibl.view_saidacaixa', raise_exception=True)
+@permission_required('sitetibl.view_saida', raise_exception=True)
 def relatorio_saida_caixa_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio_saida_caixa.pdf"'

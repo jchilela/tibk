@@ -11,8 +11,7 @@ from sitetibl.models import (
     Contabancaria,
     Departamento,
     Dizimooferta,
-    Entradabanco,
-    Entradacaixa,
+    Entrada,
     Irmao,
     Listaactividades,
     Mandato,
@@ -128,8 +127,8 @@ class Command(BaseCommand):
             'departamento',
         ], ['view', 'change'])
         pastor_perms |= self._perms_for(app, [
-            'sitio', 'dizimooferta', 'entradabanco', 'saidabanco',
-            'entradacaixa', 'saidacaixa', 'banco', 'contabancaria',
+            'sitio', 'dizimooferta', 'entrada', 'saida',
+            'banco', 'contabancaria',
             'orcamentodepartamento', 'inventariopatrimonio',
             'cestabasica', 'pagamentoservico',
         ], ['view'])
@@ -146,8 +145,8 @@ class Command(BaseCommand):
         # --- Financeiro: CRUD financeiro + view membros/actividades ---
         fin_grp = Group.objects.get(name='Financeiro')
         fin_perms = self._perms_for(app, [
-            'dizimooferta', 'entradabanco', 'saidabanco',
-            'entradacaixa', 'saidacaixa', 'contabancaria', 'banco',
+            'dizimooferta', 'entrada', 'saida',
+            'contabancaria', 'banco',
             'pedidosaida', 'orcamentodepartamento', 'pagamentoservico',
         ], crud)
         fin_perms |= self._perms_for(app, [
@@ -594,7 +593,8 @@ class Command(BaseCommand):
         )
 
         # Entradas financeiras
-        entrada_banco, _ = Entradabanco.objects.update_or_create(
+        entrada_banco, _ = Entrada.objects.update_or_create(
+            tipo='banco',
             contaaacreditar=conta_tibl,
             data=hoje - timedelta(days=6),
             valor=Decimal('185000.00'),
@@ -609,7 +609,8 @@ class Command(BaseCommand):
             },
         )
 
-        entrada_caixa, _ = Entradacaixa.objects.update_or_create(
+        entrada_caixa, _ = Entrada.objects.update_or_create(
+            tipo='caixa',
             data=hoje - timedelta(days=2),
             valor=Decimal('42000.00'),
             responsavel=irmaos['joao.silva'],
@@ -632,7 +633,7 @@ class Command(BaseCommand):
                 'valor': Decimal('120000.00'),
                 'moeda': 'AKZ',
                 'actividade': act_culto,
-                'entradabanco': entrada_banco,
+                'entrada': entrada_banco,
             },
         )
         Dizimooferta.objects.update_or_create(
@@ -643,7 +644,7 @@ class Command(BaseCommand):
                 'valor': Decimal('42000.00'),
                 'moeda': 'AKZ',
                 'actividade': None,
-                'entradacaixa': entrada_caixa,
+                'entrada': entrada_caixa,
             },
         )
 

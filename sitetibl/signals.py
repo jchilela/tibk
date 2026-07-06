@@ -8,7 +8,7 @@ from django.core.mail import get_connection
 from django.core.mail import EmailMultiAlternatives
 from django.utils.crypto import get_random_string
 
-from .models import Departamento, EnvioMensagem, Escala, Irmao, Mandato, PedidoSaida, Dizimooferta, Entradabanco, Entradacaixa, Actividade
+from .models import Departamento, EnvioMensagem, Escala, Irmao, Mandato, PedidoSaida, Dizimooferta, Entrada, Actividade
 from .sms import enviar_sms
 
 logger = logging.getLogger(__name__)
@@ -449,9 +449,9 @@ def notificar_irmao_escalado(sender, instance, created, **kwargs):
 
 
 # =========================================
-# �🔗 AUTO-LINK DIZIMOS COM ENTRADAS BANCARIAS
+# 🔗 AUTO-LINK DIZIMOS COM ENTRADAS (BANCO)
 # =========================================
-# Sentido: Entradabanco salva → vincula automaticamente Dizimooferta correspondente
+# Sentido: Entrada (tipo=banco) salva → vincula automaticamente Dizimooferta correspondente
 
 def tentar_vincular_banco_com_dizimos(entrada):
     """
@@ -468,30 +468,30 @@ def tentar_vincular_banco_com_dizimos(entrada):
             datacorrespondente=entrada.data,
             valor=entrada.valor,
             moeda=entrada.moeda,
-            entradabanco__isnull=True,
-            entradacaixa__isnull=True
+            entrada__isnull=True
         )
 
         for dizimo in dizimos:
-            Dizimooferta.objects.filter(pk=dizimo.pk).update(entradabanco=entrada)
+            Dizimooferta.objects.filter(pk=dizimo.pk).update(entrada=entrada)
             logger.info('Entrada Bancaria ID %s vinculada com Dizimo ID %s', entrada.id, dizimo.id)
     except Exception as e:
         logger.error('Erro ao vincular entrada bancaria ID %s: %s', entrada.id, e)
 
 
-@receiver(post_save, sender=Entradabanco)
-def auto_vincular_banco_com_dizimos(sender, instance, created, **kwargs):
+@receiver(post_save, sender=Entrada)
+def auto_vincular_entrada_com_dizimos(sender, instance, created, **kwargs):
     """
-    Signal que dispara quando uma entrada bancária é criada ou atualizada.
-    Procura dízimos/ofertas com mesma data, valor e moeda e vincula automaticamente.
+    Signal que dispara quando uma entrada é criada ou atualizada.
+    Se for tipo=banco, procura dízimos/ofertas com mesma data, valor e moeda e vincula automaticamente.
     """
-    tentar_vincular_banco_com_dizimos(instance)
+    if instance.tipo == 'banco':
+        tentar_vincular_banco_com_dizimos(instance)
 
 
 # =========================================
-# 🏪 AUTO-LINK DIZIMOS COM ENTRADAS CAIXA
+# 🏪 AUTO-LINK DIZIMOS COM ENTRADAS (CAIXA)
 # =========================================
-# Sentido: Entradacaixa salva → vincula automaticamente Dizimooferta correspondente
+# Sentido: Entrada (tipo=caixa) salva → vincula automaticamente Dizimooferta correspondente
 
 def tentar_vincular_caixa_com_dizimos(entrada):
     """
@@ -508,24 +508,24 @@ def tentar_vincular_caixa_com_dizimos(entrada):
             datacorrespondente=entrada.data,
             valor=entrada.valor,
             moeda=entrada.moeda,
-            entradacaixa__isnull=True,
-            entradabanco__isnull=True
+            entrada__isnull=True
         )
 
         for dizimo in dizimos:
-            Dizimooferta.objects.filter(pk=dizimo.pk).update(entradacaixa=entrada)
+            Dizimooferta.objects.filter(pk=dizimo.pk).update(entrada=entrada)
             logger.info('Entrada Caixa ID %s vinculada com Dizimo ID %s', entrada.id, dizimo.id)
     except Exception as e:
         logger.error('Erro ao vincular entrada caixa ID %s: %s', entrada.id, e)
 
 
-@receiver(post_save, sender=Entradacaixa)
-def auto_vincular_caixa_com_dizimos(sender, instance, created, **kwargs):
+@receiver(post_save, sender=Entrada)
+def auto_vincular_entrada_caixa_com_dizimos(sender, instance, created, **kwargs):
     """
     Signal que dispara quando uma entrada de caixa é criada ou atualizada.
     Procura dízimos/ofertas com mesma data, valor e moeda e vincula automaticamente.
     """
-    tentar_vincular_caixa_com_dizimos(instance)
+    if instance.tipo == 'caixa':
+        tentar_vincular_caixa_com_dizimos(instance)
 
 
 # =========================================

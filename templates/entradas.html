@@ -1,0 +1,127 @@
+{% extends 'index.html' %}
+{% block Entradas %}
+
+<div class="list-container">
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Entradas</h3>
+        <form action="/tibl/buscaentradas" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Tipo</label>
+                <select name="tipov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="">Qualquer</option>
+                    <option value="caixa">Caixa</option>
+                    <option value="banco">Banco</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Conta Bancária</label>
+                <select name="contabancariav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Qualquer</option>
+                    {% if listacontasigreja %}
+                        {% for x in listacontasigreja %}
+                            <option value="{{ x.id }}">{{ x.numeroconta }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Rubrica</label>
+                <select name="rubricav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Qualquer</option>
+                    {% if listarubricasentrada %}
+                        {% for x in listarubricasentrada %}
+                            <option value="{{ x.id }}">{{ x.designacao }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <option value="0">Mês</option>
+                        {% if listameses %}
+                            {% for x, y in listameses.items %}
+                                <option value="{{ x }}">{{ y }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    <input type="number" name="anov" value="2025" style="width: 80px; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                </div>
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 0.8rem; width: 100%; min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; font-weight: 600; font-size: 0.84rem; color: white;">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </form>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Fluxo de Entradas</h2>
+        {% if perms.sitetibl.add_entrada %}
+        <a href="/tibl/entradas/criar/" class="bt-primary" style="background-color: var(--primary); color: white;">
+            <i class="fas fa-plus"></i> Nova Entrada
+        </a>
+        {% endif %}
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Conta / Rubrica</th>
+                    <th style="text-align: right;">Montante</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">{{ x.data|date:"d/m/Y"|default:x.data }}</div>
+                    </td>
+                    <td>
+                        <span style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 9999px; {% if x.tipo == 'banco' %}background: #dbeafe; color: #1e40af;{% else %}background: #dcfce7; color: #166534;{% endif %} font-weight: 600;">
+                            {{ x.get_tipo_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if x.tipo == 'banco' %}
+                        <div style="font-size: 0.85rem; font-weight: 500;">{{ x.contaaacreditar|default:"-" }}</div>
+                        {% if x.contaaacreditar %}
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Saldo: {{ x.contaaacreditar.saldo_actual|floatformat:2 }} {{ x.contaaacreditar.moeda }}</div>
+                        {% endif %}
+                        {% endif %}
+                        <div style="font-weight: 600; color: var(--primary-dark);">{{ x.rubrica }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Ref: {{ x.id }}</div>
+                    </td>
+                    <td style="text-align: right; color: var(--primary); font-weight: 700;">
+                        + {{ x.valor|floatformat:2 }} {{ x.moeda }}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/entradas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-money-check-alt" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Entradas</h3>
+        <p style="color: var(--text-muted);">Não encontramos registos de entradas para os filtros selecionados.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
