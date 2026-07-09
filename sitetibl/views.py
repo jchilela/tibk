@@ -1235,8 +1235,17 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 Irmao.objects.filter(pk=registo.pk).update(user=user)
                 _atribuir_grupos_irmao(user, registo.categoria)
 
-                if enviar_credenciais(registo, username, temp_password):
-                    messages.success(request, f'Utilizador "{username}" criado e credenciais enviadas com sucesso.')
+                ok, canais = enviar_credenciais(registo, username, temp_password)
+                if ok:
+                    via = []
+                    if canais.get('email'):
+                        via.append('email')
+                    if canais.get('sms'):
+                        via.append('SMS')
+                    messages.success(
+                        request,
+                        f'Utilizador "{username}" criado. Credenciais enviadas por {", ".join(via)}.',
+                    )
                 else:
                     messages.warning(
                         request,
@@ -1250,8 +1259,24 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 registo.user.save(update_fields=['password'])
                 username = registo.user.username
 
-                if enviar_credenciais(registo, username, temp_password):
-                    messages.success(request, f'Credenciais de acesso reenviadas para "{username}".')
+                ok, canais = enviar_credenciais(registo, username, temp_password)
+                if ok:
+                    via = []
+                    if canais.get('email'):
+                        via.append('email')
+                    if canais.get('sms'):
+                        via.append('SMS')
+                    messages.success(
+                        request,
+                        f'Credenciais reenviadas por {", ".join(via)} para "{username}".',
+                    )
+                elif canais.get('email') or canais.get('sms'):
+                    messages.warning(
+                        request,
+                        f'Palavra-passe renovada para "{username}", mas nem todos os canais '
+                        f'responderam (email={"sim" if canais.get("email") else "não"}, '
+                        f'SMS={"sim" if canais.get("sms") else "não"}).',
+                    )
                 else:
                     messages.error(
                         request,

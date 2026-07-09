@@ -132,31 +132,37 @@ def _telefone_irmao(irmao):
 
 def enviar_credenciais(irmao, username, password):
     """
-    Envia credenciais por email e/ou SMS.
-    Retorna True se pelo menos um canal foi enviado com sucesso.
+    Envia credenciais por email e/ou SMS (ambos quando disponíveis).
+    Retorna (sucesso, {'email': bool, 'sms': bool}).
     """
     email = (irmao.email or '').strip()
     telefone = _telefone_irmao(irmao)
+    canais = {'email': False, 'sms': False}
 
     if not email and not telefone:
         logger.warning(
             'Irmao ID %s sem email nem telefone — credenciais nao enviadas. '
             'Username: %s', irmao.pk, username,
         )
-        return False
+        return False, canais
 
     if email:
-        if _enviar_credenciais_email(irmao, username, password):
-            return True
-        if telefone:
-            logger.warning(
-                'Email falhou para Irmao ID %s — a tentar SMS para %s.',
-                irmao.pk, telefone,
-            )
-            return _enviar_credenciais_sms(irmao, username, password)
-        return False
+        canais['email'] = _enviar_credenciais_email(irmao, username, password)
+    if telefone:
+        canais['sms'] = _enviar_credenciais_sms(irmao, username, password)
 
-    return _enviar_credenciais_sms(irmao, username, password)
+    sucesso = canais['email'] or canais['sms']
+    if sucesso:
+        logger.info(
+            'Credenciais Irmao ID %s — email=%s sms=%s (user=%s)',
+            irmao.pk, canais['email'], canais['sms'], username,
+        )
+    else:
+        logger.error(
+            'Falha total ao enviar credenciais Irmao ID %s (user=%s)',
+            irmao.pk, username,
+        )
+    return sucesso, canais
 
 
 def _enviar_credenciais_email(irmao, username, password):
