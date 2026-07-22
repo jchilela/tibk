@@ -14,10 +14,8 @@ from sitetibl.models import Mandato
 from sitetibl.models import Cargo
 from sitetibl.models import Escala
 from sitetibl.models import Funcao
-from sitetibl.models import Saidacaixa
-from sitetibl.models import Saidabanco
-from sitetibl.models import Entradacaixa
-from sitetibl.models import Entradabanco
+from sitetibl.models import Entrada
+from sitetibl.models import Saida
 from sitetibl.models import Dizimooferta
 from sitetibl.models import Pagamentoservico
 from sitetibl.models import Gruporubrica
@@ -96,20 +94,6 @@ class TiblPasswordResetForm(DjangoPasswordResetForm):
 
         return super().save(*args, **kwargs)
 
-
-class ContabancariaForm(forms.ModelForm):
-    class Meta:
-        model = Contabancaria
-        fields = ['banco','numeroconta','iban','moeda','proprietario','instituicao']
-        #Estilos bootstrap
-        widgets = {
-            'banco': forms.Select(attrs={'class': 'form-control'}),
-            'numeroconta': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Nº da Conta'}),
-            'iban': forms.TextInput(attrs={'class': 'form-control','placeholder': 'AO06...'}),
-            'moeda': forms.Select(attrs={'class': 'form-control'}),
-            'proprietario': forms.Select(attrs={'class': 'form-control'}),
-            'instituicao': forms.Select(attrs={'class': 'form-control'}),
-        }
 
 class IrmaoForm(ModelForm):
     telefone = forms.CharField(
@@ -276,7 +260,7 @@ class BancoForm(ModelForm):
 class ContabancariaForm(ModelForm):
     class Meta:
         model = Contabancaria
-        fields = '__all__'
+        exclude = ('proprietario',)
         labels = {
             'is_active': 'Está activo',
         }
@@ -648,7 +632,7 @@ class DizimoofertaForm(ModelForm):
 
     class Meta:
         model = Dizimooferta
-        exclude = ('entradabanco', 'entradacaixa')
+        exclude = ('entrada',)
         labels = {
             'datacorrespondente': 'Data correspondente',
             'dataregisto': 'Data registo',
@@ -675,7 +659,7 @@ class DizimoForm(ModelForm):
 
     class Meta:
         model = Dizimooferta
-        exclude = ('entradabanco', 'entradacaixa')
+        exclude = ('entrada',)
         widgets = {
             'valor': forms.TextInput(attrs={'class': 'form-control money-input', 'placeholder': '0,00'}),
             'moeda': forms.Select(attrs={'class': 'form-control'}),
@@ -694,75 +678,9 @@ class OfertaForm(ModelForm):
             'designacao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Designação da Oferta'}),
         }
 
-class SaidacaixaForm(ModelForm):
-    class Meta:
-        model = Saidacaixa
-        fields = '__all__'
-        widgets = {
-            'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'}),
-            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
-        }
-
-    def clean_valor(self):
-        valor = self.cleaned_data.get('valor')
-
-       
-        if valor < 0:
-            raise forms.ValidationError("O valor digitado não pode ser negativo.")
-        
-        return valor
-
-class EntradacaixaForm(ModelForm):
-    class Meta:
-        model = Entradacaixa
-        fields = '__all__'
-        widgets = {
-            'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'}),
-            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
-        }
-
-    def clean_valor(self):
-        valor = self.cleaned_data.get('valor')
-
-       
-        if valor < 0:
-            raise forms.ValidationError("O valor digitado não pode ser negativo.")
-        
-        return valor
-
-class SaidabancoForm(ModelForm):
+class EntradaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Show real-time balance in account dropdowns for safer bank operations.
-        if 'conta' in self.fields:
-            self.fields['conta'].label_from_instance = (
-                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
-            )
-        if 'contaaacreditar' in self.fields:
-            self.fields['contaaacreditar'].label = 'Conta a creditar'
-            self.fields['contaaacreditar'].label_from_instance = (
-                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
-            )
-
-    class Meta:
-        model = Saidabanco
-        fields = '__all__'
-        widgets = {
-            'data': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.DateInput(attrs={'type': 'time'}),
-            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
-        }
-        
-
-
-class EntradabancoForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Show real-time balance in account dropdowns for safer bank operations.
         if 'contaaacreditar' in self.fields:
             self.fields['contaaacreditar'].label = 'Conta a creditar'
             self.fields['contaaacreditar'].label_from_instance = (
@@ -774,13 +692,48 @@ class EntradabancoForm(ModelForm):
             )
 
     class Meta:
-        model = Entradabanco
+        model = Entrada
         fields = '__all__'
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'hora': forms.DateInput(attrs={'type': 'time'}),
             'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+        if valor < 0:
+            raise forms.ValidationError("O valor digitado não pode ser negativo.")
+        return valor
+
+
+class SaidaForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'conta' in self.fields:
+            self.fields['conta'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+        if 'contaaacreditar' in self.fields:
+            self.fields['contaaacreditar'].label = 'Conta a creditar'
+            self.fields['contaaacreditar'].label_from_instance = (
+                lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
+            )
+
+    class Meta:
+        model = Saida
+        fields = '__all__'
+        widgets = {
+            'data': forms.DateInput(attrs={'type': 'date'}),
+            'hora': forms.DateInput(attrs={'type': 'time'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+        }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+        if valor < 0:
+            raise forms.ValidationError("O valor digitado não pode ser negativo.")
+        return valor
         
 
 

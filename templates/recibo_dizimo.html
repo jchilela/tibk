@@ -342,13 +342,13 @@
 
         <!-- Método de pagamento -->
         <div class="recibo-metodo">
-            {% if dizimo.entradabanco %}
+            {% if dizimo.entrada and dizimo.entrada.tipo == 'banco' %}
                 <i class="fas fa-university"></i>
                 <strong>Método:</strong> Transferência Bancária
-                {% if dizimo.entradabanco.banco %}
-                    - {{ dizimo.entradabanco.banco.designacao }}
+                {% if dizimo.entrada.contaaacreditar %}
+                    - {{ dizimo.entrada.contaaacreditar.banco.designacao }}
                 {% endif %}
-            {% elif dizimo.entradacaixa %}
+            {% elif dizimo.entrada and dizimo.entrada.tipo == 'caixa' %}
                 <i class="fas fa-money-bill-wave"></i>
                 <strong>Método:</strong> Pagamento em Caixa
             {% else %}

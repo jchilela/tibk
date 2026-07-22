@@ -145,30 +145,17 @@
                 </div>
 
                 <div style="padding: 1.25rem;">
-                    {% if x.entradabanco %}
+                    {% if x.entrada %}
                     <div style="display: flex; align-items: flex-start; gap: 0.9rem; padding: 1rem 1.1rem; border-radius: 12px; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.14);">
                         <div style="width: 2.5rem; height: 2.5rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(37, 99, 235, 0.16); color: #1d4ed8; flex-shrink: 0;">
                             <i class="fas fa-university"></i>
                         </div>
                         <div>
                             <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do Vínculo</div>
-                            <div style="font-size: 1.05rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.35rem;">Entrada Bancária</div>
-                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Registo ID: #{{ x.entradabanco.id }}</div>
-                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Data: {{ x.entradabanco.data|date:"d/m/Y" }}</div>
-                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Valor: {{ x.entradabanco.valor|floatformat:2 }} {{ x.entradabanco.moeda }}</div>
-                        </div>
-                    </div>
-                    {% elif x.entradacaixa %}
-                    <div style="display: flex; align-items: flex-start; gap: 0.9rem; padding: 1rem 1.1rem; border-radius: 12px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.16);">
-                        <div style="width: 2.5rem; height: 2.5rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.18); color: #b45309; flex-shrink: 0;">
-                            <i class="fas fa-cash-register"></i>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;">Origem do Vínculo</div>
-                            <div style="font-size: 1.05rem; font-weight: 700; color: #92400e; margin-bottom: 0.35rem;">Entrada de Caixa</div>
-                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Registo ID: #{{ x.entradacaixa.id }}</div>
-                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Data: {{ x.entradacaixa.data|date:"d/m/Y" }}</div>
-                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Valor: {{ x.entradacaixa.valor|floatformat:2 }} {{ x.entradacaixa.moeda }}</div>
+                            <div style="font-size: 1.05rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.35rem;">{% if x.entrada.tipo == 'banco' %}Entrada Bancária{% else %}Entrada de Caixa{% endif %}</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Registo ID: #{{ x.entrada.id }}</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Data: {{ x.entrada.data|date:"d/m/Y" }}</div>
+                            <div style="font-size: 0.95rem; color: var(--text-secondary);">Valor: {{ x.entrada.valor|floatformat:2 }} {{ x.entrada.moeda }}</div>
                         </div>
                     </div>
                     {% else %}

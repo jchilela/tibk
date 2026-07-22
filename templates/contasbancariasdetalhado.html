@@ -225,7 +225,7 @@
                             <td>{{ mov.data|date:"d/m/Y" }}</td>
                             <td style="font-weight: 700; color: #166534;">+ {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
                             <td>{{ mov.rubrica.designacao|default:mov.rubrica }}</td>
-                            <td style="text-align: right;"><a href="/tibl/entradabancos/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">Abrir</a></td>
+                            <td style="text-align: right;"><a href="/tibl/entradas/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">Abrir</a></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -257,7 +257,7 @@
                             <td>{{ mov.data|date:"d/m/Y" }}</td>
                             <td style="font-weight: 700; color: #991b1b;">- {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
                             <td>{{ mov.rubrica.designacao|default:mov.rubrica }}</td>
-                            <td style="text-align: right;"><a href="/tibl/saidabancos/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; background: #ef4444;">Abrir</a></td>
+                            <td style="text-align: right;"><a href="/tibl/saidas/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; background: #ef4444;">Abrir</a></td>
                         </tr>
                         {% endfor %}
                     </tbody>

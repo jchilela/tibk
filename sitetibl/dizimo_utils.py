@@ -7,7 +7,7 @@ import logging
 from decimal import Decimal
 from datetime import datetime, timedelta
 from django.db.models import Q
-from .models import Dizimooferta, Entradabanco, Entradacaixa
+from .models import Dizimooferta, Entrada
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +38,7 @@ def vincular_dizimos_existentes(dias_tolerancia=0, moeda=None, force=False):
     
     if not force:
         filtro_dizimos = filtro_dizimos.filter(
-            entradabanco__isnull=True,
-            entradacaixa__isnull=True,
+            entrada__isnull=True,
         )
     
     if moeda:
@@ -48,11 +47,11 @@ def vincular_dizimos_existentes(dias_tolerancia=0, moeda=None, force=False):
     for dizimo in filtro_dizimos:
         stats['total_processados'] += 1
         
-        if dizimo.entradacaixa:
+        if dizimo.entrada:
             stats['ja_vinculados'] += 1
             continue
 
-        if dizimo.entradabanco and not force:
+        if dizimo.entrada and not force:
             stats['ja_vinculados'] += 1
             continue
         
@@ -66,8 +65,8 @@ def vincular_dizimos_existentes(dias_tolerancia=0, moeda=None, force=False):
             )
             
             if entrada:
-                dizimo.entradabanco = entrada
-                dizimo.save(update_fields=['entradabanco'])
+                dizimo.entrada = entrada
+                dizimo.save(update_fields=['entrada'])
                 stats['sucesso'] += 1
                 logger.info('Dizimo %s vinculado com Entrada %s', dizimo.id, entrada.id)
             else:
@@ -102,7 +101,7 @@ def vincular_entradas_bancarias_existentes(dias_tolerancia=0, moeda=None, force=
     }
     
     # Filtro base
-    filtro_entradas = Entradabanco.objects.all()
+    filtro_entradas = Entrada.objects.filter(tipo='banco')
     
     if moeda:
         filtro_entradas = filtro_entradas.filter(moeda=moeda)
@@ -111,7 +110,7 @@ def vincular_entradas_bancarias_existentes(dias_tolerancia=0, moeda=None, force=
         stats['total_processados'] += 1
         
         # Verifica se já existe um dízimo vinculado
-        dizimos_vinculados = Dizimooferta.objects.filter(entradabanco=entrada)
+        dizimos_vinculados = Dizimooferta.objects.filter(entrada=entrada)
         
         if dizimos_vinculados.exists() and not force:
             stats['ja_vinculados'] += 1
@@ -127,9 +126,9 @@ def vincular_entradas_bancarias_existentes(dias_tolerancia=0, moeda=None, force=
             )
             
             for dizimo in dizimos:
-                if not dizimo.entradabanco or force:
-                    dizimo.entradabanco = entrada
-                    dizimo.save(update_fields=['entradabanco'])
+                if not dizimo.entrada or force:
+                    dizimo.entrada = entrada
+                    dizimo.save(update_fields=['entrada'])
                     stats['sucesso'] += 1
                     logger.info('Entrada %s vinculada com Dizimo %s', entrada.id, dizimo.id)
             
@@ -154,7 +153,7 @@ def buscar_entrada_correspondente(data, valor, moeda, dias_tolerancia=0):
         dias_tolerancia: Tolerância de dias na data
     
     Returns:
-        Entradabanco ou None
+        Entrada ou None
     """
     
     # Calcula intervalo de datas
@@ -165,7 +164,8 @@ def buscar_entrada_correspondente(data, valor, moeda, dias_tolerancia=0):
     data_fim = data + timedelta(days=dias_tolerancia)
     
     # Busca entrada
-    entrada = Entradabanco.objects.filter(
+    entrada = Entrada.objects.filter(
+        tipo='banco',
         data__gte=data_inicio,
         data__lte=data_fim,
         valor=Decimal(str(valor)),
@@ -204,8 +204,7 @@ def buscar_dizimos_correspondentes(data, valor, moeda, dias_tolerancia=0):
         datacorrespondente__lte=data_fim,
         valor=Decimal(str(valor)),
         moeda=moeda,
-        entradabanco__isnull=True,
-        entradacaixa__isnull=True  # Apenas não vinculados a outro meio
+        entrada__isnull=True,
     )
     
     return dizimos
@@ -224,8 +223,8 @@ def desvincular_dizimo(dizimo_id):
     
     try:
         dizimo = Dizimooferta.objects.get(pk=dizimo_id)
-        entrada_id = dizimo.entradabanco.id if dizimo.entradabanco else None
-        dizimo.entradabanco = None
+        entrada_id = dizimo.entrada.id if dizimo.entrada else None
+        dizimo.entrada = None
         dizimo.save()
         
         if entrada_id:
@@ -246,11 +245,11 @@ def relatorio_vinculacao():
     """
     
     total_dizimos = Dizimooferta.objects.count()
-    dizimos_vinculados = Dizimooferta.objects.filter(entradabanco__isnull=False).count()
+    dizimos_vinculados = Dizimooferta.objects.filter(entrada__isnull=False).count()
     dizimos_nao_vinculados = total_dizimos - dizimos_vinculados
     
-    total_entradas = Entradabanco.objects.count()
-    entradas_com_dizimo = Entradabanco.objects.filter(dizimooferta__isnull=False).distinct().count()
+    total_entradas = Entrada.objects.filter(tipo='banco').count()
+    entradas_com_dizimo = Entrada.objects.filter(tipo='banco', dizimooferta__isnull=False).distinct().count()
     entradas_sem_dizimo = total_entradas - entradas_com_dizimo
     
     return {
@@ -295,8 +294,7 @@ def vincular_dizimos_com_caixa(dias_tolerancia=0, moeda=None, force=False):
     
     if not force:
         filtro_dizimos = filtro_dizimos.filter(
-            entradacaixa__isnull=True,
-            entradabanco__isnull=True,
+            entrada__isnull=True,
         )
     
     if moeda:
@@ -305,11 +303,11 @@ def vincular_dizimos_com_caixa(dias_tolerancia=0, moeda=None, force=False):
     for dizimo in filtro_dizimos:
         stats['total_processados'] += 1
         
-        if dizimo.entradabanco:
+        if dizimo.entrada:
             stats['ja_vinculados'] += 1
             continue
 
-        if dizimo.entradacaixa and not force:
+        if dizimo.entrada and not force:
             stats['ja_vinculados'] += 1
             continue
         
@@ -323,8 +321,8 @@ def vincular_dizimos_com_caixa(dias_tolerancia=0, moeda=None, force=False):
             )
             
             if entrada:
-                dizimo.entradacaixa = entrada
-                dizimo.save(update_fields=['entradacaixa'])
+                dizimo.entrada = entrada
+                dizimo.save(update_fields=['entrada'])
                 stats['sucesso'] += 1
                 logger.info('Dizimo %s vinculado com Caixa %s', dizimo.id, entrada.id)
             else:
@@ -359,7 +357,7 @@ def vincular_caixas_existentes(dias_tolerancia=0, moeda=None, force=False):
     }
     
     # Filtro base
-    filtro_entradas = Entradacaixa.objects.all()
+    filtro_entradas = Entrada.objects.filter(tipo='caixa')
     
     if moeda:
         filtro_entradas = filtro_entradas.filter(moeda=moeda)
@@ -368,7 +366,7 @@ def vincular_caixas_existentes(dias_tolerancia=0, moeda=None, force=False):
         stats['total_processados'] += 1
         
         # Verifica se já existe um dízimo vinculado
-        dizimos_vinculados = Dizimooferta.objects.filter(entradacaixa=entrada)
+        dizimos_vinculados = Dizimooferta.objects.filter(entrada=entrada)
         
         if dizimos_vinculados.exists() and not force:
             stats['ja_vinculados'] += 1
@@ -384,9 +382,9 @@ def vincular_caixas_existentes(dias_tolerancia=0, moeda=None, force=False):
             )
             
             for dizimo in dizimos:
-                if not dizimo.entradacaixa or force:
-                    dizimo.entradacaixa = entrada
-                    dizimo.save(update_fields=['entradacaixa'])
+                if not dizimo.entrada or force:
+                    dizimo.entrada = entrada
+                    dizimo.save(update_fields=['entrada'])
                     stats['sucesso'] += 1
                     logger.info('Caixa %s vinculada com Dizimo %s', entrada.id, dizimo.id)
             
@@ -411,7 +409,7 @@ def buscar_entrada_caixa_correspondente(data, valor, moeda, dias_tolerancia=0):
         dias_tolerancia: Tolerância de dias na data
     
     Returns:
-        Entradacaixa ou None
+        Entrada ou None
     """
     
     # Calcula intervalo de datas
@@ -422,7 +420,8 @@ def buscar_entrada_caixa_correspondente(data, valor, moeda, dias_tolerancia=0):
     data_fim = data + timedelta(days=dias_tolerancia)
     
     # Busca entrada
-    entrada = Entradacaixa.objects.filter(
+    entrada = Entrada.objects.filter(
+        tipo='caixa',
         data__gte=data_inicio,
         data__lte=data_fim,
         valor=Decimal(str(valor)),
@@ -461,8 +460,7 @@ def buscar_dizimos_para_caixa(data, valor, moeda, dias_tolerancia=0):
         datacorrespondente__lte=data_fim,
         valor=Decimal(str(valor)),
         moeda=moeda,
-        entradacaixa__isnull=True,
-        entradabanco__isnull=True  # Apenas não vinculados a outro meio
+        entrada__isnull=True,
     )
     
     return dizimos
@@ -481,8 +479,8 @@ def desvincular_dizimo_caixa(dizimo_id):
     
     try:
         dizimo = Dizimooferta.objects.get(pk=dizimo_id)
-        caixa_id = dizimo.entradacaixa.id if dizimo.entradacaixa else None
-        dizimo.entradacaixa = None
+        caixa_id = dizimo.entrada.id if dizimo.entrada else None
+        dizimo.entrada = None
         dizimo.save()
         
         if caixa_id:
@@ -504,22 +502,22 @@ def relatorio_vinculacao_completa():
     """
     
     total_dizimos = Dizimooferta.objects.count()
-    dizimos_vinculados_banco = Dizimooferta.objects.filter(entradabanco__isnull=False).count()
-    dizimos_vinculados_caixa = Dizimooferta.objects.filter(entradacaixa__isnull=False).count()
+    dizimos_vinculados_banco = Dizimooferta.objects.filter(entrada__isnull=False, entrada__tipo='banco').count()
+    dizimos_vinculados_caixa = Dizimooferta.objects.filter(entrada__isnull=False, entrada__tipo='caixa').count()
     dizimos_vinculados_total = Dizimooferta.objects.filter(
-        Q(entradabanco__isnull=False) | Q(entradacaixa__isnull=False)
+        entrada__isnull=False
     ).count()
     dizimos_nao_vinculados = total_dizimos - dizimos_vinculados_total
     
-    total_entradas_banco = Entradabanco.objects.count()
-    entradas_banco_com_dizimo = Entradabanco.objects.filter(
-        dizimooferta__isnull=False
+    total_entradas_banco = Entrada.objects.filter(tipo='banco').count()
+    entradas_banco_com_dizimo = Entrada.objects.filter(
+        tipo='banco', dizimooferta__isnull=False
     ).distinct().count()
     entradas_banco_sem_dizimo = total_entradas_banco - entradas_banco_com_dizimo
     
-    total_caixas = Entradacaixa.objects.count()
-    caixas_com_dizimo = Entradacaixa.objects.filter(
-        dizimooferta__isnull=False
+    total_caixas = Entrada.objects.filter(tipo='caixa').count()
+    caixas_com_dizimo = Entrada.objects.filter(
+        tipo='caixa', dizimooferta__isnull=False
     ).distinct().count()
     caixas_sem_dizimo = total_caixas - caixas_com_dizimo
     
