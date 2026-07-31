@@ -331,11 +331,6 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - **Email**: geral@tibl.ao
 - **Website**: [https://gestao.tibl.ao](https://gestao.tibl.ao)
 
-## 🙏 Agradecimentos
-
-- Comunidade Django
-- Todos os contribuidores do projeto
-- Igreja Batista do Senhor - TIBL
 
 ## 📅 Changelog
 
