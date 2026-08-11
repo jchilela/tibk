@@ -41,15 +41,15 @@
         <form action="/tibl/gestao/dizimosofertas/1/" method="GET" class="do-filter-form">
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome</label>
-                <input type="text" name="nomev" value="{{ filtro_nomev }}" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <input type="text" name="nomev" value="{{ filtro_nomev }}" oninput="debounceSubmit(this.form)" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Apelido</label>
-                <input type="text" name="apelidov" value="{{ filtro_apelidov }}" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <input type="text" name="apelidov" value="{{ filtro_apelidov }}" oninput="debounceSubmit(this.form)" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Tipo de Oferta</label>
-                <select name="tipov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <select name="tipov" onchange="this.form.submit()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">------------</option>
                     {% for t in lista_tipos %}
                         <option value="{{ t.id }}" {% if filtro_tipov == t.id|stringformat:"s" %}selected{% endif %}>{{ t.designacao }}</option>
@@ -58,7 +58,7 @@
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês</label>
-                <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <select name="mesv" onchange="this.form.submit()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">------------</option>
                     {% if listameses %}
                         {% for x, y in listameses.items %}
@@ -69,7 +69,7 @@
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Ano</label>
-                <select name="anov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <select name="anov" onchange="this.form.submit()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">------------</option>
                     <option value="2022" {% if filtro_anov == "2022" %}selected{% endif %}>2022</option>
                     <option value="2023" {% if filtro_anov == "2023" %}selected{% endif %}>2023</option>
@@ -78,9 +78,6 @@
                     <option value="2026" {% if filtro_anov == "2026" %}selected{% endif %}>2026</option>
                 </select>
             </div>
-            <button type="submit" class="bt-primary do-filter-btn">
-                <i class="fas fa-search"></i> Filtrar
-            </button>
         </form>
     </div>
 
@@ -115,7 +112,7 @@
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
             {% if perms.sitetibl.view_dizimooferta %}
             <a href="/tibl/insights/dizimosofertas/" class="bt-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: #1b4d3e; color: white;">
-                <i class="fas fa-chart-bar"></i> Insights
+                <i class="fas fa-chart-bar"></i> Análise
             </a>
             {% endif %}
             {% if perms.sitetibl.add_dizimooferta %}

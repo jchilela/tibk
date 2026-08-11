@@ -262,7 +262,8 @@ class ContabancariaForm(ModelForm):
         model = Contabancaria
         exclude = ('proprietario',)
         labels = {
-            'is_active': 'Está activo',
+            'is_active': 'Está activa',
+            'instituicao': 'Entidade Eclesiástica',
         }
         widgets = {
             'numeroconta': forms.TextInput(attrs={
@@ -273,6 +274,11 @@ class ContabancariaForm(ModelForm):
             }),
             'saldo': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['instituicao'].empty_label = '--- Seleccione a Entidade Eclesiástica ---'
+        self.order_fields(['banco', 'instituicao', 'is_active', 'numeroconta', 'iban', 'moeda', 'saldo'])
     
     def clean_numeroconta(self):
         numero = self.cleaned_data.get('numeroconta')
@@ -681,23 +687,32 @@ class OfertaForm(ModelForm):
 class EntradaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.order_fields([
+            'tipo', 'valor', 'moeda',
+            'contaaacreditar', 'via', 'contaorigem',
+            'data', 'hora',
+            'rubrica', 'responsavel',
+            'observacao',
+        ])
         if 'contaaacreditar' in self.fields:
             self.fields['contaaacreditar'].label = 'Conta a creditar'
             self.fields['contaaacreditar'].label_from_instance = (
                 lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
             )
         if 'contaorigem' in self.fields:
+            self.fields['contaorigem'].label = 'Conta origem (transferência)'
             self.fields['contaorigem'].label_from_instance = (
                 lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
             )
 
     class Meta:
         model = Entrada
-        fields = '__all__'
+        exclude = ('datacontrolo',)
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'hora': forms.DateInput(attrs={'type': 'time'}),
             'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+            'observacao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Observações adicionais...'}),
         }
 
     def clean_valor(self):
@@ -710,23 +725,32 @@ class EntradaForm(ModelForm):
 class SaidaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.order_fields([
+            'tipo', 'valor', 'moeda',
+            'conta', 'contaaacreditar',
+            'data', 'hora',
+            'rubrica', 'responsavel',
+            'observacao',
+        ])
         if 'conta' in self.fields:
+            self.fields['conta'].label = 'Conta a debitar'
             self.fields['conta'].label_from_instance = (
                 lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
             )
         if 'contaaacreditar' in self.fields:
-            self.fields['contaaacreditar'].label = 'Conta a creditar'
+            self.fields['contaaacreditar'].label = 'Conta a creditar (transferência)'
             self.fields['contaaacreditar'].label_from_instance = (
                 lambda obj: f"{obj.numeroconta} - Saldo: {obj.saldo_actual():.2f} {obj.moeda}"
             )
 
     class Meta:
         model = Saida
-        fields = '__all__'
+        exclude = ('datacontrolo',)
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'hora': forms.DateInput(attrs={'type': 'time'}),
             'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+            'observacao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Observações adicionais...'}),
         }
 
     def clean_valor(self):

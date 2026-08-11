@@ -27,28 +27,20 @@
         <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-search-dollar mr-2"></i> Procurar Contas</h3>
         <form action="/tibl/gestao/contasbancarias/1/" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
             <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Nome Proprietário</label>
-                <input type="text" name="nomev" value="{{ filtro_nomev }}" placeholder="Ex: João" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-            </div>
-            <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Apelido Proprietário</label>
-                <input type="text" name="apelidov" value="{{ filtro_apelidov }}" placeholder="Ex: Silva" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Entidade Eclesiástica</label>
+                <input type="text" name="instituicaov" value="{{ filtro_instituicaov }}" placeholder="Ex: TIBL" oninput="debounceSubmit(this.form)" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Banco</label>
-                <input type="text" name="bancov" value="{{ filtro_bancov }}" placeholder="Ex: BFA" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <input type="text" name="bancov" value="{{ filtro_bancov }}" placeholder="Ex: BFA" oninput="debounceSubmit(this.form)" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Número da Conta</label>
-                <input type="text" name="numerocontav" value="{{ filtro_numerocontav }}" placeholder="Ex: 123456789" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
-            </div>
-            <div>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">IBAN</label>
-                <input type="text" name="ibanv" value="{{ filtro_ibanv }}" placeholder="Ex: AO06..." style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <input type="text" name="numerocontav" value="{{ filtro_numerocontav }}" placeholder="Ex: 123456789" oninput="debounceSubmit(this.form)" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Moeda</label>
-                <select name="moedav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <select name="moedav" onchange="this.form.submit()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="">Todas</option>
                     {% for codigo, nome in listamoedas %}
                     <option value="{{ codigo }}" {% if filtro_moedav == codigo %}selected{% endif %}>{{ nome }}</option>
@@ -56,9 +48,6 @@
                 </select>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary cb-filter-btn">
-                <i class="fas fa-search"></i> Buscar Contas
-            </button>
         </form>
     </div>
 
@@ -85,7 +74,7 @@
             <thead>
                 <tr>
                     <th>Instituição / Banco</th>
-                    <th>Proprietário</th>
+                    <th>Titular</th>
                     <th>Nº Conta / IBAN</th>
                     <th style="text-align: right;">Ações</th>
                 </tr>
@@ -105,7 +94,7 @@
                         </div>
                     </td>
                     <td>
-                        <div style="font-weight: 500;">{{ x.proprietario.nome }} {{ x.proprietario.apelido }}</div>
+                        <div style="font-weight: 500;">{% if x.instituicao %}{{ x.instituicao.designacao }}{% elif x.proprietario %}{{ x.proprietario.nome }} {{ x.proprietario.apelido }}{% else %}—{% endif %}</div>
                     </td>
                     <td>
                         <div style="font-family: monospace; font-size: 0.9rem; color: var(--text-main);">{{ x.numeroconta }}</div>
