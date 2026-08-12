@@ -489,19 +489,22 @@ def mostraGestao(request,gestaoescolhida,pagina):
     elif gestaoescolhida == 'contasbancarias':
         nomev = request.GET.get('nomev', '').strip()
         apelidov = request.GET.get('apelidov', '').strip()
+        instituicaov = request.GET.get('instituicaov', '').strip()
         bancov = request.GET.get('bancov', '').strip()
         numerocontav = request.GET.get('numerocontav', '').strip()
-        ibanv = request.GET.get('ibanv', '').strip()
         moedav = request.GET.get('moedav', '').strip()
 
         kwargs = {
             'is_active': True,
-            'proprietario__nome__icontains': nomev,
-            'proprietario__apelido__icontains': apelidov,
             'banco__designacao__icontains': bancov,
             'numeroconta__icontains': numerocontav,
-            'iban__icontains': ibanv,
         }
+        if nomev:
+            kwargs['proprietario__nome__icontains'] = nomev
+        if apelidov:
+            kwargs['proprietario__apelido__icontains'] = apelidov
+        if instituicaov:
+            kwargs['instituicao__designacao__icontains'] = instituicaov
         if moedav:
             kwargs['moeda'] = moedav
 
@@ -579,8 +582,10 @@ def mostraGestao(request,gestaoescolhida,pagina):
         if _do_tipov != '0':
             _do_qs = _do_qs.filter(tipooferta_id=_do_tipov)
         resultado = _do_qs.order_by('-datacorrespondente', 'id')
+    elif gestaoescolhida in ('entradas', 'saidas'):
+        resultado = lista[gestaoescolhida].all().order_by('-data', '-id')
     else:
-        resultado = lista[gestaoescolhida].all().order_by('id') 
+        resultado = lista[gestaoescolhida].all().order_by('id')
     paginador = Paginator(resultado, 20)
     pagina_final = request.GET.get('pagina', pagina)
     paginaresultado = paginador.get_page(pagina_final)
@@ -592,11 +597,9 @@ def mostraGestao(request,gestaoescolhida,pagina):
         context = {
             'bb': paginaresultado,
             'listamoedas': MOEDA.items(),
-            'filtro_nomev': request.GET.get('nomev', ''),
-            'filtro_apelidov': request.GET.get('apelidov', ''),
+            'filtro_instituicaov': request.GET.get('instituicaov', ''),
             'filtro_bancov': request.GET.get('bancov', ''),
             'filtro_numerocontav': request.GET.get('numerocontav', ''),
-            'filtro_ibanv': request.GET.get('ibanv', ''),
             'filtro_moedav': request.GET.get('moedav', ''),
         }
     elif (gestaoescolhida == 'entradas') or (gestaoescolhida == 'saidas'):
@@ -2350,7 +2353,10 @@ def balanco_financeiro_excel(request):
         buffer.read(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
-    nome_ficheiro = f"balanco_financeiro_{context['periodo']}.xlsx"
+    from datetime import datetime
+    ts = datetime.now().strftime('%Y%m%d_%H%M')
+    ano_str = context.get('ano', 'todos') or 'todos'
+    nome_ficheiro = f"balanco_financeiro_{context['periodo']}_{ano_str}_{ts}.xlsx"
     response['Content-Disposition'] = f'attachment; filename="{nome_ficheiro}"'
     return response
 

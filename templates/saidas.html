@@ -4,10 +4,10 @@
 <div class="list-container">
     <div class="modern-card" style="margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Saídas</h3>
-        <form action="/tibl/buscasaidas" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
+        <form id="form-filtro-saidas" action="/tibl/buscasaidas" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: flex-end;">
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Tipo</label>
-                <select name="tipov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <select name="tipov" onchange="this.form.submit()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="">Qualquer</option>
                     <option value="caixa">Caixa</option>
                     <option value="banco">Banco</option>
@@ -15,7 +15,7 @@
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Conta Bancária</label>
-                <select name="contabancariav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <select name="contabancariav" onchange="this.form.submit()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">Qualquer</option>
                     {% if listacontasigreja %}
                         {% for x in listacontasigreja %}
@@ -26,7 +26,7 @@
             </div>
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Rubrica</label>
-                <select name="rubricav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                <select name="rubricav" onchange="this.form.submit()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                     <option value="0">Qualquer</option>
                     {% if listarubricassaida %}
                         {% for x in listarubricassaida %}
@@ -38,7 +38,7 @@
             <div>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
                 <div style="display: flex; gap: 0.5rem;">
-                    <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <select name="mesv" onchange="this.form.submit()" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                         <option value="0">Mês</option>
                         {% if listameses %}
                             {% for x, y in listameses.items %}
@@ -46,13 +46,10 @@
                             {% endfor %}
                         {% endif %}
                     </select>
-                    <input type="number" name="anov" value="2025" style="width: 80px; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <input type="number" name="anov" value="{% now 'Y' %}" min="2020" max="2030" onchange="this.form.submit()" style="width: 80px; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
                 </div>
             </div>
             <input type="hidden" name="pagina" value="1">
-            <button type="submit" class="bt-primary" style="padding: 0.5rem 0.8rem; width: 100%; min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; font-weight: 600; font-size: 0.84rem; color: white;">
-                <i class="fas fa-search"></i> Filtrar
-            </button>
         </form>
     </div>
 

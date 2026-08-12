@@ -500,6 +500,14 @@
         });
     </script>
 
+    <script>
+        function debounceSubmit(form, delay) {
+            delay = delay || 600;
+            clearTimeout(form._debounceTimer);
+            form._debounceTimer = setTimeout(function() { form.submit(); }, delay);
+        }
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 

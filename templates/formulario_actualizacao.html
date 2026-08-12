@@ -203,12 +203,55 @@
 
     .upd-form-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
     }
 
     .upd-form-full {
         grid-column: 1 / -1;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group input[type="time"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group input[type="password"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 1.5px solid #d1d5db;
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+        color: var(--text-main);
+        background: #fff;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
+        outline: none;
+    }
+
+    .form-group select {
+        cursor: pointer;
+        appearance: auto;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 70px;
+    }
+
+    .form-group .money-input {
+        text-align: right;
+        font-weight: 600;
     }
 
     .upd-form-label {
@@ -564,6 +607,27 @@
         catSelect.addEventListener('change', aplicarCategoria);
         aplicarCategoria();
     });
+</script>
+
+<script>
+  // Formulário de Entrada/Saída: esconde campos de banco quando tipo=caixa.
+  document.addEventListener('DOMContentLoaded', function () {
+    var tipoSelect = document.getElementById('id_tipo');
+    if (!tipoSelect) return;
+    var camposBanco = ['id_contaaacreditar', 'id_via', 'id_contaorigem', 'id_conta'];
+    function toggleCamposBanco() {
+      var isCaixa = tipoSelect.value === 'caixa';
+      camposBanco.forEach(function (fid) {
+        var el = document.getElementById(fid);
+        if (el) {
+          var group = el.closest('.form-group');
+          if (group) group.style.display = isCaixa ? 'none' : '';
+        }
+      });
+    }
+    tipoSelect.addEventListener('change', toggleCamposBanco);
+    toggleCamposBanco();
+  });
 </script>
 
 {% endblock %}
