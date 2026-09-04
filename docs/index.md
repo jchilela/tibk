@@ -19,6 +19,7 @@ Terceira Igreja Baptista de Luanda.
 | [Relatórios](relatorios.md) | Gera PDFs para gestão e prestação de contas |
 | [Solicitações](guia/02_modulos_operacionais/12_solicitacoes_interdepartamentais.md) | Pedidos formais entre departamentos |
 | [Painel Pastoral](guia/02_modulos_operacionais/13_painel_pastoral.md) | Acompanhamento espiritual e pastoral da congregação |
+| [Checklists](guia/02_modulos_operacionais/14_checklists.md) | Checklists de preparação por actividade e departamento |
 
 ## Como aceder
 

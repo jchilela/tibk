@@ -60,12 +60,22 @@
                     <i class="fas fa-user-clock fa-fw"></i> <span>As Minhas Escalas</span>
                 </a>
 
+                <div class="nav-section-title">Actividades</div>
+
                 {% if perms.sitetibl.view_actividade %}
                 <a href="/tibl/actividades/calendario/"
                     class="nav-item {% if 'actividades' in request.path %}active{% endif %}">
                     <i class="fas fa-calendar-check fa-fw"></i> Actividades
                 </a>
+                <a href="{% url 'sitetibl:dashboard_checklist' %}"
+                    class="nav-item {% if 'dashboard-checklist' in request.path %}active{% endif %}">
+                    <i class="fas fa-list-check fa-fw"></i> Checklists
+                </a>
                 {% endif %}
+                <a href="{% url 'sitetibl:minhas_tarefas' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'minhas_tarefas' %}active{% endif %}">
+                    <i class="fas fa-tasks fa-fw"></i> Minhas Tarefas
+                </a>
 
                 {% if perms.sitetibl.view_escala %}
                 <a href="/tibl/gestao/escalas/1" class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'escalas' %}active{% endif %}">
@@ -120,7 +130,7 @@
                 </a>
                 {% endif %}
 
-                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entrada %}
+                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entrada or perms.sitetibl.view_saida or request.user.is_authenticated %}
                 <div class="nav-section-title">Financeiro</div>
 
                 {% if perms.sitetibl.view_contabancaria %}
@@ -141,17 +151,10 @@
                 </a>
                 {% endif %}
 
-                {% if perms.sitetibl.view_entrada %}
-                <a href="/tibl/gestao/entradas/1"
-                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'entradas' %}active{% endif %}">
-                    <i class="fas fa-arrow-circle-right fa-fw"></i> Entradas
-                </a>
-                {% endif %}
-
-                {% if perms.sitetibl.view_saida %}
-                <a href="/tibl/gestao/saidas/1"
-                    class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'saidas' %}active{% endif %}">
-                    <i class="fas fa-arrow-circle-left fa-fw"></i> Saídas
+                {% if perms.sitetibl.view_entrada or perms.sitetibl.view_saida %}
+                <a href="{% url 'sitetibl:movimentos' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'movimentos' or request.resolver_match.kwargs.gestaoescolhida == 'entradas' or request.resolver_match.kwargs.gestaoescolhida == 'saidas' %}active{% endif %}">
+                    <i class="fas fa-exchange-alt fa-fw"></i> Movimentos
                 </a>
                 {% endif %}
 
@@ -168,6 +171,22 @@
                     <i class="fas fa-file-invoice fa-fw"></i> Pedidos de Saída
                 </a>
                 {% endif %}
+
+                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entrada or perms.sitetibl.view_saida %}
+                <a href="{% url 'sitetibl:gestao_contribuicoes' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'gestao_contribuicoes' or request.resolver_match.url_name == 'historico_membro_contribuicoes' %}active{% endif %}">
+                    <i class="fas fa-hand-holding-dollar fa-fw"></i> Contribuições
+                </a>
+                {% endif %}
+
+                <a href="{% url 'sitetibl:minhas_contribuicoes' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'minhas_contribuicoes' %}active{% endif %}">
+                    <i class="fas fa-hand-holding-dollar fa-fw"></i> As Minhas Contribuições
+                </a>
+                <a href="{% url 'sitetibl:registrar_contribuicao' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'registrar_contribuicao' %}active{% endif %}">
+                    <i class="fas fa-plus-circle fa-fw"></i> Registar Contribuição
+                </a>
                 {% endif %}
 
                 {% if perms.sitetibl.view_ajuda or perms.sitetibl.view_cesta or perms.sitetibl.view_celula or perms.sitetibl.view_relatoriosemanalcelula or perms.sitetibl.view_conteudoensino or perms.sitetibl.view_enviomensagem %}
@@ -214,7 +233,7 @@
                 {% endif %}
                 {% endif %}
 
-                {% if perms.sitetibl.view_inventariopatrimonio %}
+                {% if perms.sitetibl.view_inventariopatrimonio or perms.sitetibl.change_actividade or perms.sitetibl.view_dizimooferta or request.user.is_staff %}
                 <div class="nav-section-title">Administração</div>
 
                 {% if perms.sitetibl.view_inventariopatrimonio %}
@@ -222,7 +241,6 @@
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
                     <i class="fas fa-boxes-stacked fa-fw"></i> Património
                 </a>
-                {% endif %}
                 {% endif %}
 
                 {% if perms.sitetibl.change_actividade or perms.sitetibl.view_dizimooferta or perms.sitetibl.view_inventariopatrimonio %}
@@ -235,6 +253,7 @@
                 <a href="/admin/" class="nav-item" target="_blank">
                     <i class="fas fa-cog fa-fw"></i> Admin Django
                 </a>
+                {% endif %}
                 {% endif %}
 
                 <a href="{% url 'documentacao' path='' %}"
@@ -277,6 +296,13 @@
                         <i class="fas fa-bell"></i>
                         {% if notificacoes_nao_lidas %}
                         <span style="position: absolute; top: -6px; right: -8px; background: #ef4444; color: white; font-size: 0.6rem; font-weight: 700; padding: 1px 5px; border-radius: 100px; min-width: 16px; text-align: center;">{{ notificacoes_nao_lidas }}</span>
+                        {% endif %}
+                    </a>
+                    <!-- Notificações de Checklist -->
+                    <a href="{% url 'sitetibl:listar_notificacoes' %}" style="position: relative; color: var(--text-muted); font-size: 1.1rem; text-decoration: none;" title="Notificações de Checklist">
+                        <i class="fas fa-list-check"></i>
+                        {% if notificacoes_checklist_nao_lidas %}
+                        <span style="position: absolute; top: -6px; right: -8px; background: #6366f1; color: white; font-size: 0.6rem; font-weight: 700; padding: 1px 5px; border-radius: 100px; min-width: 16px; text-align: center;">{{ notificacoes_checklist_nao_lidas }}</span>
                         {% endif %}
                     </a>
 

@@ -686,6 +686,97 @@ def mostraGestao(request,gestaoescolhida,pagina):
 
 
 @login_required
+def movimentos(request, pagina=1):
+    from sitetibl.models import MOEDA
+
+    tipo_mov = request.GET.get('tipo_mov', '').strip()
+    tipo_conta = request.GET.get('tipov', '').strip()
+    conta_v = request.GET.get('contabancariav', '0').strip()
+    rubrica_v = request.GET.get('rubricav', '0').strip()
+    mes_v = request.GET.get('mesv', '0').strip()
+    ano_v = request.GET.get('anov', str(date.today().year)).strip()
+
+    movimentos_list = []
+
+    # Entradas
+    if tipo_mov in ('', 'entrada'):
+        qs_e = Entrada.objects.select_related('rubrica', 'responsavel', 'contaaacreditar')
+        if tipo_conta:
+            qs_e = qs_e.filter(tipo=tipo_conta)
+        if conta_v != '0':
+            qs_e = qs_e.filter(contaaacreditar_id=conta_v)
+        if rubrica_v != '0':
+            qs_e = qs_e.filter(rubrica_id=rubrica_v)
+        if mes_v != '0':
+            qs_e = qs_e.filter(data__month=mes_v)
+        if ano_v:
+            qs_e = qs_e.filter(data__year=ano_v)
+        for e in qs_e:
+            movimentos_list.append({
+                'id': e.id,
+                'tipo_mov': 'entrada',
+                'data': e.data,
+                'tipo': e.tipo,
+                'tipo_display': e.get_tipo_display(),
+                'rubrica': str(e.rubrica),
+                'conta': e.contaaacreditar,
+                'valor': e.valor,
+                'moeda': e.moeda,
+                'responsavel': e.responsavel,
+            })
+
+    # Saídas
+    if tipo_mov in ('', 'saida'):
+        qs_s = Saida.objects.select_related('rubrica', 'responsavel', 'conta')
+        if tipo_conta:
+            qs_s = qs_s.filter(tipo=tipo_conta)
+        if conta_v != '0':
+            qs_s = qs_s.filter(conta_id=conta_v)
+        if rubrica_v != '0':
+            qs_s = qs_s.filter(rubrica_id=rubrica_v)
+        if mes_v != '0':
+            qs_s = qs_s.filter(data__month=mes_v)
+        if ano_v:
+            qs_s = qs_s.filter(data__year=ano_v)
+        for s in qs_s:
+            movimentos_list.append({
+                'id': s.id,
+                'tipo_mov': 'saida',
+                'data': s.data,
+                'tipo': s.tipo,
+                'tipo_display': s.get_tipo_display(),
+                'rubrica': str(s.rubrica),
+                'conta': s.conta,
+                'valor': s.valor,
+                'moeda': s.moeda,
+                'responsavel': s.responsavel,
+            })
+
+    # Ordenar por data descendente
+    movimentos_list.sort(key=lambda m: m['data'], reverse=True)
+
+    paginador = Paginator(movimentos_list, 20)
+    pagina_final = request.GET.get('pagina', pagina)
+    paginaresultado = paginador.get_page(pagina_final)
+
+    context = {
+        'bb': paginaresultado,
+        'listameses': MESES,
+        'listacontasigreja': Contabancaria.objects.values('id', 'numeroconta', 'instituicao_id').filter(instituicao_id=1),
+        'listarubricasentrada': Rubricaentrada.objects.values('id', 'designacao'),
+        'listarubricassaida': Rubricasaida.objects.values('id', 'designacao'),
+        'filtro_tipo_mov': tipo_mov,
+        'filtro_tipov': tipo_conta,
+        'filtro_contabancariav': conta_v,
+        'filtro_rubricav': rubrica_v,
+        'filtro_mesv': mes_v,
+        'filtro_anov': ano_v,
+    }
+
+    return render(request, 'movimentos.html', context)
+
+
+@login_required
 def mostraActualizacao(request, gestaoescolhida, id):
     LEGACY_GESTAO_MAP = {
         'entradabancos': 'entradas',
@@ -913,6 +1004,7 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
             'irmao_depts_json': json.dumps({str(k): v for k, v in _irmao_depts.items()}),
             'tem_protocolo': escalas_da_actividade.filter(eh_protocolo=True).exists(),
             'tem_escalas': escalas_da_actividade.exists(),
+            'tem_checklist': registo.checklists.exists(),
         }
     elif gestaoescolhida == 'departamentos':
         mandatos_departamento = (
@@ -2247,6 +2339,813 @@ def relatorioofertasportipo_pdf(request):
     elements.append(table)
     doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
     return response
+
+
+# ── Portal do Membro: Minhas Contribuições ───────────────────────
+
+@login_required
+def minhas_contribuicoes(request):
+    from sitetibl.models import Contribuicao, Irmao
+    from datetime import date
+
+    try:
+        irmao = Irmao.objects.get(user=request.user)
+    except Irmao.DoesNotExist:
+        messages.error(request, 'O seu utilizador não está associado a um membro. Contacte o administrador.')
+        return redirect('dashboard')
+
+    qs = Contribuicao.objects.filter(irmao=irmao)
+
+    # Filtros
+    tipo_filter = request.GET.get('tipo', '').strip()
+    estado_filter = request.GET.get('estado', '').strip()
+    ano_filter = request.GET.get('ano', '').strip()
+
+    if tipo_filter:
+        qs = qs.filter(tipo=tipo_filter)
+    if estado_filter:
+        qs = qs.filter(estado=estado_filter)
+    if ano_filter and ano_filter != 'todos':
+        qs = qs.filter(data__year=int(ano_filter))
+
+    # Totais por período (ano actual por mês)
+    ano_actual = int(ano_filter) if ano_filter and ano_filter != 'todos' else date.today().year
+    totais_mes = qs.filter(data__year=ano_actual) \
+        .values('data__month') \
+        .annotate(
+            total=Sum('valor'),
+            entradas_count=Count('id'),
+        ) \
+        .order_by('data__month')
+
+    meses_nomes = {
+        1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
+        7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez',
+    }
+    totais_por_mes = [
+        {
+            'mes': meses_nomes.get(t['data__month'], ''),
+            'total': t['total'],
+            'count': t['entradas_count'],
+        }
+        for t in totais_mes
+    ]
+
+    # Totais gerais
+    total_geral = qs.aggregate(total=Sum('valor'))['total'] or 0
+    total_confirmado = qs.filter(estado='confirmada').aggregate(total=Sum('valor'))['total'] or 0
+    total_pendente = qs.filter(estado='pendente').aggregate(total=Sum('valor'))['total'] or 0
+
+    # Paginação
+    paginator = Paginator(qs, 10)
+    page = request.GET.get('pagina', 1)
+    contribuicoes = paginator.get_page(page)
+
+    # Anos disponíveis para filtro
+    anos = qs.dates('data', 'year') if qs.exists() else []
+    anos_list = [d.year for d in anos]
+
+    context = {
+        'contribuicoes': contribuicoes,
+        'totais_por_mes': totais_por_mes,
+        'total_geral': total_geral,
+        'total_confirmado': total_confirmado,
+        'total_pendente': total_pendente,
+        'anos_list': anos_list,
+        'ano_actual': ano_actual,
+        'filtro_tipo': tipo_filter,
+        'filtro_estado': estado_filter,
+        'filtro_ano': ano_filter,
+        'tipo_choices': Contribuicao.TIPO_CONTRIBUICAO if hasattr(Contribuicao, 'TIPO_CONTRIBUICAO') else [],
+        'estado_choices': Contribuicao.ESTADO_CONTRIBUICAO if hasattr(Contribuicao, 'ESTADO_CONTRIBUICAO') else [],
+    }
+
+    # TIPO_CONTRIBUICAO e ESTADO_CONTRIBUICAO estão no módulo models, não na classe
+    from sitetibl.models import TIPO_CONTRIBUICAO, ESTADO_CONTRIBUICAO
+    context['tipo_choices'] = TIPO_CONTRIBUICAO
+    context['estado_choices'] = ESTADO_CONTRIBUICAO
+
+    return render(request, 'minhas_contribuicoes.html', context)
+
+
+@login_required
+def registrar_contribuicao(request):
+    from sitetibl.models import Contribuicao, Irmao
+    from sitetibl.forms import ContribuicaoForm
+
+    try:
+        irmao = Irmao.objects.get(user=request.user)
+    except Irmao.DoesNotExist:
+        messages.error(request, 'O seu utilizador não está associado a um membro. Contacte o administrador.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = ContribuicaoForm(request.POST, request.FILES)
+        if form.is_valid():
+            contribuicao = form.save(commit=False)
+            contribuicao.irmao = irmao
+            contribuicao.estado = 'pendente'
+            contribuicao.save()
+            messages.success(request, 'Contribuição registada com sucesso! O estado será actualizado pela área financeira.')
+            return redirect('sitetibl:minhas_contribuicoes')
+    else:
+        form = ContribuicaoForm()
+
+    return render(request, 'registrar_contribuicao.html', {'form': form})
+
+
+@login_required
+def detalhe_contribuicao(request, contribuicao_id):
+    from sitetibl.models import Contribuicao, Irmao
+
+    try:
+        irmao = Irmao.objects.get(user=request.user)
+    except Irmao.DoesNotExist:
+        messages.error(request, 'O seu utilizador não está associado a um membro. Contacte o administrador.')
+        return redirect('dashboard')
+
+    contribuicao = get_object_or_404(Contribuicao, id=contribuicao_id, irmao=irmao)
+
+    return render(request, 'detalhe_contribuicao.html', {'contribuicao': contribuicao})
+
+
+# ── Área Financeira: Gestão de Contribuições ─────────────────────
+
+@login_required
+def gestao_contribuicoes(request):
+    from django.core.exceptions import PermissionDenied
+    from sitetibl.models import Contribuicao, Irmao, TIPO_CONTRIBUICAO, ESTADO_CONTRIBUICAO
+    from datetime import date
+
+    if not (
+        request.user.has_perm('sitetibl.view_dizimooferta')
+        or request.user.has_perm('sitetibl.view_entrada')
+        or request.user.has_perm('sitetibl.view_saida')
+        or request.user.is_superuser
+    ):
+        raise PermissionDenied
+
+    qs = Contribuicao.objects.select_related('irmao').all()
+
+    # Filtros
+    membro_filter = request.GET.get('membro', '').strip()
+    tipo_filter = request.GET.get('tipo', '').strip()
+    estado_filter = request.GET.get('estado', '').strip()
+    ano_filter = request.GET.get('ano', '').strip()
+    data_inicio = request.GET.get('data_inicio', '').strip()
+    data_fim = request.GET.get('data_fim', '').strip()
+
+    if membro_filter:
+        qs = qs.filter(
+            Q(irmao__nome__icontains=membro_filter) |
+            Q(irmao__apelido__icontains=membro_filter) |
+            Q(irmao__user__username__icontains=membro_filter)
+        )
+    if tipo_filter:
+        qs = qs.filter(tipo=tipo_filter)
+    if estado_filter:
+        qs = qs.filter(estado=estado_filter)
+    if ano_filter and ano_filter != 'todos':
+        qs = qs.filter(data__year=int(ano_filter))
+    if data_inicio:
+        qs = qs.filter(data__gte=data_inicio)
+    if data_fim:
+        qs = qs.filter(data__lte=data_fim)
+
+    # Totais por tipo
+    totais_tipo = qs.values('tipo').annotate(
+        total=Sum('valor'),
+        count=Count('id'),
+    ).order_by('tipo')
+
+    tipo_labels = dict(TIPO_CONTRIBUICAO)
+    totais_por_tipo = [
+        {
+            'tipo': tipo_labels.get(t['tipo'], t['tipo']),
+            'total': t['total'],
+            'count': t['count'],
+        }
+        for t in totais_tipo
+    ]
+
+    # Totais por estado
+    totais_estado = qs.values('estado').annotate(
+        total=Sum('valor'),
+        count=Count('id'),
+    ).order_by('estado')
+
+    estado_labels = dict(ESTADO_CONTRIBUICAO)
+    totais_por_estado = [
+        {
+            'estado': estado_labels.get(t['estado'], t['estado']),
+            'estado_key': t['estado'],
+            'total': t['total'],
+            'count': t['count'],
+        }
+        for t in totais_estado
+    ]
+
+    # Totais gerais
+    total_geral = qs.aggregate(total=Sum('valor'))['total'] or 0
+    total_confirmado = qs.filter(estado='confirmada').aggregate(total=Sum('valor'))['total'] or 0
+    total_pendente = qs.filter(estado='pendente').aggregate(total=Sum('valor'))['total'] or 0
+    total_rejeitado = qs.filter(estado='rejeitada').aggregate(total=Sum('valor'))['total'] or 0
+
+    # Paginação
+    paginator = Paginator(qs, 15)
+    page = request.GET.get('pagina', 1)
+    contribuicoes = paginator.get_page(page)
+
+    # Anos disponíveis
+    anos = Contribuicao.objects.dates('data', 'year') if Contribuicao.objects.exists() else []
+    anos_list = [d.year for d in anos]
+
+    context = {
+        'contribuicoes': contribuicoes,
+        'totais_por_tipo': totais_por_tipo,
+        'totais_por_estado': totais_por_estado,
+        'total_geral': total_geral,
+        'total_confirmado': total_confirmado,
+        'total_pendente': total_pendente,
+        'total_rejeitado': total_rejeitado,
+        'anos_list': anos_list,
+        'filtro_membro': membro_filter,
+        'filtro_tipo': tipo_filter,
+        'filtro_estado': estado_filter,
+        'filtro_ano': ano_filter,
+        'filtro_data_inicio': data_inicio,
+        'filtro_data_fim': data_fim,
+        'tipo_choices': TIPO_CONTRIBUICAO,
+        'estado_choices': ESTADO_CONTRIBUICAO,
+    }
+
+    return render(request, 'gestao_contribuicoes.html', context)
+
+
+@login_required
+def confirmar_contribuicao(request, contribuicao_id):
+    from django.core.exceptions import PermissionDenied
+    from sitetibl.models import Contribuicao
+    from django.utils import timezone
+
+    if not (
+        request.user.has_perm('sitetibl.view_dizimooferta')
+        or request.user.has_perm('sitetibl.view_entrada')
+        or request.user.has_perm('sitetibl.view_saida')
+        or request.user.is_superuser
+    ):
+        raise PermissionDenied
+
+    if request.method != 'POST':
+        return redirect('sitetibl:gestao_contribuicoes')
+
+    contribuicao = get_object_or_404(Contribuicao, id=contribuicao_id)
+    nota = request.POST.get('nota', '').strip()
+
+    contribuicao.estado = 'confirmada'
+    contribuicao.data_validacao = timezone.now()
+    contribuicao.validado_por = request.user
+    if nota:
+        contribuicao.nota_validacao = nota
+    contribuicao.save()
+
+    messages.success(request, f'Contribuição de {contribuicao.irmao} confirmada com sucesso.')
+    return redirect('sitetibl:gestao_contribuicoes')
+
+
+@login_required
+def rejeitar_contribuicao(request, contribuicao_id):
+    from django.core.exceptions import PermissionDenied
+    from sitetibl.models import Contribuicao
+    from django.utils import timezone
+
+    if not (
+        request.user.has_perm('sitetibl.view_dizimooferta')
+        or request.user.has_perm('sitetibl.view_entrada')
+        or request.user.has_perm('sitetibl.view_saida')
+        or request.user.is_superuser
+    ):
+        raise PermissionDenied
+
+    if request.method != 'POST':
+        return redirect('sitetibl:gestao_contribuicoes')
+
+    contribuicao = get_object_or_404(Contribuicao, id=contribuicao_id)
+    nota = request.POST.get('nota', '').strip()
+
+    if not nota:
+        messages.error(request, 'É obrigatório indicar o motivo de rejeição.')
+        return redirect('sitetibl:gestao_contribuicoes')
+
+    contribuicao.estado = 'rejeitada'
+    contribuicao.data_validacao = timezone.now()
+    contribuicao.validado_por = request.user
+    contribuicao.nota_validacao = nota
+    contribuicao.save()
+
+    messages.success(request, f'Contribuição de {contribuicao.irmao} rejeitada/anulada.')
+    return redirect('sitetibl:gestao_contribuicoes')
+
+
+@login_required
+def historico_membro_contribuicoes(request, irmao_id):
+    from django.core.exceptions import PermissionDenied
+    from sitetibl.models import Contribuicao, Irmao, TIPO_CONTRIBUICAO, ESTADO_CONTRIBUICAO
+
+    if not (
+        request.user.has_perm('sitetibl.view_dizimooferta')
+        or request.user.has_perm('sitetibl.view_entrada')
+        or request.user.has_perm('sitetibl.view_saida')
+        or request.user.is_superuser
+    ):
+        raise PermissionDenied
+
+    irmao = get_object_or_404(Irmao, id=irmao_id)
+    qs = Contribuicao.objects.filter(irmao=irmao)
+
+    # Totais
+    total_geral = qs.aggregate(total=Sum('valor'))['total'] or 0
+    total_confirmado = qs.filter(estado='confirmada').aggregate(total=Sum('valor'))['total'] or 0
+    total_pendente = qs.filter(estado='pendente').aggregate(total=Sum('valor'))['total'] or 0
+    total_rejeitado = qs.filter(estado='rejeitada').aggregate(total=Sum('valor'))['total'] or 0
+
+    # Totais por tipo
+    totais_tipo = qs.values('tipo').annotate(
+        total=Sum('valor'),
+        count=Count('id'),
+    ).order_by('tipo')
+
+    tipo_labels = dict(TIPO_CONTRIBUICAO)
+    totais_por_tipo = [
+        {
+            'tipo': tipo_labels.get(t['tipo'], t['tipo']),
+            'total': t['total'],
+            'count': t['count'],
+        }
+        for t in totais_tipo
+    ]
+
+    paginator = Paginator(qs, 15)
+    page = request.GET.get('pagina', 1)
+    contribuicoes = paginator.get_page(page)
+
+    context = {
+        'irmao': irmao,
+        'contribuicoes': contribuicoes,
+        'total_geral': total_geral,
+        'total_confirmado': total_confirmado,
+        'total_pendente': total_pendente,
+        'total_rejeitado': total_rejeitado,
+        'totais_por_tipo': totais_por_tipo,
+    }
+
+    return render(request, 'historico_membro_contribuicoes.html', context)
+
+
+# ── Checklists por Actividade e Departamento ─────────────────────
+
+def _check_permission(request, actividade, departamento=None):
+    """Admin e líderes/vice-líderes do departamento podem gerir."""
+    if request.user.has_perm('sitetibl.change_actividade') or request.user.is_superuser:
+        return True
+    irmao_logado = _get_irmao_logado(request)
+    if not irmao_logado:
+        return False
+    dept = departamento or actividade.departamento
+    if dept and (
+        dept.lider_departamento_id == irmao_logado.id
+        or dept.vice_lider_departamento_id == irmao_logado.id
+    ):
+        return True
+    return False
+
+
+def _get_irmao_logado(request):
+    """Cache do Irmao do utilizador logado no request para evitar queries repetidas."""
+    if not hasattr(request, '_irmao_logado_cache'):
+        from sitetibl.models import Irmao
+        request._irmao_logado_cache = Irmao.objects.filter(user=request.user).first()
+    return request._irmao_logado_cache
+
+
+def _can_toggle_item(request, item):
+    """Admin, líder/vice-líder do dept, ou o responsável pela tarefa."""
+    if request.user.has_perm('sitetibl.change_actividade') or request.user.is_superuser:
+        return True
+    irmao_logado = _get_irmao_logado(request)
+    if not irmao_logado:
+        return False
+    dept = item.checklist.departamento
+    if dept and (
+        dept.lider_departamento_id == irmao_logado.id
+        or dept.vice_lider_departamento_id == irmao_logado.id
+    ):
+        return True
+    if item.responsavel_id == irmao_logado.id:
+        return True
+    return False
+
+
+@login_required
+def checklist_actividade(request, actividade_id):
+    from sitetibl.models import Actividade, ChecklistActividade, Departamento, Irmao, DIAS_SEMANA_CHECKLIST
+    from sitetibl.forms import ChecklistDepartamentoForm, ChecklistRecorrenciaForm
+
+    actividade = get_object_or_404(Actividade, id=actividade_id)
+
+    can_manage = _check_permission(request, actividade)
+
+    checklists = ChecklistActividade.objects.filter(actividade=actividade).select_related('departamento').prefetch_related('items')
+
+    # Pré-calcular contadores a partir dos items prefetched (evita N+1)
+    for ckl in checklists:
+        ckl.prefetch_counts()
+
+    # Progresso geral
+    total_items = sum(c.total_items for c in checklists)
+    total_concluidos = sum(c.items_concluidos for c in checklists)
+    progresso_geral = int((total_concluidos / total_items) * 100) if total_items > 0 else 0
+
+    # Departamentos sem checklist para esta actividade
+    dept_ids = checklists.values_list('departamento_id', flat=True)
+    departamentos_disponiveis = Departamento.objects.exclude(id__in=dept_ids).order_by('designacao')
+
+    # Form para criar nova checklist (seleccionar departamento)
+    if request.method == 'POST' and 'criar_checklist' in request.POST:
+        form_checklist = ChecklistDepartamentoForm(request.POST)
+        if form_checklist.is_valid():
+            checklist = form_checklist.save(commit=False)
+            checklist.actividade = actividade
+            try:
+                checklist.save()
+                messages.success(request, f'Checklist criada para {checklist.departamento}.')
+            except Exception:
+                messages.error(request, 'Já existe uma checklist para este departamento nesta actividade.')
+            return redirect('sitetibl:checklist_actividade', actividade_id=actividade_id)
+    else:
+        form_checklist = ChecklistDepartamentoForm()
+
+    # Form de recorrência para cada checklist (dicionário)
+    forms_recorrencia = {}
+    for ckl in checklists:
+        forms_recorrencia[ckl.id] = ChecklistRecorrenciaForm(instance=ckl, prefix=f'rec_{ckl.id}')
+
+    # Membros participantes da actividade para atribuir responsáveis
+    participantes = actividade.participantes.all().order_by('nome', 'apelido')
+
+    context = {
+        'actividade': actividade,
+        'checklists': checklists,
+        'total_items': total_items,
+        'total_concluidos': total_concluidos,
+        'progresso_geral': progresso_geral,
+        'departamentos_disponiveis': departamentos_disponiveis,
+        'form_checklist': form_checklist,
+        'forms_recorrencia': forms_recorrencia,
+        'participantes': participantes,
+        'dias_semana': DIAS_SEMANA_CHECKLIST,
+        'can_manage': can_manage,
+    }
+
+    return render(request, 'checklist_actividade.html', context)
+
+
+@login_required
+def configurar_recorrencia(request, checklist_id):
+    from sitetibl.models import ChecklistActividade
+    from sitetibl.forms import ChecklistRecorrenciaForm
+
+    checklist = get_object_or_404(ChecklistActividade, id=checklist_id)
+
+    if not _check_permission(request, checklist.actividade, checklist.departamento):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        form = ChecklistRecorrenciaForm(request.POST, instance=checklist, prefix=f'rec_{checklist.id}')
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Recorrência configurada para {checklist.departamento}.')
+        else:
+            for field, errors in form.errors.items():
+                for e in errors:
+                    messages.error(request, e)
+
+    return redirect('sitetibl:checklist_actividade', actividade_id=checklist.actividade_id)
+
+
+@login_required
+def toggle_item_checklist(request, item_id):
+    from sitetibl.models import ItemChecklist
+    from django.utils import timezone
+
+    item = get_object_or_404(ItemChecklist, id=item_id)
+    actividade = item.checklist.actividade
+    departamento = item.checklist.departamento
+
+    if not _can_toggle_item(request, item):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        item.concluido = not item.concluido
+        if item.concluido:
+            item.data_conclusao = timezone.now()
+        else:
+            item.data_conclusao = None
+        item.save()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+        from django.db.models import Count, Q
+        checklist = item.checklist
+        # Recalcular progresso geral com aggregate (1 query em vez de N+1)
+        agg = checklist.actividade.checklists.aggregate(
+            total=Count('items'),
+            concluidos=Count('items', filter=Q(items__concluido=True)),
+        )
+        total_items = agg['total']
+        total_concluidos = agg['concluidos']
+        progresso_geral = int((total_concluidos / total_items) * 100) if total_items > 0 else 0
+        # Progresso da checklist específica
+        ckl_agg = checklist.items.aggregate(
+            total=Count('id'),
+            concluidos=Count('id', filter=Q(concluido=True)),
+        )
+        return JsonResponse({
+            'concluido': item.concluido,
+            'progresso': int((ckl_agg['concluidos'] / ckl_agg['total']) * 100) if ckl_agg['total'] > 0 else 0,
+            'concluidos': ckl_agg['concluidos'],
+            'total': ckl_agg['total'],
+            'progresso_geral': progresso_geral,
+            'total_concluidos': total_concluidos,
+            'total_items': total_items,
+        })
+
+    messages.success(request, 'Item actualizado.')
+    return redirect('sitetibl:checklist_actividade', actividade_id=actividade.id)
+
+
+@login_required
+def adicionar_item_checklist(request, checklist_id):
+    from sitetibl.models import ChecklistActividade
+    from sitetibl.forms import ItemChecklistForm
+
+    checklist = get_object_or_404(ChecklistActividade, id=checklist_id)
+
+    if not _check_permission(request, checklist.actividade, checklist.departamento):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        form = ItemChecklistForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.checklist = checklist
+            item.criado_por = request.user
+            item.save()
+            messages.success(request, 'Tarefa adicionada à checklist.')
+        else:
+            for field, errors in form.errors.items():
+                for e in errors:
+                    messages.error(request, e)
+
+    return redirect('sitetibl:checklist_actividade', actividade_id=checklist.actividade_id)
+
+
+@login_required
+def remover_item_checklist(request, item_id):
+    from sitetibl.models import ItemChecklist
+
+    item = get_object_or_404(ItemChecklist, id=item_id)
+    actividade_id = item.checklist.actividade_id
+
+    if not _check_permission(request, item.checklist.actividade, item.checklist.departamento):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        item.delete()
+        messages.success(request, 'Tarefa removida da checklist.')
+
+    return redirect('sitetibl:checklist_actividade', actividade_id=actividade_id)
+
+
+@login_required
+def remover_checklist(request, checklist_id):
+    from sitetibl.models import ChecklistActividade
+
+    checklist = get_object_or_404(ChecklistActividade, id=checklist_id)
+    actividade_id = checklist.actividade_id
+
+    if not _check_permission(request, checklist.actividade, checklist.departamento):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        checklist.delete()
+        messages.success(request, f'Checklist de {checklist.departamento} removida.')
+
+    return redirect('sitetibl:checklist_actividade', actividade_id=actividade_id)
+
+
+# ── Minhas Tarefas (Membro) ──────────────────────────────────────
+
+@login_required
+def minhas_tarefas(request):
+    from sitetibl.models import ItemChecklist
+    from datetime import date
+
+    irmao_logado = _get_irmao_logado(request)
+    if not irmao_logado:
+        messages.error(request, 'O seu utilizador não está associado a um membro.')
+        return redirect('dashboard')
+
+    hoje = date.today()
+
+    # 1 query apenas — filtragem e contagem feita em Python
+    tarefas = list(ItemChecklist.objects.filter(
+        responsavel=irmao_logado
+    ).select_related(
+        'checklist__actividade', 'checklist__departamento'
+    ).order_by('checklist__actividade__data', 'ordem'))
+
+    pendentes = [t for t in tarefas if not t.concluido]
+    concluidas = [t for t in tarefas if t.concluido]
+    atrasadas = [t for t in pendentes if t.checklist.actividade.data < hoje]
+
+    context = {
+        'tarefas': tarefas,
+        'pendentes': pendentes,
+        'concluidas': concluidas,
+        'atrasadas': atrasadas,
+        'hoje': hoje,
+        'total': len(tarefas),
+        'total_pendentes': len(pendentes),
+        'total_concluidas': len(concluidas),
+        'total_atrasadas': len(atrasadas),
+    }
+
+    return render(request, 'minhas_tarefas.html', context)
+
+
+# ── Notificações de Checklist ────────────────────────────────────
+
+@login_required
+def listar_notificacoes(request):
+    from sitetibl.models import NotificacaoChecklist
+
+    irmao = _get_irmao_logado(request)
+    if not irmao:
+        messages.error(request, 'O seu utilizador não está associado a um membro.')
+        return redirect('dashboard')
+
+    notificacoes = NotificacaoChecklist.objects.filter(destinatario=irmao)
+
+    nao_lidas = notificacoes.filter(lida=False).count()
+
+    context = {
+        'notificacoes': notificacoes,
+        'nao_lidas': nao_lidas,
+    }
+
+    return render(request, 'notificacoes_checklist.html', context)
+
+
+@login_required
+def marcar_notificacao_lida(request, notificacao_id):
+    from sitetibl.models import NotificacaoChecklist
+    from django.utils import timezone
+
+    notificacao = get_object_or_404(NotificacaoChecklist, id=notificacao_id)
+
+    irmao = _get_irmao_logado(request)
+    if not irmao:
+        raise PermissionDenied
+
+    if notificacao.destinatario_id != irmao.id:
+        raise PermissionDenied
+
+    notificacao.lida = True
+    notificacao.data_leitura = timezone.now()
+    notificacao.save(update_fields=['lida', 'data_leitura'])
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+        return JsonResponse({'ok': True})
+
+    return redirect('sitetibl:listar_notificacoes')
+
+
+@login_required
+def marcar_todas_lidas(request):
+    from sitetibl.models import NotificacaoChecklist
+    from django.utils import timezone
+
+    irmao = _get_irmao_logado(request)
+    if not irmao:
+        raise PermissionDenied
+
+    NotificacaoChecklist.objects.filter(destinatario=irmao, lida=False).update(
+        lida=True, data_leitura=timezone.now()
+    )
+
+    messages.success(request, 'Todas as notificações marcadas como lidas.')
+    return redirect('sitetibl:listar_notificacoes')
+
+
+# ── Visão por Departamento ───────────────────────────────────────
+
+@login_required
+def dashboard_checklist(request, departamento_id=None):
+    from sitetibl.models import Departamento, ChecklistActividade
+    from datetime import date
+
+    irmao_logado = _get_irmao_logado(request)
+
+    is_admin = request.user.has_perm('sitetibl.view_actividade') or request.user.is_superuser
+
+    if departamento_id:
+        departamento = get_object_or_404(Departamento, id=departamento_id)
+        if not is_admin:
+            if not irmao_logado or not (
+                departamento.lider_departamento_id == irmao_logado.id
+                or departamento.vice_lider_departamento_id == irmao_logado.id
+            ):
+                raise PermissionDenied
+        departamentos_qs = [departamento]
+    else:
+        if is_admin:
+            departamentos_qs = list(Departamento.objects.order_by('designacao'))
+        elif irmao_logado:
+            # Departamentos onde é líder ou vice-líder
+            departamentos_qs = list(Departamento.objects.filter(
+                models.Q(lider_departamento=irmao_logado)
+                | models.Q(vice_lider_departamento=irmao_logado)
+            ).order_by('designacao'))
+            if not departamentos_qs:
+                # Se é integrante de algum departamento via Mandato
+                from sitetibl.models import Mandato
+                dept_ids = Mandato.objects.filter(irmao=irmao_logado).values_list('departamento_id', flat=True).distinct()
+                departamentos_qs = list(Departamento.objects.filter(id__in=dept_ids).order_by('designacao'))
+        else:
+            departamentos_qs = []
+
+    hoje = date.today()
+    dados_dept = []
+
+    for dept in departamentos_qs:
+        checklists = ChecklistActividade.objects.filter(
+            departamento=dept
+        ).select_related('actividade', 'actividade__designacao').prefetch_related('items')
+
+        total_tarefas = 0
+        total_concluidas = 0
+        total_pendentes = 0
+        total_atrasadas = 0
+        actividades_ids = set()
+        checklists_dados = []
+
+        for ckl in checklists:
+            actividades_ids.add(ckl.actividade_id)
+            items_list = list(ckl.items.all())
+            ckl_tarefas = len(items_list)
+            ckl_concluidas = sum(1 for i in items_list if i.concluido)
+            ckl_pendentes = ckl_tarefas - ckl_concluidas
+            ckl_atrasadas = sum(1 for i in items_list if not i.concluido and ckl.actividade.data < hoje)
+
+            total_tarefas += ckl_tarefas
+            total_concluidas += ckl_concluidas
+            total_pendentes += ckl_pendentes
+            total_atrasadas += ckl_atrasadas
+
+            checklists_dados.append({
+                'ckl': ckl,
+                'tarefas': ckl_tarefas,
+                'concluidas': ckl_concluidas,
+                'pendentes': ckl_pendentes,
+                'atrasadas': ckl_atrasadas,
+                'progresso': ckl.progresso,
+            })
+
+        progresso = int((total_concluidas / total_tarefas) * 100) if total_tarefas > 0 else 0
+
+        dados_dept.append({
+            'departamento': dept,
+            'num_checklists': checklists.count(),
+            'num_actividades': len(actividades_ids),
+            'total_tarefas': total_tarefas,
+            'total_concluidas': total_concluidas,
+            'total_pendentes': total_pendentes,
+            'total_atrasadas': total_atrasadas,
+            'progresso': progresso,
+            'checklists_dados': checklists_dados,
+        })
+
+    context = {
+        'dados_dept': dados_dept,
+        'is_admin': is_admin,
+        'departamento_id': departamento_id,
+        'todos_departamentos': Departamento.objects.order_by('designacao') if is_admin else [],
+        'hoje': hoje,
+    }
+
+    return render(request, 'dashboard_checklist.html', context)
 
 
 @login_required

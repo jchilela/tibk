@@ -1,52 +1,46 @@
 # Finanças
 
 Gestão completa das movimentações financeiras da igreja: caixa, banco, dízimos, ofertas,
-pedidos de saída e orçamentos por departamento.
+movimentos, pedidos de saída e orçamentos por departamento.
 
 
 ---
 
-## Caixa
+## Movimentos (Entradas e Saídas)
 
-### Registar uma entrada de caixa
+A página de **Movimentos** unifica entradas e saídas numa só tabela, permitindo filtrar por tipo de movimento, tipo de conta, rubrica e período.
 
-1. No menu principal, aceda a **Finanças** e entre em **Entradas de Caixa**
-2. Clique em **Nova Entrada**
-3. Preencha o valor, a moeda, a data e a hora do movimento
-4. Seleccione a rubrica e o responsável pelo registo
-5. Adicione observações quando precisar justificar a entrada
-6. Clique em **Guardar**
+### Consultar movimentos
 
-### Registar uma saída de caixa
+1. No menu lateral, na secção **Financeiro**, clique em **Movimentos**.
+2. Use os filtros para refinar a lista:
+   - **Movimento**: Todos, apenas Entradas ou apenas Saídas.
+   - **Tipo**: Caixa ou Banco.
+   - **Conta Bancária**: filtrar por conta específica.
+   - **Rubrica**: filtrar por rubrica de entrada ou saída.
+   - **Mês/Ano**: filtrar por período.
+3. Clique em **Filtrar** para aplicar.
+4. Clique no ícone de olho para ver o detalhe de um movimento.
 
-1. Entre em **Saídas de Caixa**
-2. Clique em **Nova Saída**
-3. Preencha o valor, a moeda, a data e a hora da operação
-4. Seleccione a rubrica da despesa e o responsável
-5. Registe observações que expliquem o motivo da saída
-6. Clique em **Guardar**
+### Registar uma entrada
 
----
+1. Na página de **Movimentos**, clique em **Nova Entrada**.
+2. Seleccione o tipo (caixa ou banco).
+3. Preencha o valor, a moeda, a data e a hora do movimento.
+4. Seleccione a rubrica e o responsável pelo registo.
+5. Se for banco, escolha a conta a creditar.
+6. Adicione observações quando precisar justificar a entrada.
+7. Clique em **Guardar**.
 
-## Banco
+### Registar uma saída
 
-### Registar uma entrada bancária
-
-1. Aceda a **Entradas Bancárias**
-2. Clique em **Nova Entrada**
-3. Escolha a conta a creditar
-4. Preencha o valor, a moeda, a data e a hora
-5. Indique a origem do valor, a via da operação e a rubrica correspondente
-6. Confirme os dados e clique em **Guardar**
-
-### Registar uma saída bancária
-
-1. Entre em **Saídas Bancárias**
-2. Clique em **Nova Saída**
-3. Seleccione a conta de débito
-4. Preencha o valor, a moeda, a data e a hora
-5. Indique a rubrica, a conta de destino e o responsável, quando aplicável
-6. Clique em **Guardar**
+1. Na página de **Movimentos**, clique em **Nova Saída**.
+2. Seleccione o tipo (caixa ou banco).
+3. Preencha o valor, a moeda, a data e a hora da operação.
+4. Seleccione a rubrica da despesa e o responsável.
+5. Se for banco, seleccione a conta de débito.
+6. Registe observações que expliquem o motivo da saída.
+7. Clique em **Guardar**.
 
 !!! tip "Conferência de saldo"
 	O sistema mostra o saldo actual das contas nos campos de selecção para reduzir erros de lançamento.

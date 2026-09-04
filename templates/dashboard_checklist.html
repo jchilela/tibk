@@ -1,0 +1,170 @@
+{% extends "base_modern.html" %}
+{% load static %}
+
+{% block title %}Checklists por Departamento — TIBL{% endblock %}
+
+{% block extra_css %}
+<style>
+  .dckl-container { max-width: 1100px; margin: 0 auto; padding-bottom: 3rem; }
+  .dckl-header { margin-bottom: 2rem; }
+  .dckl-header h2 { font-size: 1.5rem; color: var(--text-main); margin: 0 0 0.25rem 0; }
+  .dckl-header h2 i { color: var(--primary); }
+  .dckl-header p { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+
+  .dckl-filter-bar { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center; }
+  .dckl-filter-bar .filter-label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-right: 0.25rem; }
+  .dckl-filter-bar a { padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; text-decoration: none; border: 1.5px solid #e2e8f0; color: var(--text-muted); }
+  .dckl-filter-bar a.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  .dckl-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .dckl-stat-card { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.25rem; text-align: center; }
+  .dckl-stat-card .stat-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-size: 1.1rem; }
+  .dckl-stat-card .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--text-main); }
+  .dckl-stat-card .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+  .dckl-dept-card { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow: hidden; }
+  .dckl-dept-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; gap: 0.75rem; }
+  .dckl-dept-header h3 { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+  .dckl-dept-header h3 i { color: var(--primary); }
+  .dckl-dept-header .dept-stats { display: flex; gap: 1rem; font-size: 0.78rem; }
+  .dckl-dept-header .dept-stats .mini-stat { display: flex; align-items: center; gap: 0.3rem; color: var(--text-muted); }
+  .dckl-dept-header .dept-stats .mini-stat strong { color: var(--text-main); font-size: 0.9rem; }
+  .dckl-dept-header .dept-stats .mini-stat .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .dckl-progress-row { padding: 0.75rem 1.25rem; }
+  .dckl-progress-row .bar-container { background: #e2e8f0; border-radius: 999px; height: 10px; overflow: hidden; }
+  .dckl-progress-row .bar-fill { background: linear-gradient(90deg, var(--primary), #4ade80); height: 100%; border-radius: 999px; transition: width 0.4s; }
+  .dckl-progress-row .bar-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; display: flex; justify-content: space-between; }
+
+  .dckl-table { width: 100%; border-collapse: collapse; }
+  .dckl-table th { text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; padding: 0.6rem 1.25rem; border-bottom: 1px solid #e2e8f0; background: #fafbfc; }
+  .dckl-table td { padding: 0.65rem 1.25rem; font-size: 0.82rem; color: var(--text-main); border-bottom: 1px solid #f1f5f9; }
+  .dckl-table tr:last-child td { border-bottom: none; }
+  .dckl-table tr:hover td { background: #f8fafc; }
+  .dckl-table .ckl-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+  .dckl-table .ckl-link:hover { text-decoration: underline; }
+
+  .badge-pendente { background: #fef3c7; color: #92400e; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+  .badge-concluida { background: #d1fae5; color: #065f46; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+  .badge-atrasada { background: #fee2e2; color: #991b1b; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+
+  .dckl-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+  .dckl-empty i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.25; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dckl-container">
+  <div class="dckl-header">
+    <h2><i class="fas fa-clipboard-list"></i> Checklists por Departamento</h2>
+    <p>{% if is_admin %}Visão geral de todos os departamentos{% else %}Estado das checklists dos seus departamentos{% endif %}</p>
+  </div>
+
+  {% if is_admin and todos_departamentos %}
+  <div class="dckl-filter-bar">
+    <span class="filter-label">Filtrar:</span>
+    <a href="{% url 'sitetibl:dashboard_checklist' %}" class="{% if not departamento_id %}active{% endif %}">Todos</a>
+    {% for dept in todos_departamentos %}
+    <a href="{% url 'sitetibl:dashboard_checklist_dept' dept.id %}" class="{% if departamento_id == dept.id %}active{% endif %}">{{ dept.designacao }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if dados_dept %}
+  {% for dd in dados_dept %}
+  <div class="dckl-dept-card">
+    <div class="dckl-dept-header">
+      <h3><i class="fas fa-users"></i> {{ dd.departamento.designacao }}</h3>
+      <div class="dept-stats">
+        <span class="mini-stat"><span class="dot" style="background: #6366f1;"></span> <strong>{{ dd.num_checklists }}</strong> checklists</span>
+        <span class="mini-stat"><span class="dot" style="background: #3b82f6;"></span> <strong>{{ dd.num_actividades }}</strong> actividades</span>
+        <span class="mini-stat"><span class="dot" style="background: #f59e0b;"></span> <strong>{{ dd.total_pendentes }}</strong> pendentes</span>
+        <span class="mini-stat"><span class="dot" style="background: #10b981;"></span> <strong>{{ dd.total_concluidas }}</strong> concluídas</span>
+        {% if dd.total_atrasadas > 0 %}
+        <span class="mini-stat"><span class="dot" style="background: #ef4444;"></span> <strong>{{ dd.total_atrasadas }}</strong> atrasadas</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="dckl-progress-row">
+      <div class="bar-container">
+        <div class="bar-fill" style="width: {{ dd.progresso }}%;"></div>
+      </div>
+      <div class="bar-label">
+        <span>{{ dd.total_concluidas }}/{{ dd.total_tarefas }} tarefas concluídas</span>
+        <span><strong>{{ dd.progresso }}%</strong></span>
+      </div>
+    </div>
+
+    {% if dd.checklists_dados %}
+    <table class="dckl-table">
+      <thead>
+        <tr>
+          <th>Actividade</th>
+          <th>Data</th>
+          <th>Tarefas</th>
+          <th>Pendentes</th>
+          <th>Concluídas</th>
+          <th>Atrasadas</th>
+          <th>Progresso</th>
+          <th>Recorrência</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cd in dd.checklists_dados %}
+        <tr>
+          <td><a href="{% url 'sitetibl:checklist_actividade' cd.ckl.actividade_id %}" class="ckl-link">{{ cd.ckl.actividade.designacao }}</a></td>
+          <td>{{ cd.ckl.actividade.data|date:"d/m/Y" }}</td>
+          <td>{{ cd.tarefas }}</td>
+          <td>
+            {% if cd.pendentes > 0 %}
+            <span class="badge-pendente">{{ cd.pendentes }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if cd.concluidas > 0 %}
+            <span class="badge-concluida">{{ cd.concluidas }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if cd.atrasadas > 0 %}
+            <span class="badge-atrasada">{{ cd.atrasadas }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <div style="width: 80px; background: #e2e8f0; border-radius: 999px; height: 6px; overflow: hidden;">
+              <div style="background: var(--primary); height: 100%; width: {{ cd.progresso }}%; border-radius: 999px;"></div>
+            </div>
+            <span style="font-size: 0.7rem; color: var(--text-muted);">{{ cd.progresso }}%</span>
+          </td>
+          <td>
+            {% if cd.ckl.recorrencia != 'unica' %}
+            <span style="font-size: 0.72rem; color: #6366f1; font-weight: 600;"><i class="fas fa-repeat"></i> {{ cd.ckl.recorrencia_display }}</span>
+            {% else %}
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Única</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'sitetibl:checklist_actividade' cd.ckl.actividade_id %}" class="ckl-link" title="Abrir checklist"><i class="fas fa-external-link-alt"></i></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="padding: 1.5rem 1.25rem; color: var(--text-muted); font-size: 0.85rem; text-align: center;">
+      Sem checklists associadas a este departamento.
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="dckl-empty">
+    <i class="fas fa-folder-open"></i>
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Sem departamentos associados</h3>
+    <p style="font-size: 0.9rem;">Não tem departamentos associados ao seu utilizador. Contacte o administrador.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

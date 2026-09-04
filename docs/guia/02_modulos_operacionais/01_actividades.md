@@ -14,4 +14,11 @@
 3. Preencha designacao, data, hora, local e responsavel.
 4. Clique em **Guardar**.
 
+## Checklists de actividade
+
+Cada actividade pode ter checklists por departamento para organizar tarefas de preparacao.
+
+1. Na pagina de detalhe da actividade, clique em **Checklist**.
+2. Consulte o guia [Checklists](14_checklists.md) para detalhes completos.
+
 [Voltar ao indice](../../GUIA_UTILIZADOR.md)

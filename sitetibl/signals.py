@@ -767,3 +767,31 @@ def expandir_ocorrencias_recorrentes(sender, instance, **kwargs):
         ))
     if children:
         Actividade.objects.bulk_create(children)
+
+
+# =========================================
+# CHECKLIST — Notificar ao atribuir tarefa
+# =========================================
+
+@receiver(post_save, sender='sitetibl.ItemChecklist')
+def notificar_atribuicao_tarefa(sender, instance, created, **kwargs):
+    from .models import NotificacaoChecklist
+
+    if not instance.responsavel:
+        return
+
+    if created:
+        NotificacaoChecklist.objects.get_or_create(
+            destinatario=instance.responsavel,
+            item=instance,
+            tipo='atribuicao',
+            defaults={
+                'checklist': instance.checklist,
+                'titulo': f'Nova tarefa atribuída: {instance.descricao}',
+                'mensagem': (
+                    f'Foi-lhe atribuída a tarefa "{instance.descricao}" '
+                    f'na checklist de {instance.checklist.departamento} '
+                    f'para a actividade {instance.checklist.actividade}.'
+                ),
+            },
+        )

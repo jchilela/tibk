@@ -123,6 +123,9 @@ class MunicipioAdmin(admin.ModelAdmin):
 
 # ── Pastoral Care ──────────────────────────────────────────
 from sitetibl.models import CasoPastoral, RegistoAcompanhamento, AlertaPastoral, VisitanteRecorrente
+from sitetibl.models import Contribuicao
+from sitetibl.models import ChecklistActividade, ItemChecklist
+from sitetibl.models import NotificacaoChecklist
 
 
 class RegistoAcompanhamentoInline(admin.TabularInline):
@@ -150,3 +153,44 @@ class VisitanteRecorrenteAdmin(admin.ModelAdmin):
     list_display = ['nome', 'celula', 'numero_visitas', 'estado', 'primeira_visita', 'ultima_visita']
     list_filter = ['estado', 'celula']
     search_fields = ['nome']
+
+
+# ── Portal do Membro: Contribuições ──────────────────────────
+@admin.register(Contribuicao)
+class ContribuicaoAdmin(admin.ModelAdmin):
+    list_display = ['irmao', 'tipo', 'valor', 'moeda', 'data', 'estado', 'data_registo']
+    list_filter = ['estado', 'tipo', 'moeda']
+    search_fields = ['irmao__nome', 'irmao__apelido']
+    date_hierarchy = 'data'
+    readonly_fields = ['data_registo', 'data_validacao', 'validado_por']
+
+
+# ── Checklists por Actividade ──────────────────────────────
+class ItemChecklistInline(admin.TabularInline):
+    model = ItemChecklist
+    extra = 0
+    readonly_fields = ['data_conclusao']
+
+
+@admin.register(ChecklistActividade)
+class ChecklistActividadeAdmin(admin.ModelAdmin):
+    list_display = ['actividade', 'departamento', 'total_items', 'items_concluidos', 'progresso', 'data_criacao']
+    list_filter = ['departamento']
+    search_fields = ['actividade__designacao__designacao', 'departamento__designacao']
+    inlines = [ItemChecklistInline]
+    readonly_fields = ['data_criacao', 'data_actualizacao']
+
+
+@admin.register(ItemChecklist)
+class ItemChecklistAdmin(admin.ModelAdmin):
+    list_display = ['descricao', 'checklist', 'concluido', 'responsavel', 'ordem']
+    list_filter = ['concluido', 'checklist__departamento']
+    search_fields = ['descricao', 'checklist__actividade__designacao__designacao', 'checklist__departamento__designacao']
+
+
+@admin.register(NotificacaoChecklist)
+class NotificacaoChecklistAdmin(admin.ModelAdmin):
+    list_display = ['destinatario', 'tipo', 'titulo', 'lida', 'data_criacao']
+    list_filter = ['tipo', 'lida']
+    search_fields = ['destinatario__nome', 'titulo', 'mensagem']
+    readonly_fields = ['data_criacao', 'data_leitura']

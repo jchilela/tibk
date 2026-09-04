@@ -1,0 +1,154 @@
+{% extends "base_modern.html" %}
+{% load static %}
+
+{% block title %}Histórico de Contribuições — {{ irmao.nome }} {{ irmao.apelido }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hc-container { max-width: 1000px; margin: 0 auto; padding-bottom: 3rem; }
+  .hc-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+  .hc-header .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+  .hc-header h2 { font-size: 1.5rem; color: var(--text-main); margin: 0; }
+  .hc-header h2 i { color: var(--primary); }
+
+  .hc-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+  .hc-kpi-card { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.25rem; text-align: center; }
+  .hc-kpi-card .kpi-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+  .hc-kpi-card .kpi-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+  .hc-kpi-card.kpi-green { border-left: 4px solid var(--primary); }
+  .hc-kpi-card.kpi-blue { border-left: 4px solid #3b82f6; }
+  .hc-kpi-card.kpi-yellow { border-left: 4px solid #f59e0b; }
+  .hc-kpi-card.kpi-red { border-left: 4px solid #ef4444; }
+
+  .hc-totais-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 2rem; }
+  .hc-totais-card .tc-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; }
+  .hc-totais-card .tc-row { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.85rem; }
+  .hc-totais-card .tc-row .tc-label { color: var(--text-main); }
+  .hc-totais-card .tc-row .tc-value { font-weight: 600; color: var(--primary); }
+
+  .hc-table { width: 100%; border-collapse: collapse; background: var(--card-bg, #fff); border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .hc-table thead th { background: var(--primary); color: #fff; padding: 0.75rem 0.85rem; text-align: left; font-size: 0.82rem; font-weight: 600; }
+  .hc-table tbody td { padding: 0.65rem 0.85rem; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+  .hc-table tbody tr:hover { background: #f8fafc; }
+
+  .badge-pendente { background: #fef3c7; color: #92400e; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+  .badge-confirmada { background: #d1fae5; color: #065f46; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+  .badge-rejeitada { background: #fee2e2; color: #991b1b; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+
+  .hc-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+  .hc-empty i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+
+  .hc-pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem; }
+  .hc-pagination a, .hc-pagination span { padding: 0.45rem 0.75rem; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); font-size: 0.82rem; }
+  .hc-pagination .current { background: var(--primary); color: #fff; border-color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hc-container">
+  <div class="hc-header">
+    <a href="{% url 'sitetibl:gestao_contribuicoes' %}" class="back-link"><i class="fas fa-arrow-left"></i> Voltar</a>
+    <h2><i class="fas fa-user"></i> {{ irmao.nome }} {{ irmao.apelido }} — Histórico</h2>
+  </div>
+
+  <div class="hc-kpi-grid">
+    <div class="hc-kpi-card kpi-green">
+      <div class="kpi-label">Total Geral</div>
+      <div class="kpi-value">{{ total_geral|floatformat:2 }}</div>
+    </div>
+    <div class="hc-kpi-card kpi-blue">
+      <div class="kpi-label">Confirmado</div>
+      <div class="kpi-value">{{ total_confirmado|floatformat:2 }}</div>
+    </div>
+    <div class="hc-kpi-card kpi-yellow">
+      <div class="kpi-label">Pendente</div>
+      <div class="kpi-value">{{ total_pendente|floatformat:2 }}</div>
+    </div>
+    <div class="hc-kpi-card kpi-red">
+      <div class="kpi-label">Rejeitado</div>
+      <div class="kpi-value">{{ total_rejeitado|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  {% if totais_por_tipo %}
+  <div class="hc-totais-card">
+    <div class="tc-title">Totais por Tipo de Contribuição</div>
+    {% for t in totais_por_tipo %}
+    <div class="tc-row">
+      <span class="tc-label">{{ t.tipo }}</span>
+      <span class="tc-value">{{ t.total|floatformat:2 }} ({{ t.count }} reg.)</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if contribuicoes.object_list %}
+  <table class="hc-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Tipo</th>
+        <th>Valor</th>
+        <th>Moeda</th>
+        <th>Estado</th>
+        <th>Comprovativo</th>
+        <th>Nota</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in contribuicoes %}
+      <tr>
+        <td>{{ c.data|date:"d/m/Y" }}</td>
+        <td>{{ c.get_tipo_display }}</td>
+        <td style="font-weight: 600;">{{ c.valor|floatformat:2 }}</td>
+        <td>{{ c.moeda }}</td>
+        <td>
+          {% if c.estado == 'pendente' %}
+          <span class="badge-pendente">Pendente</span>
+          {% elif c.estado == 'confirmada' %}
+          <span class="badge-confirmada">Confirmada</span>
+          {% elif c.estado == 'rejeitada' %}
+          <span class="badge-rejeitada">Rejeitada/Anulada</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if c.comprovativo %}
+          <a href="{{ c.comprovativo.url }}" target="_blank" style="color: var(--primary);"><i class="fas fa-paperclip"></i> Ver</a>
+          {% else %}
+          <span style="color: var(--text-muted);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if c.nota_validacao %}
+          <span style="font-size: 0.78rem; color: var(--text-muted);">{{ c.nota_validacao|truncatechars:40 }}</span>
+          {% elif c.observacao %}
+          <span style="font-size: 0.78rem; color: var(--text-muted);">{{ c.observacao|truncatechars:40 }}</span>
+          {% else %}
+          <span style="color: var(--text-muted);">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if contribuicoes.has_other_pages %}
+  <div class="hc-pagination">
+    {% if contribuicoes.has_previous %}
+    <a href="?pagina={{ contribuicoes.previous_page_number }}"><i class="fas fa-chevron-left"></i></a>
+    {% endif %}
+    <span class="current">{{ contribuicoes.number }} de {{ contribuicoes.paginator.num_pages }}</span>
+    {% if contribuicoes.has_next %}
+    <a href="?pagina={{ contribuicoes.next_page_number }}"><i class="fas fa-chevron-right"></i></a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="hc-empty">
+    <i class="fas fa-hand-holding-dollar"></i>
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Este membro ainda não tem contribuições registadas</h3>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

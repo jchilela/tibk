@@ -8,6 +8,8 @@ from sitetibl.models import CasoPastoral
 from sitetibl.models import RegistoAcompanhamento
 from sitetibl.models import VisitanteRecorrente
 from sitetibl.models import AlertaPastoral
+from sitetibl.models import Contribuicao
+from sitetibl.models import ChecklistActividade, ItemChecklist
 from sitetibl.models import Actividade
 from sitetibl.models import Departamento
 from sitetibl.models import Mandato
@@ -963,3 +965,94 @@ class VisitanteRecorrenteForm(ModelForm):
         }
 
 
+class ContribuicaoForm(forms.ModelForm):
+    class Meta:
+        model = Contribuicao
+        fields = ['tipo', 'valor', 'moeda', 'data', 'observacao', 'comprovativo']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'valor': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),
+            'moeda': forms.Select(attrs={'class': 'form-control'}),
+            'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Observações adicionais...'}),
+            'comprovativo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*,.pdf'}),
+        }
+        labels = {
+            'tipo': 'Tipo de Contribuição',
+            'valor': 'Valor',
+            'moeda': 'Moeda',
+            'data': 'Data da Contribuição',
+            'observacao': 'Observação',
+            'comprovativo': 'Anexar Comprovativo (opcional)',
+        }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+        if valor is not None and valor < 0:
+            raise forms.ValidationError("O valor não pode ser negativo.")
+        return valor
+
+
+class ItemChecklistForm(forms.ModelForm):
+    class Meta:
+        model = ItemChecklist
+        fields = ['descricao', 'responsavel', 'ordem']
+        widgets = {
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Confirmar som e microfones'}),
+            'responsavel': forms.Select(attrs={'class': 'form-control'}),
+            'ordem': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'value': 0}),
+        }
+        labels = {
+            'descricao': 'Tarefa / Material',
+            'responsavel': 'Responsável (opcional)',
+            'ordem': 'Ordem',
+        }
+
+
+class ChecklistDepartamentoForm(forms.ModelForm):
+    class Meta:
+        model = ChecklistActividade
+        fields = ['departamento']
+        widgets = {
+            'departamento': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'departamento': 'Departamento',
+        }
+
+
+class ChecklistRecorrenciaForm(forms.ModelForm):
+    class Meta:
+        model = ChecklistActividade
+        fields = ['recorrencia', 'dia_activacao', 'hora_notificacao', 'notificar_responsaveis']
+        widgets = {
+            'recorrencia': forms.Select(attrs={'class': 'form-control', 'id': 'id_recorrencia'}),
+            'dia_activacao': forms.Select(attrs={'class': 'form-control', 'id': 'id_dia_activacao'}),
+            'hora_notificacao': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}, format='%H:%M'),
+            'notificar_responsaveis': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'recorrencia': 'Frequência',
+            'dia_activacao': 'Dia de Activação',
+            'hora_notificacao': 'Hora de Notificação',
+            'notificar_responsaveis': 'Notificar responsáveis automaticamente',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['dia_activacao'].required = False
+        self.fields['hora_notificacao'].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        recorrencia = cleaned.get('recorrencia')
+        dia = cleaned.get('dia_activacao')
+
+        if recorrencia == 'semanal' and dia is None:
+            self.add_error('dia_activacao', 'Indique o dia da semana para activação.')
+        if recorrencia == 'mensal' and dia is None:
+            self.add_error('dia_activacao', 'Indique o dia do mês para activação (1-31).')
+        if recorrencia in ('semanal', 'mensal', 'diaria') and not cleaned.get('hora_notificacao'):
+            self.add_error('hora_notificacao', 'Indique a hora de notificação.')
+
+        return cleaned

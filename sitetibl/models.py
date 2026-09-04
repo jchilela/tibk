@@ -1031,3 +1031,219 @@ class VisitanteRecorrente(models.Model):
 
     def __str__(self):
         return f'{self.nome} ({self.get_estado_display()})'
+
+
+# ── Portal do Membro: Contribuições ──────────────────────────
+
+TIPO_CONTRIBUICAO = (
+    ('dizimo', 'Dízimo'),
+    ('oferta', 'Oferta'),
+    ('oferta_missionaria', 'Oferta Missionária'),
+    ('oferta_construcao', 'Oferta para Construção'),
+    ('doacao', 'Doação'),
+    ('outra', 'Outra'),
+)
+
+ESTADO_CONTRIBUICAO = (
+    ('pendente', 'Pendente'),
+    ('confirmada', 'Confirmada'),
+    ('rejeitada', 'Rejeitada/Anulada'),
+)
+
+
+class Contribuicao(models.Model):
+    irmao = models.ForeignKey(Irmao, verbose_name='Membro', on_delete=models.CASCADE)
+    tipo = models.CharField('Tipo de Contribuição', max_length=30, choices=TIPO_CONTRIBUICAO, default='dizimo')
+    valor = models.DecimalField('Valor', max_digits=11, decimal_places=2)
+    moeda = models.CharField('Moeda', max_length=50, choices=MOEDA, default='AKZ')
+    data = models.DateField('Data da Contribuição', default=datetime.today)
+    observacao = models.TextField('Observação', blank=True, null=True)
+    comprovativo = models.FileField('Comprovativo', upload_to='comprovativos/', blank=True, null=True)
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_CONTRIBUICAO, default='pendente')
+    data_registo = models.DateTimeField('Data de Registo', auto_now_add=True)
+    data_validacao = models.DateTimeField('Data de Validação', blank=True, null=True)
+    validado_por = models.ForeignKey(User, verbose_name='Validado por', on_delete=models.SET_NULL, blank=True, null=True, related_name='contribuicoes_validadas')
+    nota_validacao = models.TextField('Nota de Validação', blank=True, null=True)
+
+    class Meta:
+        ordering = ['-data', '-data_registo']
+        verbose_name = 'Contribuição'
+        verbose_name_plural = 'Contribuições'
+
+    def __str__(self):
+        return f'{self.irmao} - {self.get_tipo_display()} - {self.data}'
+
+    @property
+    def valor_formatado(self):
+        simbolo = {'AKZ': 'Kz', 'USD': '$', 'EUR': '€'}.get(self.moeda, '')
+        return f'{float(self.valor):,.2f} {simbolo}'.replace(',', ' ').replace('.', ',').replace(' ,', ',')
+
+
+# ── Checklists por Actividade e Departamento ─────────────────────
+
+FREQUENCIA_CHECKLIST = (
+    ('unica', 'Única'),
+    ('diaria', 'Diária'),
+    ('semanal', 'Semanal'),
+    ('mensal', 'Mensal'),
+)
+
+DIAS_SEMANA_CHECKLIST = (
+    (0, 'Segunda-feira'),
+    (1, 'Terça-feira'),
+    (2, 'Quarta-feira'),
+    (3, 'Quinta-feira'),
+    (4, 'Sexta-feira'),
+    (5, 'Sábado'),
+    (6, 'Domingo'),
+)
+
+class ChecklistActividade(models.Model):
+    actividade = models.ForeignKey(Actividade, verbose_name='Actividade', on_delete=models.CASCADE, related_name='checklists')
+    departamento = models.ForeignKey(Departamento, verbose_name='Departamento', on_delete=models.CASCADE, related_name='checklists')
+    observacao = models.TextField('Observação', blank=True, null=True)
+    data_criacao = models.DateTimeField('Data de Criação', auto_now_add=True)
+    data_actualizacao = models.DateTimeField('Última Actualização', auto_now=True)
+
+    # ── Recorrência ──
+    recorrencia = models.CharField('Recorrência', max_length=10, choices=FREQUENCIA_CHECKLIST, default='unica')
+    dia_activacao = models.IntegerField('Dia de Activação', null=True, blank=True, help_text='Para semanal: 0=Segunda … 6=Domingo. Para mensal: dia do mês (1-31).')
+    hora_notificacao = models.TimeField('Hora de Notificação', null=True, blank=True, help_text='Hora em que os responsáveis recebem a notificação.')
+    notificar_responsaveis = models.BooleanField('Notificar responsáveis', default=True)
+    ultima_geracao = models.DateTimeField('Última geração automática', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Checklist de Actividade'
+        verbose_name_plural = 'Checklists de Actividades'
+        unique_together = ('actividade', 'departamento')
+        ordering = ['departamento__designacao']
+
+    def __str__(self):
+        return f'{self.departamento} — {self.actividade}'
+
+    @property
+    def total_items(self):
+        if hasattr(self, '_items_count_cache'):
+            return self._items_count_cache
+        return self.items.count()
+
+    @property
+    def items_concluidos(self):
+        if hasattr(self, '_items_concluidos_cache'):
+            return self._items_concluidos_cache
+        return self.items.filter(concluido=True).count()
+
+    @property
+    def progresso(self):
+        total = self.total_items
+        if total == 0:
+            return 0
+        return int((self.items_concluidos / total) * 100)
+
+    def prefetch_counts(self):
+        """Pré-calcula contadores a partir de items já prefetched, evitando N+1."""
+        items = list(self.items.all())
+        self._items_count_cache = len(items)
+        self._items_concluidos_cache = sum(1 for i in items if i.concluido)
+
+    @property
+    def recorrencia_display(self):
+        if self.recorrencia == 'unica':
+            return 'Única'
+        label = dict(FREQUENCIA_CHECKLIST).get(self.recorrencia, self.recorrencia)
+        if self.recorrencia == 'semanal' and self.dia_activacao is not None:
+            dia = dict(DIAS_SEMANA_CHECKLIST).get(self.dia_activacao, '')
+            return f'{label} — {dia}'
+        if self.recorrencia == 'mensal' and self.dia_activacao is not None:
+            return f'{label} — Dia {self.dia_activacao}'
+        return label
+
+    @property
+    def notificacao_display(self):
+        if self.hora_notificacao:
+            return self.hora_notificacao.strftime('%Hh%M')
+        return '—'
+
+    def deve_gerar_hoje(self):
+        from datetime import date
+        hoje = date.today()
+        if self.recorrencia == 'unica':
+            return False
+        if self.recorrencia == 'diaria':
+            return True
+        if self.recorrencia == 'semanal':
+            return hoje.weekday() == self.dia_activacao
+        if self.recorrencia == 'mensal':
+            return hoje.day == self.dia_activacao
+        return False
+
+
+class ItemChecklist(models.Model):
+    checklist = models.ForeignKey(ChecklistActividade, verbose_name='Checklist', on_delete=models.CASCADE, related_name='items')
+    descricao = models.CharField('Descrição', max_length=300)
+    ordem = models.IntegerField('Ordem', default=0)
+    concluido = models.BooleanField('Concluído', default=False)
+    responsavel = models.ForeignKey(Irmao, verbose_name='Responsável', on_delete=models.SET_NULL, blank=True, null=True)
+    data_conclusao = models.DateTimeField('Data de Conclusão', blank=True, null=True)
+    criado_por = models.ForeignKey(User, verbose_name='Criado por', on_delete=models.SET_NULL, blank=True, null=True, related_name='items_checklist_criados')
+
+    class Meta:
+        ordering = ['concluido', 'ordem', 'id']
+        verbose_name = 'Item de Checklist'
+        verbose_name_plural = 'Items de Checklist'
+
+    def __str__(self):
+        return f'{self.descricao} — {self.checklist.departamento} / {self.checklist.actividade}'
+
+
+# ── Notificações de Checklist ────────────────────────────────────
+
+TIPO_NOTIFICACAO = (
+    ('atribuicao', 'Tarefa atribuída'),
+    ('disponivel', 'Checklist disponível'),
+    ('lembrete', 'Lembrete de execução'),
+    ('proxima_prazo', 'Tarefa próxima do prazo'),
+    ('atrasada', 'Tarefa atrasada'),
+)
+
+
+class NotificacaoChecklist(models.Model):
+    destinatario = models.ForeignKey(Irmao, verbose_name='Destinatário', on_delete=models.CASCADE, related_name='notificacoes_checklist')
+    checklist = models.ForeignKey(ChecklistActividade, verbose_name='Checklist', on_delete=models.CASCADE, null=True, blank=True, related_name='notificacoes')
+    item = models.ForeignKey(ItemChecklist, verbose_name='Item', on_delete=models.SET_NULL, null=True, blank=True, related_name='notificacoes')
+    tipo = models.CharField('Tipo', max_length=20, choices=TIPO_NOTIFICACAO, default='disponivel')
+    titulo = models.CharField('Título', max_length=200)
+    mensagem = models.TextField('Mensagem')
+    lida = models.BooleanField('Lida', default=False)
+    data_criacao = models.DateTimeField('Data de Criação', auto_now_add=True)
+    data_leitura = models.DateTimeField('Data de Leitura', null=True, blank=True)
+
+    class Meta:
+        ordering = ['-data_criacao']
+        verbose_name = 'Notificação de Checklist'
+        verbose_name_plural = 'Notificações de Checklist'
+
+    def __str__(self):
+        return f'{self.destinatario} — {self.titulo}'
+
+    @property
+    def icon_class(self):
+        icons = {
+            'atribuicao': 'fa-user-plus',
+            'disponivel': 'fa-clipboard-list',
+            'lembrete': 'fa-bell',
+            'proxima_prazo': 'fa-clock',
+            'atrasada': 'fa-exclamation-triangle',
+        }
+        return icons.get(self.tipo, 'fa-bell')
+
+    @property
+    def color_class(self):
+        colors = {
+            'atribuicao': '#3b82f6',
+            'disponivel': '#6366f1',
+            'lembrete': '#10b981',
+            'proxima_prazo': '#f59e0b',
+            'atrasada': '#ef4444',
+        }
+        return colors.get(self.tipo, '#6b7280')

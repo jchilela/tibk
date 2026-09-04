@@ -1,0 +1,166 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+<div class="list-container">
+    <div class="modern-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-filter mr-2"></i> Filtros de Movimentos</h3>
+        <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; align-items: flex-end;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Movimento</label>
+                <select name="tipo_mov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="">Todos</option>
+                    <option value="entrada" {% if filtro_tipo_mov == 'entrada' %}selected{% endif %}>Entradas</option>
+                    <option value="saida" {% if filtro_tipo_mov == 'saida' %}selected{% endif %}>Saídas</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Tipo</label>
+                <select name="tipov" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="">Qualquer</option>
+                    <option value="caixa" {% if filtro_tipov == 'caixa' %}selected{% endif %}>Caixa</option>
+                    <option value="banco" {% if filtro_tipov == 'banco' %}selected{% endif %}>Banco</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Conta Bancária</label>
+                <select name="contabancariav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Qualquer</option>
+                    {% if listacontasigreja %}
+                        {% for x in listacontasigreja %}
+                            <option value="{{ x.id }}" {% if filtro_contabancariav == x.id|stringformat:"s" %}selected{% endif %}>{{ x.numeroconta }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Rubrica</label>
+                <select name="rubricav" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                    <option value="0">Qualquer</option>
+                    {% if filtro_tipo_mov == 'saida' and listarubricassaida %}
+                        {% for x in listarubricassaida %}
+                            <option value="{{ x.id }}" {% if filtro_rubricav == x.id|stringformat:"s" %}selected{% endif %}>{{ x.designacao }}</option>
+                        {% endfor %}
+                    {% elif filtro_tipo_mov == 'entrada' and listarubricasentrada %}
+                        {% for x in listarubricasentrada %}
+                            <option value="{{ x.id }}" {% if filtro_rubricav == x.id|stringformat:"s" %}selected{% endif %}>{{ x.designacao }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <optgroup label="Entradas">
+                            {% for x in listarubricasentrada %}
+                                <option value="{{ x.id }}" {% if filtro_rubricav == x.id|stringformat:"s" %}selected{% endif %}>{{ x.designacao }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        <optgroup label="Saídas">
+                            {% for x in listarubricassaida %}
+                                <option value="{{ x.id }}" {% if filtro_rubricav == x.id|stringformat:"s" %}selected{% endif %}>{{ x.designacao }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endif %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-muted);">Mês/Ano</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <select name="mesv" style="width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                        <option value="0">Mês</option>
+                        {% if listameses %}
+                            {% for x, y in listameses.items %}
+                                <option value="{{ x }}" {% if filtro_mesv == x %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    <input type="number" name="anov" value="{{ filtro_anov }}" style="width: 80px; padding: 0.6rem; border: 1px solid #ddd; border-radius: var(--radius-sm);">
+                </div>
+            </div>
+            <input type="hidden" name="pagina" value="1">
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 0.8rem; width: 100%; min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; font-weight: 600; font-size: 0.84rem; color: white;">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </form>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--text-main);">Movimentos</h2>
+        <div style="display: flex; gap: 0.5rem;">
+            {% if perms.sitetibl.add_entrada %}
+            <a href="/tibl/entradas/criar/" class="bt-primary" style="background-color: var(--primary); color: white;">
+                <i class="fas fa-plus-circle"></i> Nova Entrada
+            </a>
+            {% endif %}
+            {% if perms.sitetibl.add_saida %}
+            <a href="/tibl/saidas/criar/" class="bt-primary" style="background-color: #ef4444; color: white;">
+                <i class="fas fa-minus-circle"></i> Nova Saída
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if bb %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Movimento</th>
+                    <th>Tipo</th>
+                    <th>Conta / Rubrica</th>
+                    <th style="text-align: right;">Montante</th>
+                    <th style="text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in bb %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">{{ m.data|date:"d/m/Y" }}</div>
+                    </td>
+                    <td>
+                        {% if m.tipo_mov == 'entrada' %}
+                        <span style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 9999px; background: #dcfce7; color: #166534; font-weight: 600;">
+                            <i class="fas fa-arrow-down"></i> Entrada
+                        </span>
+                        {% else %}
+                        <span style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 9999px; background: #fee2e2; color: #991b1b; font-weight: 600;">
+                            <i class="fas fa-arrow-up"></i> Saída
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 9999px; {% if m.tipo == 'banco' %}background: #dbeafe; color: #1e40af;{% else %}background: #f3f4f6; color: #374151;{% endif %} font-weight: 600;">
+                            {{ m.tipo_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if m.conta %}
+                        <div style="font-size: 0.85rem; font-weight: 500;">{{ m.conta }}</div>
+                        {% endif %}
+                        <div style="font-weight: 600; {% if m.tipo_mov == 'entrada' %}color: var(--primary-dark);{% else %}color: #991b1b;{% endif %}">{{ m.rubrica }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Ref: {{ m.id }}</div>
+                    </td>
+                    <td style="text-align: right; font-weight: 700; {% if m.tipo_mov == 'entrada' %}color: var(--primary);{% else %}color: #ef4444;{% endif %}">
+                        {% if m.tipo_mov == 'entrada' %}+{% else %}-{% endif %} {{ m.valor|floatformat:2 }} {{ m.moeda }}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/tibl/{{ m.tipo_mov }}s/detalhe/{{ m.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        {% include 'paginacao.html' %}
+    </div>
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-exchange-alt" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Sem Movimentos</h3>
+        <p style="color: var(--text-muted);">Não encontramos movimentos para os filtros selecionados.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

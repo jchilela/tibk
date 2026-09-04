@@ -1,0 +1,127 @@
+{% extends "base_modern.html" %}
+{% load static %}
+
+{% block title %}Notificações de Checklist — TIBL{% endblock %}
+
+{% block extra_css %}
+<style>
+  .notif-container { max-width: 750px; margin: 0 auto; padding-bottom: 3rem; }
+  .notif-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+  .notif-header h2 { font-size: 1.5rem; color: var(--text-main); margin: 0; }
+  .notif-header h2 i { color: var(--primary); }
+  .notif-header .actions { display: flex; gap: 0.5rem; }
+  .notif-header .actions a { font-size: 0.82rem; font-weight: 600; padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); text-decoration: none; }
+
+  .notif-item { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; gap: 1rem; align-items: flex-start; transition: box-shadow 0.2s; }
+  .notif-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .notif-item.unread { border-left: 4px solid var(--primary); background: #f8faff; }
+
+  .notif-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; }
+  .notif-content { flex: 1; }
+  .notif-title { font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.25rem 0; }
+  .notif-message { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 0.4rem 0; white-space: pre-line; line-height: 1.5; }
+  .notif-meta { font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.75rem; }
+  .notif-meta .badge-tipo { padding: 0.1rem 0.5rem; border-radius: 999px; font-weight: 600; font-size: 0.68rem; }
+  .notif-meta a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+  .notif-mark-btn { background: none; border: 1px solid #e2e8f0; padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.72rem; font-weight: 600; color: var(--text-muted); cursor: pointer; flex-shrink: 0; }
+  .notif-mark-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  .notif-empty { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
+  .notif-empty i { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.25; }
+  .notif-empty h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .notif-empty p { font-size: 0.9rem; }
+
+  .notif-filter-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .notif-filter-bar a { padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; text-decoration: none; border: 1.5px solid #e2e8f0; color: var(--text-muted); }
+  .notif-filter-bar a.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notif-container">
+  <div class="notif-header">
+    <h2><i class="fas fa-list-check"></i> Notificações de Checklist</h2>
+    <div class="actions">
+      {% if nao_lidas > 0 %}
+      <a href="{% url 'sitetibl:marcar_todas_lidas' %}" style="background: #f0f4ff; color: var(--primary);">
+        <i class="fas fa-check-double"></i> Marcar todas como lidas ({{ nao_lidas }})
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="modern-card" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid {% if message.tags == 'success' %}var(--primary){% elif message.tags == 'error' %}#ef4444{% else %}#3b82f6{% endif %};">
+    <p style="margin:0; font-size: 0.9rem;"><i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}times-circle{% else %}info-circle{% endif %} mr-2"></i>{{ message }}</p>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {% if notificacoes %}
+  {% for n in notificacoes %}
+  <div class="notif-item {% if not n.lida %}unread{% endif %}" id="notif-{{ n.id }}">
+    <div class="notif-icon" style="background: {{ n.color_class }}22; color: {{ n.color_class }};">
+      <i class="fas {{ n.icon_class }}"></i>
+    </div>
+    <div class="notif-content">
+      <p class="notif-title">{{ n.titulo }}</p>
+      <p class="notif-message">{{ n.mensagem }}</p>
+      <div class="notif-meta">
+        <span class="badge-tipo" style="background: {{ n.color_class }}22; color: {{ n.color_class }};">{{ n.get_tipo_display }}</span>
+        <span><i class="fas fa-clock"></i> {{ n.data_criacao|date:"d/m/Y H:i" }}</span>
+        {% if n.checklist %}
+        <a href="{% url 'sitetibl:checklist_actividade' n.checklist.actividade_id %}"><i class="fas fa-external-link-alt"></i> Ver checklist</a>
+        {% endif %}
+      </div>
+    </div>
+    {% if not n.lida %}
+    <button class="notif-mark-btn" onclick="markRead({{ n.id }})" title="Marcar como lida">
+      <i class="fas fa-check"></i>
+    </button>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="notif-empty">
+    <i class="fas fa-bell-slash"></i>
+    <h3>Sem notificações</h3>
+    <p>Não tem notificações de checklist neste momento.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function getCSRFToken() {
+  var cookie = document.cookie.match(/csrftoken=([^;]+)/);
+  return cookie ? cookie[1] : '';
+}
+
+function markRead(notifId) {
+  fetch('/tibl/notificacoes/' + notifId + '/ler/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCSRFToken(),
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.ok) {
+      var item = document.getElementById('notif-' + notifId);
+      if (item) {
+        item.classList.remove('unread');
+        item.style.background = '';
+        item.style.borderLeft = '';
+        var btn = item.querySelector('.notif-mark-btn');
+        if (btn) { btn.remove(); }
+      }
+    }
+  })
+  .catch(function() {
+    location.reload();
+  });
+}
+</script>
+{% endblock %}

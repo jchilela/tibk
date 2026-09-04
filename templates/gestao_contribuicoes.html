@@ -1,0 +1,323 @@
+{% extends "base_modern.html" %}
+{% load static %}
+
+{% block title %}Gestão de Contribuições — TIBL{% endblock %}
+
+{% block extra_css %}
+<style>
+  .gc-container { max-width: 1200px; margin: 0 auto; padding-bottom: 3rem; }
+  .gc-header { margin-bottom: 2rem; }
+  .gc-header h2 { font-size: 1.6rem; color: var(--text-main); margin: 0; }
+  .gc-header h2 i { color: var(--primary); }
+
+  .gc-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+  .gc-kpi-card { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.25rem; text-align: center; }
+  .gc-kpi-card .kpi-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+  .gc-kpi-card .kpi-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+  .gc-kpi-card .kpi-count { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+  .gc-kpi-card.kpi-green { border-left: 4px solid var(--primary); }
+  .gc-kpi-card.kpi-blue { border-left: 4px solid #3b82f6; }
+  .gc-kpi-card.kpi-yellow { border-left: 4px solid #f59e0b; }
+  .gc-kpi-card.kpi-red { border-left: 4px solid #ef4444; }
+
+  .gc-filter-bar { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 2rem; }
+  .gc-filter-bar form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; align-items: flex-end; }
+  .gc-filter-bar label { display: block; font-size: 0.78rem; margin-bottom: 0.35rem; color: var(--text-muted); font-weight: 600; }
+  .gc-filter-bar input, .gc-filter-bar select { width: 100%; padding: 0.5rem 0.7rem; border: 1.5px solid #d1d5db; border-radius: var(--radius-sm); font-size: 0.85rem; }
+
+  .gc-totais-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .gc-totais-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 1rem; }
+  .gc-totais-card .tc-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; }
+  .gc-totais-card .tc-row { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.85rem; }
+  .gc-totais-card .tc-row .tc-label { color: var(--text-main); }
+  .gc-totais-card .tc-row .tc-value { font-weight: 600; color: var(--primary); }
+
+  .gc-table { width: 100%; border-collapse: collapse; background: var(--card-bg, #fff); border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .gc-table thead th { background: var(--primary); color: #fff; padding: 0.75rem 0.85rem; text-align: left; font-size: 0.82rem; font-weight: 600; }
+  .gc-table tbody td { padding: 0.65rem 0.85rem; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+  .gc-table tbody tr:hover { background: #f8fafc; }
+
+  .badge-pendente { background: #fef3c7; color: #92400e; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+  .badge-confirmada { background: #d1fae5; color: #065f46; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+  .badge-rejeitada { background: #fee2e2; color: #991b1b; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+
+  .gc-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+  .gc-empty i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+
+  .gc-pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem; }
+  .gc-pagination a, .gc-pagination span { padding: 0.45rem 0.75rem; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); font-size: 0.82rem; }
+  .gc-pagination .current { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  .gc-action-btn { border: none; padding: 0.3rem 0.65rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+  .gc-btn-confirm { background: #d1fae5; color: #065f46; }
+  .gc-btn-reject { background: #fee2e2; color: #991b1b; }
+  .gc-btn-history { background: #dbeafe; color: #1e40af; }
+
+  .gc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
+  .gc-modal-overlay.active { display: flex; }
+  .gc-modal { background: #fff; border-radius: var(--radius-md); padding: 2rem; max-width: 450px; width: 90%; }
+  .gc-modal h3 { font-size: 1.1rem; margin: 0 0 1rem 0; color: var(--text-main); }
+  .gc-modal textarea { width: 100%; padding: 0.65rem; border: 1.5px solid #d1d5db; border-radius: var(--radius-sm); font-size: 0.9rem; resize: vertical; min-height: 80px; box-sizing: border-box; }
+  .gc-modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+  .gc-modal-btn { padding: 0.55rem 1.25rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; }
+  .gc-modal-btn-cancel { background: #f1f5f9; color: var(--text-main); }
+  .gc-modal-btn-submit { background: var(--primary); color: #fff; }
+  .gc-modal-btn-submit.danger { background: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gc-container">
+  <div class="gc-header">
+    <h2><i class="fas fa-hand-holding-dollar"></i> Gestão de Contribuições</h2>
+  </div>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="modern-card" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid {% if message.tags == 'success' %}var(--primary){% elif message.tags == 'error' %}#ef4444{% else %}#3b82f6{% endif %};">
+    <p style="margin:0; font-size: 0.9rem;"><i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}times-circle{% else %}info-circle{% endif %} mr-2"></i>{{ message }}</p>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="gc-kpi-grid">
+    <div class="gc-kpi-card kpi-green">
+      <div class="kpi-label">Total Geral</div>
+      <div class="kpi-value">{{ total_geral|floatformat:2 }}</div>
+      <div class="kpi-count">{{ contribuicoes.paginator.count }} contribuições</div>
+    </div>
+    <div class="gc-kpi-card kpi-blue">
+      <div class="kpi-label">Confirmado</div>
+      <div class="kpi-value">{{ total_confirmado|floatformat:2 }}</div>
+    </div>
+    <div class="gc-kpi-card kpi-yellow">
+      <div class="kpi-label">Pendente</div>
+      <div class="kpi-value">{{ total_pendente|floatformat:2 }}</div>
+    </div>
+    <div class="gc-kpi-card kpi-red">
+      <div class="kpi-label">Rejeitado</div>
+      <div class="kpi-value">{{ total_rejeitado|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  {% if totais_por_tipo or totais_por_estado %}
+  <div class="gc-totais-grid">
+    {% if totais_por_tipo %}
+    <div class="gc-totais-card">
+      <div class="tc-title">Totais por Tipo</div>
+      {% for t in totais_por_tipo %}
+      <div class="tc-row">
+        <span class="tc-label">{{ t.tipo }}</span>
+        <span class="tc-value">{{ t.total|floatformat:2 }}</span>
+      </div>
+      <div class="tc-row" style="font-size: 0.72rem; color: var(--text-muted);">
+        <span></span>
+        <span>{{ t.count }} reg.</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if totais_por_estado %}
+    <div class="gc-totais-card">
+      <div class="tc-title">Totais por Estado</div>
+      {% for e in totais_por_estado %}
+      <div class="tc-row">
+        <span class="tc-label">{{ e.estado }}</span>
+        <span class="tc-value">{{ e.total|floatformat:2 }}</span>
+      </div>
+      <div class="tc-row" style="font-size: 0.72rem; color: var(--text-muted);">
+        <span></span>
+        <span>{{ e.count }} reg.</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="gc-filter-bar">
+    <form method="GET" id="filter-form">
+      <div>
+        <label>Membro</label>
+        <input type="text" name="membro" value="{{ filtro_membro }}" placeholder="Nome ou apelido" oninput="debounceSubmit(this.form)">
+      </div>
+      <div>
+        <label>Tipo</label>
+        <select name="tipo" onchange="this.form.submit()">
+          <option value="">Todos</option>
+          {% for value, label in tipo_choices %}
+          <option value="{{ value }}" {% if filtro_tipo == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Estado</label>
+        <select name="estado" onchange="this.form.submit()">
+          <option value="">Todos</option>
+          {% for value, label in estado_choices %}
+          <option value="{{ value }}" {% if filtro_estado == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Data início</label>
+        <input type="date" name="data_inicio" value="{{ filtro_data_inicio }}" onchange="this.form.submit()">
+      </div>
+      <div>
+        <label>Data fim</label>
+        <input type="date" name="data_fim" value="{{ filtro_data_fim }}" onchange="this.form.submit()">
+      </div>
+      <div>
+        <label>Ano</label>
+        <select name="ano" onchange="this.form.submit()">
+          <option value="">Todos</option>
+          <option value="todos" {% if filtro_ano == 'todos' %}selected{% endif %}>Todos os anos</option>
+          {% for ano in anos_list %}
+          <option value="{{ ano }}" {% if filtro_ano == ano|stringformat:"s" %}selected{% endif %}>{{ ano }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </form>
+  </div>
+
+  {% if contribuicoes.object_list %}
+  <table class="gc-table">
+    <thead>
+      <tr>
+        <th>Membro</th>
+        <th>Tipo</th>
+        <th>Valor</th>
+        <th>Moeda</th>
+        <th>Data</th>
+        <th>Estado</th>
+        <th>Comprov.</th>
+        <th>Acções</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in contribuicoes %}
+      <tr>
+        <td>
+          <a href="{% url 'sitetibl:historico_membro_contribuicoes' c.irmao.id %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+            {{ c.irmao.nome }} {{ c.irmao.apelido }}
+          </a>
+        </td>
+        <td>{{ c.get_tipo_display }}</td>
+        <td style="font-weight: 600;">{{ c.valor|floatformat:2 }}</td>
+        <td>{{ c.moeda }}</td>
+        <td>{{ c.data|date:"d/m/Y" }}</td>
+        <td>
+          {% if c.estado == 'pendente' %}
+          <span class="badge-pendente">Pendente</span>
+          {% elif c.estado == 'confirmada' %}
+          <span class="badge-confirmada">Confirmada</span>
+          {% elif c.estado == 'rejeitada' %}
+          <span class="badge-rejeitada">Rejeitada/Anulada</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if c.comprovativo %}
+          <a href="{{ c.comprovativo.url }}" target="_blank" style="color: var(--primary);"><i class="fas fa-paperclip"></i></a>
+          {% else %}
+          <span style="color: var(--text-muted);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if c.estado == 'pendente' %}
+          <button class="gc-action-btn gc-btn-confirm" onclick="openModal('confirm-modal-{{ c.id }}')">
+            <i class="fas fa-check"></i> Confirmar
+          </button>
+          <button class="gc-action-btn gc-btn-reject" onclick="openModal('reject-modal-{{ c.id }}')">
+            <i class="fas fa-times"></i> Rejeitar
+          </button>
+          {% elif c.estado == 'confirmada' %}
+          <button class="gc-action-btn gc-btn-reject" onclick="openModal('reject-modal-{{ c.id }}')">
+            <i class="fas fa-undo"></i> Anular
+          </button>
+          {% else %}
+          <span style="color: var(--text-muted); font-size: 0.78rem;">—</span>
+          {% endif %}
+
+          <div class="gc-modal-overlay" id="confirm-modal-{{ c.id }}">
+            <div class="gc-modal">
+              <h3><i class="fas fa-check-circle" style="color: var(--primary);"></i> Confirmar Contribuição</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                {{ c.irmao.nome }} {{ c.irmao.apelido }} — {{ c.get_tipo_display }} de {{ c.valor|floatformat:2 }} {{ c.moeda }}
+              </p>
+              <form method="POST" action="{% url 'sitetibl:confirmar_contribuicao' c.id %}">
+                {% csrf_token %}
+                <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.4rem;">Nota (opcional)</label>
+                <textarea name="nota" placeholder="Observação sobre a confirmação..."></textarea>
+                <div class="gc-modal-actions">
+                  <button type="button" class="gc-modal-btn gc-modal-btn-cancel" onclick="closeModal('confirm-modal-{{ c.id }}')">Cancelar</button>
+                  <button type="submit" class="gc-modal-btn gc-modal-btn-submit"><i class="fas fa-check mr-1"></i> Confirmar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="gc-modal-overlay" id="reject-modal-{{ c.id }}">
+            <div class="gc-modal">
+              <h3><i class="fas fa-times-circle" style="color: #ef4444;"></i> Rejeitar/Anular Contribuição</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                {{ c.irmao.nome }} {{ c.irmao.apelido }} — {{ c.get_tipo_display }} de {{ c.valor|floatformat:2 }} {{ c.moeda }}
+              </p>
+              <form method="POST" action="{% url 'sitetibl:rejeitar_contribuicao' c.id %}">
+                {% csrf_token %}
+                <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.4rem;">Motivo <span style="color: #ef4444;">*</span></label>
+                <textarea name="nota" placeholder="Indique o motivo de rejeição..." required></textarea>
+                <div class="gc-modal-actions">
+                  <button type="button" class="gc-modal-btn gc-modal-btn-cancel" onclick="closeModal('reject-modal-{{ c.id }}')">Cancelar</button>
+                  <button type="submit" class="gc-modal-btn gc-modal-btn-submit danger"><i class="fas fa-times mr-1"></i> Rejeitar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if contribuicoes.has_other_pages %}
+  <div class="gc-pagination">
+    {% if contribuicoes.has_previous %}
+    <a href="?pagina={{ contribuicoes.previous_page_number }}{% if filtro_membro %}&membro={{ filtro_membro }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if filtro_ano %}&ano={{ filtro_ano }}{% endif %}{% if filtro_data_inicio %}&data_inicio={{ filtro_data_inicio }}{% endif %}{% if filtro_data_fim %}&data_fim={{ filtro_data_fim }}{% endif %}"><i class="fas fa-chevron-left"></i></a>
+    {% endif %}
+    <span class="current">{{ contribuicoes.number }} de {{ contribuicoes.paginator.num_pages }}</span>
+    {% if contribuicoes.has_next %}
+    <a href="?pagina={{ contribuicoes.next_page_number }}{% if filtro_membro %}&membro={{ filtro_membro }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if filtro_ano %}&ano={{ filtro_ano }}{% endif %}{% if filtro_data_inicio %}&data_inicio={{ filtro_data_inicio }}{% endif %}{% if filtro_data_fim %}&data_fim={{ filtro_data_fim }}{% endif %}"><i class="fas fa-chevron-right"></i></a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="gc-empty">
+    <i class="fas fa-hand-holding-dollar"></i>
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Nenhuma contribuição encontrada</h3>
+    <p style="font-size: 0.9rem;">Ajuste os filtros ou aguarde que os membros registem contribuições.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+document.querySelectorAll('.gc-modal-overlay').forEach(function(overlay) {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('active');
+    }
+  });
+});
+var debounceTimer;
+function debounceSubmit(form) {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(function() { form.submit(); }, 600);
+}
+</script>
+{% endblock %}
