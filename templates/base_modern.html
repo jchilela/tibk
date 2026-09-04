@@ -172,21 +172,12 @@
                 </a>
                 {% endif %}
 
-                {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entrada or perms.sitetibl.view_saida %}
+                {% if request.user.is_authenticated %}
                 <a href="{% url 'sitetibl:gestao_contribuicoes' %}"
-                    class="nav-item {% if request.resolver_match.url_name == 'gestao_contribuicoes' or request.resolver_match.url_name == 'historico_membro_contribuicoes' %}active{% endif %}">
+                    class="nav-item {% if request.resolver_match.url_name == 'gestao_contribuicoes' or request.resolver_match.url_name == 'historico_membro_contribuicoes' or request.resolver_match.url_name == 'minhas_contribuicoes' or request.resolver_match.url_name == 'registrar_contribuicao' %}active{% endif %}">
                     <i class="fas fa-hand-holding-dollar fa-fw"></i> Contribuições
                 </a>
                 {% endif %}
-
-                <a href="{% url 'sitetibl:minhas_contribuicoes' %}"
-                    class="nav-item {% if request.resolver_match.url_name == 'minhas_contribuicoes' %}active{% endif %}">
-                    <i class="fas fa-hand-holding-dollar fa-fw"></i> As Minhas Contribuições
-                </a>
-                <a href="{% url 'sitetibl:registrar_contribuicao' %}"
-                    class="nav-item {% if request.resolver_match.url_name == 'registrar_contribuicao' %}active{% endif %}">
-                    <i class="fas fa-plus-circle fa-fw"></i> Registar Contribuição
-                </a>
                 {% endif %}
 
                 {% if perms.sitetibl.view_ajuda or perms.sitetibl.view_cesta or perms.sitetibl.view_celula or perms.sitetibl.view_relatoriosemanalcelula or perms.sitetibl.view_conteudoensino or perms.sitetibl.view_enviomensagem %}

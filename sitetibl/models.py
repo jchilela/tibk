@@ -1064,6 +1064,8 @@ class Contribuicao(models.Model):
     data_validacao = models.DateTimeField('Data de Validação', blank=True, null=True)
     validado_por = models.ForeignKey(User, verbose_name='Validado por', on_delete=models.SET_NULL, blank=True, null=True, related_name='contribuicoes_validadas')
     nota_validacao = models.TextField('Nota de Validação', blank=True, null=True)
+    entrada = models.ForeignKey('Entrada', verbose_name='Entrada gerada', on_delete=models.SET_NULL, blank=True, null=True, related_name='contribuicoes')
+    dizimooferta = models.ForeignKey('Dizimooferta', verbose_name='Dízimo/Oferta gerado', on_delete=models.SET_NULL, blank=True, null=True, related_name='contribuicoes')
 
     class Meta:
         ordering = ['-data', '-data_registo']

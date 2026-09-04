@@ -6,7 +6,7 @@
 {% block extra_css %}
 <style>
   .gc-container { max-width: 1200px; margin: 0 auto; padding-bottom: 3rem; }
-  .gc-header { margin-bottom: 2rem; }
+  .gc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
   .gc-header h2 { font-size: 1.6rem; color: var(--text-main); margin: 0; }
   .gc-header h2 i { color: var(--primary); }
 
@@ -70,6 +70,9 @@
 <div class="gc-container">
   <div class="gc-header">
     <h2><i class="fas fa-hand-holding-dollar"></i> Gestão de Contribuições</h2>
+    <a href="{% url 'sitetibl:minhas_contribuicoes' %}" class="bt-primary" style="background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; text-decoration: none;">
+      <i class="fas fa-user mr-1"></i> As Minhas Contribuições
+    </a>
   </div>
 
   {% if messages %}
@@ -231,6 +234,11 @@
             <i class="fas fa-times"></i> Rejeitar
           </button>
           {% elif c.estado == 'confirmada' %}
+          {% if c.dizimooferta_id %}
+          <a href="/tibl/dizimosofertas/detalhe/{{ c.dizimooferta_id }}" class="gc-action-btn gc-btn-history" title="Ver dízimo/oferta">
+            <i class="fas fa-receipt"></i> Dízimo
+          </a>
+          {% endif %}
           <button class="gc-action-btn gc-btn-reject" onclick="openModal('reject-modal-{{ c.id }}')">
             <i class="fas fa-undo"></i> Anular
           </button>

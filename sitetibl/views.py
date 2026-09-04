@@ -2354,7 +2354,7 @@ def minhas_contribuicoes(request):
         messages.error(request, 'O seu utilizador não está associado a um membro. Contacte o administrador.')
         return redirect('dashboard')
 
-    qs = Contribuicao.objects.filter(irmao=irmao)
+    qs = Contribuicao.objects.select_related('entrada', 'dizimooferta').filter(irmao=irmao)
 
     # Filtros
     tipo_filter = request.GET.get('tipo', '').strip()
@@ -2473,7 +2473,6 @@ def detalhe_contribuicao(request, contribuicao_id):
 
 @login_required
 def gestao_contribuicoes(request):
-    from django.core.exceptions import PermissionDenied
     from sitetibl.models import Contribuicao, Irmao, TIPO_CONTRIBUICAO, ESTADO_CONTRIBUICAO
     from datetime import date
 
@@ -2483,9 +2482,9 @@ def gestao_contribuicoes(request):
         or request.user.has_perm('sitetibl.view_saida')
         or request.user.is_superuser
     ):
-        raise PermissionDenied
+        return redirect('sitetibl:minhas_contribuicoes')
 
-    qs = Contribuicao.objects.select_related('irmao').all()
+    qs = Contribuicao.objects.select_related('irmao', 'entrada', 'dizimooferta').all()
 
     # Filtros
     membro_filter = request.GET.get('membro', '').strip()
@@ -2582,6 +2581,77 @@ def gestao_contribuicoes(request):
     return render(request, 'gestao_contribuicoes.html', context)
 
 
+def _integrar_contribuicao_financeira(contribuicao):
+    """Cria Entrada + Dizimooferta a partir de uma Contribuicao confirmada."""
+    from sitetibl.models import (
+        Rubricaentrada, Gruporubrica, TipoOferta, Entrada, Dizimooferta,
+    )
+
+    if contribuicao.entrada_id:
+        return
+
+    # Rubrica de entrada (cria se nao existir)
+    grupo, _ = Gruporubrica.objects.get_or_create(designacao='Contribuicoes')
+    rubrica, _ = Rubricaentrada.objects.get_or_create(
+        designacao='Dizimos e Ofertas',
+        defaults={'gruporubrica': grupo},
+    )
+
+    # Mapear tipo de contribuicao para TipoOferta
+    tipo_map = {
+        'dizimo': 'Dizimo',
+        'oferta': 'Oferta',
+        'oferta_missionaria': 'Oferta Missionaria',
+        'oferta_construcao': 'Oferta Construcao',
+        'doacao': 'Doacao',
+        'outra': 'Oferta Especial',
+    }
+    tipo_designacao = tipo_map.get(contribuicao.tipo, 'Oferta Especial')
+    tipo_oferta, _ = TipoOferta.objects.get_or_create(
+        designacao=tipo_designacao,
+    )
+
+    # Criar Entrada (caixa por defeito)
+    entrada = Entrada.objects.create(
+        tipo='caixa',
+        valor=contribuicao.valor,
+        moeda=contribuicao.moeda,
+        data=contribuicao.data,
+        rubrica=rubrica,
+        responsavel=contribuicao.irmao,
+        observacao=f'Contribuicao #{contribuicao.id} - {contribuicao.get_tipo_display()}',
+    )
+
+    # Criar Dizimooferta
+    dizimo = Dizimooferta.objects.create(
+        valor=contribuicao.valor,
+        moeda=contribuicao.moeda,
+        tipooferta=tipo_oferta,
+        datacorrespondente=contribuicao.data,
+        irmao=contribuicao.irmao,
+        dataregisto=contribuicao.data,
+        entrada=entrada,
+    )
+
+    # Ligar a contribuicao
+    contribuicao.entrada = entrada
+    contribuicao.dizimooferta = dizimo
+    contribuicao.save()
+
+
+def _anular_contribuicao_financeira(contribuicao):
+    """Remove Entrada + Dizimooferta quando uma contribuicao e rejeitada/anulada."""
+    from sitetibl.models import Entrada, Dizimooferta
+
+    if contribuicao.dizimooferta_id:
+        Dizimooferta.objects.filter(id=contribuicao.dizimooferta_id).delete()
+    if contribuicao.entrada_id:
+        Entrada.objects.filter(id=contribuicao.entrada_id).delete()
+    contribuicao.entrada = None
+    contribuicao.dizimooferta = None
+    contribuicao.save()
+
+
 @login_required
 def confirmar_contribuicao(request, contribuicao_id):
     from django.core.exceptions import PermissionDenied
@@ -2608,6 +2678,17 @@ def confirmar_contribuicao(request, contribuicao_id):
     if nota:
         contribuicao.nota_validacao = nota
     contribuicao.save()
+
+    # Criar Entrada + Dizimooferta automaticamente
+    if not contribuicao.entrada_id:
+        try:
+            _integrar_contribuicao_financeira(contribuicao)
+        except Exception as e:
+            logger.error(f'Erro ao integrar contribuicao #{contribuicao.id}: {e}')
+            messages.warning(request, f'Contribuição confirmada, mas houve erro ao gerar entrada financeira: {e}')
+        else:
+            messages.success(request, f'Contribuição de {contribuicao.irmao} confirmada. Entrada e dízimo/oferta criados automaticamente.')
+            return redirect('sitetibl:gestao_contribuicoes')
 
     messages.success(request, f'Contribuição de {contribuicao.irmao} confirmada com sucesso.')
     return redirect('sitetibl:gestao_contribuicoes')
@@ -2643,6 +2724,13 @@ def rejeitar_contribuicao(request, contribuicao_id):
     contribuicao.nota_validacao = nota
     contribuicao.save()
 
+    # Remover Entrada + Dizimooferta se existiam
+    if contribuicao.entrada_id or contribuicao.dizimooferta_id:
+        try:
+            _anular_contribuicao_financeira(contribuicao)
+        except Exception as e:
+            logger.error(f'Erro ao anular entrada da contribuicao #{contribuicao.id}: {e}')
+
     messages.success(request, f'Contribuição de {contribuicao.irmao} rejeitada/anulada.')
     return redirect('sitetibl:gestao_contribuicoes')
 
@@ -2661,7 +2749,7 @@ def historico_membro_contribuicoes(request, irmao_id):
         raise PermissionDenied
 
     irmao = get_object_or_404(Irmao, id=irmao_id)
-    qs = Contribuicao.objects.filter(irmao=irmao)
+    qs = Contribuicao.objects.select_related('entrada', 'dizimooferta').filter(irmao=irmao)
 
     # Totais
     total_geral = qs.aggregate(total=Sum('valor'))['total'] or 0

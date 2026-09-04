@@ -158,11 +158,11 @@ class VisitanteRecorrenteAdmin(admin.ModelAdmin):
 # ── Portal do Membro: Contribuições ──────────────────────────
 @admin.register(Contribuicao)
 class ContribuicaoAdmin(admin.ModelAdmin):
-    list_display = ['irmao', 'tipo', 'valor', 'moeda', 'data', 'estado', 'data_registo']
+    list_display = ['irmao', 'tipo', 'valor', 'moeda', 'data', 'estado', 'entrada', 'dizimooferta', 'data_registo']
     list_filter = ['estado', 'tipo', 'moeda']
     search_fields = ['irmao__nome', 'irmao__apelido']
     date_hierarchy = 'data'
-    readonly_fields = ['data_registo', 'data_validacao', 'validado_por']
+    readonly_fields = ['data_registo', 'data_validacao', 'validado_por', 'entrada', 'dizimooferta']
 
 
 # ── Checklists por Actividade ──────────────────────────────
