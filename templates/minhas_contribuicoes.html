@@ -71,15 +71,15 @@
   <div class="contrib-kpi-grid">
     <div class="contrib-kpi-card kpi-green">
       <div class="kpi-label">Total Geral</div>
-      <div class="kpi-value">{{ total_geral|floatformat:2 }} Kz</div>
+      <div class="kpi-value">{{ total_geral|dinheiro }} Kz</div>
     </div>
     <div class="contrib-kpi-card kpi-blue">
       <div class="kpi-label">Total Confirmado</div>
-      <div class="kpi-value">{{ total_confirmado|floatformat:2 }} Kz</div>
+      <div class="kpi-value">{{ total_confirmado|dinheiro }} Kz</div>
     </div>
     <div class="contrib-kpi-card kpi-yellow">
       <div class="kpi-label">Total Pendente</div>
-      <div class="kpi-value">{{ total_pendente|floatformat:2 }} Kz</div>
+      <div class="kpi-value">{{ total_pendente|dinheiro }} Kz</div>
     </div>
   </div>
 
@@ -89,7 +89,7 @@
     {% for item in totais_por_mes %}
     <div class="contrib-mes-card">
       <div class="mes-label">{{ item.mes }}</div>
-      <div class="mes-value">{{ item.total|floatformat:2 }}</div>
+      <div class="mes-value">{{ item.total|dinheiro }}</div>
       <div class="mes-count">{{ item.count }} contribuição{{ item.count|pluralize }}</div>
     </div>
     {% endfor %}
@@ -148,7 +148,7 @@
       <tr>
         <td>{{ c.data|date:"d/m/Y" }}</td>
         <td>{{ c.get_tipo_display }}</td>
-        <td style="font-weight: 600;">{{ c.valor|floatformat:2 }}</td>
+        <td style="font-weight: 600;">{{ c.valor|dinheiro }}</td>
         <td>{{ c.moeda }}</td>
         <td>
           {% if c.estado == 'pendente' %}

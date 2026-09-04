@@ -1,4 +1,5 @@
 {% extends 'index.html' %}
+{% load verificagrupo %}
 {% block Dizimosofertas %}
 
 <div class="list-container">
@@ -56,11 +57,11 @@
             </div>
             <div style="padding: 1rem; background: linear-gradient(135deg, var(--accent), #f39c12); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Total de Dízimos</div>
-                <div style="font-size: 2rem; font-weight: 700;">{{ total_geral|floatformat:2 }} {% if moeda_resumo == 'MULTI' %}(multimoeda){% else %}{{ moeda_resumo }}{% endif %}</div>
+                <div style="font-size: 2rem; font-weight: 700;">{{ total_geral|dinheiro }} {% if moeda_resumo == 'MULTI' %}(multimoeda){% else %}{{ moeda_resumo }}{% endif %}</div>
             </div>
             <div style="padding: 1rem; background: linear-gradient(135deg, #27ae60, #229954); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Média por Membro</div>
-                <div style="font-size: 2rem; font-weight: 700;">{% if moeda_resumo != 'MULTI' and total_contribuintes %}{{ media_por_membro|floatformat:2 }} {{ moeda_resumo }}{% else %}--{% endif %}</div>
+                <div style="font-size: 2rem; font-weight: 700;">{% if moeda_resumo != 'MULTI' and total_contribuintes %}{{ media_por_membro|dinheiro }} {{ moeda_resumo }}{% else %}--{% endif %}</div>
             </div>
         </div>
     </div>
@@ -86,7 +87,7 @@
                         <span style="background: var(--bg-sidebar); padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); font-weight: 600; color: white;">{{ item.total_registos }}</span>
                     </td>
                     <td style="text-align: right;">
-                        <span style="font-weight: 700; color: var(--primary); font-size: 1.1rem;">{{ item.total_valor|floatformat:2 }}</span> 
+                        <span style="font-weight: 700; color: var(--primary); font-size: 1.1rem;">{{ item.total_valor|dinheiro }}</span> 
                         <span style="font-size: 0.75rem; color: var(--text-muted);">{{ item.moeda }}</span>
                     </td>
                     <td style="text-align: right;">
@@ -108,7 +109,7 @@
             </div>
             <div>
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Valor Total</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ total_geral|floatformat:2 }}</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ total_geral|dinheiro }}</div>
             </div>
             <div>
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Moeda</div>

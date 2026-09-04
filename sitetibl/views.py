@@ -4961,7 +4961,7 @@ def relatorio_inventario_patrimonio_pdf(request):
             Paragraph(i.descricao or '-', cell_style),
             Paragraph(i.categoria_patrimonio.designacao if i.categoria_patrimonio else '-', cell_style),
             Paragraph(i.codigo or '-', cell_style),
-            Paragraph(f"{i.preco:.2f}" if i.preco else '0.00', cell_style),
+            Paragraph(f"{i.preco:,.2f}" if i.preco else '0.00', cell_style),
             Paragraph(i.moeda.designacao or '-', cell_style),
             Paragraph(str(i.quantidade), cell_style),
         ])
@@ -5061,7 +5061,7 @@ def relatorio_saida_caixa_pdf(request):
         data.append([
             Paragraph(str(p.departamento) if p.departamento else '-', cell_style),
             Paragraph(str(p.projecto) if p.projecto else '-', cell_style),
-            Paragraph(f"{p.montante:.2f}" if p.montante else '0.00', cell_style),
+            Paragraph(f"{p.montante:,.2f}" if p.montante else '0.00', cell_style),
             Paragraph(p.moeda.designacao or '-', cell_style),
             Paragraph(str(p.requerente) if p.requerente else '-', cell_style),
             Paragraph(str(p.status_de_aprovacao), cell_style),

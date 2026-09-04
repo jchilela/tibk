@@ -1078,7 +1078,7 @@ class Contribuicao(models.Model):
     @property
     def valor_formatado(self):
         simbolo = {'AKZ': 'Kz', 'USD': '$', 'EUR': '€'}.get(self.moeda, '')
-        return f'{float(self.valor):,.2f} {simbolo}'.replace(',', ' ').replace('.', ',').replace(' ,', ',')
+        return f'{float(self.valor):,.2f} {simbolo}'
 
 
 # ── Checklists por Actividade e Departamento ─────────────────────

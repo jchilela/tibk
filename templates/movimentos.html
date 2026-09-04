@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load verificagrupo %}
 
 {% block content %}
 <div class="list-container">
@@ -139,7 +140,7 @@
                         <div style="font-size: 0.72rem; color: var(--text-muted);">Ref: {{ m.id }}</div>
                     </td>
                     <td style="text-align: right; font-weight: 700; {% if m.tipo_mov == 'entrada' %}color: var(--primary);{% else %}color: #ef4444;{% endif %}">
-                        {% if m.tipo_mov == 'entrada' %}+{% else %}-{% endif %} {{ m.valor|floatformat:2 }} {{ m.moeda }}
+                        {% if m.tipo_mov == 'entrada' %}+{% else %}-{% endif %} {{ m.valor|dinheiro }} {{ m.moeda }}
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/{{ m.tipo_mov }}s/detalhe/{{ m.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">

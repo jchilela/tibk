@@ -1,4 +1,5 @@
 ﻿{% extends 'index.html' %}
+{% load verificagrupo %}
 {% block content %}
 <div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
     <div style="background-image: url('/static/fotos/2022/homepage1.jpeg'); background-size: cover; background-position: center; min-height: 120px; position: relative; border-radius: var(--radius-md);">
@@ -21,13 +22,13 @@
             <div
                 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
                 Registo de Saída Bancária</div>
-            <h1 style="font-size: 2rem; color: #991b1b; margin-bottom: 0.25rem;">- {{ x.valor|floatformat:2 }} {{ x.moeda }}</h1>
+            <h1 style="font-size: 2rem; color: #991b1b; margin-bottom: 0.25rem;">- {{ x.valor|dinheiro }} {{ x.moeda }}</h1>
             <p style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">
                 <i class="fas fa-university mr-2" style="color: #ef4444;"></i> Da Conta: {{ x.conta }}
             </p>
             {% if x.conta %}
             <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">
-                Saldo actual da conta origem: {{ x.conta.saldo_actual|floatformat:2 }} {{ x.conta.moeda }}
+                Saldo actual da conta origem: {{ x.conta.saldo_actual|dinheiro }} {{ x.conta.moeda }}
             </p>
             {% endif %}
         </div>
@@ -92,7 +93,7 @@
                 <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">{{ x.contaaacreditar|default:"Não especificada" }}</span>
                 {% if x.contaaacreditar %}
                 <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
-                    Saldo actual da conta destino: {{ x.contaaacreditar.saldo_actual|floatformat:2 }} {{ x.contaaacreditar.moeda }}
+                    Saldo actual da conta destino: {{ x.contaaacreditar.saldo_actual|dinheiro }} {{ x.contaaacreditar.moeda }}
                 </div>
                 {% endif %}
             </div>
@@ -128,7 +129,7 @@
                         {% for mov in entradas_relacionadas %}
                         <tr>
                             <td>{{ mov.data|date:"d/m/Y" }}</td>
-                            <td style="font-weight: 700; color: #166534;">+ {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td style="font-weight: 700; color: #166534;">+ {{ mov.valor|dinheiro }} {{ mov.moeda }}</td>
                             <td style="text-align: right;"><a href="/tibl/entradabancos/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">Abrir</a></td>
                         </tr>
                         {% endfor %}
@@ -158,7 +159,7 @@
                         {% for mov in saidas_relacionadas %}
                         <tr>
                             <td>{{ mov.data|date:"d/m/Y" }}</td>
-                            <td style="font-weight: 700; color: #991b1b;">- {{ mov.valor|floatformat:2 }} {{ mov.moeda }}</td>
+                            <td style="font-weight: 700; color: #991b1b;">- {{ mov.valor|dinheiro }} {{ mov.moeda }}</td>
                             <td style="text-align: right;"><a href="/tibl/saidabancos/detalhe/{{ mov.id }}" class="bt-primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #ef4444;">Abrir</a></td>
                         </tr>
                         {% endfor %}

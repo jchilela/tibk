@@ -1,5 +1,6 @@
 {% extends "base_modern.html" %}
 {% load static %}
+{% load verificagrupo %}
 
 {% block title %}Gestão de Contribuições — TIBL{% endblock %}
 
@@ -86,20 +87,20 @@
   <div class="gc-kpi-grid">
     <div class="gc-kpi-card kpi-green">
       <div class="kpi-label">Total Geral</div>
-      <div class="kpi-value">{{ total_geral|floatformat:2 }}</div>
+      <div class="kpi-value">{{ total_geral|dinheiro }}</div>
       <div class="kpi-count">{{ contribuicoes.paginator.count }} contribuições</div>
     </div>
     <div class="gc-kpi-card kpi-blue">
       <div class="kpi-label">Confirmado</div>
-      <div class="kpi-value">{{ total_confirmado|floatformat:2 }}</div>
+      <div class="kpi-value">{{ total_confirmado|dinheiro }}</div>
     </div>
     <div class="gc-kpi-card kpi-yellow">
       <div class="kpi-label">Pendente</div>
-      <div class="kpi-value">{{ total_pendente|floatformat:2 }}</div>
+      <div class="kpi-value">{{ total_pendente|dinheiro }}</div>
     </div>
     <div class="gc-kpi-card kpi-red">
       <div class="kpi-label">Rejeitado</div>
-      <div class="kpi-value">{{ total_rejeitado|floatformat:2 }}</div>
+      <div class="kpi-value">{{ total_rejeitado|dinheiro }}</div>
     </div>
   </div>
 
@@ -111,7 +112,7 @@
       {% for t in totais_por_tipo %}
       <div class="tc-row">
         <span class="tc-label">{{ t.tipo }}</span>
-        <span class="tc-value">{{ t.total|floatformat:2 }}</span>
+        <span class="tc-value">{{ t.total|dinheiro }}</span>
       </div>
       <div class="tc-row" style="font-size: 0.72rem; color: var(--text-muted);">
         <span></span>
@@ -126,7 +127,7 @@
       {% for e in totais_por_estado %}
       <div class="tc-row">
         <span class="tc-label">{{ e.estado }}</span>
-        <span class="tc-value">{{ e.total|floatformat:2 }}</span>
+        <span class="tc-value">{{ e.total|dinheiro }}</span>
       </div>
       <div class="tc-row" style="font-size: 0.72rem; color: var(--text-muted);">
         <span></span>
@@ -206,7 +207,7 @@
           </a>
         </td>
         <td>{{ c.get_tipo_display }}</td>
-        <td style="font-weight: 600;">{{ c.valor|floatformat:2 }}</td>
+        <td style="font-weight: 600;">{{ c.valor|dinheiro }}</td>
         <td>{{ c.moeda }}</td>
         <td>{{ c.data|date:"d/m/Y" }}</td>
         <td>
@@ -250,7 +251,7 @@
             <div class="gc-modal">
               <h3><i class="fas fa-check-circle" style="color: var(--primary);"></i> Confirmar Contribuição</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-                {{ c.irmao.nome }} {{ c.irmao.apelido }} — {{ c.get_tipo_display }} de {{ c.valor|floatformat:2 }} {{ c.moeda }}
+                {{ c.irmao.nome }} {{ c.irmao.apelido }} — {{ c.get_tipo_display }} de {{ c.valor|dinheiro }} {{ c.moeda }}
               </p>
               <form method="POST" action="{% url 'sitetibl:confirmar_contribuicao' c.id %}">
                 {% csrf_token %}
@@ -268,7 +269,7 @@
             <div class="gc-modal">
               <h3><i class="fas fa-times-circle" style="color: #ef4444;"></i> Rejeitar/Anular Contribuição</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-                {{ c.irmao.nome }} {{ c.irmao.apelido }} — {{ c.get_tipo_display }} de {{ c.valor|floatformat:2 }} {{ c.moeda }}
+                {{ c.irmao.nome }} {{ c.irmao.apelido }} — {{ c.get_tipo_display }} de {{ c.valor|dinheiro }} {{ c.moeda }}
               </p>
               <form method="POST" action="{% url 'sitetibl:rejeitar_contribuicao' c.id %}">
                 {% csrf_token %}

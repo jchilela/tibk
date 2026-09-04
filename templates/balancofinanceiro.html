@@ -1,5 +1,6 @@
 {% extends 'base_modern.html' %}
 {% load static %}
+{% load verificagrupo %}
 
 {% block title %}Balanço Financeiro{% endblock %}
 
@@ -79,23 +80,23 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <div style="padding: 1rem; background: linear-gradient(135deg, #7f8c8d, #566573); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Saldo Transitado (Anterior)</div>
-                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_inicial|floatformat:2 }}</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_inicial|dinheiro }}</div>
             </div>
             <div style="padding: 1rem; background: linear-gradient(135deg, #2980b9, #1f618d); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Entradas Gerais</div>
-                <div style="font-size: 1.6rem; font-weight: 700;">{{ total_entradas_gerais|floatformat:2 }}</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ total_entradas_gerais|dinheiro }}</div>
             </div>
             <div style="padding: 1rem; background: linear-gradient(135deg, #c0392b, #922b21); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Saídas Gerais</div>
-                <div style="font-size: 1.6rem; font-weight: 700;">{{ total_saidas_gerais|floatformat:2 }}</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ total_saidas_gerais|dinheiro }}</div>
             </div>
             <div style="padding: 1rem; background: linear-gradient(135deg, #16a085, #117864); border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Movimento Líquido do Período</div>
-                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_geral|floatformat:2 }}</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_geral|dinheiro }}</div>
             </div>
             <div class="{% if saldo_final >= 0 %}saldo-card-positivo{% else %}saldo-card-negativo{% endif %}" style="padding: 1rem; border-radius: var(--radius-sm); color: white;">
                 <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">Saldo Final Transitado</div>
-                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_final|floatformat:2 }}</div>
+                <div style="font-size: 1.6rem; font-weight: 700;">{{ saldo_final|dinheiro }}</div>
             </div>
         </div>
     </div>
@@ -116,19 +117,19 @@
                 {% for linha in linhas %}
                 <tr>
                     <td style="font-weight: 600;">{{ linha.label }}</td>
-                    <td style="text-align: right;">{{ linha.entradas_gerais|floatformat:2 }}</td>
-                    <td style="text-align: right;">{{ linha.saidas_gerais|floatformat:2 }}</td>
-                    <td class="{% if linha.saldo_periodo < 0 %}texto-negativo{% else %}texto-positivo{% endif %}" style="text-align: right; font-weight: 700;">{{ linha.saldo_periodo|floatformat:2 }}</td>
-                    <td style="text-align: right; font-weight: 700;">{{ linha.saldo_acumulado|floatformat:2 }}</td>
+                    <td style="text-align: right;">{{ linha.entradas_gerais|dinheiro }}</td>
+                    <td style="text-align: right;">{{ linha.saidas_gerais|dinheiro }}</td>
+                    <td class="{% if linha.saldo_periodo < 0 %}texto-negativo{% else %}texto-positivo{% endif %}" style="text-align: right; font-weight: 700;">{{ linha.saldo_periodo|dinheiro }}</td>
+                    <td style="text-align: right; font-weight: 700;">{{ linha.saldo_acumulado|dinheiro }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
             <tfoot>
                 <tr style="background: var(--bg-sidebar); font-weight: 700; border-top: 2px solid var(--primary);">
                     <td style="color: white;">Total Geral</td>
-                    <td style="text-align: right; color: white;">{{ total_entradas_gerais|floatformat:2 }}</td>
-                    <td style="text-align: right; color: white;">{{ total_saidas_gerais|floatformat:2 }}</td>
-                    <td style="text-align: right; color: white;">{{ saldo_geral|floatformat:2 }}</td>
+                    <td style="text-align: right; color: white;">{{ total_entradas_gerais|dinheiro }}</td>
+                    <td style="text-align: right; color: white;">{{ total_saidas_gerais|dinheiro }}</td>
+                    <td style="text-align: right; color: white;">{{ saldo_geral|dinheiro }}</td>
                     <td></td>
                 </tr>
             </tfoot>

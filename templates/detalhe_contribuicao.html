@@ -1,5 +1,6 @@
 {% extends "base_modern.html" %}
 {% load static %}
+{% load verificagrupo %}
 
 {% block title %}Detalhe da Contribuição — TIBL{% endblock %}
 
@@ -94,7 +95,7 @@
     </div>
     <div class="contrib-detail-row">
       <span class="label">Valor</span>
-      <span class="value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">{{ contribuicao.valor|floatformat:2 }} {{ contribuicao.moeda }}</span>
+      <span class="value" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">{{ contribuicao.valor|dinheiro }} {{ contribuicao.moeda }}</span>
     </div>
     <div class="contrib-detail-row">
       <span class="label">Data</span>
