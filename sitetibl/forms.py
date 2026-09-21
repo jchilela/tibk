@@ -31,6 +31,7 @@ from sitetibl.models import EnvioMensagem
 from sitetibl.models import TipoOferta
 from sitetibl.models import Listaactividades
 from sitetibl.models import Celula
+from sitetibl.models import Ocorrencia
 
 from django.forms import ModelForm , CheckboxSelectMultiple
 from django.utils import timezone as tz
@@ -963,3 +964,19 @@ class VisitanteRecorrenteForm(ModelForm):
         }
 
 
+
+class OcorrenciaForm(ModelForm):
+    class Meta:
+        model = Ocorrencia
+        fields = [
+            'nome_reportante', 'contacto_reportante', 'categoria',
+            'titulo', 'descricao', 'local', 'anexo',
+        ]
+        widgets = {
+            'nome_reportante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional'}),
+            'contacto_reportante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Telefone ou email (opcional)'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Resuma a ocorrência em poucas palavras'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva com detalhe o que aconteceu'}),
+            'local': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Templo principal, Célula X, etc.'}),
+        }

@@ -1,0 +1,224 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}Reportar Ocorrência | TIBL{% endblock %}
+
+{% block content %}
+<style>
+  .oc-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top right, #1b4d3e, #020617);
+    position: relative;
+    overflow: hidden;
+    padding: 2rem;
+  }
+
+  .oc-container {
+    width: 100%;
+    max-width: 560px;
+    z-index: 10;
+    animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .oc-box {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .oc-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .oc-header h2 {
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-top: 1rem;
+    letter-spacing: -0.5px;
+  }
+
+  .oc-header p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  .oc-form-group {
+    margin-bottom: 1.1rem;
+  }
+
+  .oc-form-group label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.82rem;
+    margin-bottom: 0.4rem;
+    display: block;
+    font-weight: 600;
+  }
+
+  .oc-form-group input,
+  .oc-form-group select,
+  .oc-form-group textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+  }
+
+  .oc-form-group input:focus,
+  .oc-form-group select:focus,
+  .oc-form-group textarea:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    outline: none;
+  }
+
+  .oc-form-group input::placeholder,
+  .oc-form-group textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .oc-form-group select option {
+    background: #0f2c22;
+    color: white;
+  }
+
+  .oc-hint {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+  }
+
+  .oc-error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.6rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+  }
+
+  .oc-anonimo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #6ee7b7;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .bt-oc-submit {
+    background: #059669;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+  }
+
+  .bt-oc-submit:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 25px -5px rgba(16, 185, 129, 0.5);
+    filter: brightness(1.1);
+  }
+</style>
+
+<div class="oc-wrapper">
+  <div class="oc-container">
+    <div class="oc-box">
+      <div class="oc-header">
+        <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL" style="width: 70px;">
+        <h2><i class="fas fa-triangle-exclamation" style="color:#f59e0b;"></i> Reportar Ocorrência</h2>
+        <p>Ajude-nos a melhorar a nossa comunidade. Todos os dados são tratados com confidencialidade.</p>
+      </div>
+
+      <div style="text-align:center;">
+        <span class="oc-anonimo-badge"><i class="fas fa-user-shield"></i> Identificação opcional / anónimo</span>
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="oc-form-group">
+          <label for="{{ form.nome_reportante.id_for_label }}">SEU NOME (opcional)</label>
+          {{ form.nome_reportante }}
+        </div>
+
+        <div class="oc-form-group">
+          <label for="{{ form.contacto_reportante.id_for_label }}">CONTACTO (opcional)</label>
+          {{ form.contacto_reportante }}
+        </div>
+
+        <div class="oc-form-group">
+          <label for="{{ form.categoria.id_for_label }}">CATEGORIA *</label>
+          {{ form.categoria }}
+          {% if form.categoria.errors %}<div class="oc-error">{{ form.categoria.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="oc-form-group">
+          <label for="{{ form.titulo.id_for_label }}">TÍTULO *</label>
+          {{ form.titulo }}
+          {% if form.titulo.errors %}<div class="oc-error">{{ form.titulo.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="oc-form-group">
+          <label for="{{ form.descricao.id_for_label }}">DESCRIÇÃO *</label>
+          {{ form.descricao }}
+          {% if form.descricao.errors %}<div class="oc-error">{{ form.descricao.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="oc-form-group">
+          <label for="{{ form.local.id_for_label }}">LOCAL (opcional)</label>
+          {{ form.local }}
+        </div>
+
+        <div class="oc-form-group">
+          <label for="{{ form.anexo.id_for_label }}">ANEXO / FOTO (opcional)</label>
+          {{ form.anexo }}
+          <p class="oc-hint">Pode anexar uma foto ou documento relacionado com a ocorrência.</p>
+        </div>
+
+        <button type="submit" class="bt-oc-submit">
+          ENVIAR OCORRÊNCIA <i class="fas fa-paper-plane" style="font-size: 0.85rem;"></i>
+        </button>
+      </form>
+
+      <footer style="margin-top: 2rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+        <p style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+          &copy; {% now 'Y' %} TIBL · Luanda, Angola
+        </p>
+      </footer>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -150,3 +150,16 @@ class VisitanteRecorrenteAdmin(admin.ModelAdmin):
     list_display = ['nome', 'celula', 'numero_visitas', 'estado', 'primeira_visita', 'ultima_visita']
     list_filter = ['estado', 'celula']
     search_fields = ['nome']
+
+
+# ── Portal de Ocorrências ──────────────────────────────────
+from sitetibl.models import Ocorrencia
+
+
+@admin.register(Ocorrencia)
+class OcorrenciaAdmin(admin.ModelAdmin):
+    list_display = ['protocolo', 'categoria', 'titulo', 'nome_reportante', 'estado', 'data_registo']
+    list_filter = ['estado', 'categoria']
+    search_fields = ['protocolo', 'titulo', 'nome_reportante', 'local']
+    date_hierarchy = 'data_registo'
+    readonly_fields = ['protocolo', 'data_registo', 'data_resolucao', 'resolvido_por']

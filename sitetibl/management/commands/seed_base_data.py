@@ -93,6 +93,7 @@ class Command(BaseCommand):
             'Líder de Célula',
             'Membros Baptizados',
             'Membro Geral',
+            'Gestão de Ocorrências',
         ]
 
         created_count = 0
@@ -269,6 +270,12 @@ class Command(BaseCommand):
         ], ['view'])
         mg_grp.permissions.set(mg_perms)
         self.stdout.write(f'Membro Geral: {mg_perms.count()} permissoes atribuidas')
+
+        # --- Gestão de Ocorrências: CRUD sobre ocorrencias reportadas ---
+        oc_grp = Group.objects.get(name='Gestão de Ocorrências')
+        oc_perms = self._perms_for(app, ['ocorrencia'], crud)
+        oc_grp.permissions.set(oc_perms)
+        self.stdout.write(f'Gestão de Ocorrências: {oc_perms.count()} permissoes atribuidas')
 
     def _perms_for(self, app, models, actions):
         """Devolve QuerySet de permissoes para combinacao app/modelos/accoes."""

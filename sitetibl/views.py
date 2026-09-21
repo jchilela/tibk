@@ -87,6 +87,8 @@ from sitetibl.models import RegistoAcompanhamento
 from sitetibl.models import AlertaPastoral
 from sitetibl.models import VisitanteRecorrente
 from sitetibl.models import Celula
+from sitetibl.models import Ocorrencia, CATEGORIA_OCORRENCIA, ESTADO_OCORRENCIA
+from django.utils import timezone
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
 from sitetibl.forms import ConteudoEnsino
@@ -5425,4 +5427,135 @@ def acta_actividade_pdf(request, actividade_id):
 
     doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
     return response
+
+
+# ── Portal de Ocorrências (público via QR Code) ────────────────────────
+
+def registar_ocorrencia(request):
+    """Formulário público (sem login) para membros/visitantes reportarem ocorrências."""
+    from sitetibl.forms import OcorrenciaForm
+
+    if request.method == 'POST':
+        form = OcorrenciaForm(request.POST, request.FILES)
+        if form.is_valid():
+            ocorrencia = form.save()
+            return redirect('sitetibl:ocorrencia_sucesso', protocolo=ocorrencia.protocolo)
+    else:
+        form = OcorrenciaForm()
+
+    return render(request, 'registar_ocorrencia.html', {'form': form})
+
+
+def ocorrencia_sucesso(request, protocolo):
+    """Página de confirmação exibida após o registo público de uma ocorrência."""
+    ocorrencia = get_object_or_404(Ocorrencia, protocolo=protocolo)
+    return render(request, 'ocorrencia_sucesso.html', {'ocorrencia': ocorrencia})
+
+
+def _pode_gerir_ocorrencias(user):
+    return (
+        user.has_perm('sitetibl.view_ocorrencia')
+        or user.has_perm('sitetibl.change_ocorrencia')
+        or user.is_superuser
+    )
+
+
+@login_required
+def gestao_ocorrencias(request):
+    from django.core.exceptions import PermissionDenied
+
+    if not _pode_gerir_ocorrencias(request.user):
+        raise PermissionDenied
+
+    qs = Ocorrencia.objects.select_related('resolvido_por').all()
+
+    categoria_filter = request.GET.get('categoria', '').strip()
+    estado_filter = request.GET.get('estado', '').strip()
+    busca = request.GET.get('busca', '').strip()
+
+    if categoria_filter:
+        qs = qs.filter(categoria=categoria_filter)
+    if estado_filter:
+        qs = qs.filter(estado=estado_filter)
+    if busca:
+        qs = qs.filter(
+            Q(protocolo__icontains=busca)
+            | Q(titulo__icontains=busca)
+            | Q(nome_reportante__icontains=busca)
+            | Q(local__icontains=busca)
+        )
+
+    total_pendentes = Ocorrencia.objects.filter(estado='pendente').count()
+    total_em_analise = Ocorrencia.objects.filter(estado='em_analise').count()
+    total_resolvidas = Ocorrencia.objects.filter(estado='resolvida').count()
+
+    paginator = Paginator(qs, 20)
+    pagina = request.GET.get('page', 1)
+    ocorrencias = paginator.get_page(pagina)
+
+    context = {
+        'ocorrencias': ocorrencias,
+        'total_pendentes': total_pendentes,
+        'total_em_analise': total_em_analise,
+        'total_resolvidas': total_resolvidas,
+        'filtro_categoria': categoria_filter,
+        'filtro_estado': estado_filter,
+        'filtro_busca': busca,
+        'categoria_choices': CATEGORIA_OCORRENCIA,
+        'estado_choices': ESTADO_OCORRENCIA,
+    }
+    return render(request, 'gestao_ocorrencias.html', context)
+
+
+@login_required
+def atualizar_estado_ocorrencia(request, ocorrencia_id):
+    from django.core.exceptions import PermissionDenied
+
+    if not _pode_gerir_ocorrencias(request.user):
+        raise PermissionDenied
+
+    if request.method != 'POST':
+        return redirect('sitetibl:gestao_ocorrencias')
+
+    ocorrencia = get_object_or_404(Ocorrencia, id=ocorrencia_id)
+    novo_estado = request.POST.get('estado', '').strip()
+    nota = request.POST.get('nota', '').strip()
+
+    if novo_estado not in dict(ESTADO_OCORRENCIA):
+        messages.error(request, 'Estado inválido.')
+        return redirect('sitetibl:gestao_ocorrencias')
+
+    ocorrencia.estado = novo_estado
+    if nota:
+        ocorrencia.nota_resolucao = nota
+    if novo_estado == 'resolvida':
+        ocorrencia.data_resolucao = timezone.now()
+        ocorrencia.resolvido_por = request.user
+    ocorrencia.save()
+
+    messages.success(request, f'Ocorrência #{ocorrencia.protocolo} actualizada para "{ocorrencia.get_estado_display()}".')
+    return redirect('sitetibl:gestao_ocorrencias')
+
+
+@login_required
+def ocorrencia_qrcode(request):
+    """Exibe o QR Code que aponta para o formulário público de registo de ocorrências."""
+    if not _pode_gerir_ocorrencias(request.user):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    url_publica = request.build_absolute_uri(reverse('sitetibl:registar_ocorrencia'))
+    return render(request, 'ocorrencia_qrcode.html', {'url_publica': url_publica})
+
+
+def ocorrencia_qrcode_imagem(request):
+    """Gera a imagem PNG do QR Code para o formulário público de ocorrências."""
+    import qrcode
+    from io import BytesIO
+
+    url_publica = request.build_absolute_uri(reverse('sitetibl:registar_ocorrencia'))
+    img = qrcode.make(url_publica, box_size=10, border=2)
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
 

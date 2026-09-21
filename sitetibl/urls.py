@@ -82,4 +82,12 @@ urlpatterns = [
     path('pastoral/relatorio/selecionar/', views.relatorio_pastoral_selecionar_mes, name='relatorio_pastoral_selecionar_mes'),
     path('pastoral/relatorio/mensal/', views.relatorio_pastoral_mensal_pdf, name='relatorio_pastoral_mensal'),
     path('pastoral/relatorio/inactivos/', views.relatorio_inactivos_pdf, name='relatorio_inactivos_pdf'),
+
+    # ── Portal de Ocorrências (público via QR Code) ────────────────────
+    path('ocorrencias/registar/', views.registar_ocorrencia, name='registar_ocorrencia'),
+    path('ocorrencias/sucesso/<str:protocolo>/', views.ocorrencia_sucesso, name='ocorrencia_sucesso'),
+    path('gestao/ocorrencias/', views.gestao_ocorrencias, name='gestao_ocorrencias'),
+    path('ocorrencias/<int:ocorrencia_id>/estado/', views.atualizar_estado_ocorrencia, name='atualizar_estado_ocorrencia'),
+    path('ocorrencias/qrcode/', views.ocorrencia_qrcode, name='ocorrencia_qrcode'),
+    path('ocorrencias/qrcode/imagem/', views.ocorrencia_qrcode_imagem, name='ocorrencia_qrcode_imagem'),
 ]

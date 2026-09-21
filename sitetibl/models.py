@@ -1031,3 +1031,52 @@ class VisitanteRecorrente(models.Model):
 
     def __str__(self):
         return f'{self.nome} ({self.get_estado_display()})'
+
+
+CATEGORIA_OCORRENCIA = (
+    ('seguranca', 'Segurança'),
+    ('manutencao', 'Manutenção/Infraestrutura'),
+    ('comportamento', 'Comportamento/Disciplina'),
+    ('reclamacao', 'Reclamação'),
+    ('sugestao', 'Sugestão'),
+    ('outro', 'Outro'),
+)
+
+ESTADO_OCORRENCIA = (
+    ('pendente', 'Pendente'),
+    ('em_analise', 'Em Análise'),
+    ('resolvida', 'Resolvida'),
+)
+
+
+class Ocorrencia(models.Model):
+    """Ocorrência registada publicamente (ex: via QR Code) por membros ou visitantes."""
+    protocolo = models.CharField('Protocolo', max_length=20, unique=True, editable=False)
+    nome_reportante = models.CharField('Nome', max_length=150, blank=True, null=True)
+    contacto_reportante = models.CharField('Contacto', max_length=100, blank=True, null=True)
+    categoria = models.CharField('Categoria', max_length=20, choices=CATEGORIA_OCORRENCIA, default='outro')
+    titulo = models.CharField('Título', max_length=150)
+    descricao = models.TextField('Descrição')
+    local = models.CharField('Local', max_length=150, blank=True, null=True)
+    anexo = models.FileField('Anexo', upload_to='ocorrencias/', blank=True, null=True)
+    estado = models.CharField('Estado', max_length=20, choices=ESTADO_OCORRENCIA, default='pendente')
+    data_registo = models.DateTimeField('Data de Registo', auto_now_add=True)
+    data_resolucao = models.DateTimeField('Data de Resolução', blank=True, null=True)
+    resolvido_por = models.ForeignKey(User, verbose_name='Resolvido por', on_delete=models.SET_NULL, blank=True, null=True, related_name='ocorrencias_resolvidas')
+    nota_resolucao = models.TextField('Nota de Resolução', blank=True, null=True)
+
+    class Meta:
+        ordering = ['-data_registo']
+        verbose_name = 'Ocorrência'
+        verbose_name_plural = 'Ocorrências'
+
+    def __str__(self):
+        return f'#{self.protocolo} - {self.titulo}'
+
+    def save(self, *args, **kwargs):
+        if not self.protocolo:
+            from datetime import datetime as dt
+            ultimo = Ocorrencia.objects.order_by('id').last()
+            proximo_id = (ultimo.id + 1) if ultimo else 1
+            self.protocolo = f"OC-{dt.now().strftime('%Y%m')}-{proximo_id:04d}"
+        super().save(*args, **kwargs)

@@ -1,0 +1,153 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-triangle-exclamation"></i> Gestão de Ocorrências</h2>
+        </div>
+        <a href="{% url 'sitetibl:ocorrencia_qrcode' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            <i class="fas fa-qrcode"></i> QR Code Público
+        </a>
+    </div>
+
+    <!-- KPIs -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="modern-card" style="padding: 1.25rem; border-top: 3px solid #f59e0b;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"><i class="fas fa-hourglass-half mr-1"></i> Pendentes</span>
+            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ total_pendentes }}</div>
+        </div>
+        <div class="modern-card" style="padding: 1.25rem; border-top: 3px solid #3b82f6;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"><i class="fas fa-magnifying-glass mr-1"></i> Em Análise</span>
+            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ total_em_analise }}</div>
+        </div>
+        <div class="modern-card" style="padding: 1.25rem; border-top: 3px solid #10b981;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"><i class="fas fa-check-circle mr-1"></i> Resolvidas</span>
+            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ total_resolvidas }}</div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-bar" style="margin-bottom: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem 1.5rem;">
+        <form method="get" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <input type="text" name="busca" value="{{ filtro_busca }}" placeholder="Protocolo, título, nome ou local..." style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem; min-width: 220px;">
+            <select name="categoria" style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                <option value="">Todas as Categorias</option>
+                {% for val, label in categoria_choices %}
+                <option value="{{ val }}" {% if filtro_categoria == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="estado" style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                <option value="">Todos os Estados</option>
+                {% for val, label in estado_choices %}
+                <option value="{{ val }}" {% if filtro_estado == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 1rem;">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+            <a href="{% url 'sitetibl:gestao_ocorrencias' %}" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: underline;">Limpar</a>
+        </form>
+    </div>
+
+    {% if ocorrencias %}
+    <div class="modern-table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Protocolo</th>
+                    <th>Categoria</th>
+                    <th>Título</th>
+                    <th>Reportante</th>
+                    <th>Local</th>
+                    <th>Estado</th>
+                    <th>Data</th>
+                    <th>Acções</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in ocorrencias %}
+                <tr>
+                    <td><strong>#{{ o.protocolo }}</strong></td>
+                    <td><span class="badge badge-info">{{ o.get_categoria_display }}</span></td>
+                    <td>{{ o.titulo }}</td>
+                    <td>{% if o.nome_reportante %}{{ o.nome_reportante }}{% else %}<span style="color: var(--text-muted);">Anónimo</span>{% endif %}</td>
+                    <td>{{ o.local|default:"—" }}</td>
+                    <td>
+                        <span class="badge {% if o.estado == 'pendente' %}badge-warning{% elif o.estado == 'em_analise' %}badge-primary{% else %}badge-success{% endif %}">
+                            {{ o.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ o.data_registo|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <button type="button" class="bt-primary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="openModal('oc-modal-{{ o.id }}')">
+                            <i class="fas fa-pen"></i> Gerir
+                        </button>
+                    </td>
+                </tr>
+
+                <div class="gc-modal-overlay" id="oc-modal-{{ o.id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                    <div class="gc-modal" style="background:white; border-radius: var(--radius-lg); padding: 2rem; max-width: 480px; width: 90%;">
+                        <h3 style="margin-bottom: 1rem;"><i class="fas fa-triangle-exclamation" style="color:#f59e0b;"></i> Ocorrência #{{ o.protocolo }}</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Descrição:</strong></p>
+                        <p style="font-size: 0.9rem; margin-bottom: 1rem; white-space: pre-wrap;">{{ o.descricao }}</p>
+                        {% if o.contacto_reportante %}
+                        <p style="font-size: 0.85rem; margin-bottom: 1rem;"><strong>Contacto:</strong> {{ o.contacto_reportante }}</p>
+                        {% endif %}
+                        {% if o.anexo %}
+                        <p style="font-size: 0.85rem; margin-bottom: 1rem;"><a href="{{ o.anexo.url }}" target="_blank"><i class="fas fa-paperclip"></i> Ver anexo</a></p>
+                        {% endif %}
+
+                        <form method="post" action="{% url 'sitetibl:atualizar_estado_ocorrencia' o.id %}">
+                            {% csrf_token %}
+                            <label style="font-size: 0.8rem; font-weight: 600; display:block; margin-bottom: 0.4rem;">Estado</label>
+                            <select name="estado" style="width:100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 1rem;">
+                                {% for val, label in estado_choices %}
+                                <option value="{{ val }}" {% if o.estado == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <label style="font-size: 0.8rem; font-weight: 600; display:block; margin-bottom: 0.4rem;">Nota</label>
+                            <textarea name="nota" rows="3" style="width:100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 1rem;">{{ o.nota_resolucao|default:'' }}</textarea>
+                            <div style="display:flex; gap: 0.5rem; justify-content:flex-end;">
+                                <button type="button" class="bt-primary" style="background:#64748b;" onclick="closeModal('oc-modal-{{ o.id }}')">Cancelar</button>
+                                <button type="submit" class="bt-primary">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if ocorrencias.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+        {% if ocorrencias.has_previous %}
+        <a href="?page={{ ocorrencias.previous_page_number }}&categoria={{ filtro_categoria }}&estado={{ filtro_estado }}&busca={{ filtro_busca }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #64748b;">← Anterior</a>
+        {% endif %}
+        <span style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--text-muted);">{{ ocorrencias.number }} / {{ ocorrencias.paginator.num_pages }}</span>
+        {% if ocorrencias.has_next %}
+        <a href="?page={{ ocorrencias.next_page_number }}&categoria={{ filtro_categoria }}&estado={{ filtro_estado }}&busca={{ filtro_busca }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #64748b;">Seguinte →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="modern-card" style="text-align: center; padding: 4rem;">
+        <i class="fas fa-clipboard-check" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Sem ocorrências para mostrar.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+}
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+</script>
+
+{% endblock %}

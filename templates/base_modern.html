@@ -214,13 +214,20 @@
                 {% endif %}
                 {% endif %}
 
-                {% if perms.sitetibl.view_inventariopatrimonio %}
+                {% if perms.sitetibl.view_inventariopatrimonio or perms.sitetibl.view_ocorrencia %}
                 <div class="nav-section-title">Administração</div>
 
                 {% if perms.sitetibl.view_inventariopatrimonio %}
                 <a href="/tibl/gestao/inventariopatrimonio/1"
                     class="nav-item {% if request.resolver_match.kwargs.gestaoescolhida == 'inventariopatrimonio' %}active{% endif %}">
                     <i class="fas fa-boxes-stacked fa-fw"></i> Património
+                </a>
+                {% endif %}
+
+                {% if perms.sitetibl.view_ocorrencia %}
+                <a href="{% url 'sitetibl:gestao_ocorrencias' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'gestao_ocorrencias' or request.resolver_match.url_name == 'ocorrencia_qrcode' %}active{% endif %}">
+                    <i class="fas fa-triangle-exclamation fa-fw"></i> Ocorrências
                 </a>
                 {% endif %}
                 {% endif %}
