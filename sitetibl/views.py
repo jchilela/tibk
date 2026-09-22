@@ -5488,11 +5488,10 @@ def consultar_ocorrencia(request):
 
 
 def _pode_gerir_ocorrencias(user):
-    return (
-        user.has_perm('sitetibl.view_ocorrencia')
-        or user.has_perm('sitetibl.change_ocorrencia')
-        or user.is_superuser
-    )
+    """A gestão de ocorrências é restrita à liderança do Departamento de Segurança
+    (Líder, Vice-Líder ou Secretário), além do grupo Administrador/superusers."""
+    from sitetibl.context_processors import pode_gerir_ocorrencias
+    return pode_gerir_ocorrencias(user)
 
 
 @login_required

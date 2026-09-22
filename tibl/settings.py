@@ -100,6 +100,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'sitetibl.context_processors.notificacoes_nao_lidas',
+                'sitetibl.context_processors.acesso_ocorrencias',
             ],
         },
     },

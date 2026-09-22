@@ -214,7 +214,7 @@
                 {% endif %}
                 {% endif %}
 
-                {% if perms.sitetibl.view_inventariopatrimonio or perms.sitetibl.view_ocorrencia %}
+                {% if perms.sitetibl.view_inventariopatrimonio or pode_gerir_ocorrencias %}
                 <div class="nav-section-title">Administração</div>
 
                 {% if perms.sitetibl.view_inventariopatrimonio %}
@@ -224,7 +224,7 @@
                 </a>
                 {% endif %}
 
-                {% if perms.sitetibl.view_ocorrencia %}
+                {% if pode_gerir_ocorrencias %}
                 <a href="{% url 'sitetibl:gestao_ocorrencias' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'gestao_ocorrencias' or request.resolver_match.url_name == 'ocorrencia_qrcode' %}active{% endif %}">
                     <i class="fas fa-triangle-exclamation fa-fw"></i> Ocorrências

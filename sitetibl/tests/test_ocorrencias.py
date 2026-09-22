@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 
 from sitetibl.models import Ocorrencia, Sitio
 
@@ -123,13 +123,14 @@ class OcorrenciaPublicaTest(TestCase):
 
 class OcorrenciaGestaoTest(TestCase):
     def setUp(self):
-        self.grupo = Group.objects.create(name='Gestão de Ocorrências')
-        self.user = User.objects.create_user(username='gestor_oc', password='Teste@123')
-        self.user.groups.add(self.grupo)
+        from sitetibl.models import Irmao, Departamento
 
-        from django.contrib.auth.models import Permission
-        perm = Permission.objects.get(codename='view_ocorrencia')
-        self.user.user_permissions.add(perm)
+        self.user = User.objects.create_user(username='gestor_oc', password='Teste@123')
+        self.irmao = Irmao.objects.create(nome='Gestor', apelido='Segurança', user=self.user)
+        self.dept_seguranca = Departamento.objects.create(
+            designacao='Departamento de Segurança',
+            lider_departamento=self.irmao,
+        )
 
         self.client = Client()
         self.client.login(username='gestor_oc', password='Teste@123')
@@ -169,6 +170,42 @@ class OcorrenciaGestaoTest(TestCase):
         response_img = self.client.get(reverse('sitetibl:ocorrencia_qrcode_imagem'))
         self.assertEqual(response_img.status_code, 200)
         self.assertEqual(response_img['Content-Type'], 'image/png')
+
+    def test_membro_comum_sem_acesso_a_gestao(self):
+        from sitetibl.models import Irmao
+
+        outro_user = User.objects.create_user(username='membro_comum', password='Teste@123')
+        Irmao.objects.create(nome='Membro', apelido='Comum', user=outro_user)
+        client_outro = Client()
+        client_outro.login(username='membro_comum', password='Teste@123')
+
+        response = client_outro.get(reverse('sitetibl:gestao_ocorrencias'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_secretario_do_departamento_seguranca_tem_acesso(self):
+        from django.contrib.auth.models import Group
+        from sitetibl.models import Irmao, Mandato
+
+        secretario_user = User.objects.create_user(username='secretario_seg', password='Teste@123')
+        secretario_irmao = Irmao.objects.create(nome='Secretário', apelido='Segurança', user=secretario_user)
+        Mandato.objects.create(irmao=secretario_irmao, departamento=self.dept_seguranca, funcao='secretario')
+
+        client_secretario = Client()
+        client_secretario.login(username='secretario_seg', password='Teste@123')
+        response = client_secretario.get(reverse('sitetibl:gestao_ocorrencias'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_administrador_mantem_acesso(self):
+        from django.contrib.auth.models import Group
+
+        admin_group = Group.objects.create(name='Administrador')
+        admin_user = User.objects.create_user(username='admin_geral', password='Teste@123')
+        admin_user.groups.add(admin_group)
+
+        client_admin = Client()
+        client_admin.login(username='admin_geral', password='Teste@123')
+        response = client_admin.get(reverse('sitetibl:gestao_ocorrencias'))
+        self.assertEqual(response.status_code, 200)
 
     def test_qrcode_especifico_por_local(self):
         sitio = Sitio.objects.create(designacao='Templo Sede', tipo='1')

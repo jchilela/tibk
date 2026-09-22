@@ -271,7 +271,10 @@ class Command(BaseCommand):
         mg_grp.permissions.set(mg_perms)
         self.stdout.write(f'Membro Geral: {mg_perms.count()} permissoes atribuidas')
 
-        # --- Gestão de Ocorrências: CRUD sobre ocorrencias reportadas ---
+        # --- Gestão de Ocorrências: permissões Django (usadas no /admin/ apenas).
+        # O acesso à página de gestão no site é controlado pela liderança do
+        # Departamento de Segurança — ver sitetibl.context_processors.pode_gerir_ocorrencias.
+        # ---
         oc_grp = Group.objects.get(name='Gestão de Ocorrências')
         oc_perms = self._perms_for(app, ['ocorrencia'], crud)
         oc_grp.permissions.set(oc_perms)
