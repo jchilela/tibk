@@ -189,6 +189,13 @@
         </div>
 
         <div class="oc-form-group">
+          <label for="{{ form.email_reportante.id_for_label }}">EMAIL (opcional)</label>
+          {{ form.email_reportante }}
+          {% if form.email_reportante.errors %}<div class="oc-error">{{ form.email_reportante.errors.0 }}</div>{% endif %}
+          <p class="oc-hint">Se indicar telefone ou email, será notificado quando a liderança responder.</p>
+        </div>
+
+        <div class="oc-form-group">
           <label for="{{ form.categoria.id_for_label }}">CATEGORIA *</label>
           {{ form.categoria }}
           {% if form.categoria.errors %}<div class="oc-error">{{ form.categoria.errors.0 }}</div>{% endif %}

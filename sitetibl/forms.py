@@ -994,6 +994,12 @@ class OcorrenciaForm(ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 923456789 (opcional)'}),
     )
 
+    email_reportante = forms.EmailField(
+        label='Email',
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Ex: nome@email.com (opcional)'}),
+    )
+
     local = forms.ModelChoiceField(
         label='Local',
         queryset=Sitio.objects.order_by('designacao'),
@@ -1031,7 +1037,7 @@ class OcorrenciaForm(ModelForm):
     class Meta:
         model = Ocorrencia
         fields = [
-            'tipo_reportante', 'nome_reportante', 'telefone_reportante',
+            'tipo_reportante', 'nome_reportante', 'telefone_reportante', 'email_reportante',
             'categoria', 'titulo', 'descricao',
             'data_ocorrencia', 'hora_ocorrencia', 'local', 'anexo',
         ]

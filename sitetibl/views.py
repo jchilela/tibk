@@ -5453,6 +5453,8 @@ def registar_ocorrencia(request):
         if form.is_valid():
             ocorrencia = form.save()
             request.session['ocorrencia_ultimo_envio'] = timezone.now().isoformat()
+            from sitetibl.ocorrencias_notificacoes import notificar_lideres_nova_ocorrencia
+            notificar_lideres_nova_ocorrencia(ocorrencia)
             return redirect('sitetibl:ocorrencia_sucesso', protocolo=ocorrencia.protocolo)
     else:
         local_id = request.GET.get('local')
@@ -5559,6 +5561,7 @@ def atualizar_estado_ocorrencia(request, ocorrencia_id):
         messages.error(request, 'Estado inválido.')
         return redirect('sitetibl:gestao_ocorrencias')
 
+    estado_anterior = ocorrencia.estado
     ocorrencia.estado = novo_estado
     if nota:
         ocorrencia.nota_resolucao = nota
@@ -5566,6 +5569,11 @@ def atualizar_estado_ocorrencia(request, ocorrencia_id):
         ocorrencia.data_resolucao = timezone.now()
         ocorrencia.resolvido_por = request.user
     ocorrencia.save()
+
+    # Notificar o reportante quando há resposta da liderança
+    if (novo_estado != estado_anterior or nota) and (ocorrencia.email_reportante or ocorrencia.telefone_reportante):
+        from sitetibl.ocorrencias_notificacoes import notificar_reportante_resposta
+        notificar_reportante_resposta(ocorrencia)
 
     messages.success(request, f'Ocorrência #{ocorrencia.protocolo} actualizada para "{ocorrencia.get_estado_display()}".')
     return redirect('sitetibl:gestao_ocorrencias')

@@ -1061,6 +1061,7 @@ class Ocorrencia(models.Model):
     tipo_reportante = models.CharField('Membro ou Visitante', max_length=10, choices=TIPO_REPORTANTE, default='visitante')
     nome_reportante = models.CharField('Nome', max_length=150, blank=True, null=True)
     telefone_reportante = models.CharField('Número de Telefone', max_length=9, blank=True, null=True)
+    email_reportante = models.EmailField('Email', blank=True, null=True)
     categoria = models.CharField('Categoria', max_length=20, choices=CATEGORIA_OCORRENCIA, default='outro')
     titulo = models.CharField('Título', max_length=150)
     descricao = models.TextField('Descrição')

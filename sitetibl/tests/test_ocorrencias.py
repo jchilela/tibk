@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -269,3 +271,108 @@ class OcorrenciaGestaoTest(TestCase):
         client_outro.login(username='sem_acesso_acta', password='Teste@123')
         response = client_outro.get(reverse('sitetibl:acta_ocorrencias_pdf'))
         self.assertEqual(response.status_code, 403)
+
+
+class OcorrenciaNotificacoesTest(TestCase):
+    def setUp(self):
+        from sitetibl.models import Irmao, Departamento
+
+        self.user = User.objects.create_user(username='lider_seg', password='Teste@123')
+        self.irmao = Irmao.objects.create(
+            nome='Líder', apelido='Segurança', user=self.user,
+            email='lider@tibl.ao', telefone='923111222',
+        )
+        self.dept = Departamento.objects.create(
+            designacao='Departamento de Segurança',
+            lider_departamento=self.irmao,
+        )
+        self.client = Client()
+        self.client.login(username='lider_seg', password='Teste@123')
+
+    def _dados_ocorrencia(self, **extra):
+        dados = {
+            'tipo_reportante': 'visitante',
+            'nome_reportante': 'Visitante Teste',
+            'categoria': 'seguranca',
+            'titulo': 'Movimento estranho',
+            'descricao': 'Pessoa desconhecida junto ao portão.',
+        }
+        dados.update(extra)
+        return dados
+
+    @patch('sitetibl.ocorrencias_notificacoes.enviar_sms')
+    @patch('sitetibl.ocorrencias_notificacoes.send_mail')
+    def test_nova_ocorrencia_notifica_lideres_email_e_sms(self, mock_mail, mock_sms):
+        response = self.client.post(
+            reverse('sitetibl:registar_ocorrencia'), self._dados_ocorrencia()
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Ocorrencia.objects.count(), 1)
+
+        mock_mail.assert_called_once()
+        self.assertIn('lider@tibl.ao', mock_mail.call_args.kwargs['recipient_list'])
+        self.assertIn('OC-', mock_mail.call_args.kwargs['subject'])
+
+        mock_sms.assert_called_once()
+        telefones, mensagem = mock_sms.call_args.args
+        self.assertIn('923111222', telefones)
+        self.assertIn('OC-', mensagem)
+
+    @patch('sitetibl.ocorrencias_notificacoes.enviar_sms')
+    @patch('sitetibl.ocorrencias_notificacoes.send_mail')
+    def test_nova_ocorrencia_sem_lideres_nao_falha(self, mock_mail, mock_sms):
+        self.dept.delete()
+        response = self.client.post(
+            reverse('sitetibl:registar_ocorrencia'), self._dados_ocorrencia()
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Ocorrencia.objects.count(), 1)
+        mock_mail.assert_not_called()
+        mock_sms.assert_not_called()
+
+    @patch('sitetibl.ocorrencias_notificacoes.enviar_sms')
+    @patch('sitetibl.ocorrencias_notificacoes.send_mail')
+    def test_resposta_notifica_reportante_email_e_sms(self, mock_mail, mock_sms):
+        ocorrencia = Ocorrencia.objects.create(
+            categoria='outro', titulo='Teste', descricao='Desc',
+            email_reportante='visitante@mail.com', telefone_reportante='923999888',
+        )
+        response = self.client.post(
+            reverse('sitetibl:atualizar_estado_ocorrencia', args=[ocorrencia.id]),
+            {'estado': 'em_analise', 'nota': 'Estamos a analisar.'},
+        )
+        self.assertEqual(response.status_code, 302)
+
+        mock_mail.assert_called_once()
+        self.assertEqual(mock_mail.call_args.kwargs['recipient_list'], ['visitante@mail.com'])
+
+        mock_sms.assert_called_once()
+        telefones, _ = mock_sms.call_args.args
+        self.assertEqual(telefones, ['923999888'])
+
+    @patch('sitetibl.ocorrencias_notificacoes.enviar_sms')
+    @patch('sitetibl.ocorrencias_notificacoes.send_mail')
+    def test_resposta_sem_contacto_nao_notifica(self, mock_mail, mock_sms):
+        ocorrencia = Ocorrencia.objects.create(
+            categoria='outro', titulo='Anónimo', descricao='Desc',
+        )
+        self.client.post(
+            reverse('sitetibl:atualizar_estado_ocorrencia', args=[ocorrencia.id]),
+            {'estado': 'resolvida', 'nota': 'Resolvido.'},
+        )
+        mock_mail.assert_not_called()
+        mock_sms.assert_not_called()
+
+    @patch('sitetibl.ocorrencias_notificacoes.enviar_sms')
+    @patch('sitetibl.ocorrencias_notificacoes.send_mail')
+    def test_mesmo_estado_sem_nota_nao_notifica(self, mock_mail, mock_sms):
+        ocorrencia = Ocorrencia.objects.create(
+            categoria='outro', titulo='Teste', descricao='Desc',
+            email_reportante='visitante@mail.com',
+        )
+        self.client.post(
+            reverse('sitetibl:atualizar_estado_ocorrencia', args=[ocorrencia.id]),
+            {'estado': 'pendente', 'nota': ''},
+        )
+        mock_mail.assert_not_called()
+        mock_sms.assert_not_called()
