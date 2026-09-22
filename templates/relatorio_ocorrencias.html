@@ -11,7 +11,7 @@
             <a href="{% url 'sitetibl:gestao_ocorrencias' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #64748b;">
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
-            <a href="{% url 'sitetibl:acta_ocorrencias_pdf' %}?periodo={{ periodo }}&ano={{ ano_label }}&datainicio={{ datainicio|default:'' }}&datafim={{ datafim|default:'' }}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #7c3aed;">
+            <a href="{% url 'sitetibl:acta_ocorrencias_pdf' %}?periodo={{ periodo }}&ano={{ ano_label }}&datainicio={{ datainicio|date:'Y-m-d' }}&datafim={{ datafim|date:'Y-m-d' }}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #7c3aed;">
                 <i class="fas fa-file-signature"></i> Gerar Acta
             </a>
         </div>

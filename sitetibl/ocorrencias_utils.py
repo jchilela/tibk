@@ -8,6 +8,7 @@ e construção do contexto usado tanto na página HTML como no PDF.
 from datetime import date
 
 from django.db.models import Count
+from django.utils.dateparse import parse_date
 
 from .financeiro_utils import PERIODO_TRUNC, PERIODOS_VALIDOS, _label_periodo
 from .models import Ocorrencia, CATEGORIA_OCORRENCIA, ESTADO_OCORRENCIA
@@ -20,7 +21,10 @@ def _resolver_intervalo_ocorrencias(params):
     ano = params.get('ano', '').strip()
 
     if datainicio and datafim:
-        return datainicio, datafim, ''
+        inicio_parsed = parse_date(datainicio)
+        fim_parsed = parse_date(datafim)
+        if inicio_parsed and fim_parsed:
+            return inicio_parsed, fim_parsed, ''
 
     if ano and ano != 'todos':
         try:

@@ -249,6 +249,21 @@ class OcorrenciaGestaoTest(TestCase):
             )
             self.assertEqual(response.status_code, 200)
 
+    def test_relatorio_datas_invalidas_nao_quebram(self):
+        # Datas em formato localizado (ex: 'Jan. 1, 2026') devem ser ignoradas
+        response = self.client.get(
+            reverse('sitetibl:relatorio_ocorrencias')
+            + '?periodo=mensal&datainicio=Jan. 1, 2026&datafim=Dec. 31, 2026'
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_acta_datas_invalidas_nao_quebram(self):
+        response = self.client.get(
+            reverse('sitetibl:acta_ocorrencias_pdf')
+            + '?periodo=mensal&datainicio=Jan. 1, 2026&datafim=Dec. 31, 2026'
+        )
+        self.assertEqual(response.status_code, 200)
+
     def test_acta_ocorrencias_get_formulario(self):
         response = self.client.get(reverse('sitetibl:acta_ocorrencias_pdf'))
         self.assertEqual(response.status_code, 200)
