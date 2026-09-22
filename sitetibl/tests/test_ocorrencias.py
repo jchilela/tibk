@@ -220,3 +220,52 @@ class OcorrenciaGestaoTest(TestCase):
         )
         self.assertEqual(response_img.status_code, 200)
         self.assertEqual(response_img['Content-Type'], 'image/png')
+
+    def test_relatorio_ocorrencias_html(self):
+        response = self.client.get(reverse('sitetibl:relatorio_ocorrencias'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.ocorrencia.protocolo)
+
+    def test_relatorio_ocorrencias_html_requer_permissao(self):
+        outro_user = User.objects.create_user(username='sem_acesso_rel', password='Teste@123')
+        client_outro = Client()
+        client_outro.login(username='sem_acesso_rel', password='Teste@123')
+        response = client_outro.get(reverse('sitetibl:relatorio_ocorrencias'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_relatorio_ocorrencias_pdf(self):
+        response = self.client.get(
+            reverse('sitetibl:relatorio_ocorrencias_pdf') + '?periodo=mensal&ano=todos'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+
+    def test_relatorio_ocorrencias_periodos_validos(self):
+        for periodo in ['semanal', 'mensal', 'trimestral', 'anual']:
+            response = self.client.get(
+                reverse('sitetibl:relatorio_ocorrencias') + f'?periodo={periodo}&ano=todos'
+            )
+            self.assertEqual(response.status_code, 200)
+
+    def test_acta_ocorrencias_get_formulario(self):
+        response = self.client.get(reverse('sitetibl:acta_ocorrencias_pdf'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Acta de Ocorrências')
+
+    def test_acta_ocorrencias_post_gera_pdf(self):
+        response = self.client.post(reverse('sitetibl:acta_ocorrencias_pdf'), {
+            'periodo': 'mensal',
+            'ano': 'todos',
+            'deliberacoes': 'Reforçar rondas nocturnas.',
+            'nome_responsavel': 'Líder Teste',
+            'nome_secretario': 'Secretário Teste',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+
+    def test_acta_ocorrencias_requer_permissao(self):
+        outro_user = User.objects.create_user(username='sem_acesso_acta', password='Teste@123')
+        client_outro = Client()
+        client_outro.login(username='sem_acesso_acta', password='Teste@123')
+        response = client_outro.get(reverse('sitetibl:acta_ocorrencias_pdf'))
+        self.assertEqual(response.status_code, 403)

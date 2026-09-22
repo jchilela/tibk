@@ -1,0 +1,141 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-chart-column"></i> Relatório de Ocorrências</h2>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="{% url 'sitetibl:gestao_ocorrencias' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #64748b;">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+            <a href="{% url 'sitetibl:acta_ocorrencias_pdf' %}?periodo={{ periodo }}&ano={{ ano_label }}&datainicio={{ datainicio|default:'' }}&datafim={{ datafim|default:'' }}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #7c3aed;">
+                <i class="fas fa-file-signature"></i> Gerar Acta
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-bar" style="margin-bottom: 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem 1.5rem;">
+        <form method="get" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <label style="font-size: 0.85rem; font-weight: 600;">Agrupar por:</label>
+            <select name="periodo" style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                {% for p in periodos_validos %}
+                <option value="{{ p }}" {% if periodo == p %}selected{% endif %}>{{ p|capfirst }}</option>
+                {% endfor %}
+            </select>
+
+            <label style="font-size: 0.85rem; font-weight: 600;">Ano:</label>
+            <select name="ano" style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                <option value="todos" {% if ano_label == 'todos' %}selected{% endif %}>Todos</option>
+                {% for ano in anos_disponiveis %}
+                <option value="{{ ano }}" {% if ano_label == ano|stringformat:'s' %}selected{% endif %}>{{ ano }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="bt-primary" style="padding: 0.5rem 1rem;">
+                <i class="fas fa-filter"></i> Aplicar
+            </button>
+
+            <a href="{% url 'sitetibl:relatorio_ocorrencias_pdf' %}?periodo={{ periodo }}&ano={{ ano_label }}" target="_blank" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #dc2626; margin-left: auto;">
+                <i class="fas fa-file-pdf"></i> Baixar PDF
+            </a>
+        </form>
+    </div>
+
+    <!-- KPIs -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="modern-card" style="padding: 1.25rem; border-top: 3px solid #0891b2;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Total</span>
+            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ total_geral }}</div>
+        </div>
+        <div class="modern-card" style="padding: 1.25rem; border-top: 3px solid #f59e0b;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Pendentes</span>
+            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ total_pendentes }}</div>
+        </div>
+        <div class="modern-card" style="padding: 1.25rem; border-top: 3px solid #3b82f6;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Em Análise</span>
+            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ total_em_analise }}</div>
+        </div>
+        <div class="modern-card" style="padding: 1.25rem; border-top: 3px solid #10b981;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Resolvidas</span>
+            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ total_resolvidas }}</div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- Evolução por período -->
+        <div class="modern-card" style="padding: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; font-size: 1rem;">Evolução {{ periodo|capfirst }}</h4>
+            {% if agregados_periodo %}
+            <table class="modern-table" style="width: 100%;">
+                <thead><tr><th>Período</th><th>Total</th></tr></thead>
+                <tbody>
+                    {% for item in agregados_periodo %}
+                    <tr><td>{{ item.label }}</td><td><strong>{{ item.total }}</strong></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Sem dados no intervalo seleccionado.</p>
+            {% endif %}
+        </div>
+
+        <!-- Por categoria -->
+        <div class="modern-card" style="padding: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; font-size: 1rem;">Por Categoria</h4>
+            {% if por_categoria %}
+            <table class="modern-table" style="width: 100%;">
+                <thead><tr><th>Categoria</th><th>Total</th></tr></thead>
+                <tbody>
+                    {% for item in por_categoria %}
+                    <tr><td>{{ item.label }}</td><td><strong>{{ item.total }}</strong></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Sem dados no intervalo seleccionado.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Listagem detalhada -->
+    <div class="modern-card" style="padding: 0;">
+        <h4 style="padding: 1.25rem 1.5rem 0;">Listagem Detalhada</h4>
+        {% if ocorrencias %}
+        <div class="modern-table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Protocolo</th>
+                        <th>Data</th>
+                        <th>Categoria</th>
+                        <th>Local</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in ocorrencias %}
+                    <tr>
+                        <td><strong>#{{ o.protocolo }}</strong></td>
+                        <td>{{ o.data_ocorrencia|date:"d/m/Y"|default:"—" }}</td>
+                        <td><span class="badge badge-info">{{ o.get_categoria_display }}</span></td>
+                        <td>{{ o.local.designacao|default:"—" }}</td>
+                        <td>
+                            <span class="badge {% if o.estado == 'pendente' %}badge-warning{% elif o.estado == 'em_analise' %}badge-primary{% else %}badge-success{% endif %}">
+                                {{ o.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.85rem; padding: 0 1.5rem 1.5rem;">Sem ocorrências no intervalo seleccionado.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

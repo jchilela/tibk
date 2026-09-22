@@ -91,4 +91,7 @@ urlpatterns = [
     path('ocorrencias/<int:ocorrencia_id>/estado/', views.atualizar_estado_ocorrencia, name='atualizar_estado_ocorrencia'),
     path('ocorrencias/qrcode/', views.ocorrencia_qrcode, name='ocorrencia_qrcode'),
     path('ocorrencias/qrcode/imagem/', views.ocorrencia_qrcode_imagem, name='ocorrencia_qrcode_imagem'),
+    path('ocorrencias/relatorio/', views.relatorio_ocorrencias, name='relatorio_ocorrencias'),
+    path('ocorrencias/relatorio/pdf/', views.relatorio_ocorrencias_pdf, name='relatorio_ocorrencias_pdf'),
+    path('ocorrencias/acta/', views.acta_ocorrencias_pdf, name='acta_ocorrencias_pdf'),
 ]

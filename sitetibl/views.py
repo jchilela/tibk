@@ -5617,3 +5617,303 @@ def ocorrencia_qrcode_imagem(request):
     img.save(buffer, format='PNG')
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
+
+@login_required
+def relatorio_ocorrencias(request):
+    """Página de relatório de ocorrências com agregação semanal/mensal/trimestral/anual."""
+    from django.core.exceptions import PermissionDenied
+    from .ocorrencias_utils import build_relatorio_ocorrencias
+
+    if not _pode_gerir_ocorrencias(request.user):
+        raise PermissionDenied
+
+    context = build_relatorio_ocorrencias(request.GET)
+    return render(request, 'relatorio_ocorrencias.html', context)
+
+
+@login_required
+def relatorio_ocorrencias_pdf(request):
+    """Gera em PDF o relatório de ocorrências para o período/intervalo seleccionado."""
+    from django.core.exceptions import PermissionDenied
+    from .ocorrencias_utils import build_relatorio_ocorrencias
+
+    if not _pode_gerir_ocorrencias(request.user):
+        raise PermissionDenied
+
+    ctx = build_relatorio_ocorrencias(request.GET)
+
+    response = HttpResponse(content_type='application/pdf')
+    nome_periodo = ctx['ano_label'] or 'personalizado'
+    response['Content-Disposition'] = f'inline; filename="relatorio_ocorrencias_{ctx["periodo"]}_{nome_periodo}.pdf"'
+
+    doc = SimpleDocTemplate(
+        response, pagesize=A4,
+        rightMargin=2 * cm, leftMargin=2 * cm,
+        topMargin=2 * cm, bottomMargin=2 * cm,
+        title='Relatório de Ocorrências', author='Sistema TIBL',
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('RelTitle', parent=styles['Title'], fontSize=16, leading=20,
+                                  textColor=colors.HexColor('#1e3a5f'), alignment=1, spaceAfter=10)
+    section_style = ParagraphStyle('RelSection', parent=styles['Heading2'], fontSize=11, leading=14,
+                                    textColor=colors.HexColor('#548c2f'), spaceBefore=10, spaceAfter=5,
+                                    keepWithNext=True)
+    body_style = ParagraphStyle('RelBody', parent=styles['Normal'], fontSize=9, leading=13,
+                                 textColor=colors.HexColor('#333333'), spaceAfter=3)
+
+    elements = []
+
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=60, height=60)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+
+    elements.append(Paragraph('<b>RELATÓRIO DE OCORRÊNCIAS</b>', title_style))
+    elements.append(Paragraph("<hr color='#1e3a5f' width='100%'/>", styles['Normal']))
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    periodo_label = dict(zip(
+        ['semanal', 'mensal', 'trimestral', 'anual'],
+        ['Semanal', 'Mensal', 'Trimestral', 'Anual'],
+    )).get(ctx['periodo'], ctx['periodo'].capitalize())
+    intervalo_txt = f"{ctx['datainicio']} a {ctx['datafim']}" if ctx['datainicio'] else 'Todos os registos'
+    elements.append(Paragraph(f'<b>Agrupamento:</b> {periodo_label} &nbsp;&nbsp; <b>Intervalo:</b> {intervalo_txt}', body_style))
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Resumo geral ────────────────────────────────────────────────────
+    resumo_data = [[
+        Paragraph(f'<b>Total:</b> {ctx["total_geral"]}', body_style),
+        Paragraph(f'<b>Pendentes:</b> {ctx["total_pendentes"]}', body_style),
+        Paragraph(f'<b>Em Análise:</b> {ctx["total_em_analise"]}', body_style),
+        Paragraph(f'<b>Resolvidas:</b> {ctx["total_resolvidas"]}', body_style),
+    ]]
+    resumo_table = Table(resumo_data, colWidths=[4.25 * cm] * 4)
+    resumo_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8fafc')),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+        ('INNERGRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#e2e8f0')),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ]))
+    elements.append(resumo_table)
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Evolução por período ───────────────────────────────────────────
+    elements.append(Paragraph(f'Evolução {periodo_label}', section_style))
+    if ctx['agregados_periodo']:
+        periodo_header = [Paragraph('<b>Período</b>', body_style), Paragraph('<b>Total</b>', body_style)]
+        periodo_rows = [periodo_header] + [
+            [Paragraph(item['label'], body_style), Paragraph(str(item['total']), body_style)]
+            for item in ctx['agregados_periodo']
+        ]
+        periodo_table = Table(periodo_rows, colWidths=[10 * cm, 7 * cm])
+        periodo_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#cbd5e1')),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        elements.append(periodo_table)
+    else:
+        elements.append(Paragraph('Sem dados no intervalo seleccionado.', body_style))
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Por categoria ───────────────────────────────────────────────────
+    elements.append(Paragraph('Por Categoria', section_style))
+    if ctx['por_categoria']:
+        cat_rows = [[Paragraph('<b>Categoria</b>', body_style), Paragraph('<b>Total</b>', body_style)]] + [
+            [Paragraph(item['label'], body_style), Paragraph(str(item['total']), body_style)]
+            for item in ctx['por_categoria']
+        ]
+        cat_table = Table(cat_rows, colWidths=[10 * cm, 7 * cm])
+        cat_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#cbd5e1')),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        elements.append(cat_table)
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Listagem detalhada ───────────────────────────────────────────────
+    elements.append(Paragraph('Listagem Detalhada', section_style))
+    det_header = [
+        Paragraph('<b>Protocolo</b>', body_style), Paragraph('<b>Data</b>', body_style),
+        Paragraph('<b>Categoria</b>', body_style), Paragraph('<b>Local</b>', body_style),
+        Paragraph('<b>Estado</b>', body_style),
+    ]
+    det_rows = [det_header]
+    for o in ctx['ocorrencias']:
+        det_rows.append([
+            Paragraph(o.protocolo, body_style),
+            Paragraph(o.data_ocorrencia.strftime('%d/%m/%Y') if o.data_ocorrencia else '—', body_style),
+            Paragraph(o.get_categoria_display(), body_style),
+            Paragraph(o.local.designacao if o.local else '—', body_style),
+            Paragraph(o.get_estado_display(), body_style),
+        ])
+    if len(det_rows) > 1:
+        det_table = Table(det_rows, colWidths=[3.5 * cm, 2.5 * cm, 4.5 * cm, 4 * cm, 2.5 * cm], repeatRows=1)
+        det_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#cbd5e1')),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ]))
+        elements.append(det_table)
+    else:
+        elements.append(Paragraph('Sem ocorrências no intervalo seleccionado.', body_style))
+
+    elements.append(Paragraph('<br/>', styles['Normal']))
+    elements.append(Paragraph(
+        f'Emitido em {date.today().strftime("%d/%m/%Y")} pelo Sistema TIBL',
+        ParagraphStyle('footer', parent=styles['Normal'], fontSize=8,
+                       textColor=colors.HexColor('#94a3b8'), alignment=2),
+    ))
+
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
+
+
+@login_required
+def acta_ocorrencias_pdf(request):
+    """Página intermédia (GET) para a liderança preencher a acta de ocorrências
+    de um período, e geração do PDF (POST) com as ocorrências, decisões e assinaturas."""
+    from django.core.exceptions import PermissionDenied
+    from .ocorrencias_utils import build_relatorio_ocorrencias
+
+    if not _pode_gerir_ocorrencias(request.user):
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        ctx = build_relatorio_ocorrencias(request.GET)
+        return render(request, 'acta_ocorrencias_form.html', ctx)
+
+    # ── POST: gerar PDF da acta ────────────────────────────────────────
+    ctx = build_relatorio_ocorrencias(request.POST)
+    deliberacoes = request.POST.get('deliberacoes', '').strip()
+    nome_responsavel = request.POST.get('nome_responsavel', '').strip()
+    nome_secretario = request.POST.get('nome_secretario', '').strip()
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="acta_ocorrencias_{date.today().strftime("%Y%m%d")}.pdf"'
+
+    doc = SimpleDocTemplate(
+        response, pagesize=A4,
+        rightMargin=2 * cm, leftMargin=2 * cm,
+        topMargin=2 * cm, bottomMargin=2 * cm,
+        title='Acta de Ocorrências', author='Sistema TIBL',
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('ActaOcTitle', parent=styles['Title'], fontSize=16, leading=20,
+                                  textColor=colors.HexColor('#1e3a5f'), alignment=1, spaceAfter=10)
+    section_style = ParagraphStyle('ActaOcSection', parent=styles['Heading2'], fontSize=11, leading=14,
+                                    textColor=colors.HexColor('#548c2f'), spaceBefore=10, spaceAfter=5,
+                                    keepWithNext=True)
+    body_style = ParagraphStyle('ActaOcBody', parent=styles['Normal'], fontSize=9, leading=13,
+                                 textColor=colors.HexColor('#333333'), spaceAfter=3)
+    label_style = ParagraphStyle('ActaOcLabel', parent=styles['Normal'], fontSize=9, leading=13,
+                                  fontName='Helvetica-Bold', textColor=colors.HexColor('#1e3a5f'))
+    sig_style = ParagraphStyle('ActaOcSig', parent=styles['Normal'], fontSize=9, alignment=1)
+
+    elements = []
+
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'fotos', '2022', 'cba.png')
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=60, height=60)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+
+    elements.append(Paragraph('<b>ACTA DE OCORRÊNCIAS</b>', title_style))
+    elements.append(Paragraph("<hr color='#1e3a5f' width='100%'/>", styles['Normal']))
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    intervalo_txt = f"{ctx['datainicio']} a {ctx['datafim']}" if ctx['datainicio'] else 'Todos os registos'
+    info_data = [
+        [Paragraph('<b>Departamento:</b>', label_style), Paragraph('Segurança', body_style)],
+        [Paragraph('<b>Período analisado:</b>', label_style), Paragraph(intervalo_txt, body_style)],
+        [Paragraph('<b>Data da reunião:</b>', label_style), Paragraph(date.today().strftime('%d/%m/%Y'), body_style)],
+        [Paragraph('<b>Total de ocorrências:</b>', label_style), Paragraph(str(ctx['total_geral']), body_style)],
+    ]
+    info_table = Table(info_data, colWidths=[4.5 * cm, 12.5 * cm])
+    info_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#e2e8f0')),
+    ]))
+    elements.append(info_table)
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Listagem de ocorrências analisadas ───────────────────────────────
+    elements.append(Paragraph('Ocorrências Analisadas', section_style))
+    det_header = [
+        Paragraph('<b>Protocolo</b>', body_style), Paragraph('<b>Título</b>', body_style),
+        Paragraph('<b>Categoria</b>', body_style), Paragraph('<b>Estado</b>', body_style),
+    ]
+    det_rows = [det_header]
+    for o in ctx['ocorrencias']:
+        det_rows.append([
+            Paragraph(o.protocolo, body_style),
+            Paragraph(o.titulo, body_style),
+            Paragraph(o.get_categoria_display(), body_style),
+            Paragraph(o.get_estado_display(), body_style),
+        ])
+    if len(det_rows) > 1:
+        det_table = Table(det_rows, colWidths=[3.5 * cm, 6.5 * cm, 4 * cm, 3 * cm], repeatRows=1)
+        det_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#cbd5e1')),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ]))
+        elements.append(det_table)
+    else:
+        elements.append(Paragraph('Sem ocorrências no período seleccionado.', body_style))
+    elements.append(Paragraph('<br/>', styles['Normal']))
+
+    # ── Deliberações ──────────────────────────────────────────────────────
+    elements.append(Paragraph('Deliberações da Liderança', section_style))
+    elements.append(Paragraph(
+        deliberacoes if deliberacoes else 'Sem deliberações registadas.',
+        body_style,
+    ))
+    elements.append(Paragraph('<br/><br/>', styles['Normal']))
+
+    # ── Assinaturas ───────────────────────────────────────────────────────
+    elements.append(Paragraph('Assinaturas', section_style))
+    linha_resp = nome_responsavel if nome_responsavel else '_' * 38
+    linha_sec = nome_secretario if nome_secretario else '_' * 38
+    sig_data = [[
+        Paragraph(
+            f'<br/><br/><br/>______________________________<br/>{linha_resp}<br/><b>Líder do Departamento de Segurança</b>',
+            sig_style,
+        ),
+        Paragraph(
+            f'<br/><br/><br/>______________________________<br/>{linha_sec}<br/><b>Secretário(a)</b>',
+            sig_style,
+        ),
+    ]]
+    sig_table = Table(sig_data, colWidths=[8.5 * cm, 8.5 * cm])
+    sig_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ]))
+    elements.append(sig_table)
+
+    elements.append(Paragraph('<br/>', styles['Normal']))
+    elements.append(Paragraph(
+        f'Emitido em {date.today().strftime("%d/%m/%Y")} pelo Sistema TIBL',
+        ParagraphStyle('footer', parent=styles['Normal'], fontSize=8,
+                       textColor=colors.HexColor('#94a3b8'), alignment=2),
+    ))
+
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response

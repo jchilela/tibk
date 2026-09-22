@@ -121,6 +121,21 @@
     </div>
     {% endif %}
 
+    {% if pode_gerir_ocorrencias %}
+    <div class="modern-card" style="text-align: center; padding: 2rem;">
+        <div
+            style="width: 56px; height: 56px; background: var(--danger-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+            🚨
+        </div>
+        <h4 style="margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;">Ocorrências</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Relatórios semanais, mensais,
+            trimestrais e anuais, e geração de acta</p>
+        <a href="{% url 'sitetibl:relatorio_ocorrencias' %}" class="bt-primary" style="font-size: 0.85rem;">
+            <i class="fas fa-chart-column"></i> Ver Relatório
+        </a>
+    </div>
+    {% endif %}
+
     {% if perms.sitetibl.view_saida %}
     <div class="modern-card" style="text-align: center; padding: 2rem;">
         <div

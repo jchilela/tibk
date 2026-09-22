@@ -1,0 +1,75 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="list-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--primary-light); padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-file-signature"></i> Gerar Acta de Ocorrências</h2>
+        </div>
+        <a href="{% url 'sitetibl:gestao_ocorrencias' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #64748b;">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    <form method="post" action="{% url 'sitetibl:acta_ocorrencias_pdf' %}" target="_blank">
+        {% csrf_token %}
+
+        <!-- Período -->
+        <div class="modern-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; font-size: 1rem;">1. Período a Analisar</h4>
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">Agrupar por</label>
+                    <select name="periodo" style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                        {% for p in periodos_validos %}
+                        <option value="{{ p }}" {% if periodo == p %}selected{% endif %}>{{ p|capfirst }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">Ano</label>
+                    <select name="ano" style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                        <option value="todos" {% if ano_label == 'todos' %}selected{% endif %}>Todos</option>
+                        {% for ano in anos_disponiveis %}
+                        <option value="{{ ano }}" {% if ano_label == ano|stringformat:'s' %}selected{% endif %}>{{ ano }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.75rem;">
+                Actualmente há <strong>{{ total_geral }}</strong> ocorrência(s) no período seleccionado
+                ({{ total_pendentes }} pendente(s), {{ total_em_analise }} em análise, {{ total_resolvidas }} resolvida(s)).
+            </p>
+        </div>
+
+        <!-- Deliberações -->
+        <div class="modern-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; font-size: 1rem;">2. Deliberações da Liderança</h4>
+            <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">Observações / Decisões tomadas na reunião</label>
+            <textarea name="deliberacoes" rows="6" style="width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem;" placeholder="Descreva as decisões, encaminhamentos e recomendações da liderança do Departamento de Segurança sobre as ocorrências analisadas neste período..."></textarea>
+        </div>
+
+        <!-- Assinaturas -->
+        <div class="modern-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; font-size: 1rem;">3. Assinaturas</h4>
+            <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 220px;">
+                    <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">Líder do Departamento de Segurança</label>
+                    <input type="text" name="nome_responsavel" placeholder="Nome completo" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem;">
+                </div>
+                <div style="flex: 1; min-width: 220px;">
+                    <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">Secretário(a)</label>
+                    <input type="text" name="nome_secretario" placeholder="Nome completo" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem;">
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button type="submit" class="bt-primary" style="padding: 0.75rem 2rem; font-size: 0.95rem;">
+                <i class="fas fa-file-pdf"></i> Gerar Acta em PDF
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

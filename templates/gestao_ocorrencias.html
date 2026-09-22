@@ -7,9 +7,17 @@
         <div>
             <h2 style="font-family: 'Inter', sans-serif; font-size: 1.75rem; color: var(--text-main);"><i class="fas fa-triangle-exclamation"></i> Gestão de Ocorrências</h2>
         </div>
-        <a href="{% url 'sitetibl:ocorrencia_qrcode' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-            <i class="fas fa-qrcode"></i> QR Code Público
-        </a>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="{% url 'sitetibl:relatorio_ocorrencias' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #0891b2;">
+                <i class="fas fa-chart-column"></i> Relatórios
+            </a>
+            <a href="{% url 'sitetibl:acta_ocorrencias_pdf' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background-color: #7c3aed;">
+                <i class="fas fa-file-signature"></i> Gerar Acta
+            </a>
+            <a href="{% url 'sitetibl:ocorrencia_qrcode' %}" class="bt-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                <i class="fas fa-qrcode"></i> QR Code Público
+            </a>
+        </div>
     </div>
 
     <!-- KPIs -->
