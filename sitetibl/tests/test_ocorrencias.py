@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User, Group
 
-from sitetibl.models import Ocorrencia
+from sitetibl.models import Ocorrencia, Sitio
 
 
 class OcorrenciaPublicaTest(TestCase):
@@ -11,22 +11,72 @@ class OcorrenciaPublicaTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_submeter_ocorrencia_anonima_cria_registo(self):
+        sitio = Sitio.objects.create(designacao='Templo Principal', tipo='1')
         response = self.client.post(reverse('sitetibl:registar_ocorrencia'), {
+            'tipo_reportante': 'visitante',
             'nome_reportante': '',
-            'contacto_reportante': '',
+            'telefone_reportante': '',
             'categoria': 'seguranca',
             'titulo': 'Porta danificada',
             'descricao': 'A porta lateral do templo está com a fechadura partida.',
-            'local': 'Templo principal',
+            'local': sitio.id,
         })
         self.assertEqual(Ocorrencia.objects.count(), 1)
         ocorrencia = Ocorrencia.objects.first()
         self.assertEqual(ocorrencia.estado, 'pendente')
+        self.assertEqual(ocorrencia.local, sitio)
+        self.assertIsNotNone(ocorrencia.data_ocorrencia)
+        self.assertIsNotNone(ocorrencia.hora_ocorrencia)
         self.assertTrue(ocorrencia.protocolo.startswith('OC-'))
         self.assertRedirects(
             response,
             reverse('sitetibl:ocorrencia_sucesso', args=[ocorrencia.protocolo]),
         )
+
+    def test_telefone_invalido_gera_erro(self):
+        response = self.client.post(reverse('sitetibl:registar_ocorrencia'), {
+            'tipo_reportante': 'membro',
+            'telefone_reportante': '123',
+            'categoria': 'outro',
+            'titulo': 'Teste',
+            'descricao': 'Descricao de teste',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Ocorrencia.objects.count(), 0)
+        self.assertContains(response, 'exatamente 9 números')
+
+    def test_honeypot_preenchido_bloqueia_submissao(self):
+        response = self.client.post(reverse('sitetibl:registar_ocorrencia'), {
+            'tipo_reportante': 'visitante',
+            'website': 'http://spam.example.com',
+            'categoria': 'outro',
+            'titulo': 'Spam bot',
+            'descricao': 'Descricao gerada por bot.',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Ocorrencia.objects.count(), 0)
+
+    def test_throttle_bloqueia_segunda_submissao_imediata(self):
+        dados = {
+            'tipo_reportante': 'visitante',
+            'categoria': 'outro',
+            'titulo': 'Primeira ocorrencia',
+            'descricao': 'Descricao de teste suficientemente longa.',
+        }
+        response1 = self.client.post(reverse('sitetibl:registar_ocorrencia'), dados)
+        self.assertEqual(response1.status_code, 302)
+        self.assertEqual(Ocorrencia.objects.count(), 1)
+
+        dados['titulo'] = 'Segunda ocorrencia'
+        response2 = self.client.post(reverse('sitetibl:registar_ocorrencia'), dados)
+        self.assertEqual(response2.status_code, 200)
+        self.assertEqual(Ocorrencia.objects.count(), 1)
+
+    def test_local_pre_selecionado_via_querystring(self):
+        sitio = Sitio.objects.create(designacao='Célula Central', tipo='2')
+        response = self.client.get(reverse('sitetibl:registar_ocorrencia') + f'?local={sitio.id}')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'value="{sitio.id}" selected')
 
     def test_protocolo_gerado_automaticamente_e_unico(self):
         for i in range(3):
@@ -49,6 +99,26 @@ class OcorrenciaPublicaTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, ocorrencia.protocolo)
+
+    def test_consultar_ocorrencia_sem_login_encontra_registo(self):
+        ocorrencia = Ocorrencia.objects.create(
+            categoria='seguranca',
+            titulo='Consulta pública',
+            descricao='Teste de consulta.',
+        )
+        response = self.client.get(
+            reverse('sitetibl:consultar_ocorrencia') + f'?protocolo={ocorrencia.protocolo}'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, ocorrencia.protocolo)
+        self.assertContains(response, ocorrencia.titulo)
+
+    def test_consultar_ocorrencia_protocolo_inexistente(self):
+        response = self.client.get(
+            reverse('sitetibl:consultar_ocorrencia') + '?protocolo=OC-000000-9999'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Nenhuma ocorrência encontrada')
 
 
 class OcorrenciaGestaoTest(TestCase):
@@ -97,5 +167,19 @@ class OcorrenciaGestaoTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         response_img = self.client.get(reverse('sitetibl:ocorrencia_qrcode_imagem'))
+        self.assertEqual(response_img.status_code, 200)
+        self.assertEqual(response_img['Content-Type'], 'image/png')
+
+    def test_qrcode_especifico_por_local(self):
+        sitio = Sitio.objects.create(designacao='Templo Sede', tipo='1')
+        response = self.client.get(
+            reverse('sitetibl:ocorrencia_qrcode') + f'?local_id={sitio.id}'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'?local={sitio.id}')
+
+        response_img = self.client.get(
+            reverse('sitetibl:ocorrencia_qrcode_imagem') + f'?local_id={sitio.id}'
+        )
         self.assertEqual(response_img.status_code, 200)
         self.assertEqual(response_img['Content-Type'], 'image/png')

@@ -158,8 +158,8 @@ from sitetibl.models import Ocorrencia
 
 @admin.register(Ocorrencia)
 class OcorrenciaAdmin(admin.ModelAdmin):
-    list_display = ['protocolo', 'categoria', 'titulo', 'nome_reportante', 'estado', 'data_registo']
-    list_filter = ['estado', 'categoria']
-    search_fields = ['protocolo', 'titulo', 'nome_reportante', 'local']
+    list_display = ['protocolo', 'categoria', 'titulo', 'tipo_reportante', 'nome_reportante', 'local', 'estado', 'data_registo']
+    list_filter = ['estado', 'categoria', 'tipo_reportante']
+    search_fields = ['protocolo', 'titulo', 'nome_reportante', 'local__designacao']
     date_hierarchy = 'data_registo'
     readonly_fields = ['protocolo', 'data_registo', 'data_resolucao', 'resolvido_por']

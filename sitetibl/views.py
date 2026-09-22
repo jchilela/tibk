@@ -88,6 +88,7 @@ from sitetibl.models import AlertaPastoral
 from sitetibl.models import VisitanteRecorrente
 from sitetibl.models import Celula
 from sitetibl.models import Ocorrencia, CATEGORIA_OCORRENCIA, ESTADO_OCORRENCIA
+from sitetibl.models import Sitio
 from django.utils import timezone
 from sitetibl.forms import OrcamentoDepartamento
 from sitetibl.forms import InventarioPatrimonio
@@ -5431,17 +5432,32 @@ def acta_actividade_pdf(request, actividade_id):
 
 # ── Portal de Ocorrências (público via QR Code) ────────────────────────
 
+OCORRENCIA_THROTTLE_SEGUNDOS = 30
+
+
 def registar_ocorrencia(request):
     """Formulário público (sem login) para membros/visitantes reportarem ocorrências."""
     from sitetibl.forms import OcorrenciaForm
 
     if request.method == 'POST':
+        from datetime import datetime as dt_class
+        ultimo_envio = request.session.get('ocorrencia_ultimo_envio')
+        if ultimo_envio:
+            segundos_passados = (timezone.now() - dt_class.fromisoformat(ultimo_envio)).total_seconds()
+            if segundos_passados < OCORRENCIA_THROTTLE_SEGUNDOS:
+                messages.error(request, 'Aguarde um momento antes de submeter outra ocorrência.')
+                form = OcorrenciaForm(request.POST, request.FILES)
+                return render(request, 'registar_ocorrencia.html', {'form': form})
+
         form = OcorrenciaForm(request.POST, request.FILES)
         if form.is_valid():
             ocorrencia = form.save()
+            request.session['ocorrencia_ultimo_envio'] = timezone.now().isoformat()
             return redirect('sitetibl:ocorrencia_sucesso', protocolo=ocorrencia.protocolo)
     else:
-        form = OcorrenciaForm()
+        local_id = request.GET.get('local')
+        initial = {'local': local_id} if local_id else None
+        form = OcorrenciaForm(initial=initial)
 
     return render(request, 'registar_ocorrencia.html', {'form': form})
 
@@ -5450,6 +5466,25 @@ def ocorrencia_sucesso(request, protocolo):
     """Página de confirmação exibida após o registo público de uma ocorrência."""
     ocorrencia = get_object_or_404(Ocorrencia, protocolo=protocolo)
     return render(request, 'ocorrencia_sucesso.html', {'ocorrencia': ocorrencia})
+
+
+def consultar_ocorrencia(request):
+    """Permite ao reportante consultar o estado da sua ocorrência pelo número de protocolo (sem login)."""
+    ocorrencia = None
+    erro = None
+    protocolo = request.GET.get('protocolo', '').strip()
+
+    if protocolo:
+        try:
+            ocorrencia = Ocorrencia.objects.get(protocolo__iexact=protocolo)
+        except Ocorrencia.DoesNotExist:
+            erro = 'Nenhuma ocorrência encontrada com esse número de protocolo.'
+
+    return render(request, 'consultar_ocorrencia.html', {
+        'ocorrencia': ocorrencia,
+        'erro': erro,
+        'protocolo': protocolo,
+    })
 
 
 def _pode_gerir_ocorrencias(user):
@@ -5467,7 +5502,7 @@ def gestao_ocorrencias(request):
     if not _pode_gerir_ocorrencias(request.user):
         raise PermissionDenied
 
-    qs = Ocorrencia.objects.select_related('resolvido_por').all()
+    qs = Ocorrencia.objects.select_related('resolvido_por', 'local').all()
 
     categoria_filter = request.GET.get('categoria', '').strip()
     estado_filter = request.GET.get('estado', '').strip()
@@ -5482,7 +5517,7 @@ def gestao_ocorrencias(request):
             Q(protocolo__icontains=busca)
             | Q(titulo__icontains=busca)
             | Q(nome_reportante__icontains=busca)
-            | Q(local__icontains=busca)
+            | Q(local__designacao__icontains=busca)
         )
 
     total_pendentes = Ocorrencia.objects.filter(estado='pendente').count()
@@ -5539,13 +5574,31 @@ def atualizar_estado_ocorrencia(request, ocorrencia_id):
 
 @login_required
 def ocorrencia_qrcode(request):
-    """Exibe o QR Code que aponta para o formulário público de registo de ocorrências."""
+    """Exibe o QR Code que aponta para o formulário público de registo de ocorrências.
+
+    Se for indicado um `local_id` (via GET), gera um QR Code específico para esse
+    Sítio, que pré-seleciona automaticamente o campo Local no formulário público.
+    """
     if not _pode_gerir_ocorrencias(request.user):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
-    url_publica = request.build_absolute_uri(reverse('sitetibl:registar_ocorrencia'))
-    return render(request, 'ocorrencia_qrcode.html', {'url_publica': url_publica})
+    local_id = request.GET.get('local_id', '').strip()
+    sitio_selecionado = None
+    if local_id:
+        sitio_selecionado = Sitio.objects.filter(id=local_id).first()
+
+    base_url = reverse('sitetibl:registar_ocorrencia')
+    if sitio_selecionado:
+        url_publica = request.build_absolute_uri(f'{base_url}?local={sitio_selecionado.id}')
+    else:
+        url_publica = request.build_absolute_uri(base_url)
+
+    return render(request, 'ocorrencia_qrcode.html', {
+        'url_publica': url_publica,
+        'sitios': Sitio.objects.order_by('designacao'),
+        'sitio_selecionado': sitio_selecionado,
+    })
 
 
 def ocorrencia_qrcode_imagem(request):
@@ -5553,7 +5606,13 @@ def ocorrencia_qrcode_imagem(request):
     import qrcode
     from io import BytesIO
 
-    url_publica = request.build_absolute_uri(reverse('sitetibl:registar_ocorrencia'))
+    local_id = request.GET.get('local_id', '').strip()
+    base_url = reverse('sitetibl:registar_ocorrencia')
+    if local_id and Sitio.objects.filter(id=local_id).exists():
+        url_publica = request.build_absolute_uri(f'{base_url}?local={local_id}')
+    else:
+        url_publica = request.build_absolute_uri(base_url)
+
     img = qrcode.make(url_publica, box_size=10, border=2)
     buffer = BytesIO()
     img.save(buffer, format='PNG')

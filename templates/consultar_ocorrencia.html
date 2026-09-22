@@ -1,0 +1,240 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}Consultar Ocorrência | TIBL{% endblock %}
+
+{% block content %}
+<style>
+  .oc-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top right, #1b4d3e, #020617);
+    padding: 2rem;
+  }
+
+  .oc-container {
+    width: 100%;
+    max-width: 520px;
+    animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .oc-box {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .oc-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .oc-header h2 {
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .oc-header p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  .oc-search-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .oc-search-form input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+  }
+
+  .oc-search-form input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    outline: none;
+  }
+
+  .oc-search-form input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .bt-oc-search {
+    background: #059669;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .bt-oc-search:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+  }
+
+  .oc-error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .oc-result-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+
+  .oc-result-protocolo {
+    font-family: 'Outfit', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #6ee7b7;
+    margin-bottom: 1rem;
+  }
+
+  .oc-result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.88rem;
+  }
+
+  .oc-result-row:last-child {
+    border-bottom: none;
+  }
+
+  .oc-result-row .label {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .oc-result-row .value {
+    color: white;
+    text-align: right;
+    max-width: 60%;
+  }
+
+  .oc-estado-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .oc-estado-pendente { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+  .oc-estado-em_analise { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+  .oc-estado-resolvida { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+
+  .oc-nota {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .bt-oc-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-top: 1.5rem;
+  }
+
+  .bt-oc-voltar:hover {
+    color: white;
+  }
+</style>
+
+<div class="oc-wrapper">
+  <div class="oc-container">
+    <div class="oc-box">
+      <div class="oc-header">
+        <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL" style="width: 60px;">
+        <h2><i class="fas fa-magnifying-glass" style="color:#6ee7b7;"></i> Consultar Ocorrência</h2>
+        <p>Insira o número de protocolo para ver o estado actual</p>
+      </div>
+
+      <form method="get" class="oc-search-form">
+        <input type="text" name="protocolo" value="{{ protocolo }}" placeholder="Ex: OC-202609-0001" autofocus>
+        <button type="submit" class="bt-oc-search"><i class="fas fa-search"></i></button>
+      </form>
+
+      {% if erro %}
+      <div class="oc-error"><i class="fas fa-circle-exclamation"></i> {{ erro }}</div>
+      {% endif %}
+
+      {% if ocorrencia %}
+      <div class="oc-result-card">
+        <div class="oc-result-protocolo">#{{ ocorrencia.protocolo }}</div>
+
+        <div class="oc-result-row">
+          <span class="label">Estado</span>
+          <span class="value"><span class="oc-estado-badge oc-estado-{{ ocorrencia.estado }}">{{ ocorrencia.get_estado_display }}</span></span>
+        </div>
+        <div class="oc-result-row">
+          <span class="label">Categoria</span>
+          <span class="value">{{ ocorrencia.get_categoria_display }}</span>
+        </div>
+        <div class="oc-result-row">
+          <span class="label">Título</span>
+          <span class="value">{{ ocorrencia.titulo }}</span>
+        </div>
+        {% if ocorrencia.local %}
+        <div class="oc-result-row">
+          <span class="label">Local</span>
+          <span class="value">{{ ocorrencia.local.designacao }}</span>
+        </div>
+        {% endif %}
+        <div class="oc-result-row">
+          <span class="label">Registada em</span>
+          <span class="value">{{ ocorrencia.data_registo|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% if ocorrencia.data_resolucao %}
+        <div class="oc-result-row">
+          <span class="label">Resolvida em</span>
+          <span class="value">{{ ocorrencia.data_resolucao|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% endif %}
+
+        {% if ocorrencia.nota_resolucao %}
+        <div class="oc-nota">
+          <strong>Nota da equipa:</strong> {{ ocorrencia.nota_resolucao }}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <a href="{% url 'sitetibl:registar_ocorrencia' %}" class="bt-oc-voltar">
+        <i class="fas fa-arrow-left"></i> Voltar ao formulário de registo
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -38,7 +38,7 @@ from django.utils import timezone as tz
 from schedule.models import Calendar, Rule, Event as ScheduleEvent
 from django import forms
 from datetime import date, datetime, timedelta
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, FileExtensionValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import re
@@ -965,18 +965,82 @@ class VisitanteRecorrenteForm(ModelForm):
 
 
 
+ANEXO_EXTENSOES_PERMITIDAS = ['jpg', 'jpeg', 'png', 'pdf']
+ANEXO_TAMANHO_MAXIMO_MB = 5
+
+
 class OcorrenciaForm(ModelForm):
+    # Campo honeypot: invisível para humanos, atractivo para bots. Se vier preenchido, é spam.
+    website = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'style': 'position:absolute; left:-9999px; opacity:0;',
+            'tabindex': '-1',
+            'autocomplete': 'off',
+        }),
+        label='',
+    )
+
+    telefone_reportante = forms.CharField(
+        label='Número de Telefone',
+        max_length=9,
+        required=False,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{9}$',
+                message='O telefone deve conter exatamente 9 números.'
+            )
+        ],
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 923456789 (opcional)'}),
+    )
+
+    local = forms.ModelChoiceField(
+        label='Local',
+        queryset=Sitio.objects.order_by('designacao'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+
+    anexo = forms.FileField(
+        label='Anexo',
+        required=False,
+        validators=[FileExtensionValidator(allowed_extensions=ANEXO_EXTENSOES_PERMITIDAS)],
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.jpg,.jpeg,.png,.pdf'}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            self.fields['data_ocorrencia'].initial = tz.now().date()
+            self.fields['hora_ocorrencia'].initial = tz.now().time().strftime('%H:%M')
+
+    def clean_website(self):
+        valor = self.cleaned_data.get('website')
+        if valor:
+            raise ValidationError('Submissão inválida.')
+        return valor
+
+    def clean_anexo(self):
+        anexo = self.cleaned_data.get('anexo')
+        if anexo:
+            limite_bytes = ANEXO_TAMANHO_MAXIMO_MB * 1024 * 1024
+            if anexo.size > limite_bytes:
+                raise ValidationError(f'O anexo não pode exceder {ANEXO_TAMANHO_MAXIMO_MB}MB.')
+        return anexo
+
     class Meta:
         model = Ocorrencia
         fields = [
-            'nome_reportante', 'contacto_reportante', 'categoria',
-            'titulo', 'descricao', 'local', 'anexo',
+            'tipo_reportante', 'nome_reportante', 'telefone_reportante',
+            'categoria', 'titulo', 'descricao',
+            'data_ocorrencia', 'hora_ocorrencia', 'local', 'anexo',
         ]
         widgets = {
+            'tipo_reportante': forms.Select(attrs={'class': 'form-control'}),
             'nome_reportante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional'}),
-            'contacto_reportante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Telefone ou email (opcional)'}),
             'categoria': forms.Select(attrs={'class': 'form-control'}),
             'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Resuma a ocorrência em poucas palavras'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva com detalhe o que aconteceu'}),
-            'local': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Templo principal, Célula X, etc.'}),
+            'data_ocorrencia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'hora_ocorrencia': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
         }

@@ -102,9 +102,14 @@
 
       <p style="font-size: 0.8rem;">Guarde este número de protocolo caso precise de fazer referência a esta ocorrência.</p>
 
-      <a href="{% url 'sitetibl:registar_ocorrencia' %}" class="bt-oc-voltar">
-        <i class="fas fa-plus"></i> Reportar Outra Ocorrência
-      </a>
+      <div style="display:flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'sitetibl:registar_ocorrencia' %}" class="bt-oc-voltar">
+          <i class="fas fa-plus"></i> Reportar Outra Ocorrência
+        </a>
+        <a href="{% url 'sitetibl:consultar_ocorrencia' %}?protocolo={{ ocorrencia.protocolo }}" class="bt-oc-voltar" style="background:#334155;">
+          <i class="fas fa-magnifying-glass"></i> Consultar Estado
+        </a>
+      </div>
     </div>
   </div>
 </div>

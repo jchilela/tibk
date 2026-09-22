@@ -162,12 +162,20 @@
         <p>Ajude-nos a melhorar a nossa comunidade. Todos os dados são tratados com confidencialidade.</p>
       </div>
 
-      <div style="text-align:center;">
+      <div style="text-align:center; display:flex; justify-content:center; gap:0.75rem; flex-wrap:wrap;">
         <span class="oc-anonimo-badge"><i class="fas fa-user-shield"></i> Identificação opcional / anónimo</span>
+        <a href="{% url 'sitetibl:consultar_ocorrencia' %}" class="oc-anonimo-badge" style="text-decoration:none;"><i class="fas fa-magnifying-glass"></i> Consultar ocorrência</a>
       </div>
 
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        {{ form.website }}
+
+        <div class="oc-form-group">
+          <label for="{{ form.tipo_reportante.id_for_label }}">É MEMBRO OU VISITANTE? *</label>
+          {{ form.tipo_reportante }}
+          {% if form.tipo_reportante.errors %}<div class="oc-error">{{ form.tipo_reportante.errors.0 }}</div>{% endif %}
+        </div>
 
         <div class="oc-form-group">
           <label for="{{ form.nome_reportante.id_for_label }}">SEU NOME (opcional)</label>
@@ -175,8 +183,9 @@
         </div>
 
         <div class="oc-form-group">
-          <label for="{{ form.contacto_reportante.id_for_label }}">CONTACTO (opcional)</label>
-          {{ form.contacto_reportante }}
+          <label for="{{ form.telefone_reportante.id_for_label }}">NÚMERO DE TELEFONE (opcional)</label>
+          {{ form.telefone_reportante }}
+          {% if form.telefone_reportante.errors %}<div class="oc-error">{{ form.telefone_reportante.errors.0 }}</div>{% endif %}
         </div>
 
         <div class="oc-form-group">
@@ -197,9 +206,21 @@
           {% if form.descricao.errors %}<div class="oc-error">{{ form.descricao.errors.0 }}</div>{% endif %}
         </div>
 
+        <div style="display:flex; gap: 1rem;">
+          <div class="oc-form-group" style="flex:1;">
+            <label for="{{ form.data_ocorrencia.id_for_label }}">DATA</label>
+            {{ form.data_ocorrencia }}
+          </div>
+          <div class="oc-form-group" style="flex:1;">
+            <label for="{{ form.hora_ocorrencia.id_for_label }}">HORA</label>
+            {{ form.hora_ocorrencia }}
+          </div>
+        </div>
+
         <div class="oc-form-group">
           <label for="{{ form.local.id_for_label }}">LOCAL (opcional)</label>
           {{ form.local }}
+          <p class="oc-hint">Lista carregada automaticamente com os locais/sítios cadastrados.</p>
         </div>
 
         <div class="oc-form-group">
@@ -209,7 +230,7 @@
         </div>
 
         <button type="submit" class="bt-oc-submit">
-          ENVIAR OCORRÊNCIA <i class="fas fa-paper-plane" style="font-size: 0.85rem;"></i>
+          REGISTAR OCORRÊNCIA <i class="fas fa-paper-plane" style="font-size: 0.85rem;"></i>
         </button>
       </form>
 

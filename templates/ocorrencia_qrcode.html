@@ -12,12 +12,24 @@
         </a>
     </div>
 
+    <div class="filter-bar" style="max-width: 480px; margin: 0 auto 1.5rem; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem 1.5rem;">
+        <form method="get" style="display: flex; gap: 0.75rem; align-items: center;">
+            <label style="font-size: 0.85rem; font-weight: 600; white-space: nowrap;">Local específico:</label>
+            <select name="local_id" onchange="this.form.submit()" style="flex: 1; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem;">
+                <option value="">Geral (sem local pré-definido)</option>
+                {% for s in sitios %}
+                <option value="{{ s.id }}" {% if sitio_selecionado and sitio_selecionado.id == s.id %}selected{% endif %}>{{ s.designacao }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
     <div class="modern-card" style="max-width: 480px; margin: 0 auto; text-align: center; padding: 2.5rem;" id="qr-print-area">
         <img src="{% static 'fotos/2022/cba.png' %}" alt="TIBL" style="width: 60px; margin-bottom: 1rem;">
-        <h3 style="margin-bottom: 0.5rem;">Reportar Ocorrência</h3>
+        <h3 style="margin-bottom: 0.5rem;">Reportar Ocorrência{% if sitio_selecionado %} · {{ sitio_selecionado.designacao }}{% endif %}</h3>
         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Aponte a câmara do seu telemóvel para o código abaixo</p>
 
-        <img src="{% url 'sitetibl:ocorrencia_qrcode_imagem' %}" alt="QR Code" style="width: 260px; height: 260px; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem;">
+        <img src="{% url 'sitetibl:ocorrencia_qrcode_imagem' %}{% if sitio_selecionado %}?local_id={{ sitio_selecionado.id }}{% endif %}" alt="QR Code" style="width: 260px; height: 260px; border: 1px solid #e5e7eb; border-radius: var(--radius-lg); padding: 1rem;">
 
         <p style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted); word-break: break-all;">{{ url_publica }}</p>
     </div>

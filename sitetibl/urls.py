@@ -86,6 +86,7 @@ urlpatterns = [
     # ── Portal de Ocorrências (público via QR Code) ────────────────────
     path('ocorrencias/registar/', views.registar_ocorrencia, name='registar_ocorrencia'),
     path('ocorrencias/sucesso/<str:protocolo>/', views.ocorrencia_sucesso, name='ocorrencia_sucesso'),
+    path('ocorrencias/consultar/', views.consultar_ocorrencia, name='consultar_ocorrencia'),
     path('gestao/ocorrencias/', views.gestao_ocorrencias, name='gestao_ocorrencias'),
     path('ocorrencias/<int:ocorrencia_id>/estado/', views.atualizar_estado_ocorrencia, name='atualizar_estado_ocorrencia'),
     path('ocorrencias/qrcode/', views.ocorrencia_qrcode, name='ocorrencia_qrcode'),
