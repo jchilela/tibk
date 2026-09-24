@@ -19,8 +19,12 @@ class Command(BaseCommand):
         ).select_related('departamento', 'actividade').prefetch_related('items__responsavel')
 
         for ckl in checklists:
+            hora_atingida = (
+                not ckl.hora_notificacao or agora.time() >= ckl.hora_notificacao
+            )
+
             # 1. Checklist disponível (recorrência)
-            if ckl.recorrencia != 'unica' and ckl.deve_gerar_hoje():
+            if ckl.recorrencia != 'unica' and ckl.deve_gerar_hoje() and hora_atingida:
                 # Evita duplicar no mesmo dia
                 ja_notificou_hoje = NotificacaoChecklist.objects.filter(
                     checklist=ckl,

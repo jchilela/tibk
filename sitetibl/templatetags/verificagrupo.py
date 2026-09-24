@@ -21,23 +21,28 @@ def replace(value, arg):
         new = ''
     return value.replace(old, new)
 
+def _separador_angolano(texto):
+    """Converte o formato americano (1,234.56) para o angolano (1.234,56)."""
+    return texto.replace(',', 'X').replace('.', ',').replace('X', '.')
+
+
 @register.filter(name='dinheiro')
 def dinheiro(value):
-    """Formata um numero com separador de milhares (virgula) e 2 casas decimais (ponto).
-    Ex: 1234567.89 -> 1,234,567.89
+    """Formata um numero com separador de milhares (ponto) e 2 casas decimais (virgula).
+    Ex: 1234567.89 -> 1.234.567,89
     """
     if value is None or value == '':
-        return '0.00'
+        return '0,00'
     try:
         val = float(value)
     except (TypeError, ValueError):
         return value
-    return f'{val:,.2f}'
+    return _separador_angolano(f'{val:,.2f}')
 
 @register.filter(name='dinheiro_int')
 def dinheiro_int(value):
-    """Formata um numero inteiro com separador de milhares (virgula), sem decimais.
-    Ex: 1234567 -> 1,234,567
+    """Formata um numero inteiro com separador de milhares (ponto), sem decimais.
+    Ex: 1234567 -> 1.234.567
     """
     if value is None or value == '':
         return '0'
@@ -45,4 +50,4 @@ def dinheiro_int(value):
         val = int(float(value))
     except (TypeError, ValueError):
         return value
-    return f'{val:,}'
+    return _separador_angolano(f'{val:,}')

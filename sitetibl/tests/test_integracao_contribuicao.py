@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from sitetibl.models import (
@@ -99,3 +101,57 @@ class IntegracaoContribuicaoTest(TestCase):
         _integrar_contribuicao_financeira(c)
         c.refresh_from_db()
         self.assertEqual(c.entrada_id, primeira_entrada)
+
+    def test_nao_vincula_dizimos_antigos_com_a_mesma_data_e_valor(self):
+        tipo = TipoOferta.objects.create(designacao='Dizimo historico')
+        antigo = Dizimooferta.objects.create(
+            valor=5000,
+            moeda='AKZ',
+            tipooferta=tipo,
+            datacorrespondente=date.today(),
+            irmao=self.irmao,
+            dataregisto=date.today(),
+        )
+        c = Contribuicao.objects.create(
+            irmao=self.irmao,
+            tipo='dizimo',
+            valor=5000,
+            moeda='AKZ',
+            data=date.today(),
+            estado='confirmada',
+        )
+        _integrar_contribuicao_financeira(c)
+        antigo.refresh_from_db()
+        c.refresh_from_db()
+
+        self.assertIsNone(antigo.entrada_id)
+        self.assertNotEqual(c.dizimooferta_id, antigo.id)
+        self.assertEqual(c.dizimooferta.entrada_id, c.entrada_id)
+
+    def test_anular_nao_apaga_dizimos_que_partilham_a_entrada(self):
+        c = Contribuicao.objects.create(
+            irmao=self.irmao,
+            tipo='dizimo',
+            valor=1500,
+            moeda='AKZ',
+            estado='confirmada',
+        )
+        _integrar_contribuicao_financeira(c)
+        tipo = TipoOferta.objects.create(designacao='Oferta manual')
+        manual = Dizimooferta.objects.create(
+            valor=1500,
+            moeda='AKZ',
+            tipooferta=tipo,
+            datacorrespondente=c.data,
+            irmao=self.irmao,
+            dataregisto=c.data,
+            entrada_id=c.entrada_id,
+        )
+
+        entrada_id = c.entrada_id
+        _anular_contribuicao_financeira(c)
+        manual.refresh_from_db()
+
+        self.assertTrue(Dizimooferta.objects.filter(id=manual.id).exists())
+        self.assertIsNone(manual.entrada_id)
+        self.assertFalse(Entrada.objects.filter(id=entrada_id).exists())

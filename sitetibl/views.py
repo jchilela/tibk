@@ -24,6 +24,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 import os
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 from django.db.models.functions import TruncMonth, ExtractDay
 import json
@@ -687,7 +688,12 @@ def mostraGestao(request,gestaoescolhida,pagina):
 
 @login_required
 def movimentos(request, pagina=1):
-    from sitetibl.models import MOEDA
+    from django.core.exceptions import PermissionDenied
+
+    pode_entrada = request.user.has_perm('sitetibl.view_entrada') or request.user.is_superuser
+    pode_saida = request.user.has_perm('sitetibl.view_saida') or request.user.is_superuser
+    if not (pode_entrada or pode_saida):
+        raise PermissionDenied
 
     tipo_mov = request.GET.get('tipo_mov', '').strip()
     tipo_conta = request.GET.get('tipov', '').strip()
@@ -699,7 +705,7 @@ def movimentos(request, pagina=1):
     movimentos_list = []
 
     # Entradas
-    if tipo_mov in ('', 'entrada'):
+    if pode_entrada and tipo_mov in ('', 'entrada'):
         qs_e = Entrada.objects.select_related('rubrica', 'responsavel', 'contaaacreditar')
         if tipo_conta:
             qs_e = qs_e.filter(tipo=tipo_conta)
@@ -707,10 +713,12 @@ def movimentos(request, pagina=1):
             qs_e = qs_e.filter(contaaacreditar_id=conta_v)
         if rubrica_v != '0':
             qs_e = qs_e.filter(rubrica_id=rubrica_v)
-        if mes_v != '0':
-            qs_e = qs_e.filter(data__month=mes_v)
-        if ano_v:
-            qs_e = qs_e.filter(data__year=ano_v)
+        mes_e = _inteiro_filtro(mes_v)
+        ano_e = _inteiro_filtro(ano_v)
+        if mes_e is not None and mes_e != 0:
+            qs_e = qs_e.filter(data__month=mes_e)
+        if ano_e is not None:
+            qs_e = qs_e.filter(data__year=ano_e)
         for e in qs_e:
             movimentos_list.append({
                 'id': e.id,
@@ -726,7 +734,7 @@ def movimentos(request, pagina=1):
             })
 
     # Saídas
-    if tipo_mov in ('', 'saida'):
+    if pode_saida and tipo_mov in ('', 'saida'):
         qs_s = Saida.objects.select_related('rubrica', 'responsavel', 'conta')
         if tipo_conta:
             qs_s = qs_s.filter(tipo=tipo_conta)
@@ -734,10 +742,12 @@ def movimentos(request, pagina=1):
             qs_s = qs_s.filter(conta_id=conta_v)
         if rubrica_v != '0':
             qs_s = qs_s.filter(rubrica_id=rubrica_v)
-        if mes_v != '0':
-            qs_s = qs_s.filter(data__month=mes_v)
-        if ano_v:
-            qs_s = qs_s.filter(data__year=ano_v)
+        mes_s = _inteiro_filtro(mes_v)
+        ano_s = _inteiro_filtro(ano_v)
+        if mes_s is not None and mes_s != 0:
+            qs_s = qs_s.filter(data__month=mes_s)
+        if ano_s is not None:
+            qs_s = qs_s.filter(data__year=ano_s)
         for s in qs_s:
             movimentos_list.append({
                 'id': s.id,
@@ -2343,6 +2353,49 @@ def relatorioofertasportipo_pdf(request):
 
 # ── Portal do Membro: Minhas Contribuições ───────────────────────
 
+def _inteiro_filtro(valor):
+    if valor is None or valor == '' or valor == 'todos':
+        return None
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        return None
+
+
+def _data_filtro(valor):
+    from datetime import datetime
+    if not valor:
+        return None
+    try:
+        return datetime.strptime(valor, '%Y-%m-%d').date()
+    except ValueError:
+        return None
+
+
+def _pode_ver_contribuicoes(user):
+    return (
+        user.has_perm('sitetibl.view_dizimooferta')
+        or user.has_perm('sitetibl.view_entrada')
+        or user.is_superuser
+    )
+
+
+def _pode_validar_contribuicoes(user):
+    return (
+        user.has_perm('sitetibl.add_dizimooferta')
+        or user.has_perm('sitetibl.add_entrada')
+        or user.is_superuser
+    )
+
+
+def _pode_anular_contribuicoes(user):
+    return (
+        user.has_perm('sitetibl.delete_dizimooferta')
+        or user.has_perm('sitetibl.delete_entrada')
+        or user.is_superuser
+    )
+
+
 @login_required
 def minhas_contribuicoes(request):
     from sitetibl.models import Contribuicao, Irmao
@@ -2365,11 +2418,12 @@ def minhas_contribuicoes(request):
         qs = qs.filter(tipo=tipo_filter)
     if estado_filter:
         qs = qs.filter(estado=estado_filter)
-    if ano_filter and ano_filter != 'todos':
-        qs = qs.filter(data__year=int(ano_filter))
+    ano = _inteiro_filtro(ano_filter)
+    if ano is not None:
+        qs = qs.filter(data__year=ano)
 
     # Totais por período (ano actual por mês)
-    ano_actual = int(ano_filter) if ano_filter and ano_filter != 'todos' else date.today().year
+    ano_actual = ano if ano is not None else date.today().year
     totais_mes = qs.filter(data__year=ano_actual) \
         .values('data__month') \
         .annotate(
@@ -2476,12 +2530,7 @@ def gestao_contribuicoes(request):
     from sitetibl.models import Contribuicao, Irmao, TIPO_CONTRIBUICAO, ESTADO_CONTRIBUICAO
     from datetime import date
 
-    if not (
-        request.user.has_perm('sitetibl.view_dizimooferta')
-        or request.user.has_perm('sitetibl.view_entrada')
-        or request.user.has_perm('sitetibl.view_saida')
-        or request.user.is_superuser
-    ):
+    if not _pode_ver_contribuicoes(request.user):
         return redirect('sitetibl:minhas_contribuicoes')
 
     qs = Contribuicao.objects.select_related('irmao', 'entrada', 'dizimooferta').all()
@@ -2504,12 +2553,15 @@ def gestao_contribuicoes(request):
         qs = qs.filter(tipo=tipo_filter)
     if estado_filter:
         qs = qs.filter(estado=estado_filter)
-    if ano_filter and ano_filter != 'todos':
-        qs = qs.filter(data__year=int(ano_filter))
-    if data_inicio:
-        qs = qs.filter(data__gte=data_inicio)
-    if data_fim:
-        qs = qs.filter(data__lte=data_fim)
+    ano = _inteiro_filtro(ano_filter)
+    if ano is not None:
+        qs = qs.filter(data__year=ano)
+    inicio = _data_filtro(data_inicio)
+    fim = _data_filtro(data_fim)
+    if inicio:
+        qs = qs.filter(data__gte=inicio)
+    if fim:
+        qs = qs.filter(data__lte=fim)
 
     # Totais por tipo
     totais_tipo = qs.values('tipo').annotate(
@@ -2576,6 +2628,8 @@ def gestao_contribuicoes(request):
         'filtro_data_fim': data_fim,
         'tipo_choices': TIPO_CONTRIBUICAO,
         'estado_choices': ESTADO_CONTRIBUICAO,
+        'pode_validar': _pode_validar_contribuicoes(request.user),
+        'pode_anular': _pode_anular_contribuicoes(request.user),
     }
 
     return render(request, 'gestao_contribuicoes.html', context)
@@ -2583,6 +2637,7 @@ def gestao_contribuicoes(request):
 
 def _integrar_contribuicao_financeira(contribuicao):
     """Cria Entrada + Dizimooferta a partir de uma Contribuicao confirmada."""
+    from django.db import transaction
     from sitetibl.models import (
         Rubricaentrada, Gruporubrica, TipoOferta, Entrada, Dizimooferta,
     )
@@ -2590,146 +2645,165 @@ def _integrar_contribuicao_financeira(contribuicao):
     if contribuicao.entrada_id:
         return
 
-    # Rubrica de entrada (cria se nao existir)
-    grupo, _ = Gruporubrica.objects.get_or_create(designacao='Contribuicoes')
-    rubrica, _ = Rubricaentrada.objects.get_or_create(
-        designacao='Dizimos e Ofertas',
-        defaults={'gruporubrica': grupo},
-    )
+    with transaction.atomic():
+        grupo, _ = Gruporubrica.objects.get_or_create(designacao='Contribuicoes')
+        rubrica, _ = Rubricaentrada.objects.get_or_create(
+            designacao='Dizimos e Ofertas',
+            defaults={'gruporubrica': grupo},
+        )
 
-    # Mapear tipo de contribuicao para TipoOferta
-    tipo_map = {
-        'dizimo': 'Dizimo',
-        'oferta': 'Oferta',
-        'oferta_missionaria': 'Oferta Missionaria',
-        'oferta_construcao': 'Oferta Construcao',
-        'doacao': 'Doacao',
-        'outra': 'Oferta Especial',
-    }
-    tipo_designacao = tipo_map.get(contribuicao.tipo, 'Oferta Especial')
-    tipo_oferta, _ = TipoOferta.objects.get_or_create(
-        designacao=tipo_designacao,
-    )
+        tipo_map = {
+            'dizimo': 'Dizimo',
+            'oferta': 'Oferta',
+            'oferta_missionaria': 'Oferta Missionaria',
+            'oferta_construcao': 'Oferta Construcao',
+            'doacao': 'Doacao',
+            'outra': 'Oferta Especial',
+        }
+        tipo_designacao = tipo_map.get(contribuicao.tipo, 'Oferta Especial')
+        tipo_oferta, _ = TipoOferta.objects.get_or_create(
+            designacao=tipo_designacao,
+        )
 
-    # Criar Entrada (caixa por defeito)
-    entrada = Entrada.objects.create(
-        tipo='caixa',
-        valor=contribuicao.valor,
-        moeda=contribuicao.moeda,
-        data=contribuicao.data,
-        rubrica=rubrica,
-        responsavel=contribuicao.irmao,
-        observacao=f'Contribuicao #{contribuicao.id} - {contribuicao.get_tipo_display()}',
-    )
+        entrada = Entrada.objects.create(
+            tipo='caixa',
+            valor=contribuicao.valor,
+            moeda=contribuicao.moeda,
+            data=contribuicao.data,
+            rubrica=rubrica,
+            responsavel=contribuicao.irmao,
+            observacao=f'Contribuicao #{contribuicao.id} - {contribuicao.get_tipo_display()}',
+        )
+        # O signal de auto-vinculo liga qualquer dizimo antigo com a mesma
+        # data, valor e moeda. Esses registos nao pertencem a esta contribuicao.
+        Dizimooferta.objects.filter(entrada=entrada).update(entrada=None)
 
-    # Criar Dizimooferta
-    dizimo = Dizimooferta.objects.create(
-        valor=contribuicao.valor,
-        moeda=contribuicao.moeda,
-        tipooferta=tipo_oferta,
-        datacorrespondente=contribuicao.data,
-        irmao=contribuicao.irmao,
-        dataregisto=contribuicao.data,
-        entrada=entrada,
-    )
+        dizimo = Dizimooferta.objects.create(
+            valor=contribuicao.valor,
+            moeda=contribuicao.moeda,
+            tipooferta=tipo_oferta,
+            datacorrespondente=contribuicao.data,
+            irmao=contribuicao.irmao,
+            dataregisto=contribuicao.data,
+            entrada=entrada,
+        )
 
-    # Ligar a contribuicao
-    contribuicao.entrada = entrada
-    contribuicao.dizimooferta = dizimo
-    contribuicao.save()
+        contribuicao.entrada = entrada
+        contribuicao.dizimooferta = dizimo
+        contribuicao.save(update_fields=['entrada', 'dizimooferta'])
 
 
 def _anular_contribuicao_financeira(contribuicao):
-    """Remove Entrada + Dizimooferta quando uma contribuicao e rejeitada/anulada."""
+    """Remove a Entrada e o Dizimooferta gerados por esta contribuicao."""
+    from django.db import transaction
     from sitetibl.models import Entrada, Dizimooferta
 
-    if contribuicao.dizimooferta_id:
-        Dizimooferta.objects.filter(id=contribuicao.dizimooferta_id).delete()
-    if contribuicao.entrada_id:
-        Entrada.objects.filter(id=contribuicao.entrada_id).delete()
-    contribuicao.entrada = None
-    contribuicao.dizimooferta = None
-    contribuicao.save()
+    with transaction.atomic():
+        dizimo_id = contribuicao.dizimooferta_id
+        entrada_id = contribuicao.entrada_id
+        contribuicao.entrada = None
+        contribuicao.dizimooferta = None
+        contribuicao.save(update_fields=['entrada', 'dizimooferta'])
+
+        if dizimo_id:
+            Dizimooferta.objects.filter(id=dizimo_id).delete()
+        if entrada_id:
+            Dizimooferta.objects.filter(entrada_id=entrada_id).update(entrada=None)
+            Entrada.objects.filter(id=entrada_id).delete()
 
 
 @login_required
 def confirmar_contribuicao(request, contribuicao_id):
     from django.core.exceptions import PermissionDenied
+    from django.db import transaction
     from sitetibl.models import Contribuicao
     from django.utils import timezone
 
-    if not (
-        request.user.has_perm('sitetibl.view_dizimooferta')
-        or request.user.has_perm('sitetibl.view_entrada')
-        or request.user.has_perm('sitetibl.view_saida')
-        or request.user.is_superuser
-    ):
+    if not _pode_validar_contribuicoes(request.user):
         raise PermissionDenied
 
     if request.method != 'POST':
         return redirect('sitetibl:gestao_contribuicoes')
 
-    contribuicao = get_object_or_404(Contribuicao, id=contribuicao_id)
     nota = request.POST.get('nota', '').strip()
 
-    contribuicao.estado = 'confirmada'
-    contribuicao.data_validacao = timezone.now()
-    contribuicao.validado_por = request.user
-    if nota:
-        contribuicao.nota_validacao = nota
-    contribuicao.save()
+    from django.http import Http404
 
-    # Criar Entrada + Dizimooferta automaticamente
-    if not contribuicao.entrada_id:
-        try:
+    try:
+        with transaction.atomic():
+            contribuicao = get_object_or_404(
+                Contribuicao.objects.select_for_update(), id=contribuicao_id,
+            )
+            if contribuicao.estado != 'pendente':
+                messages.error(request, 'Só é possível confirmar uma contribuição pendente.')
+                return redirect('sitetibl:gestao_contribuicoes')
+
+            contribuicao.estado = 'confirmada'
+            contribuicao.data_validacao = timezone.now()
+            contribuicao.validado_por = request.user
+            if nota:
+                contribuicao.nota_validacao = nota
+            contribuicao.save()
             _integrar_contribuicao_financeira(contribuicao)
-        except Exception as e:
-            logger.error(f'Erro ao integrar contribuicao #{contribuicao.id}: {e}')
-            messages.warning(request, f'Contribuição confirmada, mas houve erro ao gerar entrada financeira: {e}')
-        else:
-            messages.success(request, f'Contribuição de {contribuicao.irmao} confirmada. Entrada e dízimo/oferta criados automaticamente.')
-            return redirect('sitetibl:gestao_contribuicoes')
+    except (PermissionDenied, Http404):
+        raise
+    except Exception as e:
+        logger.error('Erro ao integrar contribuicao #%s: %s', contribuicao_id, e)
+        messages.error(request, 'Não foi possível confirmar a contribuição. A entrada financeira não foi criada.')
+        return redirect('sitetibl:gestao_contribuicoes')
 
-    messages.success(request, f'Contribuição de {contribuicao.irmao} confirmada com sucesso.')
+    messages.success(
+        request,
+        f'Contribuição de {contribuicao.irmao} confirmada. Entrada e dízimo/oferta criados automaticamente.',
+    )
     return redirect('sitetibl:gestao_contribuicoes')
 
 
 @login_required
 def rejeitar_contribuicao(request, contribuicao_id):
     from django.core.exceptions import PermissionDenied
+    from django.db import transaction
     from sitetibl.models import Contribuicao
     from django.utils import timezone
-
-    if not (
-        request.user.has_perm('sitetibl.view_dizimooferta')
-        or request.user.has_perm('sitetibl.view_entrada')
-        or request.user.has_perm('sitetibl.view_saida')
-        or request.user.is_superuser
-    ):
-        raise PermissionDenied
 
     if request.method != 'POST':
         return redirect('sitetibl:gestao_contribuicoes')
 
-    contribuicao = get_object_or_404(Contribuicao, id=contribuicao_id)
     nota = request.POST.get('nota', '').strip()
-
     if not nota:
         messages.error(request, 'É obrigatório indicar o motivo de rejeição.')
         return redirect('sitetibl:gestao_contribuicoes')
 
-    contribuicao.estado = 'rejeitada'
-    contribuicao.data_validacao = timezone.now()
-    contribuicao.validado_por = request.user
-    contribuicao.nota_validacao = nota
-    contribuicao.save()
+    from django.http import Http404
 
-    # Remover Entrada + Dizimooferta se existiam
-    if contribuicao.entrada_id or contribuicao.dizimooferta_id:
-        try:
-            _anular_contribuicao_financeira(contribuicao)
-        except Exception as e:
-            logger.error(f'Erro ao anular entrada da contribuicao #{contribuicao.id}: {e}')
+    try:
+        with transaction.atomic():
+            contribuicao = get_object_or_404(
+                Contribuicao.objects.select_for_update(), id=contribuicao_id,
+            )
+            if contribuicao.estado == 'rejeitada':
+                messages.error(request, 'Esta contribuição já está rejeitada.')
+                return redirect('sitetibl:gestao_contribuicoes')
+            if contribuicao.estado == 'confirmada':
+                if not _pode_anular_contribuicoes(request.user):
+                    raise PermissionDenied
+            elif not _pode_validar_contribuicoes(request.user):
+                raise PermissionDenied
+
+            if contribuicao.entrada_id or contribuicao.dizimooferta_id:
+                _anular_contribuicao_financeira(contribuicao)
+
+            contribuicao.estado = 'rejeitada'
+            contribuicao.data_validacao = timezone.now()
+            contribuicao.validado_por = request.user
+            contribuicao.nota_validacao = nota
+            contribuicao.save()
+    except (PermissionDenied, Http404):
+        raise
+    except Exception as e:
+        logger.error('Erro ao anular contribuicao #%s: %s', contribuicao_id, e)
+        messages.error(request, 'Não foi possível rejeitar a contribuição. Os registos financeiros foram mantidos.')
+        return redirect('sitetibl:gestao_contribuicoes')
 
     messages.success(request, f'Contribuição de {contribuicao.irmao} rejeitada/anulada.')
     return redirect('sitetibl:gestao_contribuicoes')
@@ -2740,12 +2814,7 @@ def historico_membro_contribuicoes(request, irmao_id):
     from django.core.exceptions import PermissionDenied
     from sitetibl.models import Contribuicao, Irmao, TIPO_CONTRIBUICAO, ESTADO_CONTRIBUICAO
 
-    if not (
-        request.user.has_perm('sitetibl.view_dizimooferta')
-        or request.user.has_perm('sitetibl.view_entrada')
-        or request.user.has_perm('sitetibl.view_saida')
-        or request.user.is_superuser
-    ):
+    if not _pode_ver_contribuicoes(request.user):
         raise PermissionDenied
 
     irmao = get_object_or_404(Irmao, id=irmao_id)
@@ -2860,6 +2929,8 @@ def checklist_actividade(request, actividade_id):
 
     # Form para criar nova checklist (seleccionar departamento)
     if request.method == 'POST' and 'criar_checklist' in request.POST:
+        if not can_manage:
+            raise PermissionDenied
         form_checklist = ChecklistDepartamentoForm(request.POST)
         if form_checklist.is_valid():
             checklist = form_checklist.save(commit=False)
@@ -3163,8 +3234,8 @@ def dashboard_checklist(request, departamento_id=None):
         elif irmao_logado:
             # Departamentos onde é líder ou vice-líder
             departamentos_qs = list(Departamento.objects.filter(
-                models.Q(lider_departamento=irmao_logado)
-                | models.Q(vice_lider_departamento=irmao_logado)
+                Q(lider_departamento=irmao_logado)
+                | Q(vice_lider_departamento=irmao_logado)
             ).order_by('designacao'))
             if not departamentos_qs:
                 # Se é integrante de algum departamento via Mandato

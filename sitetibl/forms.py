@@ -42,6 +42,7 @@ from datetime import date, datetime, timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+import os
 import re
 from urllib.parse import urlparse
 
@@ -991,6 +992,17 @@ class ContribuicaoForm(forms.ModelForm):
         if valor is not None and valor < 0:
             raise forms.ValidationError("O valor não pode ser negativo.")
         return valor
+
+    def clean_comprovativo(self):
+        ficheiro = self.cleaned_data.get('comprovativo')
+        if not ficheiro or not getattr(ficheiro, 'name', None):
+            return ficheiro
+        if getattr(ficheiro, 'size', 0) > 5 * 1024 * 1024:
+            raise forms.ValidationError('O comprovativo não pode exceder 5 MB.')
+        extensao = os.path.splitext(ficheiro.name)[1].lower()
+        if extensao not in {'.pdf', '.jpg', '.jpeg', '.png', '.webp'}:
+            raise forms.ValidationError('Formato inválido. Use PDF, JPG, PNG ou WEBP.')
+        return ficheiro
 
 
 class ItemChecklistForm(forms.ModelForm):
