@@ -1,4 +1,5 @@
 {% extends 'index.html' %}
+{% load verificagrupo %}
 {% block Contasbancarias %}
 
 <div class="list-container">
@@ -62,7 +63,7 @@
                         <div style="font-size: 0.75rem; color: var(--text-muted);">IBAN: {{ x.iban }}</div>
                     </td>
                     <td style="text-align: center;">
-                        <span style="font-weight: 700; color: var(--text-main);">{{ x.saldo|floatformat:2 }}</span>
+                        <span style="font-weight: 700; color: var(--text-main);">{{ x.saldo|dinheiro }}</span>
                         <span style="font-size: 0.75rem; color: var(--text-muted);"> {{ x.get_moeda_display }}</span>
                     </td>
                     <td style="text-align: right;">

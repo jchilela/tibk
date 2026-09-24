@@ -1,0 +1,358 @@
+{% extends "base_modern.html" %}
+{% load static %}
+
+{% block title %}Checklists — {{ actividade }} — TIBL{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ckl-container { max-width: 950px; margin: 0 auto; padding-bottom: 3rem; }
+  .ckl-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .ckl-header .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+  .ckl-header h2 { font-size: 1.5rem; color: var(--text-main); margin: 0; }
+  .ckl-header h2 i { color: var(--primary); }
+  .ckl-header .ckl-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+  .ckl-overall-card { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; }
+  .ckl-overall-title { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.75rem; }
+  .ckl-progress-bar-container { background: #e2e8f0; border-radius: 999px; height: 28px; overflow: hidden; position: relative; }
+  .ckl-progress-bar { background: linear-gradient(90deg, var(--primary), #4ade80); height: 100%; border-radius: 999px; transition: width 0.4s ease; display: flex; align-items: center; justify-content: center; }
+  .ckl-progress-bar span { color: #fff; font-size: 0.78rem; font-weight: 700; }
+  .ckl-progress-stats { display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.85rem; }
+  .ckl-progress-stats .stat { color: var(--text-muted); }
+  .ckl-progress-stats .stat strong { color: var(--text-main); }
+
+  .ckl-dept-card { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow: hidden; }
+  .ckl-dept-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+  .ckl-dept-header h3 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+  .ckl-dept-header h3 i { color: var(--primary); }
+  .ckl-dept-progress { display: flex; align-items: center; gap: 0.75rem; }
+  .ckl-dept-progress .mini-bar { width: 100px; background: #e2e8f0; border-radius: 999px; height: 8px; overflow: hidden; }
+  .ckl-dept-progress .mini-bar-fill { background: var(--primary); height: 100%; border-radius: 999px; transition: width 0.3s; }
+  .ckl-dept-progress .mini-text { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+  .ckl-dept-progress .remove-btn { background: #fee2e2; color: #991b1b; border: none; padding: 0.3rem 0.55rem; border-radius: var(--radius-sm); font-size: 0.72rem; cursor: pointer; }
+
+  .ckl-item { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1.25rem; border-bottom: 1px solid #f1f5f9; }
+  .ckl-item:last-child { border-bottom: none; }
+  .ckl-item:hover { background: #f8fafc; }
+
+  .ckl-checkbox { width: 22px; height: 22px; border: 2.5px solid #d1d5db; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; background: #fff; }
+  .ckl-checkbox:hover { border-color: var(--primary); }
+  .ckl-checkbox.checked { background: var(--primary); border-color: var(--primary); }
+  .ckl-checkbox.checked::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #fff; font-size: 0.7rem; }
+
+  .ckl-item-content { flex: 1; }
+  .ckl-item-desc { font-size: 0.9rem; color: var(--text-main); font-weight: 500; }
+  .ckl-item.done .ckl-item-desc { text-decoration: line-through; color: var(--text-muted); }
+  .ckl-item-meta { font-size: 0.73rem; color: var(--text-muted); margin-top: 0.15rem; }
+  .ckl-item-meta i { margin-right: 0.2rem; }
+  .ckl-item-meta .resp-badge { background: #dbeafe; color: #1e40af; padding: 0.1rem 0.45rem; border-radius: 999px; font-size: 0.68rem; font-weight: 600; }
+
+  .ckl-item-actions { display: flex; gap: 0.4rem; opacity: 0; transition: opacity 0.2s; }
+  .ckl-item:hover .ckl-item-actions { opacity: 1; }
+  .ckl-item-action-btn { border: none; padding: 0.3rem 0.55rem; border-radius: var(--radius-sm); font-size: 0.7rem; font-weight: 600; cursor: pointer; }
+
+  .ckl-empty-dept { text-align: center; padding: 1.5rem 1rem; color: var(--text-muted); font-size: 0.85rem; }
+
+  .ckl-recur-row { padding: 0.85rem 1.25rem; background: #f0f4ff; border-bottom: 1px solid #e2e8f0; }
+  .ckl-recur-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+  .ckl-recur-toggle .recur-label { font-size: 0.82rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 0.4rem; }
+  .ckl-recur-toggle .recur-label i { color: #6366f1; }
+  .ckl-recur-toggle .recur-current { font-size: 0.78rem; color: var(--text-muted); }
+  .ckl-recur-toggle .recur-current .badge-recur { background: #e0e7ff; color: #4338ca; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600; font-size: 0.72rem; }
+  .ckl-recur-body { display: none; margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed #c7d2fe; }
+  .ckl-recur-body.active { display: block; }
+  .ckl-recur-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; align-items: flex-end; }
+  .ckl-recur-form label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; font-weight: 600; }
+  .ckl-recur-form select, .ckl-recur-form input { width: 100%; padding: 0.4rem 0.6rem; border: 1.5px solid #c7d2fe; border-radius: var(--radius-sm); font-size: 0.82rem; box-sizing: border-box; }
+  .ckl-recur-form .checkbox-wrap { display: flex; align-items: center; gap: 0.4rem; }
+  .ckl-recur-form .checkbox-wrap input { width: auto; }
+  .ckl-recur-form .checkbox-wrap label { margin: 0; font-size: 0.78rem; }
+  .ckl-recur-form .full-row { grid-column: 1 / -1; }
+  .ckl-recur-submit { background: #6366f1; color: #fff; padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.8rem; border: none; cursor: pointer; }
+
+  .ckl-add-row { padding: 0.85rem 1.25rem; background: #fafafa; border-top: 1px solid #f1f5f9; }
+  .ckl-add-form { display: flex; gap: 0.6rem; align-items: flex-end; flex-wrap: wrap; }
+  .ckl-add-form input, .ckl-add-form select { padding: 0.45rem 0.65rem; border: 1.5px solid #d1d5db; border-radius: var(--radius-sm); font-size: 0.82rem; box-sizing: border-box; }
+  .ckl-add-form input:focus, .ckl-add-form select:focus { border-color: var(--primary); outline: none; }
+  .ckl-add-form input[type="text"] { flex: 1; min-width: 200px; }
+  .ckl-add-form select { min-width: 140px; }
+  .ckl-add-form input[type="number"] { width: 60px; }
+  .ckl-add-btn { background: var(--primary); color: #fff; padding: 0.45rem 0.9rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.8rem; border: none; cursor: pointer; white-space: nowrap; }
+  .ckl-add-btn:hover { opacity: 0.9; }
+
+  .ckl-new-dept-card { background: var(--card-bg, #fff); border: 2px dashed #d1d5db; border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; text-align: center; }
+  .ckl-new-dept-card h3 { font-size: 0.95rem; font-weight: 700; margin: 0 0 1rem 0; color: var(--text-main); }
+  .ckl-new-dept-card form { display: flex; gap: 0.75rem; justify-content: center; align-items: flex-end; flex-wrap: wrap; }
+  .ckl-new-dept-card select { padding: 0.55rem 0.75rem; border: 1.5px solid #d1d5db; border-radius: var(--radius-sm); font-size: 0.85rem; min-width: 250px; }
+  .ckl-new-dept-card button { background: var(--primary); color: #fff; padding: 0.55rem 1.25rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; }
+
+  .ckl-no-checklists { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+  .ckl-no-checklists i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+
+  @media (max-width: 768px) {
+    .ckl-item-actions { opacity: 1; }
+    .ckl-add-form input[type="text"] { min-width: 150px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ckl-container">
+  <div class="ckl-header">
+    <a href="/tibl/actividades/detalhe/{{ actividade.id }}/" class="back-link"><i class="fas fa-arrow-left"></i> Voltar à actividade</a>
+    <div>
+      <h2><i class="fas fa-list-check"></i> Checklists de Actividade</h2>
+      <div class="ckl-subtitle">{{ actividade.designacao }} — {{ actividade.data|date:"d/m/Y" }}</div>
+    </div>
+  </div>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="modern-card" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid {% if message.tags == 'success' %}var(--primary){% elif message.tags == 'error' %}#ef4444{% else %}#3b82f6{% endif %};">
+    <p style="margin:0; font-size: 0.9rem;"><i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}times-circle{% else %}info-circle{% endif %} mr-2"></i>{{ message }}</p>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="ckl-overall-card">
+    <div class="ckl-overall-title"><i class="fas fa-chart-line"></i> Progresso Geral da Actividade</div>
+    <div class="ckl-progress-bar-container">
+      <div class="ckl-progress-bar" id="overall-bar" style="width: {{ progresso_geral }}%;">
+        <span id="overall-text">{{ progresso_geral }}%</span>
+      </div>
+    </div>
+    <div class="ckl-progress-stats">
+      <span class="stat"><strong id="overall-concluidos">{{ total_concluidos }}</strong> de <strong id="overall-total">{{ total_items }}</strong> tarefas concluídas</span>
+      <span class="stat">{{ checklists.count }} checklist{{ checklists.count|pluralize }} · {{ checklists.count }} departamento{{ checklists.count|pluralize }}</span>
+    </div>
+  </div>
+
+  {% if checklists %}
+  {% for ckl in checklists %}
+  <div class="ckl-dept-card" id="dept-card-{{ ckl.id }}">
+    <div class="ckl-dept-header">
+      <h3><i class="fas fa-users"></i> {{ ckl.departamento.designacao }}</h3>
+      <div class="ckl-dept-progress">
+        <div class="mini-bar"><div class="mini-bar-fill" id="mini-bar-{{ ckl.id }}" style="width: {{ ckl.progresso }}%;"></div></div>
+        <span class="mini-text" id="mini-text-{{ ckl.id }}">{{ ckl.items_concluidos }}/{{ ckl.total_items }} ({{ ckl.progresso }}%)</span>
+        {% if can_manage %}
+        <form method="POST" action="{% url 'sitetibl:remover_checklist' ckl.id %}" style="display:inline;" onsubmit="return confirm('Remover toda a checklist de {{ ckl.departamento }}?')">
+          {% csrf_token %}
+          <button type="submit" class="remove-btn" title="Remover checklist"><i class="fas fa-trash"></i></button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if ckl.items.exists %}
+    {% for item in ckl.items.all %}
+    <div class="ckl-item {% if item.concluido %}done{% endif %}" id="item-{{ item.id }}">
+      <div class="ckl-checkbox {% if item.concluido %}checked{% endif %}" onclick="toggleItem({{ item.id }}, {{ ckl.id }})" title="Marcar/desmarcar"></div>
+      <div class="ckl-item-content">
+        <div class="ckl-item-desc">{{ item.descricao }}</div>
+        <div class="ckl-item-meta">
+          {% if item.responsavel %}<span class="resp-badge"><i class="fas fa-user"></i> {{ item.responsavel.nome }} {{ item.responsavel.apelido }}</span> · {% endif %}
+          {% if item.concluido and item.data_conclusao %}<span><i class="fas fa-check"></i>Concluído em {{ item.data_conclusao|date:"d/m/Y H:i" }}</span>{% else %}<span>Pendente</span>{% endif %}
+        </div>
+      </div>
+      {% if can_manage %}
+      <div class="ckl-item-actions">
+        <form method="POST" action="{% url 'sitetibl:remover_item_checklist' item.id %}" style="display:inline;" onsubmit="return confirm('Remover esta tarefa?')">
+          {% csrf_token %}
+          <button type="submit" class="ckl-item-action-btn" style="background: #fee2e2; color: #991b1b;" title="Remover"><i class="fas fa-trash"></i></button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="ckl-empty-dept">Sem tarefas. Adicione a primeira abaixo.</div>
+    {% endif %}
+
+    {% if can_manage %}
+    <div class="ckl-recur-row">
+      <div class="ckl-recur-toggle" onclick="toggleRecur({{ ckl.id }})">
+        <span class="recur-label"><i class="fas fa-repeat"></i> Recorrência</span>
+        <span class="recur-current">
+          {% if ckl.recorrencia != 'unica' %}
+          <span class="badge-recur">{{ ckl.recorrencia_display }}</span> · Notificação: {{ ckl.notificacao_display }}
+          {% else %}
+          <span class="badge-recur">Única</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="ckl-recur-body" id="recur-body-{{ ckl.id }}">
+        <form method="POST" action="{% url 'sitetibl:configurar_recorrencia' ckl.id %}" class="ckl-recur-form">
+          {% csrf_token %}
+          <div>
+            <label>Frequência</label>
+            <select name="rec_{{ ckl.id }}-recorrencia" id="id_recorrencia_{{ ckl.id }}" onchange="updateDiaOptions({{ ckl.id }})">
+              <option value="unica" {% if ckl.recorrencia == 'unica' %}selected{% endif %}>Única</option>
+              <option value="diaria" {% if ckl.recorrencia == 'diaria' %}selected{% endif %}>Diária</option>
+              <option value="semanal" {% if ckl.recorrencia == 'semanal' %}selected{% endif %}>Semanal</option>
+              <option value="mensal" {% if ckl.recorrencia == 'mensal' %}selected{% endif %}>Mensal</option>
+            </select>
+          </div>
+          <div id="dia-wrap-{{ ckl.id }}" style="{% if ckl.recorrencia == 'unica' or ckl.recorrencia == 'diaria' %}display:none;{% endif %}">
+            <label>Dia de Activação</label>
+            <select name="rec_{{ ckl.id }}-dia_activacao" id="id_dia_activacao_{{ ckl.id }}">
+              <option value="">—</option>
+            </select>
+          </div>
+          <div id="hora-wrap-{{ ckl.id }}" style="{% if ckl.recorrencia == 'unica' %}display:none;{% endif %}">
+            <label>Hora de Notificação</label>
+            <input type="time" name="rec_{{ ckl.id }}-hora_notificacao" value="{% if ckl.hora_notificacao %}{{ ckl.hora_notificacao|time:'H:i' }}{% endif %}">
+          </div>
+          <div class="full-row checkbox-wrap">
+            <input type="checkbox" name="rec_{{ ckl.id }}-notificar_responsaveis" id="id_notificar_{{ ckl.id }}" {% if ckl.notificar_responsaveis %}checked{% endif %}>
+            <label for="id_notificar_{{ ckl.id }}">Notificar responsáveis automaticamente</label>
+          </div>
+          <div class="full-row">
+            <button type="submit" class="ckl-recur-submit"><i class="fas fa-save mr-1"></i> Guardar Recorrência</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if can_manage %}
+    <div class="ckl-add-row">
+      <form method="POST" action="{% url 'sitetibl:adicionar_item_checklist' ckl.id %}" class="ckl-add-form">
+        {% csrf_token %}
+        <input type="text" name="descricao" placeholder="Nova tarefa ou material..." required>
+        <select name="responsavel">
+          <option value="">— Responsável —</option>
+          {% for p in participantes %}
+          <option value="{{ p.id }}">{{ p.nome }} {{ p.apelido }}</option>
+          {% endfor %}
+        </select>
+        <input type="number" name="ordem" min="0" value="{{ ckl.total_items|add:1 }}" title="Ordem">
+        <button type="submit" class="ckl-add-btn"><i class="fas fa-plus"></i> Adicionar</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="ckl-no-checklists">
+    <i class="fas fa-clipboard-list"></i>
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Ainda não há checklists para esta actividade</h3>
+    <p style="font-size: 0.9rem;">Crie a primeira checklist seleccionando um departamento abaixo.</p>
+  </div>
+  {% endif %}
+
+  {% if can_manage and departamentos_disponiveis %}
+  <div class="ckl-new-dept-card">
+    <h3><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Adicionar Checklist por Departamento</h3>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="criar_checklist" value="1">
+      <select name="departamento" required>
+        <option value="">— Seleccione um departamento —</option>
+        {% for dept in departamentos_disponiveis %}
+        <option value="{{ dept.id }}">{{ dept.designacao }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit"><i class="fas fa-plus mr-1"></i> Criar Checklist</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function toggleItem(itemId, cklId) {
+  var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '';
+  var formData = new FormData();
+  formData.append('csrfmiddlewaretoken', csrfToken);
+
+  fetch('/tibl/checklist/item/' + itemId + '/toggle/', {
+    method: 'POST',
+    body: formData,
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+  })
+  .then(response => response.json())
+  .then(data => {
+    var itemRow = document.getElementById('item-' + itemId);
+    var checkbox = itemRow.querySelector('.ckl-checkbox');
+    if (data.concluido) {
+      itemRow.classList.add('done');
+      checkbox.classList.add('checked');
+    } else {
+      itemRow.classList.remove('done');
+      checkbox.classList.remove('checked');
+    }
+    var miniBar = document.getElementById('mini-bar-' + cklId);
+    var miniText = document.getElementById('mini-text-' + cklId);
+    if (miniBar) { miniBar.style.width = data.progresso + '%'; }
+    if (miniText) { miniText.textContent = data.concluidos + '/' + data.total + ' (' + data.progresso + '%)'; }
+    var overallBar = document.getElementById('overall-bar');
+    var overallText = document.getElementById('overall-text');
+    var overallConcluidos = document.getElementById('overall-concluidos');
+    var overallTotal = document.getElementById('overall-total');
+    if (overallBar) { overallBar.style.width = data.progresso_geral + '%'; }
+    if (overallText) { overallText.textContent = data.progresso_geral + '%'; }
+    if (overallConcluidos) { overallConcluidos.textContent = data.total_concluidos; }
+    if (overallTotal) { overallTotal.textContent = data.total_items; }
+  })
+  .catch(function() {
+    location.reload();
+  });
+}
+
+function toggleRecur(cklId) {
+  var body = document.getElementById('recur-body-' + cklId);
+  if (body) { body.classList.toggle('active'); }
+}
+
+var diasSemana = [
+  {val: 0, label: 'Segunda-feira'},
+  {val: 1, label: 'Terça-feira'},
+  {val: 2, label: 'Quarta-feira'},
+  {val: 3, label: 'Quinta-feira'},
+  {val: 4, label: 'Sexta-feira'},
+  {val: 5, label: 'Sábado'},
+  {val: 6, label: 'Domingo'},
+];
+
+function updateDiaOptions(cklId) {
+  var freqSelect = document.getElementById('id_recorrencia_' + cklId);
+  var diaWrap = document.getElementById('dia-wrap-' + cklId);
+  var horaWrap = document.getElementById('hora-wrap-' + cklId);
+  var diaSelect = document.getElementById('id_dia_activacao_' + cklId);
+  if (!freqSelect) return;
+  var freq = freqSelect.value;
+  if (diaWrap) { diaWrap.style.display = (freq === 'semanal' || freq === 'mensal') ? '' : 'none'; }
+  if (horaWrap) { horaWrap.style.display = (freq === 'unica') ? 'none' : ''; }
+  if (!diaSelect) return;
+  diaSelect.innerHTML = '<option value="">—</option>';
+  if (freq === 'semanal') {
+    diasSemana.forEach(function(d) {
+      var opt = document.createElement('option');
+      opt.value = d.val;
+      opt.textContent = d.label;
+      diaSelect.appendChild(opt);
+    });
+  } else if (freq === 'mensal') {
+    for (var i = 1; i <= 31; i++) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Dia ' + i;
+      diaSelect.appendChild(opt);
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[id^="id_recorrencia_"]').forEach(function(sel) {
+    var cklId = sel.id.replace('id_recorrencia_', '');
+    updateDiaOptions(cklId);
+  });
+  {% for ckl in checklists %}
+  var diaSel_{{ ckl.id }} = document.getElementById('id_dia_activacao_{{ ckl.id }}');
+  if (diaSel_{{ ckl.id }} && {{ ckl.dia_activacao|default_if_none:"-1" }} >= 0) {
+    diaSel_{{ ckl.id }}.value = {{ ckl.dia_activacao|default_if_none:"-1" }};
+  }
+  {% endfor %}
+});
+</script>
+{% endblock %}

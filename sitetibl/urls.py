@@ -26,6 +26,7 @@ urlpatterns = [
     path('buscadizimosofertas/', views.encontraDizimosofertas, name='busca_dizimosofertas'),
     path('buscaentradas/', views.encontraEntradas, name='busca_entradas'),
     path('buscasaidas/', views.encontraSaidas, name='busca_saidas'),
+    path('movimentos/', views.movimentos, name='movimentos'),
     path('buscarelatoriosemanalcelula/', views.encontraRelatorioSemanalCelula, name='busca_relatoriosemanalcelula'),
     path('buscacelulas/', views.encontraCelulas, name='busca_celulas'),
     path('buscapedidosaida/', views.encontraPedidoSaida, name='busca_pedidosaida'),
@@ -82,4 +83,35 @@ urlpatterns = [
     path('pastoral/relatorio/selecionar/', views.relatorio_pastoral_selecionar_mes, name='relatorio_pastoral_selecionar_mes'),
     path('pastoral/relatorio/mensal/', views.relatorio_pastoral_mensal_pdf, name='relatorio_pastoral_mensal'),
     path('pastoral/relatorio/inactivos/', views.relatorio_inactivos_pdf, name='relatorio_inactivos_pdf'),
+
+    # ── Portal do Membro: Contribuições ──────────────────────
+    path('minhas-contribuicoes/', views.minhas_contribuicoes, name='minhas_contribuicoes'),
+    path('minhas-contribuicoes/registrar/', views.registrar_contribuicao, name='registrar_contribuicao'),
+    path('minhas-contribuicoes/<int:contribuicao_id>/detalhe/', views.detalhe_contribuicao, name='detalhe_contribuicao'),
+
+    # ── Área Financeira: Gestão de Contribuições ────────────
+    path('gestao/contribuicoes/', views.gestao_contribuicoes, name='gestao_contribuicoes'),
+    path('gestao/contribuicoes/<int:contribuicao_id>/confirmar/', views.confirmar_contribuicao, name='confirmar_contribuicao'),
+    path('gestao/contribuicoes/<int:contribuicao_id>/rejeitar/', views.rejeitar_contribuicao, name='rejeitar_contribuicao'),
+    path('gestao/contribuicoes/membro/<int:irmao_id>/historico/', views.historico_membro_contribuicoes, name='historico_membro_contribuicoes'),
+
+    # ── Checklists por Actividade ────────────────────────────
+    path('actividade/<int:actividade_id>/checklist/', views.checklist_actividade, name='checklist_actividade'),
+    path('checklist/item/<int:item_id>/toggle/', views.toggle_item_checklist, name='toggle_item_checklist'),
+    path('checklist/<int:checklist_id>/adicionar/', views.adicionar_item_checklist, name='adicionar_item_checklist'),
+    path('checklist/item/<int:item_id>/remover/', views.remover_item_checklist, name='remover_item_checklist'),
+    path('checklist/<int:checklist_id>/remover/', views.remover_checklist, name='remover_checklist'),
+    path('checklist/<int:checklist_id>/recorrencia/', views.configurar_recorrencia, name='configurar_recorrencia'),
+
+    # ── Notificações de Checklist ────────────────────────────
+    path('notificacoes/', views.listar_notificacoes, name='listar_notificacoes'),
+    path('notificacoes/<int:notificacao_id>/ler/', views.marcar_notificacao_lida, name='marcar_notificacao_lida'),
+    path('notificacoes/todas-lidas/', views.marcar_todas_lidas, name='marcar_todas_lidas'),
+
+    # ── Visão por Departamento ───────────────────────────────
+    path('dashboard-checklist/', views.dashboard_checklist, name='dashboard_checklist'),
+    path('dashboard-checklist/departamento/<int:departamento_id>/', views.dashboard_checklist, name='dashboard_checklist_dept'),
+
+    # ── Minhas Tarefas (Membro) ──────────────────────────────
+    path('minhas-tarefas/', views.minhas_tarefas, name='minhas_tarefas'),
 ]

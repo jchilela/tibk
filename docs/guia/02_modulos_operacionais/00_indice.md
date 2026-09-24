@@ -17,5 +17,6 @@ Esta secao agrupa os modulos usados no registo e acompanhamento das actividades 
 11. [11. Patrimonio](11_patrimonio.md)
 12. [12. Solicitacoes Interdepartamentais](12_solicitacoes_interdepartamentais.md)
 13. [13. Painel de Acompanhamento Pastoral](13_painel_pastoral.md)
+14. [14. Checklists de Actividades](14_checklists.md)
 
 [Voltar ao guia principal](../../GUIA_UTILIZADOR.md)

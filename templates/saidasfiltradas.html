@@ -1,4 +1,5 @@
 {% extends 'index.html' %}
+{% load verificagrupo %}
 {% block Saidasfiltradas %}
 
 <div class="list-container">
@@ -39,14 +40,14 @@
                         {% if x.tipo == 'banco' %}
                         <div style="font-weight: 600; color: var(--text-main);">{{ x.conta.numeroconta|default:x.conta }}</div>
                         {% if x.conta %}
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Saldo: {{ x.conta.saldo_actual|floatformat:2 }} {{ x.conta.moeda }}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Saldo: {{ x.conta.saldo_actual|dinheiro }} {{ x.conta.moeda }}</div>
                         {% endif %}
                         {% endif %}
                         <div style="font-weight: 500; color: #991b1b;">{{ x.rubrica.designacao|default:x.rubrica }}</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted);">Ref: #S-{{ x.id }}</div>
                     </td>
                     <td style="text-align: right; color: #ef4444; font-weight: 700;">
-                        - {{ x.valor|floatformat:2 }} {{ x.moeda }}
+                        - {{ x.valor|dinheiro }} {{ x.moeda }}
                     </td>
                     <td style="text-align: right;">
                         <a href="/tibl/saidas/detalhe/{{ x.id }}" class="bt-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-light); color: white;">

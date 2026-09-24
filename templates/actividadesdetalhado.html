@@ -35,6 +35,11 @@
                         <i class="fas fa-id-card"></i> Credenciais
                     </a>
                     {% endif %}
+                    <a href="{% url 'sitetibl:checklist_actividade' x.id %}" class="bt-primary"
+                        style="background: #6366f1; color: white; padding: 0.5rem 1rem;"
+                        title="Gerir checklist de preparação">
+                        <i class="fas fa-list-check"></i> Checklist
+                    </a>
                     {% if perms.sitetibl.change_actividade %}
                     <a href="/tibl/{{ gestaoescolhida }}/actualizar/{{ x.id }}" class="bt-primary"
                         style="background: white; color: var(--primary-dark); padding: 0.5rem 1rem;">

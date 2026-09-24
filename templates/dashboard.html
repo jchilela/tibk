@@ -218,7 +218,7 @@
           </div>
           <div class="dash-list-body">
             <strong>{{ p.projecto|truncatewords:12 }}</strong>
-            <span class="dash-list-meta">{{ p.montante|floatformat:0 }} Kz · {% if p.departamento %}{{ p.departamento }}{% endif %} · {{ p.get_estado_display }}</span>
+            <span class="dash-list-meta">{{ p.montante|dinheiro_int }} Kz · {% if p.departamento %}{{ p.departamento }}{% endif %} · {{ p.get_estado_display }}</span>
           </div>
         </div>
         {% endfor %}
@@ -241,7 +241,7 @@
           </div>
           <div class="dash-list-body">
             <strong>{{ s.banco }} (···{{ s.numero }})</strong>
-            <span class="dash-list-meta" style="font-size: 1rem; font-weight: 700; color: #0f172a;">{{ s.saldo|floatformat:2 }} {{ s.moeda }}</span>
+            <span class="dash-list-meta" style="font-size: 1rem; font-weight: 700; color: #0f172a;">{{ s.saldo|dinheiro }} {{ s.moeda }}</span>
           </div>
         </div>
         {% endfor %}

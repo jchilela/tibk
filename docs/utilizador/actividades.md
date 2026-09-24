@@ -67,6 +67,48 @@ O sistema envia um email de lembrete ao membro escalado:
 
 ---
 
+## Checklists de Actividades
+
+Cada actividade pode ter checklists por departamento para organizar tarefas de preparação.
+
+### Aceder ao dashboard de checklists
+
+1. No menu lateral, clique em **Checklists**.
+2. O dashboard mostra o estado das checklists por departamento:
+   - Total de tarefas, concluídas, pendentes e atrasadas
+   - Progresso de cada checklist
+
+### Gerir tarefas de uma checklist
+
+1. Na página de detalhe de uma actividade, clique em **Checklist**.
+2. Cada departamento tem o seu cartão com a lista de tarefas.
+3. Clique no checkbox para marcar/desmarcar uma tarefa como concluída.
+4. Para adicionar tarefas, use o formulário **Adicionar tarefa** no cartão do departamento.
+5. Para remover uma tarefa, clique no ícone de lixo (apenas gestores).
+
+### Configurar recorrência
+
+1. No cartão de cada checklist, clique em **Configurar Recorrência**.
+2. Escolha a frequência (Única, Diária, Semanal ou Mensal).
+3. Defina o dia e hora de activação.
+4. Active a notificação automática aos responsáveis, se pretendido.
+
+### Minhas Tarefas
+
+1. No menu lateral, clique em **Minhas Tarefas**.
+2. Veja todas as tarefas que lhe foram atribuídas, organizadas por estado.
+3. Marque tarefas como concluídas diretamente nesta página.
+
+### Notificações de checklist
+
+- O sino no canto superior direito mostra notificações de checklists não lidas.
+- Tipos: checklist disponível, tarefa atrasada, tarefa próxima do prazo.
+
+!!! note "Permissões"
+	Administradores e líderes de departamento gerem checklists. Membros veem e marcam apenas as suas tarefas.
+
+---
+
 ## Perguntas frequentes
 
 **Um membro pode ter a mesma função duas vezes na mesma actividade?**

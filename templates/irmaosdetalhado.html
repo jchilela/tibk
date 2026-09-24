@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load verificagrupo %}
 
 {% block Irmaodetalhado %}
 <div class="modern-card" style="margin-bottom: 1.5rem; padding: 0; overflow: hidden;">
@@ -241,11 +242,11 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
             <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color);">
                 <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Total Histórico</p>
-                <p style="font-size: 1.4rem; font-weight: 700; color: #27ae60; margin: 0;">{{ contrib_total_historico|floatformat:2 }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">{{ contrib_moeda }}</span></p>
+                <p style="font-size: 1.4rem; font-weight: 700; color: #27ae60; margin: 0;">{{ contrib_total_historico|dinheiro }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">{{ contrib_moeda }}</span></p>
             </div>
             <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color);">
                 <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Total {{ contrib_ano_atual }}</p>
-                <p style="font-size: 1.4rem; font-weight: 700; color: var(--primary); margin: 0;">{{ contrib_total_ano|floatformat:2 }}</p>
+                <p style="font-size: 1.4rem; font-weight: 700; color: var(--primary); margin: 0;">{{ contrib_total_ano|dinheiro }}</p>
             </div>
             <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-color);">
                 <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Registos Totais</p>

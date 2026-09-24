@@ -1,4 +1,5 @@
 {% extends 'index.html' %}
+{% load verificagrupo %}
 {% block Dizimosofertasfiltradas %}
 
 <div class="list-container animate-fade-in-up">
@@ -48,7 +49,7 @@
                     <td style="text-align: center;">
                         <div
                             style="font-weight: 800; color: var(--primary-light); font-size: 1.1rem; letter-spacing: -0.5px;">
-                            {{ x.valor|floatformat:2 }}
+                            {{ x.valor|dinheiro }}
                             <span
                                 style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; vertical-align: middle; border: 1px solid var(--border-color); padding: 1px 4px; border-radius: 4px; margin-left: 3px;">
                                 {{ x.get_moeda_display }}

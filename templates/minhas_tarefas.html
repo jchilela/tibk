@@ -1,0 +1,183 @@
+{% extends "base_modern.html" %}
+{% load static %}
+
+{% block title %}Minhas Tarefas — TIBL{% endblock %}
+
+{% block extra_css %}
+<style>
+  .mtf-container { max-width: 900px; margin: 0 auto; padding-bottom: 3rem; }
+  .mtf-header { margin-bottom: 2rem; }
+  .mtf-header h2 { font-size: 1.5rem; color: var(--text-main); margin: 0 0 0.25rem 0; }
+  .mtf-header h2 i { color: var(--primary); }
+  .mtf-header p { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+
+  .mtf-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .mtf-stat-card { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.25rem; text-align: center; }
+  .mtf-stat-card .stat-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-size: 1rem; }
+  .mtf-stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
+  .mtf-stat-card .stat-label { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+  .mtf-section-title { font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.75rem 0; display: flex; align-items: center; gap: 0.5rem; }
+  .mtf-section-title i { color: var(--primary); }
+  .mtf-section-title .count-badge { background: #e2e8f0; color: var(--text-muted); padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.72rem; }
+
+  .mtf-task-list { margin-bottom: 2rem; }
+  .mtf-task { background: var(--card-bg, #fff); border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 1rem; }
+  .mtf-task:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+  .mtf-task.atrasada { border-left: 4px solid #ef4444; }
+  .mtf-task.pendente { border-left: 4px solid #f59e0b; }
+  .mtf-task.concluida { border-left: 4px solid #10b981; opacity: 0.75; }
+
+  .mtf-checkbox { width: 22px; height: 22px; border: 2.5px solid #d1d5db; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; background: #fff; }
+  .mtf-checkbox:hover { border-color: var(--primary); }
+  .mtf-checkbox.checked { background: var(--primary); border-color: var(--primary); }
+  .mtf-checkbox.checked::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #fff; font-size: 0.7rem; }
+
+  .mtf-task-content { flex: 1; }
+  .mtf-task-desc { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+  .mtf-task.concluida .mtf-task-desc { text-decoration: line-through; color: var(--text-muted); }
+  .mtf-task-meta { font-size: 0.73rem; color: var(--text-muted); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .mtf-task-meta .dept-badge { background: #e0e7ff; color: #4338ca; padding: 0.1rem 0.45rem; border-radius: 999px; font-weight: 600; font-size: 0.68rem; }
+  .mtf-task-meta .date-badge { font-size: 0.68rem; }
+  .mtf-task-meta .date-badge.atrasada { color: #ef4444; font-weight: 600; }
+
+  .mtf-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+  .mtf-empty i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.25; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mtf-container">
+  <div class="mtf-header">
+    <h2><i class="fas fa-tasks"></i> Minhas Tarefas</h2>
+    <p>Tarefas que lhe foram atribuídas em checklists de actividade</p>
+  </div>
+
+  <div class="mtf-stats">
+    <div class="mtf-stat-card">
+      <div class="stat-icon" style="background: #fef3c7; color: #92400e;"><i class="fas fa-clock"></i></div>
+      <div class="stat-value">{{ total_pendentes }}</div>
+      <div class="stat-label">Pendentes</div>
+    </div>
+    <div class="mtf-stat-card">
+      <div class="stat-icon" style="background: #d1fae5; color: #065f46;"><i class="fas fa-check"></i></div>
+      <div class="stat-value">{{ total_concluidas }}</div>
+      <div class="stat-label">Concluídas</div>
+    </div>
+    {% if total_atrasadas > 0 %}
+    <div class="mtf-stat-card">
+      <div class="stat-icon" style="background: #fee2e2; color: #991b1b;"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="stat-value">{{ total_atrasadas }}</div>
+      <div class="stat-label">Atrasadas</div>
+    </div>
+    {% endif %}
+    <div class="mtf-stat-card">
+      <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;"><i class="fas fa-list"></i></div>
+      <div class="stat-value">{{ total }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+  </div>
+
+  {% if atrasadas %}
+  <h3 class="mtf-section-title"><i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Tarefas Atrasadas <span class="count-badge">{{ total_atrasadas }}</span></h3>
+  <div class="mtf-task-list">
+    {% for t in atrasadas %}
+    <div class="mtf-task atrasada" id="task-{{ t.id }}">
+      <div class="mtf-checkbox" onclick="toggleTask({{ t.id }})" title="Marcar como concluída"></div>
+      <div class="mtf-task-content">
+        <div class="mtf-task-desc">{{ t.descricao }}</div>
+        <div class="mtf-task-meta">
+          <span class="dept-badge"><i class="fas fa-users"></i> {{ t.checklist.departamento.designacao }}</span>
+          <a href="{% url 'sitetibl:checklist_actividade' t.checklist.actividade_id %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">{{ t.checklist.actividade.designacao }}</a>
+          <span class="date-badge atrasada"><i class="fas fa-calendar-times"></i> {{ t.checklist.actividade.data|date:"d/m/Y" }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if pendentes %}
+  {% if atrasadas %}<h3 class="mtf-section-title"><i class="fas fa-clock" style="color: #f59e0b;"></i> Pendentes <span class="count-badge">{{ total_pendentes }}</span></h3>{% endif %}
+  <div class="mtf-task-list">
+    {% for t in pendentes %}
+    {% if t.checklist.actividade.data >= hoje %}
+    <div class="mtf-task pendente" id="task-{{ t.id }}">
+      <div class="mtf-checkbox" onclick="toggleTask({{ t.id }})" title="Marcar como concluída"></div>
+      <div class="mtf-task-content">
+        <div class="mtf-task-desc">{{ t.descricao }}</div>
+        <div class="mtf-task-meta">
+          <span class="dept-badge"><i class="fas fa-users"></i> {{ t.checklist.departamento.designacao }}</span>
+          <a href="{% url 'sitetibl:checklist_actividade' t.checklist.actividade_id %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">{{ t.checklist.actividade.designacao }}</a>
+          <span class="date-badge"><i class="fas fa-calendar"></i> {{ t.checklist.actividade.data|date:"d/m/Y" }}</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if concluidas %}
+  <h3 class="mtf-section-title"><i class="fas fa-check-circle" style="color: #10b981;"></i> Concluídas <span class="count-badge">{{ total_concluidas }}</span></h3>
+  <div class="mtf-task-list">
+    {% for t in concluidas %}
+    <div class="mtf-task concluida" id="task-{{ t.id }}">
+      <div class="mtf-checkbox checked" onclick="toggleTask({{ t.id }})" title="Desmarcar"></div>
+      <div class="mtf-task-content">
+        <div class="mtf-task-desc">{{ t.descricao }}</div>
+        <div class="mtf-task-meta">
+          <span class="dept-badge"><i class="fas fa-users"></i> {{ t.checklist.departamento.designacao }}</span>
+          <a href="{% url 'sitetibl:checklist_actividade' t.checklist.actividade_id %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">{{ t.checklist.actividade.designacao }}</a>
+          {% if t.data_conclusao %}<span class="date-badge"><i class="fas fa-check"></i> {{ t.data_conclusao|date:"d/m/Y H:i" }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not tarefas %}
+  <div class="mtf-empty">
+    <i class="fas fa-clipboard-check"></i>
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Sem tarefas atribuídas</h3>
+    <p style="font-size: 0.9rem;">Não tem tarefas atribuídas em nenhuma checklist.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function getCSRFToken() {
+  var cookie = document.cookie.match(/csrftoken=([^;]+)/);
+  return cookie ? cookie[1] : '';
+}
+
+function toggleTask(itemId) {
+  fetch('/tibl/checklist/item/' + itemId + '/toggle/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCSRFToken(),
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    var task = document.getElementById('task-' + itemId);
+    var checkbox = task.querySelector('.mtf-checkbox');
+    if (data.concluido) {
+      task.classList.remove('pendente', 'atrasada');
+      task.classList.add('concluida');
+      checkbox.classList.add('checked');
+      task.querySelector('.mtf-task-desc').style.textDecoration = 'line-through';
+    } else {
+      task.classList.remove('concluida');
+      checkbox.classList.remove('checked');
+      task.querySelector('.mtf-task-desc').style.textDecoration = '';
+    }
+  })
+  .catch(function() {
+    location.reload();
+  });
+}
+</script>
+{% endblock %}
