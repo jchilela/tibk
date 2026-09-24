@@ -1,6 +1,6 @@
 # Checklists de Actividades
 
-As checklists permitem gerir tarefas de preparacao por departamento para cada actividade. Cada departamento pode ter a sua propria checklist com tarefas, responsaveis e prazos.
+Cada departamento cria a sua checklist atraves de um responsavel (lider, vice-lider, secretario ou coordenador). Os membros desse departamento veem a lista e marcam apenas os itens que lhes foram atribuidos. Numa actividade que se repete, como a comunicacao de sabado, a mesma lista fica preparada na ocorrencia seguinte, por marcar.
 
 ## Aceder ao dashboard de checklists
 
@@ -11,52 +11,41 @@ As checklists permitem gerir tarefas de preparacao por departamento para cada ac
    - Tarefas atrasadas
    - Progresso de cada checklist (barra percentual)
 
-> Nota: Os administradores veem todos os departamentos. Os lideres de departamento veem apenas os seus.
+> Nota: Cada pessoa ve os departamentos a que pertence. O administrador ve todos.
 
 ## Consultar uma checklist de actividade
 
 1. Na pagina de detalhe de uma actividade, clique em **Checklist**.
-2. A pagina mostra todas as checklists da actividade, agrupadas por departamento.
+2. A pagina mostra a checklist dos departamentos a que pertence.
 3. Para cada checklist ve-se:
    - Lista de tarefas com estado (pendente/concluida)
    - Responsavel por cada tarefa
    - Barra de progresso individual e geral
 
-## Criar uma checklist para um departamento
+## Criar a checklist do departamento
 
-1. Na pagina de checklist da actividade, se tem permissao de gestao, aparece o formulario **Nova Checklist**.
-2. Seleccione o departamento.
+1. O responsavel do departamento abre a checklist da actividade.
+2. No formulario **Criar a checklist do departamento**, selecciona o seu departamento.
 3. Clique em **Criar Checklist**.
-4. Apos criar, pode adicionar tarefas.
+4. Se a actividade faz parte de uma serie, as ocorrencias seguintes recebem a mesma lista, por marcar.
 
 ## Adicionar tarefas
 
-1. Dentro de cada checklist (cartao por departamento), clique em **Adicionar tarefa**.
-2. Introduza a descricao da tarefa.
-3. Seleccione o responsavel (opcional).
-4. Defina a ordem (opcional).
-5. Clique em **Adicionar**.
+1. O responsavel escreve a tarefa.
+2. Escolhe o membro do departamento que a vai marcar.
+3. Clique em **Adicionar**.
+4. O item entra tambem nas proximas ocorrencias da serie.
 
 ## Marcar tarefas como concluidas
 
-- Clique no checkbox ao lado da tarefa para alternar entre pendente e concluida.
-- A actualizacao e instantanea (AJAX) e a barra de progresso actualiza automaticamente.
+- No sabado (ou na data da actividade), o membro abre a checklist e marca os itens que lhe foram atribuidos.
+- Nao consegue marcar o item de outro membro.
+- O responsavel do departamento pode marcar qualquer item do seu departamento.
 
 ## Remover tarefas e checklists
 
 - Para remover uma tarefa, clique no icone de lixo ao lado da tarefa (apenas gestores).
 - Para remover uma checklist inteira, clique em **Remover Checklist** no cartao do departamento (apenas gestores).
-
-## Configurar recorrencia
-
-1. No cartao de cada checklist, clique em **Configurar Recorrencia** (apenas gestores).
-2. Seleccione a frequencia: Unica, Diaria, Semanal ou Mensal.
-3. Para semanal, escolha o dia da semana. Para mensal, escolha o dia do mes.
-4. Defina a hora de notificacao.
-5. Active ou desactive a notificacao automatica aos responsaveis.
-6. Clique em **Guardar**.
-
-> Nota: As notificacoes sao geradas automaticamente pelo sistema atraves de um comando agendado.
 
 ## Minhas Tarefas
 
@@ -82,8 +71,8 @@ As checklists permitem gerir tarefas de preparacao por departamento para cada ac
 
 | Perfil | Acesso |
 | --- | --- |
-| Administrador | Gere todas as checklists, tarefas e recorrencias |
-| Lider/Vice-Lider de Departamento | Gere checklists do seu departamento |
-| Membro | Ve e marca as suas proprias tarefas atribuidas |
+| Administrador | Ve todas as checklists |
+| Responsavel do departamento (lider, vice-lider, secretario, coordenador) | Cria a checklist e atribui itens aos membros |
+| Membro do departamento | Ve a checklist e marca apenas os seus itens |
 
 [Voltar ao indice](../../GUIA_UTILIZADOR.md)

@@ -67,11 +67,11 @@
                     class="nav-item {% if 'actividades' in request.path %}active{% endif %}">
                     <i class="fas fa-calendar-check fa-fw"></i> Actividades
                 </a>
+                {% endif %}
                 <a href="{% url 'sitetibl:dashboard_checklist' %}"
                     class="nav-item {% if 'dashboard-checklist' in request.path %}active{% endif %}">
                     <i class="fas fa-list-check fa-fw"></i> Checklists
                 </a>
-                {% endif %}
                 <a href="{% url 'sitetibl:minhas_tarefas' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'minhas_tarefas' %}active{% endif %}">
                     <i class="fas fa-tasks fa-fw"></i> Minhas Tarefas

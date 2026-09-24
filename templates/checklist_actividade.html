@@ -37,6 +37,8 @@
 
   .ckl-checkbox { width: 22px; height: 22px; border: 2.5px solid #d1d5db; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; background: #fff; }
   .ckl-checkbox:hover { border-color: var(--primary); }
+  .ckl-checkbox.locked { cursor: default; opacity: 0.45; }
+  .ckl-checkbox.locked:hover { border-color: #d1d5db; }
   .ckl-checkbox.checked { background: var(--primary); border-color: var(--primary); }
   .ckl-checkbox.checked::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #fff; font-size: 0.7rem; }
 
@@ -98,11 +100,12 @@
 
 {% block content %}
 <div class="ckl-container">
+  <form style="display:none;">{% csrf_token %}</form>
   <div class="ckl-header">
     <a href="/tibl/actividades/detalhe/{{ actividade.id }}/" class="back-link"><i class="fas fa-arrow-left"></i> Voltar à actividade</a>
     <div>
-      <h2><i class="fas fa-list-check"></i> Checklists de Actividade</h2>
-      <div class="ckl-subtitle">{{ actividade.designacao }} — {{ actividade.data|date:"d/m/Y" }}</div>
+      <h2><i class="fas fa-list-check"></i> Checklist do departamento</h2>
+      <div class="ckl-subtitle">{{ actividade.designacao }} — {{ actividade.data|date:"d/m/Y" }}. O responsável cria a lista. Cada membro marca os seus itens.</div>
     </div>
   </div>
 
@@ -115,7 +118,7 @@
   {% endif %}
 
   <div class="ckl-overall-card">
-    <div class="ckl-overall-title"><i class="fas fa-chart-line"></i> Progresso Geral da Actividade</div>
+    <div class="ckl-overall-title"><i class="fas fa-chart-line"></i> {% if ve_todas %}Progresso da actividade{% else %}Progresso do seu departamento{% endif %}</div>
     <div class="ckl-progress-bar-container">
       <div class="ckl-progress-bar" id="overall-bar" style="width: {{ progresso_geral }}%;">
         <span id="overall-text">{{ progresso_geral }}%</span>
@@ -123,7 +126,7 @@
     </div>
     <div class="ckl-progress-stats">
       <span class="stat"><strong id="overall-concluidos">{{ total_concluidos }}</strong> de <strong id="overall-total">{{ total_items }}</strong> tarefas concluídas</span>
-      <span class="stat">{{ checklists.count }} checklist{{ checklists.count|pluralize }} · {{ checklists.count }} departamento{{ checklists.count|pluralize }}</span>
+      <span class="stat">{{ total_checklists }} checklist{{ total_checklists|pluralize }}</span>
     </div>
   </div>
 
@@ -135,7 +138,7 @@
       <div class="ckl-dept-progress">
         <div class="mini-bar"><div class="mini-bar-fill" id="mini-bar-{{ ckl.id }}" style="width: {{ ckl.progresso }}%;"></div></div>
         <span class="mini-text" id="mini-text-{{ ckl.id }}">{{ ckl.items_concluidos }}/{{ ckl.total_items }} ({{ ckl.progresso }}%)</span>
-        {% if can_manage %}
+        {% if ckl.pode_gerir %}
         <form method="POST" action="{% url 'sitetibl:remover_checklist' ckl.id %}" style="display:inline;" onsubmit="return confirm('Remover toda a checklist de {{ ckl.departamento }}?')">
           {% csrf_token %}
           <button type="submit" class="remove-btn" title="Remover checklist"><i class="fas fa-trash"></i></button>
@@ -144,10 +147,14 @@
       </div>
     </div>
 
-    {% if ckl.items.exists %}
+    {% if ckl.total_items %}
     {% for item in ckl.items.all %}
     <div class="ckl-item {% if item.concluido %}done{% endif %}" id="item-{{ item.id }}">
-      <div class="ckl-checkbox {% if item.concluido %}checked{% endif %}" onclick="toggleItem({{ item.id }}, {{ ckl.id }})" title="Marcar/desmarcar"></div>
+      {% if item.pode_marcar %}
+      <div class="ckl-checkbox {% if item.concluido %}checked{% endif %}" onclick="toggleItem({{ item.id }}, {{ ckl.id }})" title="Marcar o meu item"></div>
+      {% else %}
+      <div class="ckl-checkbox locked {% if item.concluido %}checked{% endif %}" title="Só o membro responsável marca este item"></div>
+      {% endif %}
       <div class="ckl-item-content">
         <div class="ckl-item-desc">{{ item.descricao }}</div>
         <div class="ckl-item-meta">
@@ -155,7 +162,7 @@
           {% if item.concluido and item.data_conclusao %}<span><i class="fas fa-check"></i>Concluído em {{ item.data_conclusao|date:"d/m/Y H:i" }}</span>{% else %}<span>Pendente</span>{% endif %}
         </div>
       </div>
-      {% if can_manage %}
+      {% if ckl.pode_gerir %}
       <div class="ckl-item-actions">
         <form method="POST" action="{% url 'sitetibl:remover_item_checklist' item.id %}" style="display:inline;" onsubmit="return confirm('Remover esta tarefa?')">
           {% csrf_token %}
@@ -166,63 +173,17 @@
     </div>
     {% endfor %}
     {% else %}
-    <div class="ckl-empty-dept">Sem tarefas. Adicione a primeira abaixo.</div>
+    <div class="ckl-empty-dept">Sem tarefas. O responsável do departamento adiciona os itens e indica quem os marca.</div>
     {% endif %}
 
-    {% if can_manage %}
-    <div class="ckl-recur-row">
-      <div class="ckl-recur-toggle" onclick="toggleRecur({{ ckl.id }})">
-        <span class="recur-label"><i class="fas fa-repeat"></i> Recorrência</span>
-        <span class="recur-current">
-          {% if ckl.recorrencia != 'unica' %}
-          <span class="badge-recur">{{ ckl.recorrencia_display }}</span> · Notificação: {{ ckl.notificacao_display }}
-          {% else %}
-          <span class="badge-recur">Única</span>
-          {% endif %}
-        </span>
-      </div>
-      <div class="ckl-recur-body" id="recur-body-{{ ckl.id }}">
-        <form method="POST" action="{% url 'sitetibl:configurar_recorrencia' ckl.id %}" class="ckl-recur-form">
-          {% csrf_token %}
-          <div>
-            <label>Frequência</label>
-            <select name="rec_{{ ckl.id }}-recorrencia" id="id_recorrencia_{{ ckl.id }}" onchange="updateDiaOptions({{ ckl.id }})">
-              <option value="unica" {% if ckl.recorrencia == 'unica' %}selected{% endif %}>Única</option>
-              <option value="diaria" {% if ckl.recorrencia == 'diaria' %}selected{% endif %}>Diária</option>
-              <option value="semanal" {% if ckl.recorrencia == 'semanal' %}selected{% endif %}>Semanal</option>
-              <option value="mensal" {% if ckl.recorrencia == 'mensal' %}selected{% endif %}>Mensal</option>
-            </select>
-          </div>
-          <div id="dia-wrap-{{ ckl.id }}" style="{% if ckl.recorrencia == 'unica' or ckl.recorrencia == 'diaria' %}display:none;{% endif %}">
-            <label>Dia de Activação</label>
-            <select name="rec_{{ ckl.id }}-dia_activacao" id="id_dia_activacao_{{ ckl.id }}">
-              <option value="">—</option>
-            </select>
-          </div>
-          <div id="hora-wrap-{{ ckl.id }}" style="{% if ckl.recorrencia == 'unica' %}display:none;{% endif %}">
-            <label>Hora de Notificação</label>
-            <input type="time" name="rec_{{ ckl.id }}-hora_notificacao" value="{% if ckl.hora_notificacao %}{{ ckl.hora_notificacao|time:'H:i' }}{% endif %}">
-          </div>
-          <div class="full-row checkbox-wrap">
-            <input type="checkbox" name="rec_{{ ckl.id }}-notificar_responsaveis" id="id_notificar_{{ ckl.id }}" {% if ckl.notificar_responsaveis %}checked{% endif %}>
-            <label for="id_notificar_{{ ckl.id }}">Notificar responsáveis automaticamente</label>
-          </div>
-          <div class="full-row">
-            <button type="submit" class="ckl-recur-submit"><i class="fas fa-save mr-1"></i> Guardar Recorrência</button>
-          </div>
-        </form>
-      </div>
-    </div>
-    {% endif %}
-
-    {% if can_manage %}
+    {% if ckl.pode_gerir %}
     <div class="ckl-add-row">
       <form method="POST" action="{% url 'sitetibl:adicionar_item_checklist' ckl.id %}" class="ckl-add-form">
         {% csrf_token %}
-        <input type="text" name="descricao" placeholder="Nova tarefa ou material..." required>
-        <select name="responsavel">
-          <option value="">— Responsável —</option>
-          {% for p in participantes %}
+        <input type="text" name="descricao" placeholder="Nova tarefa do departamento..." required>
+        <select name="responsavel" required>
+          <option value="">— Membro do departamento —</option>
+          {% for p in ckl.membros %}
           <option value="{{ p.id }}">{{ p.nome }} {{ p.apelido }}</option>
           {% endfor %}
         </select>
@@ -236,20 +197,20 @@
   {% else %}
   <div class="ckl-no-checklists">
     <i class="fas fa-clipboard-list"></i>
-    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Ainda não há checklists para esta actividade</h3>
-    <p style="font-size: 0.9rem;">Crie a primeira checklist seleccionando um departamento abaixo.</p>
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Ainda não há checklist do seu departamento</h3>
+    <p style="font-size: 0.9rem;">O responsável do departamento cria a lista. Os membros só veem e marcam os itens que lhes forem atribuídos.</p>
   </div>
   {% endif %}
 
-  {% if can_manage and departamentos_disponiveis %}
+  {% if departamentos_para_criar %}
   <div class="ckl-new-dept-card">
-    <h3><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Adicionar Checklist por Departamento</h3>
+    <h3><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Criar a checklist do departamento</h3>
     <form method="POST">
       {% csrf_token %}
       <input type="hidden" name="criar_checklist" value="1">
       <select name="departamento" required>
-        <option value="">— Seleccione um departamento —</option>
-        {% for dept in departamentos_disponiveis %}
+        <option value="">— O seu departamento —</option>
+        {% for dept in departamentos_para_criar %}
         <option value="{{ dept.id }}">{{ dept.designacao }}</option>
         {% endfor %}
       </select>
@@ -299,60 +260,5 @@ function toggleItem(itemId, cklId) {
   });
 }
 
-function toggleRecur(cklId) {
-  var body = document.getElementById('recur-body-' + cklId);
-  if (body) { body.classList.toggle('active'); }
-}
-
-var diasSemana = [
-  {val: 0, label: 'Segunda-feira'},
-  {val: 1, label: 'Terça-feira'},
-  {val: 2, label: 'Quarta-feira'},
-  {val: 3, label: 'Quinta-feira'},
-  {val: 4, label: 'Sexta-feira'},
-  {val: 5, label: 'Sábado'},
-  {val: 6, label: 'Domingo'},
-];
-
-function updateDiaOptions(cklId) {
-  var freqSelect = document.getElementById('id_recorrencia_' + cklId);
-  var diaWrap = document.getElementById('dia-wrap-' + cklId);
-  var horaWrap = document.getElementById('hora-wrap-' + cklId);
-  var diaSelect = document.getElementById('id_dia_activacao_' + cklId);
-  if (!freqSelect) return;
-  var freq = freqSelect.value;
-  if (diaWrap) { diaWrap.style.display = (freq === 'semanal' || freq === 'mensal') ? '' : 'none'; }
-  if (horaWrap) { horaWrap.style.display = (freq === 'unica') ? 'none' : ''; }
-  if (!diaSelect) return;
-  diaSelect.innerHTML = '<option value="">—</option>';
-  if (freq === 'semanal') {
-    diasSemana.forEach(function(d) {
-      var opt = document.createElement('option');
-      opt.value = d.val;
-      opt.textContent = d.label;
-      diaSelect.appendChild(opt);
-    });
-  } else if (freq === 'mensal') {
-    for (var i = 1; i <= 31; i++) {
-      var opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = 'Dia ' + i;
-      diaSelect.appendChild(opt);
-    }
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('[id^="id_recorrencia_"]').forEach(function(sel) {
-    var cklId = sel.id.replace('id_recorrencia_', '');
-    updateDiaOptions(cklId);
-  });
-  {% for ckl in checklists %}
-  var diaSel_{{ ckl.id }} = document.getElementById('id_dia_activacao_{{ ckl.id }}');
-  if (diaSel_{{ ckl.id }} && {{ ckl.dia_activacao|default_if_none:"-1" }} >= 0) {
-    diaSel_{{ ckl.id }}.value = {{ ckl.dia_activacao|default_if_none:"-1" }};
-  }
-  {% endfor %}
-});
 </script>
 {% endblock %}

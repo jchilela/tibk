@@ -2930,20 +2930,178 @@ def historico_membro_contribuicoes(request, irmao_id):
 
 # ── Checklists por Actividade e Departamento ─────────────────────
 
-def _check_permission(request, actividade, departamento=None):
-    """Admin e líderes/vice-líderes do departamento podem gerir."""
-    if request.user.has_perm('sitetibl.change_actividade') or request.user.is_superuser:
+_FUNCOES_RESPONSAVEL_CHECKLIST = ('lider', 'vice_lider', 'secretario', 'coordenador')
+
+
+def _mandatos_activos(irmao):
+    from datetime import date
+    from sitetibl.models import Mandato
+    hoje = date.today()
+    return Mandato.objects.filter(irmao=irmao).filter(
+        Q(fim__isnull=True) | Q(fim__gte=hoje)
+    ).filter(
+        Q(inicio__isnull=True) | Q(inicio__lte=hoje)
+    )
+
+
+def _departamentos_do_irmao(irmao, apenas_responsavel=False):
+    from sitetibl.models import Departamento
+    if not irmao:
+        return Departamento.objects.none()
+    mandatos = _mandatos_activos(irmao)
+    if apenas_responsavel:
+        mandatos = mandatos.filter(funcao__in=_FUNCOES_RESPONSAVEL_CHECKLIST)
+    ids = set(mandatos.values_list('departamento_id', flat=True))
+    ids.update(
+        Departamento.objects.filter(
+            Q(lider_departamento=irmao) | Q(vice_lider_departamento=irmao)
+        ).values_list('id', flat=True)
+    )
+    return Departamento.objects.filter(id__in=ids).order_by('designacao')
+
+
+def _membros_departamento(departamento):
+    from datetime import date
+    from sitetibl.models import Irmao
+    hoje = date.today()
+    return Irmao.objects.filter(
+        mandato__departamento=departamento,
+    ).filter(
+        Q(mandato__fim__isnull=True) | Q(mandato__fim__gte=hoje)
+    ).filter(
+        Q(mandato__inicio__isnull=True) | Q(mandato__inicio__lte=hoje)
+    ).distinct().order_by('nome', 'apelido')
+
+
+def _e_responsavel_departamento(request, departamento):
+    """Quem cria e gere a checklist é o responsável daquele departamento."""
+    if request.user.is_superuser:
         return True
-    irmao_logado = _get_irmao_logado(request)
-    if not irmao_logado:
+    irmao = _get_irmao_logado(request)
+    if not irmao or not departamento:
         return False
-    dept = departamento or actividade.departamento
-    if dept and (
-        dept.lider_departamento_id == irmao_logado.id
-        or dept.vice_lider_departamento_id == irmao_logado.id
+    if (
+        departamento.lider_departamento_id == irmao.id
+        or departamento.vice_lider_departamento_id == irmao.id
     ):
         return True
-    return False
+    return _mandatos_activos(irmao).filter(
+        departamento=departamento,
+        funcao__in=_FUNCOES_RESPONSAVEL_CHECKLIST,
+    ).exists()
+
+
+def _pertence_ao_departamento(request, departamento):
+    if request.user.is_superuser:
+        return True
+    irmao = _get_irmao_logado(request)
+    if not irmao or not departamento:
+        return False
+    return _membros_departamento(departamento).filter(pk=irmao.pk).exists()
+
+
+def _serie_da_actividade(actividade):
+    from sitetibl.models import Actividade
+    raiz_id = actividade.parent_event_id or actividade.id
+    return Actividade.objects.filter(Q(pk=raiz_id) | Q(parent_event_id=raiz_id))
+
+
+def _copiar_checklist(origem, actividade_destino):
+    """Copia a checklist para outra ocorrência, com os itens por marcar."""
+    from sitetibl.models import ChecklistActividade, ItemChecklist
+    if ChecklistActividade.objects.filter(
+        actividade=actividade_destino,
+        departamento_id=origem.departamento_id,
+    ).exists():
+        return None
+    nova = ChecklistActividade.objects.create(
+        actividade=actividade_destino,
+        departamento_id=origem.departamento_id,
+        observacao=origem.observacao or '',
+    )
+    ItemChecklist.objects.bulk_create([
+        ItemChecklist(
+            checklist=nova,
+            descricao=item.descricao,
+            ordem=item.ordem,
+            concluido=False,
+            responsavel_id=item.responsavel_id,
+            criado_por_id=item.criado_por_id,
+        )
+        for item in origem.items.all()
+    ])
+    return nova
+
+
+def _propagar_checklist(origem):
+    """Leva a checklist às ocorrências seguintes da mesma série (ex.: cada sábado)."""
+    copiadas = 0
+    futuras = _serie_da_actividade(origem.actividade).filter(data__gt=origem.actividade.data)
+    for actividade in futuras:
+        if _copiar_checklist(origem, actividade):
+            copiadas += 1
+    return copiadas
+
+
+def _propagar_item(item):
+    from sitetibl.models import ChecklistActividade, ItemChecklist
+    futuras = ChecklistActividade.objects.filter(
+        departamento_id=item.checklist.departamento_id,
+        actividade__in=_serie_da_actividade(item.checklist.actividade),
+        actividade__data__gt=item.checklist.actividade.data,
+    )
+    novos = []
+    for checklist in futuras:
+        if checklist.items.filter(
+            descricao=item.descricao,
+            responsavel_id=item.responsavel_id,
+        ).exists():
+            continue
+        novos.append(ItemChecklist(
+            checklist=checklist,
+            descricao=item.descricao,
+            ordem=item.ordem,
+            concluido=False,
+            responsavel_id=item.responsavel_id,
+            criado_por_id=item.criado_por_id,
+        ))
+    if novos:
+        ItemChecklist.objects.bulk_create(novos)
+
+
+def _propagar_remocao_item(item):
+    from sitetibl.models import ItemChecklist
+    ItemChecklist.objects.filter(
+        checklist__departamento_id=item.checklist.departamento_id,
+        checklist__actividade__in=_serie_da_actividade(item.checklist.actividade),
+        checklist__actividade__data__gt=item.checklist.actividade.data,
+        descricao=item.descricao,
+        responsavel_id=item.responsavel_id,
+        concluido=False,
+    ).delete()
+
+
+def _materializar_checklists_da_serie(actividade, departamentos):
+    """Se o sábado anterior já tem checklist, prepara a desta ocorrência por marcar."""
+    from sitetibl.models import ChecklistActividade
+    serie = _serie_da_actividade(actividade)
+    if not serie.exclude(pk=actividade.pk).exists():
+        return
+    for departamento in departamentos:
+        if ChecklistActividade.objects.filter(actividade=actividade, departamento=departamento).exists():
+            continue
+        anterior = (
+            ChecklistActividade.objects.filter(
+                departamento=departamento,
+                actividade__in=serie,
+                actividade__data__lt=actividade.data,
+            )
+            .prefetch_related('items')
+            .order_by('-actividade__data')
+            .first()
+        )
+        if anterior:
+            _copiar_checklist(anterior, actividade)
 
 
 def _get_irmao_logado(request):
@@ -2955,71 +3113,74 @@ def _get_irmao_logado(request):
 
 
 def _can_toggle_item(request, item):
-    """Admin, líder/vice-líder do dept, ou o responsável pela tarefa."""
-    if request.user.has_perm('sitetibl.change_actividade') or request.user.is_superuser:
+    """O membro marca os itens que lhe foram atribuídos. O responsável do departamento marca todos."""
+    if _e_responsavel_departamento(request, item.checklist.departamento):
         return True
     irmao_logado = _get_irmao_logado(request)
-    if not irmao_logado:
+    if not irmao_logado or item.responsavel_id != irmao_logado.id:
         return False
-    dept = item.checklist.departamento
-    if dept and (
-        dept.lider_departamento_id == irmao_logado.id
-        or dept.vice_lider_departamento_id == irmao_logado.id
-    ):
-        return True
-    if item.responsavel_id == irmao_logado.id:
-        return True
-    return False
+    return _pertence_ao_departamento(request, item.checklist.departamento)
 
 
 @login_required
 def checklist_actividade(request, actividade_id):
-    from sitetibl.models import Actividade, ChecklistActividade, Departamento, Irmao, DIAS_SEMANA_CHECKLIST
-    from sitetibl.forms import ChecklistDepartamentoForm, ChecklistRecorrenciaForm
+    from sitetibl.models import Actividade, ChecklistActividade, Departamento
 
     actividade = get_object_or_404(Actividade, id=actividade_id)
+    irmao_logado = _get_irmao_logado(request)
+    ve_todas = request.user.is_superuser
 
-    can_manage = _check_permission(request, actividade)
+    if ve_todas:
+        departamentos_visiveis = Departamento.objects.all()
+        departamentos_responsavel = departamentos_visiveis
+    else:
+        departamentos_visiveis = _departamentos_do_irmao(irmao_logado)
+        departamentos_responsavel = _departamentos_do_irmao(irmao_logado, apenas_responsavel=True)
 
-    checklists = ChecklistActividade.objects.filter(actividade=actividade).select_related('departamento').prefetch_related('items')
+    if request.method == 'POST' and 'criar_checklist' in request.POST:
+        departamento = get_object_or_404(Departamento, id=request.POST.get('departamento') or 0)
+        if not _e_responsavel_departamento(request, departamento):
+            raise PermissionDenied
+        if ChecklistActividade.objects.filter(actividade=actividade, departamento=departamento).exists():
+            messages.error(request, 'Este departamento já tem checklist nesta actividade.')
+        else:
+            checklist = ChecklistActividade.objects.create(
+                actividade=actividade,
+                departamento=departamento,
+            )
+            copiadas = _propagar_checklist(checklist)
+            messages.success(
+                request,
+                f'Checklist de {departamento} criada. Os membros do departamento marcam os itens que lhes forem atribuídos.',
+            )
+            if copiadas:
+                messages.success(request, 'A mesma checklist foi preparada para as próximas ocorrências, por marcar.')
+        return redirect('sitetibl:checklist_actividade', actividade_id=actividade_id)
 
-    # Pré-calcular contadores a partir dos items prefetched (evita N+1)
+    _materializar_checklists_da_serie(actividade, departamentos_visiveis)
+
+    checklists = list(
+        ChecklistActividade.objects.filter(actividade=actividade, departamento__in=departamentos_visiveis)
+        .select_related('departamento')
+        .prefetch_related('items__responsavel')
+        .order_by('departamento__designacao')
+    )
     for ckl in checklists:
         ckl.prefetch_counts()
+        ckl.pode_gerir = _e_responsavel_departamento(request, ckl.departamento)
+        ckl.membros = list(_membros_departamento(ckl.departamento))
+        for item in ckl.items.all():
+            item.pode_marcar = _can_toggle_item(request, item)
 
-    # Progresso geral
     total_items = sum(c.total_items for c in checklists)
     total_concluidos = sum(c.items_concluidos for c in checklists)
     progresso_geral = int((total_concluidos / total_items) * 100) if total_items > 0 else 0
 
-    # Departamentos sem checklist para esta actividade
-    dept_ids = checklists.values_list('departamento_id', flat=True)
-    departamentos_disponiveis = Departamento.objects.exclude(id__in=dept_ids).order_by('designacao')
-
-    # Form para criar nova checklist (seleccionar departamento)
-    if request.method == 'POST' and 'criar_checklist' in request.POST:
-        if not can_manage:
-            raise PermissionDenied
-        form_checklist = ChecklistDepartamentoForm(request.POST)
-        if form_checklist.is_valid():
-            checklist = form_checklist.save(commit=False)
-            checklist.actividade = actividade
-            try:
-                checklist.save()
-                messages.success(request, f'Checklist criada para {checklist.departamento}.')
-            except Exception:
-                messages.error(request, 'Já existe uma checklist para este departamento nesta actividade.')
-            return redirect('sitetibl:checklist_actividade', actividade_id=actividade_id)
-    else:
-        form_checklist = ChecklistDepartamentoForm()
-
-    # Form de recorrência para cada checklist (dicionário)
-    forms_recorrencia = {}
-    for ckl in checklists:
-        forms_recorrencia[ckl.id] = ChecklistRecorrenciaForm(instance=ckl, prefix=f'rec_{ckl.id}')
-
-    # Membros participantes da actividade para atribuir responsáveis
-    participantes = actividade.participantes.all().order_by('nome', 'apelido')
+    ids_com_checklist = {c.departamento_id for c in checklists}
+    departamentos_para_criar = [
+        dept for dept in departamentos_responsavel
+        if dept.id not in ids_com_checklist
+    ]
 
     context = {
         'actividade': actividade,
@@ -3027,12 +3188,9 @@ def checklist_actividade(request, actividade_id):
         'total_items': total_items,
         'total_concluidos': total_concluidos,
         'progresso_geral': progresso_geral,
-        'departamentos_disponiveis': departamentos_disponiveis,
-        'form_checklist': form_checklist,
-        'forms_recorrencia': forms_recorrencia,
-        'participantes': participantes,
-        'dias_semana': DIAS_SEMANA_CHECKLIST,
-        'can_manage': can_manage,
+        'total_checklists': len(checklists),
+        'departamentos_para_criar': departamentos_para_criar,
+        've_todas': ve_todas,
     }
 
     return render(request, 'checklist_actividade.html', context)
@@ -3045,7 +3203,7 @@ def configurar_recorrencia(request, checklist_id):
 
     checklist = get_object_or_404(ChecklistActividade, id=checklist_id)
 
-    if not _check_permission(request, checklist.actividade, checklist.departamento):
+    if not _e_responsavel_departamento(request, checklist.departamento):
         raise PermissionDenied
 
     if request.method == 'POST':
@@ -3086,7 +3244,11 @@ def toggle_item_checklist(request, item_id):
         from django.db.models import Count, Q
         checklist = item.checklist
         # Recalcular progresso geral com aggregate (1 query em vez de N+1)
-        agg = checklist.actividade.checklists.aggregate(
+        visiveis = checklist.actividade.checklists.all()
+        if not request.user.is_superuser:
+            irmao = _get_irmao_logado(request)
+            visiveis = visiveis.filter(departamento__in=_departamentos_do_irmao(irmao))
+        agg = visiveis.aggregate(
             total=Count('items'),
             concluidos=Count('items', filter=Q(items__concluido=True)),
         )
@@ -3119,17 +3281,20 @@ def adicionar_item_checklist(request, checklist_id):
 
     checklist = get_object_or_404(ChecklistActividade, id=checklist_id)
 
-    if not _check_permission(request, checklist.actividade, checklist.departamento):
+    if not _e_responsavel_departamento(request, checklist.departamento):
         raise PermissionDenied
 
     if request.method == 'POST':
         form = ItemChecklistForm(request.POST)
+        form.fields['responsavel'].queryset = _membros_departamento(checklist.departamento)
+        form.fields['responsavel'].required = True
         if form.is_valid():
             item = form.save(commit=False)
             item.checklist = checklist
             item.criado_por = request.user
             item.save()
-            messages.success(request, 'Tarefa adicionada à checklist.')
+            _propagar_item(item)
+            messages.success(request, 'Tarefa atribuída a um membro do departamento.')
         else:
             for field, errors in form.errors.items():
                 for e in errors:
@@ -3145,10 +3310,11 @@ def remover_item_checklist(request, item_id):
     item = get_object_or_404(ItemChecklist, id=item_id)
     actividade_id = item.checklist.actividade_id
 
-    if not _check_permission(request, item.checklist.actividade, item.checklist.departamento):
+    if not _e_responsavel_departamento(request, item.checklist.departamento):
         raise PermissionDenied
 
     if request.method == 'POST':
+        _propagar_remocao_item(item)
         item.delete()
         messages.success(request, 'Tarefa removida da checklist.')
 
@@ -3162,7 +3328,7 @@ def remover_checklist(request, checklist_id):
     checklist = get_object_or_404(ChecklistActividade, id=checklist_id)
     actividade_id = checklist.actividade_id
 
-    if not _check_permission(request, checklist.actividade, checklist.departamento):
+    if not _e_responsavel_departamento(request, checklist.departamento):
         raise PermissionDenied
 
     if request.method == 'POST':
@@ -3286,31 +3452,18 @@ def dashboard_checklist(request, departamento_id=None):
 
     irmao_logado = _get_irmao_logado(request)
 
-    is_admin = request.user.has_perm('sitetibl.view_actividade') or request.user.is_superuser
+    is_admin = request.user.is_superuser
 
     if departamento_id:
         departamento = get_object_or_404(Departamento, id=departamento_id)
-        if not is_admin:
-            if not irmao_logado or not (
-                departamento.lider_departamento_id == irmao_logado.id
-                or departamento.vice_lider_departamento_id == irmao_logado.id
-            ):
-                raise PermissionDenied
+        if not is_admin and not _pertence_ao_departamento(request, departamento):
+            raise PermissionDenied
         departamentos_qs = [departamento]
     else:
         if is_admin:
             departamentos_qs = list(Departamento.objects.order_by('designacao'))
         elif irmao_logado:
-            # Departamentos onde é líder ou vice-líder
-            departamentos_qs = list(Departamento.objects.filter(
-                Q(lider_departamento=irmao_logado)
-                | Q(vice_lider_departamento=irmao_logado)
-            ).order_by('designacao'))
-            if not departamentos_qs:
-                # Se é integrante de algum departamento via Mandato
-                from sitetibl.models import Mandato
-                dept_ids = Mandato.objects.filter(irmao=irmao_logado).values_list('departamento_id', flat=True).distinct()
-                departamentos_qs = list(Departamento.objects.filter(id__in=dept_ids).order_by('designacao'))
+            departamentos_qs = list(_departamentos_do_irmao(irmao_logado))
         else:
             departamentos_qs = []
 
