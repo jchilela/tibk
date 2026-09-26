@@ -1126,14 +1126,77 @@ def mostraDetalhe(request, gestaoescolhida, identificador):
                 if not (lidera_departamento or request.user.has_perm('sitetibl.add_funcao')):
                     messages.error(request, 'Sem permissão para adicionar funções.')
                 else:
-                    nome_funcao = request.POST.get('nome_funcao', '').strip()
-                    if not nome_funcao:
-                        messages.error(request, 'O nome da função não pode estar vazio.')
-                    elif Funcao.objects.filter(designacao=nome_funcao, departamento_id=identificador).exists():
-                        messages.warning(request, 'Esta função já existe neste departamento.')
+                    nomes = []
+                    vistos = set()
+                    for bloco in request.POST.getlist('nome_funcao'):
+                        for pedaco in bloco.replace(';', '\n').replace(',', '\n').splitlines():
+                            nome = ' '.join(pedaco.split())
+                            if not nome:
+                                continue
+                            chave = nome.casefold()
+                            if chave in vistos:
+                                continue
+                            vistos.add(chave)
+                            nomes.append(nome)
+
+                    if not nomes:
+                        messages.error(request, 'Indique pelo menos uma função.')
                     else:
-                        Funcao.objects.create(designacao=nome_funcao, departamento_id=identificador)
-                        messages.success(request, f'Função "{nome_funcao}" adicionada ao departamento.')
+                        adicionadas = []
+                        ja_existem = []
+                        demasiado_longas = []
+                        conflitos = []
+                        for nome in nomes:
+                            if len(nome) > 50:
+                                demasiado_longas.append(nome)
+                                continue
+                            if Funcao.objects.filter(
+                                designacao__iexact=nome,
+                                departamento_id=identificador,
+                            ).exists():
+                                ja_existem.append(nome)
+                                continue
+                            try:
+                                with transaction.atomic():
+                                    Funcao.objects.create(
+                                        designacao=nome,
+                                        departamento_id=identificador,
+                                    )
+                                adicionadas.append(nome)
+                            except IntegrityError:
+                                conflitos.append(nome)
+
+                        if adicionadas:
+                            if len(adicionadas) == 1:
+                                messages.success(
+                                    request,
+                                    f'Função "{adicionadas[0]}" adicionada ao departamento.',
+                                )
+                            else:
+                                lista = ', '.join(f'"{n}"' for n in adicionadas)
+                                messages.success(
+                                    request,
+                                    f'{len(adicionadas)} funções adicionadas ao departamento: {lista}.',
+                                )
+                        if ja_existem:
+                            lista = ', '.join(f'"{n}"' for n in ja_existem)
+                            messages.warning(
+                                request,
+                                f'Já existiam neste departamento: {lista}.',
+                            )
+                        if conflitos:
+                            lista = ', '.join(f'"{n}"' for n in conflitos)
+                            messages.warning(
+                                request,
+                                f'Não foi possível criar {lista}: esse nome já está registado no sistema.',
+                            )
+                        if demasiado_longas:
+                            messages.error(
+                                request,
+                                'Cada função pode ter no máximo 50 caracteres.',
+                            )
+                        if not adicionadas and not ja_existem and not conflitos and not demasiado_longas:
+                            messages.info(request, 'Nenhuma função foi adicionada.')
 
             elif action == 'remove_funcao':
                 if not (lidera_departamento or request.user.has_perm('sitetibl.delete_funcao')):

@@ -343,11 +343,11 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add_funcao">
                     <div style="flex: 1;">
-                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Nova função</label>
-                        <input type="text" name="nome_funcao" required placeholder="Ex.: Maestro, Orador, Técnico de Som..." style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Novas funções</label>
+                        <textarea name="nome_funcao" required rows="3" placeholder="Uma função por linha, ou separadas por vírgula. Ex.: Maestro, Orador, Técnico de Som" style="width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 6px; resize: vertical; font-family: inherit;"></textarea>
                     </div>
                     <button type="submit" style="padding: 0.55rem 1rem; background: #6366f1; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
-                        <i class="fas fa-plus"></i> Adicionar Função
+                        <i class="fas fa-plus"></i> Adicionar Funções
                     </button>
                 </form>
                 {% endif %}
