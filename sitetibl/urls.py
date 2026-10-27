@@ -88,6 +88,7 @@ urlpatterns = [
     path('minhas-contribuicoes/', views.minhas_contribuicoes, name='minhas_contribuicoes'),
     path('minhas-contribuicoes/registrar/', views.registrar_contribuicao, name='registrar_contribuicao'),
     path('minhas-contribuicoes/<int:contribuicao_id>/detalhe/', views.detalhe_contribuicao, name='detalhe_contribuicao'),
+    path('minhas-contribuicoes/<int:contribuicao_id>/recibo/', views.contribuicao_recibo_pdf, name='contribuicao_recibo_pdf'),
 
     # ── Área Financeira: Gestão de Contribuições ────────────
     path('gestao/contribuicoes/', views.gestao_contribuicoes, name='gestao_contribuicoes'),

@@ -85,6 +85,17 @@
 
   {% if totais_por_mes %}
   <h3 style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.04em;">Totais por Mês — {{ ano_actual }}</h3>
+
+  <div class="contrib-mes-card" style="padding: 1.25rem; margin-bottom: 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);"><i class="fas fa-chart-bar" style="color: var(--primary);"></i> Evolução Mensal</span>
+      <span style="font-size: 0.75rem; color: var(--text-muted);">Total por mês (Kz)</span>
+    </div>
+    <div style="position: relative; height: 220px;">
+      <canvas id="graficoContribuicoes" role="img" aria-label="Gráfico de barras com o total de contribuições por mês"></canvas>
+    </div>
+  </div>
+
   <div class="contrib-totais-mes">
     {% for item in totais_por_mes %}
     <div class="contrib-mes-card">
@@ -201,4 +212,64 @@
   </div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if grafico_contribuicoes %}
+{{ grafico_contribuicoes|json_script:"grafico-contribuicoes-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var canvas = document.getElementById('graficoContribuicoes');
+    var dadosEl = document.getElementById('grafico-contribuicoes-data');
+    if (!canvas || !dadosEl || typeof Chart === 'undefined') return;
+
+    var dados;
+    try {
+      dados = JSON.parse(dadosEl.textContent);
+    } catch (e) {
+      return;
+    }
+    if (!dados || !dados.labels || !dados.data) return;
+
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: dados.labels,
+        datasets: [{
+          label: 'Contribuições ' + dados.ano + ' (Kz)',
+          data: dados.data,
+          backgroundColor: 'rgba(27, 94, 32, 0.75)',
+          borderColor: '#1b5e20',
+          borderWidth: 1,
+          borderRadius: 6,
+          maxBarThickness: 42
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function (valor) { return valor.toLocaleString('pt-PT'); }
+            }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                return ' ' + context.parsed.y.toLocaleString('pt-PT') + ' Kz';
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endif %}
 {% endblock %}

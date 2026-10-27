@@ -1,3 +1,4 @@
+from datetime import date
 from unittest.mock import patch
 
 from django.core import mail
@@ -146,3 +147,100 @@ class ContribuicaoNotificacaoTest(PortalContribuicoesBaseTest):
         self.assertEqual(response.status_code, 302)
         self.contribuicao.refresh_from_db()
         self.assertEqual(self.contribuicao.estado, 'confirmada')
+
+
+class ContribuicaoGraficoTest(PortalContribuicoesBaseTest):
+    def setUp(self):
+        super().setUp()
+        Contribuicao.objects.create(
+            irmao=self.irmao, tipo='dizimo', valor=5000, moeda='AKZ',
+            estado='confirmada', data=date(date.today().year, 1, 15),
+        )
+        Contribuicao.objects.create(
+            irmao=self.irmao, tipo='oferta', valor=2000, moeda='AKZ',
+            estado='pendente', data=date(date.today().year, 1, 20),
+        )
+        Contribuicao.objects.create(
+            irmao=self.irmao, tipo='dizimo', valor=3000, moeda='AKZ',
+            estado='confirmada', data=date(date.today().year, 3, 10),
+        )
+
+    def test_contexto_contem_dados_do_grafico_de_doze_meses(self):
+        response = self.client.get(reverse('sitetibl:minhas_contribuicoes'))
+        self.assertEqual(response.status_code, 200)
+
+        grafico = response.context['grafico_contribuicoes']
+        self.assertEqual(len(grafico['labels']), 12)
+        self.assertEqual(len(grafico['data']), 12)
+        self.assertEqual(grafico['ano'], date.today().year)
+        self.assertEqual(grafico['data'][0], 7000.0)   # Jan: 5000 + 2000
+        self.assertEqual(grafico['data'][1], 0.0)      # Fev: sem dados
+        self.assertEqual(grafico['data'][2], 3000.0)   # Mar: 3000
+
+    def test_template_renderiza_canvas_e_dados_json(self):
+        response = self.client.get(reverse('sitetibl:minhas_contribuicoes'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="graficoContribuicoes"')
+        self.assertContains(response, 'id="grafico-contribuicoes-data"')
+
+
+class ContribuicaoReciboPdfTest(PortalContribuicoesBaseTest):
+    def setUp(self):
+        super().setUp()
+        self.confirmada = Contribuicao.objects.create(
+            irmao=self.irmao, tipo='dizimo', valor=5000, moeda='AKZ',
+            estado='confirmada',
+        )
+        self.pendente = Contribuicao.objects.create(
+            irmao=self.irmao, tipo='oferta', valor=2000, moeda='AKZ',
+            estado='pendente',
+        )
+
+        outro_user = User.objects.create_user(
+            username='outro_membro', password='Teste@123',
+        )
+        self.outro_irmao = Irmao.objects.create(
+            nome='Outro', apelido='Membro', sexo='F',
+            municipio=self.irmao.municipio, provincia=self.irmao.provincia,
+            localcongregacao=self.irmao.localcongregacao,
+            categoria='membro_batizado', batizado=True,
+            user=outro_user,
+        )
+        self.contrib_outro = Contribuicao.objects.create(
+            irmao=self.outro_irmao, tipo='dizimo', valor=1000, moeda='AKZ',
+            estado='confirmada',
+        )
+
+    def test_membro_descarrega_recibo_da_propria_contribuicao_confirmada(self):
+        response = self.client.get(
+            reverse('sitetibl:contribuicao_recibo_pdf', args=[self.confirmada.id]),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertIn('recibo_contribuicao_', response['Content-Disposition'])
+        self.assertTrue(response.content.startswith(b'%PDF'))
+
+    def test_recibo_de_contribuicao_pendente_redireciona(self):
+        response = self.client.get(
+            reverse('sitetibl:contribuicao_recibo_pdf', args=[self.pendente.id]),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            reverse('sitetibl:detalhe_contribuicao', args=[self.pendente.id]),
+            response['Location'],
+        )
+
+    def test_membro_nao_acede_recibo_de_outro_membro(self):
+        response = self.client.get(
+            reverse('sitetibl:contribuicao_recibo_pdf', args=[self.contrib_outro.id]),
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_financeiro_acede_recibo_de_qualquer_membro(self):
+        self.client.logout()
+        self.client.login(username='financeiro_teste', password='Teste@123')
+        response = self.client.get(
+            reverse('sitetibl:contribuicao_recibo_pdf', args=[self.confirmada.id]),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')

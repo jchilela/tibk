@@ -2391,6 +2391,14 @@ def minhas_contribuicoes(request):
         for t in totais_mes
     ]
 
+    # Dados do gráfico de evolução mensal (12 meses, meses sem dados = 0)
+    totais_mes_por_numero = {t['data__month']: t['total'] for t in totais_mes}
+    grafico_contribuicoes = {
+        'labels': [meses_nomes[m] for m in range(1, 13)],
+        'data': [float(totais_mes_por_numero.get(m) or 0) for m in range(1, 13)],
+        'ano': ano_actual,
+    }
+
     # Totais gerais
     total_geral = qs.aggregate(total=Sum('valor'))['total'] or 0
     total_confirmado = qs.filter(estado='confirmada').aggregate(total=Sum('valor'))['total'] or 0
@@ -2408,6 +2416,7 @@ def minhas_contribuicoes(request):
     context = {
         'contribuicoes': contribuicoes,
         'totais_por_mes': totais_por_mes,
+        'grafico_contribuicoes': grafico_contribuicoes,
         'total_geral': total_geral,
         'total_confirmado': total_confirmado,
         'total_pendente': total_pendente,
@@ -2467,6 +2476,115 @@ def detalhe_contribuicao(request, contribuicao_id):
     contribuicao = get_object_or_404(Contribuicao, id=contribuicao_id, irmao=irmao)
 
     return render(request, 'detalhe_contribuicao.html', {'contribuicao': contribuicao})
+
+
+@login_required
+def contribuicao_recibo_pdf(request, contribuicao_id):
+    """Recibo PDF de uma contribuição confirmada (membro ou área financeira)."""
+    from sitetibl.models import Contribuicao, Irmao
+
+    contribuicao = get_object_or_404(
+        Contribuicao.objects.select_related('irmao', 'validado_por'),
+        id=contribuicao_id,
+    )
+
+    e_financeiro = (
+        request.user.has_perm('sitetibl.view_dizimooferta')
+        or request.user.has_perm('sitetibl.view_entrada')
+        or request.user.has_perm('sitetibl.view_saida')
+        or request.user.is_superuser
+    )
+    if not e_financeiro:
+        try:
+            irmao = Irmao.objects.get(user=request.user)
+        except Irmao.DoesNotExist:
+            messages.error(request, 'O seu utilizador não está associado a um membro. Contacte o administrador.')
+            return redirect('dashboard')
+        if contribuicao.irmao_id != irmao.id:
+            raise Http404
+
+    if contribuicao.estado != 'confirmada':
+        messages.warning(request, 'O recibo só está disponível para contribuições confirmadas.')
+        return redirect('sitetibl:detalhe_contribuicao', contribuicao_id=contribuicao.id)
+
+    irmao_contrib = contribuicao.irmao
+    nome_membro = f'{irmao_contrib.nome} {irmao_contrib.apelido}'.strip()
+    if not nome_membro:
+        nome_membro = irmao_contrib.user.username if irmao_contrib.user_id else '—'
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = (
+        f'inline; filename="recibo_contribuicao_{contribuicao.id}.pdf"'
+    )
+
+    doc = SimpleDocTemplate(
+        response, pagesize=A4,
+        leftMargin=2*cm, rightMargin=2*cm,
+        topMargin=2*cm, bottomMargin=2*cm,
+    )
+    styles = getSampleStyleSheet()
+    titulo_style = ParagraphStyle(
+        'TituloRecibo', parent=styles['Heading1'],
+        fontSize=16, spaceAfter=6, alignment=1,
+        textColor=colors.HexColor('#1b5e20'),
+    )
+    subtitulo_style = ParagraphStyle(
+        'SubtituloRecibo', parent=styles['Heading2'],
+        fontSize=11, spaceAfter=10, alignment=1,
+        textColor=colors.HexColor('#666666'),
+    )
+    normal = styles['Normal']
+    nota_style = ParagraphStyle(
+        'NotaRecibo', parent=normal, fontSize=8,
+        textColor=colors.HexColor('#666666'),
+    )
+
+    valor_fmt = f'{contribuicao.valor:,.2f}'.replace(',', ' ')
+
+    elements = [
+        Paragraph('Recibo de Contribuição', titulo_style),
+        Paragraph(f'Nº REC-{contribuicao.id:06d}', subtitulo_style),
+    ]
+
+    dados = [
+        ['Campo', 'Detalhe'],
+        ['Membro', nome_membro],
+        ['Tipo de Contribuição', contribuicao.get_tipo_display()],
+        ['Valor', f'{valor_fmt} {contribuicao.moeda}'],
+        ['Data da Contribuição', contribuicao.data.strftime('%d/%m/%Y')],
+        ['Data de Registo', contribuicao.data_registo.strftime('%d/%m/%Y %H:%M')],
+        ['Estado', contribuicao.get_estado_display()],
+    ]
+    if contribuicao.data_validacao:
+        dados.append(['Data de Confirmação', contribuicao.data_validacao.strftime('%d/%m/%Y %H:%M')])
+    if contribuicao.validado_por:
+        nome_validador = contribuicao.validado_por.get_full_name() or contribuicao.validado_por.username
+        dados.append(['Confirmado por', nome_validador])
+    if contribuicao.observacao:
+        dados.append(['Observação', contribuicao.observacao])
+
+    tabela = Table(dados, colWidths=[5*cm, 11*cm])
+    tabela.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1b5e20')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(tabela)
+    elements.append(Paragraph('<br/><br/>', normal))
+    elements.append(Paragraph(
+        'Este recibo comprova a confirmação da contribuição acima identificada '
+        'pela área financeira. Serve apenas como comprovativo interno.',
+        nota_style,
+    ))
+
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
 
 
 # ── Área Financeira: Gestão de Contribuições ─────────────────────
