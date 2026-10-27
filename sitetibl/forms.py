@@ -42,6 +42,7 @@ from datetime import date, datetime, timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.core.validators import FileExtensionValidator
 import re
 from urllib.parse import urlparse
 
@@ -965,7 +966,25 @@ class VisitanteRecorrenteForm(ModelForm):
         }
 
 
+COMPROVATIVO_EXTENSOES_PERMITIDAS = ['jpg', 'jpeg', 'png', 'pdf']
+COMPROVATIVO_TAMANHO_MAXIMO_MB = 5
+
+COMPROVATIVO_ASSINATURAS = {
+    'jpg': (b'\xff\xd8\xff',),
+    'jpeg': (b'\xff\xd8\xff',),
+    'png': (b'\x89PNG\r\n\x1a\n',),
+    'pdf': (b'%PDF-',),
+}
+
+
 class ContribuicaoForm(forms.ModelForm):
+    comprovativo = forms.FileField(
+        label='Anexar Comprovativo (opcional)',
+        required=False,
+        validators=[FileExtensionValidator(allowed_extensions=COMPROVATIVO_EXTENSOES_PERMITIDAS)],
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.jpg,.jpeg,.png,.pdf'}),
+    )
+
     class Meta:
         model = Contribuicao
         fields = ['tipo', 'valor', 'moeda', 'data', 'observacao', 'comprovativo']
@@ -975,7 +994,6 @@ class ContribuicaoForm(forms.ModelForm):
             'moeda': forms.Select(attrs={'class': 'form-control'}),
             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Observações adicionais...'}),
-            'comprovativo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*,.pdf'}),
         }
         labels = {
             'tipo': 'Tipo de Contribuição',
@@ -983,14 +1001,29 @@ class ContribuicaoForm(forms.ModelForm):
             'moeda': 'Moeda',
             'data': 'Data da Contribuição',
             'observacao': 'Observação',
-            'comprovativo': 'Anexar Comprovativo (opcional)',
         }
 
     def clean_valor(self):
         valor = self.cleaned_data.get('valor')
-        if valor is not None and valor < 0:
-            raise forms.ValidationError("O valor não pode ser negativo.")
+        if valor is not None and valor <= 0:
+            raise forms.ValidationError("O valor deve ser maior que zero.")
         return valor
+
+    def clean_comprovativo(self):
+        comprovativo = self.cleaned_data.get('comprovativo')
+        if comprovativo:
+            limite_bytes = COMPROVATIVO_TAMANHO_MAXIMO_MB * 1024 * 1024
+            if comprovativo.size > limite_bytes:
+                raise ValidationError(f'O comprovativo não pode exceder {COMPROVATIVO_TAMANHO_MAXIMO_MB}MB.')
+
+            extensao = comprovativo.name.rsplit('.', 1)[-1].lower() if '.' in comprovativo.name else ''
+            assinaturas = COMPROVATIVO_ASSINATURAS.get(extensao)
+            if assinaturas:
+                cabecalho = comprovativo.read(16)
+                comprovativo.seek(0)
+                if not any(cabecalho.startswith(assinatura) for assinatura in assinaturas):
+                    raise ValidationError('O conteúdo do ficheiro não corresponde à extensão indicada.')
+        return comprovativo
 
 
 class ItemChecklistForm(forms.ModelForm):

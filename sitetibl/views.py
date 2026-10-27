@@ -2688,9 +2688,11 @@ def confirmar_contribuicao(request, contribuicao_id):
             messages.warning(request, f'Contribuição confirmada, mas houve erro ao gerar entrada financeira: {e}')
         else:
             messages.success(request, f'Contribuição de {contribuicao.irmao} confirmada. Entrada e dízimo/oferta criados automaticamente.')
-            return redirect('sitetibl:gestao_contribuicoes')
+    else:
+        messages.success(request, f'Contribuição de {contribuicao.irmao} confirmada com sucesso.')
 
-    messages.success(request, f'Contribuição de {contribuicao.irmao} confirmada com sucesso.')
+    from sitetibl.contribuicoes_notificacoes import notificar_membro_contribuicao
+    notificar_membro_contribuicao(contribuicao)
     return redirect('sitetibl:gestao_contribuicoes')
 
 
@@ -2732,6 +2734,8 @@ def rejeitar_contribuicao(request, contribuicao_id):
             logger.error(f'Erro ao anular entrada da contribuicao #{contribuicao.id}: {e}')
 
     messages.success(request, f'Contribuição de {contribuicao.irmao} rejeitada/anulada.')
+    from sitetibl.contribuicoes_notificacoes import notificar_membro_contribuicao
+    notificar_membro_contribuicao(contribuicao)
     return redirect('sitetibl:gestao_contribuicoes')
 
 
