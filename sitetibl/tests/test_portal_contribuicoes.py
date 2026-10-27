@@ -183,6 +183,12 @@ class ContribuicaoGraficoTest(PortalContribuicoesBaseTest):
         self.assertContains(response, 'id="graficoContribuicoes"')
         self.assertContains(response, 'id="grafico-contribuicoes-data"')
 
+    def test_kpi_meses_activos_conta_meses_com_contribuicoes_confirmadas(self):
+        response = self.client.get(reverse('sitetibl:minhas_contribuicoes'))
+        self.assertEqual(response.status_code, 200)
+        # Jan e Mar têm contribuições confirmadas; a pendente de Jan não conta duas vezes
+        self.assertEqual(response.context['meses_activos'], 2)
+
 
 class ContribuicaoReciboPdfTest(PortalContribuicoesBaseTest):
     def setUp(self):
@@ -238,9 +244,65 @@ class ContribuicaoReciboPdfTest(PortalContribuicoesBaseTest):
 
     def test_financeiro_acede_recibo_de_qualquer_membro(self):
         self.client.logout()
-        self.client.login(username='financeiro_teste', password='Teste@123')
-        response = self.client.get(
+
+    def test_link_recibo_aparece_na_lista_para_linhas_confirmadas(self):
+        response = self.client.get(reverse('sitetibl:minhas_contribuicoes'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
             reverse('sitetibl:contribuicao_recibo_pdf', args=[self.confirmada.id]),
+        )
+        self.assertNotContains(
+            response,
+            reverse('sitetibl:contribuicao_recibo_pdf', args=[self.pendente.id]),
+        )
+
+
+class ContribuicoesExtratoPdfTest(PortalContribuicoesBaseTest):
+    def setUp(self):
+        super().setUp()
+        self.ano = date.today().year
+        Contribuicao.objects.create(
+            irmao=self.irmao, tipo='dizimo', valor=5000, moeda='AKZ',
+            estado='confirmada', data=date(self.ano, 1, 15),
+        )
+        Contribuicao.objects.create(
+            irmao=self.irmao, tipo='oferta', valor=2000, moeda='AKZ',
+            estado='confirmada', data=date(self.ano, 3, 10),
+        )
+        # Pendente não deve entrar no extrato
+        Contribuicao.objects.create(
+            irmao=self.irmao, tipo='dizimo', valor=9999, moeda='AKZ',
+            estado='pendente', data=date(self.ano, 4, 5),
+        )
+        # Ano diferente não deve entrar no extrato
+        Contribuicao.objects.create(
+            irmao=self.irmao, tipo='dizimo', valor=7777, moeda='AKZ',
+            estado='confirmada', data=date(self.ano - 1, 6, 1),
+        )
+
+    def test_extrato_anual_devolve_pdf(self):
+        response = self.client.get(
+            reverse('sitetibl:contribuicoes_extrato_pdf', args=[self.ano]),
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertIn(
+            f'extrato_contribuicoes_{self.ano}',
+            response['Content-Disposition'],
+        )
+        self.assertTrue(response.content.startswith(b'%PDF'))
+
+    def test_extrato_ano_sem_contribuicoes_ainda_devolve_pdf(self):
+        response = self.client.get(
+            reverse('sitetibl:contribuicoes_extrato_pdf', args=[self.ano + 5]),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.content.startswith(b'%PDF'))
+
+    def test_extrato_requer_autenticacao(self):
+        self.client.logout()
+        response = self.client.get(
+            reverse('sitetibl:contribuicoes_extrato_pdf', args=[self.ano]),
+        )
+        self.assertEqual(response.status_code, 302)

@@ -2404,6 +2404,14 @@ def minhas_contribuicoes(request):
     total_confirmado = qs.filter(estado='confirmada').aggregate(total=Sum('valor'))['total'] or 0
     total_pendente = qs.filter(estado='pendente').aggregate(total=Sum('valor'))['total'] or 0
 
+    # Engagement: meses do ano com pelo menos uma contribuição confirmada
+    meses_activos = (
+        qs.filter(data__year=ano_actual, estado='confirmada')
+        .values('data__month')
+        .distinct()
+        .count()
+    )
+
     # Paginação
     paginator = Paginator(qs, 10)
     page = request.GET.get('pagina', 1)
@@ -2420,6 +2428,7 @@ def minhas_contribuicoes(request):
         'total_geral': total_geral,
         'total_confirmado': total_confirmado,
         'total_pendente': total_pendente,
+        'meses_activos': meses_activos,
         'anos_list': anos_list,
         'ano_actual': ano_actual,
         'filtro_tipo': tipo_filter,
@@ -2580,6 +2589,104 @@ def contribuicao_recibo_pdf(request, contribuicao_id):
     elements.append(Paragraph(
         'Este recibo comprova a confirmação da contribuição acima identificada '
         'pela área financeira. Serve apenas como comprovativo interno.',
+        nota_style,
+    ))
+
+    doc.build(elements, onFirstPage=_desenhar_rodape_pdf, onLaterPages=_desenhar_rodape_pdf)
+    return response
+
+
+@login_required
+def contribuicoes_extrato_pdf(request, ano):
+    """Extrato anual PDF das contribuições confirmadas do membro autenticado."""
+    from sitetibl.models import Contribuicao, Irmao
+
+    try:
+        irmao = Irmao.objects.get(user=request.user)
+    except Irmao.DoesNotExist:
+        messages.error(request, 'O seu utilizador não está associado a um membro. Contacte o administrador.')
+        return redirect('dashboard')
+
+    contribuicoes = (
+        Contribuicao.objects
+        .filter(irmao=irmao, estado='confirmada', data__year=ano)
+        .order_by('data', 'id')
+    )
+
+    nome_membro = f'{irmao.nome} {irmao.apelido}'.strip()
+    if not nome_membro:
+        nome_membro = irmao.user.username if irmao.user_id else '—'
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = (
+        f'inline; filename="extrato_contribuicoes_{ano}.pdf"'
+    )
+
+    doc = SimpleDocTemplate(
+        response, pagesize=A4,
+        leftMargin=2*cm, rightMargin=2*cm,
+        topMargin=2*cm, bottomMargin=2*cm,
+    )
+    styles = getSampleStyleSheet()
+    titulo_style = ParagraphStyle(
+        'TituloExtrato', parent=styles['Heading1'],
+        fontSize=16, spaceAfter=6, alignment=1,
+        textColor=colors.HexColor('#1b5e20'),
+    )
+    subtitulo_style = ParagraphStyle(
+        'SubtituloExtrato', parent=styles['Heading2'],
+        fontSize=11, spaceAfter=10, alignment=1,
+        textColor=colors.HexColor('#666666'),
+    )
+    normal = styles['Normal']
+    nota_style = ParagraphStyle(
+        'NotaExtrato', parent=normal, fontSize=8,
+        textColor=colors.HexColor('#666666'),
+    )
+
+    elements = [
+        Paragraph(f'Extrato de Contribuições — {ano}', titulo_style),
+        Paragraph(nome_membro, subtitulo_style),
+    ]
+
+    linhas = [['Data', 'Tipo', 'Valor', 'Moeda', 'Nº Recibo']]
+    total_geral = 0
+    for c in contribuicoes:
+        total_geral += c.valor
+        linhas.append([
+            c.data.strftime('%d/%m/%Y'),
+            c.get_tipo_display(),
+            f'{c.valor:,.2f}'.replace(',', ' '),
+            c.moeda,
+            f'REC-{c.id:06d}',
+        ])
+
+    moedas = set(contribuicoes.values_list('moeda', flat=True))
+    moeda_resumo = moedas.pop() if len(moedas) == 1 else '—'
+    total_fmt = f'{total_geral:,.2f}'.replace(',', ' ')
+    linhas.append(['', 'TOTAL', total_fmt, moeda_resumo, ''])
+
+    tabela = Table(linhas, colWidths=[3*cm, 6*cm, 3.5*cm, 2*cm, 2.5*cm])
+    estilo = [
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1b5e20')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('ALIGN', (3, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f5e9')),
+    ]
+    tabela.setStyle(TableStyle(estilo))
+    elements.append(tabela)
+    elements.append(Paragraph('<br/>', normal))
+    elements.append(Paragraph(
+        f'Total de contribuições confirmadas: {contribuicoes.count()}. '
+        'Este extrato inclui apenas contribuições com estado confirmado.',
         nota_style,
     ))
 

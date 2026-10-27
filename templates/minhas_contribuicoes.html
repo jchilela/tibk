@@ -48,6 +48,9 @@
 
   .btn-registrar { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary); color: #fff; padding: 0.65rem 1.25rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: opacity 0.2s; }
   .btn-registrar:hover { opacity: 0.9; }
+  .btn-extrato { display: inline-flex; align-items: center; gap: 0.5rem; background: #f1f5f9; color: var(--text-main); border: 1px solid #e2e8f0; padding: 0.65rem 1.25rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: opacity 0.2s; }
+  .btn-extrato:hover { opacity: 0.85; }
+  .contrib-header-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 </style>
 {% endblock %}
 
@@ -55,9 +58,14 @@
 <div class="contrib-container">
   <div class="contrib-header">
     <h2><i class="fas fa-hand-holding-dollar"></i> As Minhas Contribuições</h2>
-    <a href="{% url 'sitetibl:registrar_contribuicao' %}" class="btn-registrar">
-      <i class="fas fa-plus-circle"></i> Registar Contribuição
-    </a>
+    <div class="contrib-header-actions">
+      <a href="{% url 'sitetibl:contribuicoes_extrato_pdf' ano_actual %}" target="_blank" class="btn-extrato">
+        <i class="fas fa-file-pdf"></i> Extrato {{ ano_actual }}
+      </a>
+      <a href="{% url 'sitetibl:registrar_contribuicao' %}" class="btn-registrar">
+        <i class="fas fa-plus-circle"></i> Registar Contribuição
+      </a>
+    </div>
   </div>
 
   {% if messages %}
@@ -80,6 +88,10 @@
     <div class="contrib-kpi-card kpi-yellow">
       <div class="kpi-label">Total Pendente</div>
       <div class="kpi-value">{{ total_pendente|dinheiro }} Kz</div>
+    </div>
+    <div class="contrib-kpi-card kpi-green">
+      <div class="kpi-label">Meses Activos {{ ano_actual }}</div>
+      <div class="kpi-value">{{ meses_activos }}/12</div>
     </div>
   </div>
 
@@ -185,7 +197,10 @@
           {% endif %}
         </td>
         <td>
-          <a href="{% url 'sitetibl:detalhe_contribuicao' c.id %}" style="color: var(--primary);"><i class="fas fa-eye"></i></a>
+          <a href="{% url 'sitetibl:detalhe_contribuicao' c.id %}" style="color: var(--primary);" title="Ver detalhe"><i class="fas fa-eye"></i></a>
+          {% if c.estado == 'confirmada' %}
+          <a href="{% url 'sitetibl:contribuicao_recibo_pdf' c.id %}" target="_blank" style="color: var(--primary); margin-left: 0.5rem;" title="Descarregar recibo"><i class="fas fa-file-pdf"></i></a>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
