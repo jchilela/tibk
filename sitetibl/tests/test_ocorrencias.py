@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.core.cache import cache
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -8,6 +9,12 @@ from sitetibl.models import Ocorrencia, Sitio
 
 
 class OcorrenciaPublicaTest(TestCase):
+    def setUp(self):
+        # O throttle de registo/consulta usa cache por IP; o test client
+        # reutiliza o mesmo IP (127.0.0.1) entre testes, por isso é preciso
+        # limpar a cache para evitar interferência entre métodos de teste.
+        cache.clear()
+
     def test_pagina_registo_publica_acessivel_sem_login(self):
         response = self.client.get(reverse('sitetibl:registar_ocorrencia'))
         self.assertEqual(response.status_code, 200)
@@ -74,6 +81,39 @@ class OcorrenciaPublicaTest(TestCase):
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(Ocorrencia.objects.count(), 1)
 
+    def test_throttle_por_ip_bloqueia_mesmo_com_sessao_limpa(self):
+        dados = {
+            'tipo_reportante': 'visitante',
+            'categoria': 'outro',
+            'titulo': 'Primeira ocorrencia',
+            'descricao': 'Descricao de teste suficientemente longa.',
+        }
+        response1 = self.client.post(reverse('sitetibl:registar_ocorrencia'), dados)
+        self.assertEqual(response1.status_code, 302)
+        self.assertEqual(Ocorrencia.objects.count(), 1)
+
+        # Novo cliente = nova sessão (sem cookie), mas mesmo IP simulado
+        # pelo test client (127.0.0.1) — deve continuar bloqueado pela cache.
+        outro_cliente = Client()
+        dados['titulo'] = 'Segunda ocorrencia via outro cliente'
+        response2 = outro_cliente.post(reverse('sitetibl:registar_ocorrencia'), dados)
+        self.assertEqual(response2.status_code, 200)
+        self.assertEqual(Ocorrencia.objects.count(), 1)
+
+    def test_consulta_rate_limit_por_ip(self):
+        ocorrencia = Ocorrencia.objects.create(
+            categoria='outro', titulo='Teste rate limit', descricao='Desc',
+        )
+        url = reverse('sitetibl:consultar_ocorrencia') + f'?protocolo={ocorrencia.protocolo}'
+
+        for _ in range(15):
+            response = self.client.get(url)
+            self.assertContains(response, ocorrencia.protocolo)
+
+        bloqueado = self.client.get(url)
+        self.assertEqual(bloqueado.status_code, 200)
+        self.assertContains(bloqueado, 'Demasiadas tentativas')
+
     def test_local_pre_selecionado_via_querystring(self):
         sitio = Sitio.objects.create(designacao='Célula Central', tipo='2')
         response = self.client.get(reverse('sitetibl:registar_ocorrencia') + f'?local={sitio.id}')
@@ -114,6 +154,39 @@ class OcorrenciaPublicaTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, ocorrencia.protocolo)
         self.assertContains(response, ocorrencia.titulo)
+
+    def test_anexo_com_extensao_falsificada_e_rejeitado(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        anexo_falso = SimpleUploadedFile(
+            'foto.jpg', b'isto nao e uma imagem jpeg real', content_type='image/jpeg',
+        )
+        response = self.client.post(reverse('sitetibl:registar_ocorrencia'), {
+            'tipo_reportante': 'visitante',
+            'categoria': 'outro',
+            'titulo': 'Anexo falsificado',
+            'descricao': 'Descricao de teste suficientemente longa.',
+            'anexo': anexo_falso,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Ocorrencia.objects.count(), 0)
+        self.assertContains(response, 'não corresponde à extensão')
+
+    def test_anexo_com_conteudo_valido_e_aceite(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        png_real = SimpleUploadedFile(
+            'foto.png', b'\x89PNG\r\n\x1a\n' + b'0' * 20, content_type='image/png',
+        )
+        response = self.client.post(reverse('sitetibl:registar_ocorrencia'), {
+            'tipo_reportante': 'visitante',
+            'categoria': 'outro',
+            'titulo': 'Anexo valido',
+            'descricao': 'Descricao de teste suficientemente longa.',
+            'anexo': png_real,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Ocorrencia.objects.count(), 1)
 
     def test_consultar_ocorrencia_protocolo_inexistente(self):
         response = self.client.get(
@@ -292,6 +365,7 @@ class OcorrenciaNotificacoesTest(TestCase):
     def setUp(self):
         from sitetibl.models import Irmao, Departamento
 
+        cache.clear()
         self.user = User.objects.create_user(username='lider_seg', password='Teste@123')
         self.irmao = Irmao.objects.create(
             nome='Líder', apelido='Segurança', user=self.user,

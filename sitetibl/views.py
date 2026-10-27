@@ -14,6 +14,7 @@ from django.template import loader
 from django.db.models import Sum, Count, F, Q, Case, When, Value, IntegerField
 from django.db import IntegrityError
 from django.core.paginator import Paginator
+from django.core.cache import cache
 from django.contrib.auth.decorators import permission_required
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -5433,6 +5434,16 @@ def acta_actividade_pdf(request, actividade_id):
 # ── Portal de Ocorrências (público via QR Code) ────────────────────────
 
 OCORRENCIA_THROTTLE_SEGUNDOS = 30
+OCORRENCIA_CONSULTA_LIMITE = 15
+OCORRENCIA_CONSULTA_JANELA_SEGUNDOS = 300
+
+
+def _ip_cliente(request):
+    """Extrai o IP do cliente, considerando proxies reversos (X-Forwarded-For)."""
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    if xff:
+        return xff.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '0.0.0.0')
 
 
 def registar_ocorrencia(request):
@@ -5441,18 +5452,26 @@ def registar_ocorrencia(request):
 
     if request.method == 'POST':
         from datetime import datetime as dt_class
+
+        cache_key_ip = f'ocorrencia_throttle_ip:{_ip_cliente(request)}'
+        bloqueado = cache.get(cache_key_ip, False)
+
         ultimo_envio = request.session.get('ocorrencia_ultimo_envio')
         if ultimo_envio:
             segundos_passados = (timezone.now() - dt_class.fromisoformat(ultimo_envio)).total_seconds()
             if segundos_passados < OCORRENCIA_THROTTLE_SEGUNDOS:
-                messages.error(request, 'Aguarde um momento antes de submeter outra ocorrência.')
-                form = OcorrenciaForm(request.POST, request.FILES)
-                return render(request, 'registar_ocorrencia.html', {'form': form})
+                bloqueado = True
+
+        if bloqueado:
+            messages.error(request, 'Aguarde um momento antes de submeter outra ocorrência.')
+            form = OcorrenciaForm(request.POST, request.FILES)
+            return render(request, 'registar_ocorrencia.html', {'form': form})
 
         form = OcorrenciaForm(request.POST, request.FILES)
         if form.is_valid():
             ocorrencia = form.save()
             request.session['ocorrencia_ultimo_envio'] = timezone.now().isoformat()
+            cache.set(cache_key_ip, True, OCORRENCIA_THROTTLE_SEGUNDOS)
             from sitetibl.ocorrencias_notificacoes import notificar_lideres_nova_ocorrencia
             notificar_lideres_nova_ocorrencia(ocorrencia)
             return redirect('sitetibl:ocorrencia_sucesso', protocolo=ocorrencia.protocolo)
@@ -5471,16 +5490,26 @@ def ocorrencia_sucesso(request, protocolo):
 
 
 def consultar_ocorrencia(request):
-    """Permite ao reportante consultar o estado da sua ocorrência pelo número de protocolo (sem login)."""
+    """Permite ao reportante consultar o estado da sua ocorrência pelo número de protocolo (sem login).
+
+    Limita o número de consultas por IP para dificultar a enumeração de
+    protocolos (o protocolo é sequencial, ex: OC-202609-0001).
+    """
     ocorrencia = None
     erro = None
     protocolo = request.GET.get('protocolo', '').strip()
 
     if protocolo:
-        try:
-            ocorrencia = Ocorrencia.objects.get(protocolo__iexact=protocolo)
-        except Ocorrencia.DoesNotExist:
-            erro = 'Nenhuma ocorrência encontrada com esse número de protocolo.'
+        cache_key = f'ocorrencia_consulta_ip:{_ip_cliente(request)}'
+        tentativas = cache.get(cache_key, 0)
+        if tentativas >= OCORRENCIA_CONSULTA_LIMITE:
+            erro = 'Demasiadas tentativas. Aguarde alguns minutos antes de tentar novamente.'
+        else:
+            cache.set(cache_key, tentativas + 1, OCORRENCIA_CONSULTA_JANELA_SEGUNDOS)
+            try:
+                ocorrencia = Ocorrencia.objects.get(protocolo__iexact=protocolo)
+            except Ocorrencia.DoesNotExist:
+                erro = 'Nenhuma ocorrência encontrada com esse número de protocolo.'
 
     return render(request, 'consultar_ocorrencia.html', {
         'ocorrencia': ocorrencia,

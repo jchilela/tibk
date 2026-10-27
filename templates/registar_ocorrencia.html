@@ -233,6 +233,7 @@
         <div class="oc-form-group">
           <label for="{{ form.anexo.id_for_label }}">ANEXO / FOTO (opcional)</label>
           {{ form.anexo }}
+          {% if form.anexo.errors %}<div class="oc-error">{{ form.anexo.errors.0 }}</div>{% endif %}
           <p class="oc-hint">Pode anexar uma foto ou documento relacionado com a ocorrência.</p>
         </div>
 

@@ -968,6 +968,13 @@ class VisitanteRecorrenteForm(ModelForm):
 ANEXO_EXTENSOES_PERMITIDAS = ['jpg', 'jpeg', 'png', 'pdf']
 ANEXO_TAMANHO_MAXIMO_MB = 5
 
+ANEXO_ASSINATURAS = {
+    'jpg': (b'\xff\xd8\xff',),
+    'jpeg': (b'\xff\xd8\xff',),
+    'png': (b'\x89PNG\r\n\x1a\n',),
+    'pdf': (b'%PDF-',),
+}
+
 
 class OcorrenciaForm(ModelForm):
     # Campo honeypot: invisível para humanos, atractivo para bots. Se vier preenchido, é spam.
@@ -1032,6 +1039,14 @@ class OcorrenciaForm(ModelForm):
             limite_bytes = ANEXO_TAMANHO_MAXIMO_MB * 1024 * 1024
             if anexo.size > limite_bytes:
                 raise ValidationError(f'O anexo não pode exceder {ANEXO_TAMANHO_MAXIMO_MB}MB.')
+
+            extensao = anexo.name.rsplit('.', 1)[-1].lower() if '.' in anexo.name else ''
+            assinaturas = ANEXO_ASSINATURAS.get(extensao)
+            if assinaturas:
+                cabecalho = anexo.read(16)
+                anexo.seek(0)
+                if not any(cabecalho.startswith(assinatura) for assinatura in assinaturas):
+                    raise ValidationError('O conteúdo do ficheiro não corresponde à extensão indicada.')
         return anexo
 
     class Meta:
