@@ -15,6 +15,11 @@
 .bl-campo label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.35rem}
 .bl-input,.bl-filtros input,.bl-filtros select{width:100%;padding:.5rem .7rem;border:1.5px solid #d1d5db;border-radius:var(--radius-sm);font-size:.88rem;background:#fff}
 .bl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.bl-largo{grid-column:1 / -1}
+.bl-editor{background:#fff}
+.bl-largo .ql-toolbar.ql-snow{border-radius:8px 8px 0 0;border-color:#d1d5db}
+.bl-largo .ql-container.ql-snow{border-radius:0 0 8px 8px;border-color:#d1d5db;font-family:inherit;font-size:.95rem}
+.bl-largo .ql-editor{min-height:150px}
 .bl-erro{color:#b42318;font-size:.8rem}
 .bl-erro ul{list-style:none;padding:0;margin:.25rem 0 0}
 .bl-ajuda{color:var(--text-muted);font-size:.78rem}

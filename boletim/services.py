@@ -121,11 +121,14 @@ def programas_semanais(lingua):
 def configuracao_publica(lingua):
     cfg = ConfiguracaoBoletim.obter()
     redes = []
-    for nome, url in (('YouTube', cfg.youtube_url), ('Facebook', cfg.facebook_url),
-                      ('Instagram', cfg.instagram_url),
-                      (TEXTOS[lingua]['site'], cfg.site_url)):
+    for chave, nome, url in (
+        ('youtube', 'YouTube', cfg.youtube_url),
+        ('facebook', 'Facebook', cfg.facebook_url),
+        ('instagram', 'Instagram', cfg.instagram_url),
+        ('site', TEXTOS[lingua]['site'], cfg.site_url),
+    ):
         if url:
-            redes.append({'nome': nome, 'url': url})
+            redes.append({'chave': chave, 'nome': nome, 'url': url})
     return {
         'nome_igreja': tr(lingua, cfg.nome_igreja_pt, cfg.nome_igreja_en),
         'congregacao': tr(lingua, cfg.congregacao_pt, cfg.congregacao_en),

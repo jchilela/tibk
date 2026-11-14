@@ -4,7 +4,7 @@
 
 {% block title %}{% if anuncio.pk %}Editar anúncio{% else %}Novo anúncio{% endif %}{% endblock %}
 
-{% block extra_css %}<link rel="stylesheet" href="{% static 'boletim/gestao.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'boletim/gestao.css' %}"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css">{% endblock %}
 
 {% block content %}
 <div class="bl-wrap">
@@ -29,4 +29,9 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+<script src="{% static 'boletim/editor.js' %}"></script>
 {% endblock %}

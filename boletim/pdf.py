@@ -1,6 +1,5 @@
 """PDF A4 do boletim (ReportLab)."""
 from io import BytesIO
-from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
@@ -9,14 +8,15 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from boletim.htmlutil import para_pdf
 from boletim.textos import TEXTOS
 
-VERDE = colors.HexColor('#1f5130')
+VERDE = colors.HexColor('#1b4d3e')
 
 
 def _p(texto):
-    """Escapa o texto para o Paragraph e mantém as quebras de linha."""
-    return escape(texto or '').replace('\n', '<br/>')
+    """Escapa o texto para o Paragraph. HTML limitado vira negrito, listas e quebras."""
+    return para_pdf(texto)
 
 
 def gerar_pdf(ctx, cfg, lingua):

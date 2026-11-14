@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from django import forms
 from django.forms import inlineformset_factory
 
+from boletim.htmlutil import sanitizar_campo
 from boletim.models import Boletim, ItemOrdemCulto, ModeloOrdemCulto
 from boletim.services import normalizar_telefone
 from boletim.textos import TEXTOS
@@ -119,15 +120,25 @@ class BoletimForm(_Estilo, forms.ModelForm):
             'hino_referencia', 'hino_letra', 'link_transmissao', 'link_gravacao', 'notas_sermao',
         ]
         widgets = {
-            'leitura_texto_pt': forms.Textarea(attrs={'rows': 4}),
-            'leitura_texto_en': forms.Textarea(attrs={'rows': 4}),
-            'hino_letra': forms.Textarea(attrs={'rows': 6}),
-            'notas_sermao': forms.Textarea(attrs={'rows': 6}),
+            'leitura_texto_pt': forms.Textarea(attrs={'rows': 6, 'class': 'bl-richtext'}),
+            'leitura_texto_en': forms.Textarea(attrs={'rows': 6, 'class': 'bl-richtext'}),
+            'hino_letra': forms.Textarea(attrs={'rows': 8, 'class': 'bl-richtext'}),
+            'notas_sermao': forms.Textarea(attrs={'rows': 6, 'class': 'bl-richtext'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        ajuda = 'Use a barra para negrito, itálico, listas e ligações.'
+        for nome in ('leitura_texto_pt', 'leitura_texto_en', 'hino_letra', 'notas_sermao'):
+            self.fields[nome].help_text = ajuda
         self._aplicar_estilo()
+
+    def clean(self):
+        dados = super().clean()
+        for nome in ('leitura_texto_pt', 'leitura_texto_en', 'hino_letra', 'notas_sermao'):
+            if nome in dados:
+                dados[nome] = sanitizar_campo(dados.get(nome))
+        return dados
 
 
 class ItemOrdemCultoForm(_Estilo, forms.ModelForm):
@@ -153,8 +164,8 @@ class AnuncioForm(_Estilo, forms.ModelForm):
             'publico', 'ordem', 'actividade', 'quemanuncia',
         ]
         widgets = {
-            'texto': forms.Textarea(attrs={'rows': 4}),
-            'texto_en': forms.Textarea(attrs={'rows': 4}),
+            'texto': forms.Textarea(attrs={'rows': 6, 'class': 'bl-richtext'}),
+            'texto_en': forms.Textarea(attrs={'rows': 6, 'class': 'bl-richtext'}),
             'data_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'data_fim': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
@@ -170,6 +181,8 @@ class AnuncioForm(_Estilo, forms.ModelForm):
         self.fields['actividade'].queryset = qs_act.distinct()
         self.fields['actividade'].label_from_instance = lambda a: f'{a.data:%d/%m/%Y} {a.inicio:%H:%M} — {a.designacao}'
         self.fields['quemanuncia'].queryset = Irmao.objects.order_by('nome', 'apelido')
+        self.fields['texto'].help_text = 'Use a barra para negrito, itálico, listas e ligações.'
+        self.fields['texto_en'].help_text = 'Use the toolbar for bold, italic, lists and links.'
         self._aplicar_estilo()
 
     def clean(self):
@@ -177,6 +190,9 @@ class AnuncioForm(_Estilo, forms.ModelForm):
         inicio, fim = dados.get('data_inicio'), dados.get('data_fim')
         if inicio and fim and fim < inicio:
             self.add_error('data_fim', 'A data de fim não pode ser anterior à data de início.')
+        for nome in ('texto', 'texto_en'):
+            if nome in dados:
+                dados[nome] = sanitizar_campo(dados.get(nome))
         return dados
 
     def save(self, commit=True):

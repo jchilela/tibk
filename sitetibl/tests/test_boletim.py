@@ -23,13 +23,14 @@ if sys.version_info >= (3, 14):
 
 from django.contrib.auth.models import Group, Permission, User
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from boletim.models import (
     Boletim, ConfiguracaoBoletim, FuncaoBoletim, ItemModeloOrdemCulto, ItemOrdemCulto,
     ModeloOrdemCulto, PedidoOracao, ProgramaSemanal,
 )
+from boletim.htmlutil import para_pdf, sanitizar_campo
 from boletim.services import normalizar_telefone
 from sitetibl.models import (
     Actividade, Anuncio, CasoPastoral, Escala, Funcao, Irmao, Listaactividades,
@@ -230,6 +231,28 @@ class PaginaPublicaTest(BoletimBase):
         self.assertLess(len(r.content), 100 * 1024)
         self.assertNotIn(b'<script src=', r.content)
 
+    def test_richtext_e_botao_de_partilha(self):
+        self.criar_boletim(
+            self.hoje,
+            leitura_texto_pt='<p>Deus <strong>amou</strong></p><script>alert(1)</script>',
+            hino_letra='Linha\nDois',
+        )
+        Anuncio.objects.create(
+            data=self.hoje, data_inicio=self.hoje, titulo='Células',
+            texto='<ul><li>Célula A</li></ul><img src=x onerror=alert(1)>',
+            quemanuncia=self.irmao, publico=True,
+        )
+        r = self.client.get(self.url_data(self.hoje))
+        self.assertContains(r, '<strong>amou</strong>')
+        self.assertContains(r, 'Linha<br>Dois')
+        self.assertNotContains(r, '&lt;p&gt;')
+        self.assertNotContains(r, 'alert(1)')
+        self.assertNotContains(r, 'onerror')
+        self.assertContains(r, '<li>Célula A</li>')
+        self.assertContains(r, 'id="bl-partilhar"')
+        self.assertContains(r, 'Compartilhar este boletim')
+        self.assertContains(r, 'Descarregar PDF')
+
 
 class LinguaTest(BoletimBase):
     def test_lang_en_usa_campos_en_e_cai_para_pt(self):
@@ -284,6 +307,16 @@ class PdfIcsTest(BoletimBase):
         ProgramaSemanal.objects.create(dia_semana=2, hora_inicio=time(18, 0), titulo_pt='Oração')
         r = self.client.get(reverse('boletim:pdf', args=[self.hoje.isoformat()]) + '?lang=en')
         self.assertEqual(r['Content-Type'], 'application/pdf')
+        self.assertTrue(r.content.startswith(b'%PDF'))
+
+    def test_pdf_com_html_formatado(self):
+        self.criar_boletim(
+            self.hoje,
+            leitura_texto_pt='<p>Deus <strong>amou</strong> o mundo</p>',
+            notas_sermao='<ul><li>Ponto um</li><li>Ponto dois</li></ul>',
+        )
+        r = self.client.get(reverse('boletim:pdf', args=[self.hoje.isoformat()]))
+        self.assertEqual(r.status_code, 200)
         self.assertTrue(r.content.startswith(b'%PDF'))
 
     def test_ics_de_anuncio_com_actividade(self):
@@ -474,6 +507,29 @@ class GestaoTest(BoletimBase):
         self.assertRedirects(r, url)
         self.assertEqual(list(b.itens.values_list('titulo_pt', flat=True)), ['Prelúdio', 'Bênção'])
 
+    def test_editar_grava_richtext_sem_script(self):
+        b = self.criar_boletim(self.hoje)
+        self.client.force_login(self.utilizador('boletim.change_boletim', 'boletim.view_boletim'))
+        url = reverse('boletim:gestao_editar', args=[b.pk])
+        pagina = self.client.get(url)
+        self.assertContains(pagina, 'bl-richtext')
+        self.assertContains(pagina, 'quill.js')
+        dados = {
+            'titulo_pt': 'Ordem do Culto', 'titulo_en': 'Order of Service',
+            'leitura_texto_pt': '<p>Texto <strong>forte</strong></p><script>alert(1)</script>',
+            'leitura_texto_en': '', 'leitura_referencia': '',
+            'hino_referencia': '', 'hino_letra': 'Verso 1',
+            'link_transmissao': '', 'link_gravacao': '', 'notas_sermao': '',
+            'itens-TOTAL_FORMS': '0', 'itens-INITIAL_FORMS': '0',
+            'itens-MIN_NUM_FORMS': '0', 'itens-MAX_NUM_FORMS': '1000',
+        }
+        r = self.client.post(url, dados)
+        self.assertRedirects(r, url)
+        b.refresh_from_db()
+        self.assertIn('<strong>forte</strong>', b.leitura_texto_pt)
+        self.assertNotIn('script', b.leitura_texto_pt)
+        self.assertEqual(b.hino_letra, 'Verso 1')
+
     def test_anuncio_criado_na_gestao(self):
         b = self.criar_boletim(self.hoje)
         self.irmao.user = self.utilizador('sitetibl.add_anuncio', 'boletim.view_boletim')
@@ -543,3 +599,28 @@ class SeederPermissoesTest(TestCase):
         for grupo in ('Financeiro', 'Líder de Departamento', 'Vice-Líder de Departamento',
                       'Líder de Célula', 'Membros Baptizados', 'Membro Geral', 'Secretário Geral'):
             self.assertEqual(perms(grupo), set(), grupo)
+
+
+class HtmlBoletimTest(SimpleTestCase):
+    def test_texto_simples_nao_e_interpretado_como_html(self):
+        bruto = 'Porque Deus amou o mundo <de tal> maneira & ...'
+        self.assertEqual(sanitizar_campo('Linha 1\nLinha 2'), 'Linha 1\nLinha 2')
+        self.assertEqual(sanitizar_campo(bruto), bruto)
+        self.assertIn('&lt;de tal&gt;', para_pdf(bruto))
+        self.assertIn('&amp;', para_pdf(bruto))
+
+    def test_html_permitido_e_script_removido(self):
+        limpo = sanitizar_campo(
+            '<p>Olá <strong>igreja</strong></p><script>alert(1)</script>'
+            '<p><a href="javascript:alert(1)">ligação</a></p>'
+            '<p><a href="https://tibl.ao/">site</a></p>'
+        )
+        self.assertIn('<strong>igreja</strong>', limpo)
+        self.assertIn('ligação', limpo)
+        self.assertIn('https://tibl.ao/', limpo)
+        self.assertNotIn('script', limpo)
+        self.assertNotIn('javascript', limpo)
+        pdf = para_pdf('<ul><li>Morro Bento</li><li>Kilamba</li></ul>')
+        self.assertIn('Morro Bento', pdf)
+        self.assertIn('- Kilamba', pdf)
+        self.assertNotIn('<li>', pdf)
