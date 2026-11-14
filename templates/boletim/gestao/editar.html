@@ -1,6 +1,7 @@
 {% extends "base_modern.html" %}
 {% load static %}
 {% load verificagrupo %}
+{% load boletim_extras %}
 
 {% block title %}Editar boletim{% endblock %}
 
@@ -88,7 +89,7 @@
         {% for a in anuncios %}
         <tr>
           <td>{{ a.ordem }}</td>
-          <td>{% if a.titulo %}{{ a.titulo }}{% else %}{{ a.texto|truncatechars:60 }}{% endif %}</td>
+          <td>{% if a.titulo %}{{ a.titulo }}{% else %}{{ a.texto|texto_plano|truncatechars:60 }}{% endif %}</td>
           <td>{{ a.data_inicio|date:"d/m/Y" }}{% if a.data_fim %} a {{ a.data_fim|date:"d/m/Y" }}{% endif %}</td>
           <td>{% if a.publico %}<span class="bl-badge publicado">Público</span>{% else %}<span class="bl-badge privado">Interno</span>{% endif %}</td>
           <td>{% if perms.sitetibl.change_anuncio %}<a class="bl-btn pequeno sec" href="{% url 'boletim:gestao_anuncio_editar' a.pk %}?voltar={{ boletim.pk }}">Editar</a>{% endif %}</td>

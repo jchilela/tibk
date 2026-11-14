@@ -2,7 +2,7 @@ from django import template
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 
-from boletim.htmlutil import parece_html, sanitizar_campo
+from boletim.htmlutil import parece_html, sanitizar_campo, texto_plano
 
 register = template.Library()
 
@@ -15,3 +15,8 @@ def formatado(valor):
     if parece_html(valor):
         return mark_safe(sanitizar_campo(valor))
     return mark_safe(linebreaks(valor, autoescape=True))
+
+
+@register.filter(name='texto_plano')
+def filtro_texto_plano(valor):
+    return texto_plano(valor)

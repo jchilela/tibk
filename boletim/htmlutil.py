@@ -37,6 +37,18 @@ def _visivel(html):
     return bool(texto.replace('\xa0', ' ').strip())
 
 
+def texto_plano(valor):
+    """Tira as etiquetas para uma pré-visualização de uma linha."""
+    if not valor:
+        return ''
+    texto = re.sub(r'<\s*br\s*/?\s*>', ' ', valor, flags=re.IGNORECASE)
+    texto = re.sub(r'</\s*(p|div|li|h2|h3|blockquote|tr)\s*>', ' ', texto, flags=re.IGNORECASE)
+    texto = re.sub(r'<[^>]+>', '', texto)
+    texto = (texto.replace('\xa0', ' ').replace('&nbsp;', ' ')
+             .replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>'))
+    return re.sub(r'\s+', ' ', texto).strip()
+
+
 class _Limpador(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
