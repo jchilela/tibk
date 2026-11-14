@@ -1,0 +1,53 @@
+{% extends "base_modern.html" %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Pedido de oração{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'boletim/gestao.css' %}">{% endblock %}
+
+{% block content %}
+<div class="bl-wrap">
+  <div class="bl-header">
+    <h2><i class="fas fa-praying-hands"></i> Pedido de oração</h2>
+    <a class="bl-btn sec" href="{% url 'boletim:gestao_oracao_lista' %}">Voltar</a>
+  </div>
+
+  <div class="bl-card">
+    <p><strong>Recebido:</strong> {{ pedido.criado_em|date:"d/m/Y H:i" }} · <span class="bl-badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span>{% if pedido.confidencial %} · <i class="fas fa-lock"></i> Confidencial{% endif %}</p>
+    <p><strong>Nome:</strong> {% if pedido.nome %}{{ pedido.nome }}{% else %}<em>Anónimo</em>{% endif %}</p>
+    {% if pedido.contacto %}<p><strong>Contacto:</strong> {{ pedido.contacto }}</p>{% endif %}
+    <div class="bl-pedido">{{ pedido.pedido }}</div>
+    {% if pedido.caso_pastoral %}
+    <p style="margin-top:1rem"><strong>Caso pastoral:</strong> <a href="{% url 'sitetibl:mostra_detalhe' 'casospastorais' pedido.caso_pastoral.pk %}">{{ pedido.caso_pastoral }}</a></p>
+    {% endif %}
+    {% if pode_alterar %}
+    <form method="post" style="margin-top:1rem">
+      {% csrf_token %}
+      {% if pedido.estado == 'arquivado' %}
+      <input type="hidden" name="accao" value="reabrir">
+      <button class="bl-btn sec" type="submit">Reabrir</button>
+      {% elif pedido.estado != 'convertido' %}
+      <input type="hidden" name="accao" value="arquivar">
+      <button class="bl-btn sec" type="submit"><i class="fas fa-archive"></i> Arquivar</button>
+      {% endif %}
+    </form>
+    {% endif %}
+  </div>
+
+  {% if pode_converter %}
+  <div class="bl-card">
+    <h3>Converter em caso pastoral</h3>
+    <p class="bl-ajuda">Só é possível quando a pessoa é membro identificado. Escolha o irmão: o caso pastoral é criado como confidencial, com o texto do pedido como descrição.</p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accao" value="converter">
+      <div class="bl-grid">
+        {% for campo in form %}{% include "boletim/gestao/_campo.html" %}{% endfor %}
+      </div>
+      <p style="margin-top:1rem"><button class="bl-btn" type="submit">Criar caso pastoral</button></p>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
