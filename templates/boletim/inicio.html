@@ -1,0 +1,62 @@
+{% extends "boletim/base_publico.html" %}
+
+{% block title %}{{ t.escolher_culto }} — {{ cfg.nome_igreja }}{% endblock %}
+{% block descricao %}{{ og_descricao }}{% endblock %}
+
+{% block meta %}
+{% include "boletim/meta_social.html" %}
+{% if ld_json %}<script type="application/ld+json">{{ ld_json }}</script>{% endif %}
+{% endblock %}
+
+{% block content %}
+<header class="hero hero-curto">
+  <h1>{{ t.escolher_culto }}</h1>
+  <p class="acolhida-texto">{{ t.convite }}</p>
+</header>
+
+<p class="partilha-convite">
+  <a class="btn" href="{{ url_convite }}" target="_blank" rel="noopener">{{ t.partilhar_convite }}</a>
+</p>
+
+<section class="sec-cultos">
+  <h2>{{ t.cultos }}</h2>
+  {% if dias %}
+  {% for dia in dias %}
+  <h3 class="dia">{{ dia.data_extenso }}</h3>
+  <div class="cartoes">
+    {% for c in dia.cultos %}
+    <a class="cartao-culto" href="{{ c.url }}">
+      <span class="cartao-hora">{{ c.hora }}</span>
+      <span class="cartao-nome">{{ c.nome }}</span>
+      {% if c.tema %}<span class="cartao-tema">{{ t.tema }}: {{ c.tema }}</span>{% endif %}
+      <span class="cartao-acao">{{ t.ver_ordem }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <p class="vazio-cultos">{{ t.sem_boletim }}</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2>{{ t.eventos_semana }}</h2>
+  {% if eventos %}
+  <ul class="lista eventos">
+    {% for e in eventos %}
+    <li>
+      <span><strong>{{ e.titulo }}</strong><span class="det bloco">{{ e.data_extenso }} · {{ e.hora }}{% if e.local %} · {{ e.local }}{% endif %}</span>{% if e.tema %}<span class="det bloco">{{ t.tema }}: {{ e.tema }}</span>{% endif %}</span>
+      {% if e.url %}<a class="ver" href="{{ e.url }}">{{ t.ver_ordem }}</a>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="det">{{ t.sem_eventos }}</p>
+  {% endif %}
+</section>
+
+<div class="botoes">
+  <a class="btn" href="{% url 'boletim:visitante' %}">{{ t.sou_visitante }}</a>
+  <a class="btn sec" href="{% url 'boletim:oracao' %}">{{ t.pedido_oracao }}</a>
+</div>
+{% endblock %}

@@ -7,14 +7,9 @@
 {% block body_class %}tem-barra{% endblock %}
 
 {% block meta %}
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="{{ cfg.nome_igreja }}">
-<meta property="og:title" content="{{ og_titulo }}">
-<meta property="og:description" content="{{ og_descricao }}">
-<meta property="og:url" content="{{ og_url }}">
-<meta property="og:locale" content="{{ t.og_locale }}">
-<link rel="canonical" href="{{ og_url }}">
+{% include "boletim/meta_social.html" %}
 {% if pre_visualizacao %}<meta name="robots" content="noindex">{% endif %}
+{% if ld_json %}<script type="application/ld+json">{{ ld_json }}</script>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -150,6 +145,8 @@
   var botao = document.getElementById('bl-partilhar');
   if (!botao) { return; }
   var url = "{{ og_url|escapejs }}";
+  var texto = "{{ og_texto|escapejs }}";
+  var titulo = "{{ og_titulo|escapejs }}";
   var rotulo = botao.querySelector('.rotulo');
   var feito = botao.querySelector('.feito');
   function mostrar() {
@@ -158,9 +155,12 @@
     feito.hidden = false;
     setTimeout(function () { rotulo.hidden = false; feito.hidden = true; }, 2200);
   }
+  function mensagem() {
+    return texto ? texto + '\n' + url : url;
+  }
   function copiarPeloDocumento() {
     var caixa = document.createElement('textarea');
-    caixa.value = url;
+    caixa.value = mensagem();
     document.body.appendChild(caixa);
     caixa.select();
     document.execCommand('copy');
@@ -169,14 +169,14 @@
   }
   function copiar() {
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(url).then(mostrar).catch(copiarPeloDocumento);
+      navigator.clipboard.writeText(mensagem()).then(mostrar).catch(copiarPeloDocumento);
       return;
     }
     copiarPeloDocumento();
   }
   botao.addEventListener('click', function () {
     if (navigator.share) {
-      navigator.share({ title: document.title, url: url }).catch(function (erro) {
+      navigator.share({ title: titulo, text: texto, url: url }).catch(function (erro) {
         if (!erro || erro.name !== 'AbortError') { copiar(); }
       });
       return;

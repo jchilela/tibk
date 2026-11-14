@@ -247,6 +247,112 @@ input[type=checkbox], input[type=radio] { width: 20px; height: 20px; vertical-al
 .hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
 .pag { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: .92rem; }
 
+.hero-curto { padding: 28px 22px 24px; }
+.partilha-convite { display: flex; justify-content: center; margin: 0 0 14px; }
+.partilha-convite .btn { width: auto; padding-left: 22px; padding-right: 22px; }
+.hero-curto h1 { margin: 0; }
+.hero .acolhida-texto {
+  margin: 10px auto 0;
+  max-width: 36rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  opacity: .92;
+}
+section.sec-cultos {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 2px 0 0;
+}
+section.sec-cultos h2 { border-bottom: 0; padding-bottom: 0; margin-bottom: 8px; }
+.dia {
+  margin: 12px 2px 8px;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--verde-medio);
+}
+.cartoes { display: flex; flex-direction: column; gap: 12px; }
+a.cartao-culto {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "hora nome"
+    "hora tema"
+    "acao acao";
+  gap: 2px 14px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 16px 16px 14px 20px;
+  text-decoration: none;
+  color: inherit;
+  background:
+    linear-gradient(145deg, rgba(149, 213, 178, .28), transparent 46%),
+    #fff;
+  border: 1px solid #d7ebe1;
+  border-radius: 18px;
+  box-shadow: var(--sombra);
+}
+a.cartao-culto::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(180deg, var(--verde-claro), var(--verde));
+}
+a.cartao-culto:hover { border-color: var(--verde-claro); transform: translateY(-1px); }
+.cartao-hora {
+  grid-area: hora;
+  min-width: 4.7rem;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--verde);
+  color: #fff;
+  font-weight: 700;
+  font-size: .95rem;
+  text-align: center;
+  letter-spacing: .02em;
+}
+.cartao-nome {
+  grid-area: nome;
+  font-family: "Roboto Slab", Georgia, serif;
+  font-size: 1.18rem;
+  line-height: 1.25;
+  color: var(--verde-escuro);
+}
+.cartao-tema {
+  grid-area: tema;
+  color: var(--sub);
+  font-style: italic;
+  font-size: .95rem;
+}
+.cartao-acao {
+  grid-area: acao;
+  justify-self: start;
+  margin-top: 10px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--verde);
+  color: #fff;
+  font-weight: 700;
+  font-size: .88rem;
+}
+.cartao-acao::after { content: " \2192"; }
+a.cartao-culto:hover .cartao-acao { background: var(--verde-medio); }
+.vazio-cultos {
+  margin: 0;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 18px;
+}
+.det.bloco { display: block; text-align: left; }
+.lista.eventos .ver { white-space: nowrap; font-weight: 700; text-decoration: none; }
+
 @media (max-width: 760px) {
   body.tem-barra main { padding-bottom: 96px; }
   .barra {
@@ -267,7 +373,7 @@ input[type=checkbox], input[type=radio] { width: 20px; height: 20px; vertical-al
   .hero h1 { font-size: 2.15rem; }
 }
 @media print {
-  .topo, .botoes, .barra, .redes, .nao-imprimir { display: none; }
+  .topo, .botoes, .barra, .redes, .nao-imprimir, .partilha-convite { display: none; }
   body { background: #fff; }
   section, .hero { box-shadow: none; }
   .hero { color: var(--verde-escuro); background: #fff; border: 0; padding: 0 0 8px; }

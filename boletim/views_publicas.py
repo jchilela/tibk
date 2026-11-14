@@ -7,14 +7,17 @@ Regras:
   Django e são invalidados por signals (ver ``boletim/signals.py``);
 - os formulários nunca vão para a cache (têm token CSRF).
 """
-from datetime import date
+import json
+from urllib.parse import quote
 
 from django.core.paginator import Paginator
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.cache import patch_cache_control, patch_vary_headers
+from django.utils.safestring import mark_safe
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -51,6 +54,100 @@ def _url_lingua(request, lingua_destino):
     return f'{request.path}?{params.urlencode()}'
 
 
+def _imagem_og(request):
+    return request.build_absolute_uri(static('fotos/2022/cba.png'))
+
+
+def _com_lingua(url, lingua):
+    if lingua != 'en':
+        return url
+    return url + ('&' if '?' in url else '?') + 'lang=en'
+
+
+def _urls_lingua(request, caminho):
+    base = request.build_absolute_uri(caminho)
+    return {'pt': _com_lingua(base, 'pt'), 'en': _com_lingua(base, 'en')}
+
+
+def _json_ld(dados):
+    if not dados:
+        return ''
+    bruto = json.dumps(dados, ensure_ascii=False).replace('<', '\\u003c')
+    return mark_safe(bruto)
+
+
+def _evento_ld(nome, inicio_iso, descricao, url, igreja):
+    return {
+        '@type': 'Event',
+        'name': nome,
+        'startDate': inicio_iso,
+        'eventAttendanceMode': 'https://schema.org/OfflineEventAttendanceMode',
+        'eventStatus': 'https://schema.org/EventScheduled',
+        'description': descricao,
+        'url': url,
+        'location': {'@type': 'Place', 'name': igreja},
+        'organizer': {'@type': 'Organization', 'name': igreja},
+    }
+
+
+def _lista_ld(eventos):
+    if not eventos:
+        return ''
+    if len(eventos) == 1:
+        return _json_ld({'@context': 'https://schema.org', **eventos[0]})
+    return _json_ld({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': i, 'item': evento}
+            for i, evento in enumerate(eventos, 1)
+        ],
+    })
+
+
+def _social(request, lingua, caminho, titulo, descricao):
+    urls = _urls_lingua(request, caminho)
+    return {
+        'og_titulo': titulo,
+        'og_descricao': descricao,
+        'og_url': urls[lingua],
+        'og_url_pt': urls['pt'],
+        'og_url_en': urls['en'],
+        'og_imagem': _imagem_og(request),
+    }
+
+
+def _texto_convite(dias, t, igreja, url):
+    """Mensagem pronta a encaminhar: o convite, os cultos e o endereço."""
+    linhas = [t['convite_abertura'], '', t['convite_lugar']]
+    cultos = [(dia, culto) for dia in dias for culto in dia['cultos']]
+    if not cultos:
+        linhas = [t['convite_abertura'], '']
+    for dia, culto in cultos:
+        linhas.append(f"• {dia['data_extenso']}, {t['convite_as']} {culto['hora']} — {culto['nome']}")
+        if culto['tema']:
+            linhas.append(f"  {t['tema']}: {culto['tema']}")
+    linhas.extend(['', t['convite'], '', igreja, url])
+    return '\n'.join(linhas)
+
+
+def _resumo_proximos(dias, t, igreja):
+    cultos = [c for dia in dias for c in dia['cultos']]
+    if not cultos:
+        return f"{t['convite']} {igreja}"
+    primeiro_dia = next(dia for dia in dias if dia['cultos'])
+    culto = primeiro_dia['cultos'][0]
+    texto = f"{primeiro_dia['data_extenso']} · {culto['hora']} — {culto['nome']}"
+    if culto['tema']:
+        texto += f". {t['tema']}: {culto['tema']}"
+    extra = len(cultos) - 1
+    if extra == 1:
+        texto += f". {t['mais_um_culto']}"
+    elif extra > 1:
+        texto += '. ' + t['mais_cultos'].format(n=extra)
+    return f"{texto}. {igreja}."
+
+
 def _escolher_culto(boletins, culto):
     if culto and culto.isdigit():
         for b in boletins:
@@ -66,9 +163,20 @@ def render_boletim(request, boletim, lingua, outros=(), pre_visualizacao=False):
     b = services.contexto_boletim(boletim, lingua)
     url_data = reverse('boletim:data', args=[b['data_iso']])
     sufixo_culto = f'?culto={boletim.id}' if outros else ''
-    descricao = cfg['nome_igreja']
+    nome = str(boletim.actividade.designacao)
+    og_titulo = f"{nome} · {b['hora_inicio']}" if b['hora_inicio'] else nome
+    partes = [b['data_extenso']]
     if b['tema']:
-        descricao = f"{t['tema']}: {b['tema']} · {descricao}"
+        partes.append(f"{t['tema']}: {b['tema']}")
+    partes.append(cfg['nome_igreja'])
+    og_descricao = '. '.join(partes) + '.'
+    linhas = [og_titulo, b['data_extenso']]
+    if b['tema']:
+        linhas.append(f"{t['tema']}: {b['tema']}")
+    linhas.append(cfg['nome_igreja'])
+    act = boletim.actividade
+    inicio_iso = f"{b['data_iso']}T{act.inicio.isoformat()}" if act.inicio else b['data_iso']
+    caminho = url_data + sufixo_culto
     contexto = {
         't': t,
         'lingua': lingua,
@@ -80,11 +188,14 @@ def render_boletim(request, boletim, lingua, outros=(), pre_visualizacao=False):
              'rotulo': f"{o.actividade.inicio:%Hh%M} — {tr(lingua, o.titulo_pt, o.titulo_en)}"}
             for o in outros
         ],
-        'og_titulo': f"{b['titulo']} — {b['data_extenso']}",
-        'og_descricao': descricao,
-        'og_url': request.build_absolute_uri(url_data + sufixo_culto),
+        'og_texto': '\n'.join(linhas),
+        'ld_json': _json_ld({
+            '@context': 'https://schema.org',
+            **_evento_ld(nome, inicio_iso, og_descricao, request.build_absolute_uri(_com_lingua(caminho, lingua)), cfg['nome_igreja']),
+        }),
         'url_pdf': reverse('boletim:pdf', args=[b['data_iso']]) + sufixo_culto,
         'url_lingua': _url_lingua(request, t['outra_lingua']),
+        **_social(request, lingua, caminho, og_titulo, og_descricao),
     }
     return render_to_string('boletim/boletim.html', contexto)
 
@@ -103,21 +214,47 @@ def _pagina_cacheada(request, partes, gerar):
 
 @require_GET
 def boletim_actual(request):
-    hoje = date.today()
+    agora = services._agora()
+    hoje = agora.date()
 
     def gerar(lingua):
-        boletim = services.boletim_actual(hoje)
-        if boletim is None:
-            t = TEXTOS[lingua]
-            return render_to_string('boletim/vazio.html', {
-                't': t, 'lingua': lingua, 'cfg': services.configuracao_publica(lingua),
-                'url_lingua': _url_lingua(request, t['outra_lingua']),
-            })
-        do_dia = services.boletins_da_data(boletim.actividade.data)
-        outros = [o for o in do_dia if o.id != boletim.id]
-        return render_boletim(request, boletim, lingua, outros)
+        t = TEXTOS[lingua]
+        cfg = services.configuracao_publica(lingua)
+        dias, anteriores = services.cultos_para_escolher(hoje, lingua, agora)
+        cultos = [c for dia in dias for c in dia['cultos']]
+        if cultos and cultos[0]['hora']:
+            og_titulo = f"{cultos[0]['nome']} · {cultos[0]['hora']}"
+        elif cultos:
+            og_titulo = cultos[0]['nome']
+        else:
+            og_titulo = t['escolher_culto']
+        og_descricao = _resumo_proximos(dias, t, cfg['nome_igreja'])
+        social = _social(request, lingua, reverse('boletim:actual'), og_titulo, og_descricao)
+        convite = _texto_convite(dias, t, cfg['nome_igreja'], social['og_url'])
+        eventos_ld = []
+        for dia in dias:
+            for culto in dia['cultos']:
+                detalhe = f"{dia['data_extenso']} · {culto['hora']}"
+                if culto['tema']:
+                    detalhe += f". {t['tema']}: {culto['tema']}"
+                eventos_ld.append(_evento_ld(
+                    culto['nome'], culto['inicio_iso'], detalhe,
+                    request.build_absolute_uri(culto['url']), cfg['nome_igreja'],
+                ))
+        return render_to_string('boletim/inicio.html', {
+            't': t,
+            'lingua': lingua,
+            'cfg': cfg,
+            'dias': dias,
+            'anteriores': anteriores,
+            'eventos': services.eventos_da_semana(hoje, lingua, agora),
+            'url_lingua': _url_lingua(request, t['outra_lingua']),
+            'ld_json': _lista_ld(eventos_ld),
+            'url_convite': 'https://wa.me/?text=' + quote(convite),
+            **social,
+        })
 
-    return _pagina_cacheada(request, ('actual', hoje.isoformat()), gerar)
+    return _pagina_cacheada(request, ('actual', hoje.isoformat(), f'{agora.hour:02d}'), gerar)
 
 
 @require_GET
