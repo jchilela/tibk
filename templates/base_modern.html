@@ -130,6 +130,22 @@
                 </a>
                 {% endif %}
 
+                {% if perms.boletim.view_boletim or perms.boletim.view_pedidooracao %}
+                <div class="nav-section-title">Boletim</div>
+                {% if perms.boletim.view_boletim %}
+                <a href="{% url 'boletim:gestao_lista' %}"
+                    class="nav-item {% if request.resolver_match.app_name == 'boletim' and request.resolver_match.url_name != 'gestao_oracao_lista' and request.resolver_match.url_name != 'gestao_oracao_detalhe' %}active{% endif %}">
+                    <i class="fas fa-newspaper fa-fw"></i> Boletins
+                </a>
+                {% endif %}
+                {% if perms.boletim.view_pedidooracao %}
+                <a href="{% url 'boletim:gestao_oracao_lista' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'gestao_oracao_lista' or request.resolver_match.url_name == 'gestao_oracao_detalhe' %}active{% endif %}">
+                    <i class="fas fa-praying-hands fa-fw"></i> Pedidos de Oração
+                </a>
+                {% endif %}
+                {% endif %}
+
                 {% if perms.sitetibl.view_dizimooferta or perms.sitetibl.view_entrada or perms.sitetibl.view_saida or request.user.is_authenticated %}
                 <div class="nav-section-title">Financeiro</div>
 

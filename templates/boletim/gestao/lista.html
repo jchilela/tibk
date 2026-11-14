@@ -1,0 +1,65 @@
+{% extends "base_modern.html" %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Boletins{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'boletim/gestao.css' %}">{% endblock %}
+
+{% block content %}
+<div class="bl-wrap">
+  <div class="bl-header">
+    <h2><i class="fas fa-newspaper"></i> Boletins</h2>
+    <div class="bl-acoes">
+      <a class="bl-btn sec" href="{% url 'boletim:actual' %}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Página pública</a>
+      {% if perms.sitetibl.add_anuncio %}<a class="bl-btn sec" href="{% url 'boletim:gestao_anuncio_novo' %}"><i class="fas fa-bullhorn"></i> Novo anúncio</a>{% endif %}
+      {% if perms.boletim.add_boletim %}<a class="bl-btn" href="{% url 'boletim:gestao_novo' %}"><i class="fas fa-plus"></i> Novo boletim</a>{% endif %}
+    </div>
+  </div>
+
+  <div class="bl-card bl-filtros">
+    <form method="get">
+      <div class="bl-campo">
+        <label for="f-estado">Estado</label>
+        <select id="f-estado" name="estado">
+          <option value="">Todos</option>
+          {% for valor, nome in estados %}<option value="{{ valor }}"{% if valor == filtro_estado %} selected{% endif %}>{{ nome }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="bl-campo"><label for="f-de">De</label><input id="f-de" type="date" name="de" value="{{ filtro_de }}"></div>
+      <div class="bl-campo"><label for="f-ate">Até</label><input id="f-ate" type="date" name="ate" value="{{ filtro_ate }}"></div>
+      <div class="bl-campo"><button class="bl-btn" type="submit"><i class="fas fa-filter"></i> Filtrar</button></div>
+    </form>
+  </div>
+
+  {% if pagina.object_list %}
+  <table class="bl-tabela">
+    <thead><tr><th>Data</th><th>Culto</th><th>Tema</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+      {% for b in pagina.object_list %}
+      <tr>
+        <td>{{ b.actividade.data|date:"d/m/Y" }} {{ b.actividade.inicio|time:"H:i" }}</td>
+        <td>{{ b.actividade.designacao }}</td>
+        <td>{{ b.actividade.tema }}</td>
+        <td><span class="bl-badge {{ b.estado }}">{{ b.get_estado_display }}</span></td>
+        <td>
+          {% if perms.boletim.change_boletim %}<a class="bl-btn pequeno" href="{% url 'boletim:gestao_editar' b.pk %}">Editar</a>{% endif %}
+          <a class="bl-btn pequeno sec" href="{% url 'boletim:gestao_preview' b.pk %}" target="_blank" rel="noopener">Pré-visualizar</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if pagina.paginator.num_pages > 1 %}
+  <div class="bl-paginacao">
+    {% if pagina.has_previous %}<a href="?pagina={{ pagina.previous_page_number }}&estado={{ filtro_estado }}&de={{ filtro_de }}&ate={{ filtro_ate }}">← Anterior</a>{% endif %}
+    <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+    {% if pagina.has_next %}<a href="?pagina={{ pagina.next_page_number }}&estado={{ filtro_estado }}&de={{ filtro_de }}&ate={{ filtro_ate }}">Seguinte →</a>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="bl-card bl-vazio">Nenhum boletim encontrado.</div>
+  {% endif %}
+</div>
+{% endblock %}

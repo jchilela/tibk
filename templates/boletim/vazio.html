@@ -1,0 +1,13 @@
+{% extends "boletim/base_publico.html" %}
+
+{% block content %}
+<div class="cab">
+  <p class="igreja">{{ cfg.nome_igreja }}</p>
+  <h1>{{ t.boletim }}</h1>
+</div>
+<p class="ok">{{ t.sem_boletim }}</p>
+<div class="botoes">
+  <a class="btn" href="{% url 'boletim:visitante' %}">{{ t.sou_visitante }}</a>
+  <a class="btn sec" href="{% url 'boletim:oracao' %}">{{ t.pedido_oracao }}</a>
+</div>
+{% endblock %}

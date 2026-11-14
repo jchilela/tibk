@@ -1,0 +1,31 @@
+{% extends "base_modern.html" %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}Novo boletim{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'boletim/gestao.css' %}">{% endblock %}
+
+{% block content %}
+<div class="bl-wrap">
+  <div class="bl-header">
+    <h2><i class="fas fa-newspaper"></i> Novo boletim</h2>
+    <a class="bl-btn sec" href="{% url 'boletim:gestao_lista' %}">Voltar</a>
+  </div>
+
+  <div class="bl-card">
+    <p class="bl-ajuda">Escolha o culto (actividade). A leitura bíblica e o hino são pré-preenchidos a partir da actividade e os itens do modelo seleccionado são copiados para a ordem do culto. Tudo pode ser editado depois.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="bl-erro">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="bl-grid">
+        {% for campo in form %}{% include "boletim/gestao/_campo.html" %}{% endfor %}
+      </div>
+      {% if not form.actividade.field.queryset.exists %}
+      <p class="bl-ajuda">Não há actividades sem boletim a partir dos últimos 30 dias. Crie primeiro a actividade do culto.</p>
+      {% endif %}
+      <p style="margin-top:1rem"><button class="bl-btn" type="submit">Criar boletim</button></p>
+    </form>
+  </div>
+</div>
+{% endblock %}

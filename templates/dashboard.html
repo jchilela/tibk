@@ -1,6 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load verificagrupo %}
+{% load boletim_extras %}
 
 {% block title %}Painel | TIBL{% endblock %}
 
@@ -162,7 +163,7 @@
             <i class="fas fa-megaphone"></i>
           </div>
           <div class="dash-list-body">
-            <strong>{{ a.texto|truncatewords:20 }}</strong>
+            <strong>{{ a.texto|texto_plano|truncatewords:20 }}</strong>
             <span class="dash-list-meta">{{ a.data|date:"d M Y" }} · {{ a.quemanuncia }}</span>
           </div>
         </div>

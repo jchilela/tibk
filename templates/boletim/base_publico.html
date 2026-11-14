@@ -1,0 +1,33 @@
+{% load static %}<!DOCTYPE html>
+<html lang="{{ t.html_lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ t.boletim }} — {{ cfg.nome_igreja }}{% endblock %}</title>
+<meta name="description" content="{% block descricao %}{{ cfg.nome_igreja }}{% endblock %}">
+{% block meta %}{% endblock %}
+<meta name="theme-color" content="#1b4d3e">
+<link rel="icon" type="image/png" href="{% static 'fotos/2022/cba.png' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Slab:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'boletim/boletim.css' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<header class="topo">
+  <a class="marca" href="{% url 'boletim:actual' %}">
+    <img class="logo" src="{% static 'fotos/2022/cba.png' %}" alt="TIBL">
+    <span>{{ t.boletim }}</span>
+  </a>
+  <a class="lingua" href="{{ url_lingua }}" hreflang="{{ t.outra_lingua }}" lang="{{ t.outra_lingua }}">{{ t.outra_lingua_nome }}</a>
+</header>
+<main>
+{% block content %}{% endblock %}
+<footer class="rodape">
+  <p>{{ cfg.nome_igreja }}</p>
+  <p class="nao-imprimir"><a href="{% url 'boletim:arquivo' %}">{{ t.arquivo }}</a></p>
+</footer>
+</main>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

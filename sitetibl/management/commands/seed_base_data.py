@@ -110,9 +110,18 @@ class Command(BaseCommand):
         app = 'sitetibl'
         crud = ['add', 'change', 'delete', 'view']
 
+        # Boletim digital: Administrador e Pastor tudo; Secretaria tudo menos
+        # pedidos de oração; restantes grupos sem acesso.
+        boletim_modelos = [
+            'boletim', 'itemordemculto', 'modeloordemculto', 'itemmodeloordemculto',
+            'funcaoboletim', 'programasemanal', 'configuracaoboletim',
+        ]
+        boletim_perms = self._perms_for('boletim', boletim_modelos, crud)
+        oracao_perms = self._perms_for('boletim', ['pedidooracao'], crud)
+
         # --- Administrador: tudo em sitetibl ---
         admin_grp = Group.objects.get(name='Administrador')
-        all_perms = Permission.objects.filter(content_type__app_label=app)
+        all_perms = Permission.objects.filter(content_type__app_label__in=[app, 'boletim'])
         admin_grp.permissions.set(all_perms)
         self.stdout.write(f'Administrador: {all_perms.count()} permissoes atribuidas')
 
@@ -139,6 +148,7 @@ class Command(BaseCommand):
         pastor_perms |= self._perms_for(app, [
             'casopastoral', 'registoacompanhamento', 'alertapastoral', 'visitanterecorrente',
         ], crud)
+        pastor_perms |= boletim_perms | oracao_perms
         pastor_grp.permissions.set(pastor_perms)
         self.stdout.write(f'Pastor: {pastor_perms.count()} permissoes atribuidas')
 
@@ -191,6 +201,7 @@ class Command(BaseCommand):
         sec_perms |= self._perms_for(app, [
             'casopastoral', 'alertapastoral', 'visitanterecorrente',
         ], ['view'])
+        sec_perms |= boletim_perms
         sec_grp.permissions.set(sec_perms)
         self.stdout.write(f'Secretaria: {sec_perms.count()} permissoes atribuidas')
 

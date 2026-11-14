@@ -1,0 +1,135 @@
+{% extends "base_modern.html" %}
+{% load static %}
+{% load verificagrupo %}
+{% load boletim_extras %}
+
+{% block title %}Editar boletim{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'boletim/gestao.css' %}"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css">{% endblock %}
+
+{% block content %}
+<div class="bl-wrap">
+  <div class="bl-header">
+    <div>
+      <h2><i class="fas fa-newspaper"></i> {{ boletim.titulo_pt }} — {{ boletim.actividade.data|date:"d/m/Y" }}</h2>
+      <p class="bl-ajuda" style="margin:.35rem 0 0">{{ boletim.actividade.designacao }} · {{ boletim.actividade.inicio|time:"H:i" }}{% if boletim.actividade.tema %} · Tema: {{ boletim.actividade.tema }}{% endif %} · <span class="bl-badge {{ boletim.estado }}">{{ boletim.get_estado_display }}</span></p>
+    </div>
+    <div class="bl-acoes">
+      <a class="bl-btn sec" href="{% url 'boletim:gestao_lista' %}">Voltar</a>
+      <a class="bl-btn sec" href="{% url 'boletim:gestao_preview' boletim.pk %}" target="_blank" rel="noopener"><i class="fas fa-eye"></i> Pré-visualizar</a>
+      <form method="post" action="{% url 'boletim:gestao_publicar' boletim.pk %}" style="display:inline">
+        {% csrf_token %}
+        {% if boletim.publicado %}
+        <input type="hidden" name="accao" value="despublicar">
+        <button class="bl-btn perigo" type="submit"><i class="fas fa-eye-slash"></i> Despublicar</button>
+        {% else %}
+        <input type="hidden" name="accao" value="publicar">
+        <button class="bl-btn" type="submit"><i class="fas fa-globe"></i> Publicar</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="bl-card">
+      <h3>Dados gerais</h3>
+      {% if form.non_field_errors %}<div class="bl-erro">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="bl-grid">
+        {% for campo in form %}{% include "boletim/gestao/_campo.html" %}{% endfor %}
+      </div>
+    </div>
+
+    <div class="bl-card">
+      <h3>Ordem do culto</h3>
+      <p class="bl-ajuda">Os itens aparecem pela ordem do campo «Ordem» (do mais baixo para o mais alto). Para remover um item, marque «Remover». Há sempre duas linhas vazias para acrescentar itens novos.</p>
+      {{ formset.management_form }}
+      {% if formset.non_form_errors %}<div class="bl-erro">{{ formset.non_form_errors }}</div>{% endif %}
+      <table class="bl-tabela">
+        <thead><tr><th>Ordem</th><th>Título</th><th>Título (EN)</th><th>Detalhe</th><th>Remover</th></tr></thead>
+        <tbody>
+          {% for f in formset %}
+          <tr>
+            <td class="ordem">{% for h in f.hidden_fields %}{{ h }}{% endfor %}{{ f.ordem }}{% if f.ordem.errors %}<div class="bl-erro">{{ f.ordem.errors }}</div>{% endif %}</td>
+            <td>{{ f.titulo_pt }}{% if f.titulo_pt.errors %}<div class="bl-erro">{{ f.titulo_pt.errors }}</div>{% endif %}</td>
+            <td>{{ f.titulo_en }}</td>
+            <td>{{ f.detalhe }}</td>
+            <td>{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p><button class="bl-btn" type="submit"><i class="fas fa-save"></i> Gravar</button></p>
+  </form>
+
+  <div class="bl-card">
+    <h3>Escalas que aparecem no boletim</h3>
+    {% if escalas %}
+    <table class="bl-tabela">
+      <tbody>
+        {% for e in escalas %}<tr><td>{{ e.rotulo }}</td><td>{{ e.nomes|join:", " }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="bl-ajuda">Nenhuma escala visível. Só aparecem as funções configuradas em «Funções no boletim» (Admin) com irmãos escalados para esta actividade.</p>
+    {% endif %}
+  </div>
+
+  <div class="bl-card">
+    <div class="bl-header" style="margin-bottom:1rem">
+      <h3 style="margin:0">Anúncios válidos para {{ boletim.actividade.data|date:"d/m/Y" }}</h3>
+      {% if perms.sitetibl.add_anuncio %}<a class="bl-btn pequeno" href="{% url 'boletim:gestao_anuncio_novo' %}?data={{ boletim.actividade.data|date:'Y-m-d' }}&voltar={{ boletim.pk }}"><i class="fas fa-plus"></i> Novo anúncio</a>{% endif %}
+    </div>
+    {% if anuncios %}
+    <table class="bl-tabela">
+      <thead><tr><th>Ordem</th><th>Título</th><th>Período</th><th>Visibilidade</th><th></th></tr></thead>
+      <tbody>
+        {% for a in anuncios %}
+        <tr>
+          <td>{{ a.ordem }}</td>
+          <td>{% if a.titulo %}{{ a.titulo }}{% else %}{{ a.texto|texto_plano|truncatechars:60 }}{% endif %}</td>
+          <td>{{ a.data_inicio|date:"d/m/Y" }}{% if a.data_fim %} a {{ a.data_fim|date:"d/m/Y" }}{% endif %}</td>
+          <td>{% if a.publico %}<span class="bl-badge publicado">Público</span>{% else %}<span class="bl-badge privado">Interno</span>{% endif %}</td>
+          <td>{% if perms.sitetibl.change_anuncio %}<a class="bl-btn pequeno sec" href="{% url 'boletim:gestao_anuncio_editar' a.pk %}?voltar={{ boletim.pk }}">Editar</a>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="bl-ajuda">Não há anúncios para esta data.</p>
+    {% endif %}
+  </div>
+
+  <div class="bl-card">
+    <h3><i class="fab fa-whatsapp"></i> Mensagem para WhatsApp</h3>
+    {% if not boletim.publicado %}<p class="bl-ajuda">Atenção: o boletim ainda está em rascunho e o link só funciona depois de publicado.</p>{% endif %}
+    <textarea id="bl-msg-whatsapp" class="bl-whatsapp" readonly>{{ mensagem_whatsapp }}</textarea>
+    <p style="margin-top:.75rem"><button type="button" class="bl-btn" id="bl-copiar"><i class="fas fa-copy"></i> Copiar mensagem para WhatsApp</button> <span id="bl-copiado" class="bl-ajuda" hidden>Copiado!</span></p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+<script src="{% static 'boletim/editor.js' %}"></script>
+<script>
+(function () {
+  var botao = document.getElementById('bl-copiar');
+  var texto = document.getElementById('bl-msg-whatsapp');
+  var aviso = document.getElementById('bl-copiado');
+  if (!botao || !texto) { return; }
+  botao.addEventListener('click', function () {
+    var feito = function () { aviso.hidden = false; setTimeout(function () { aviso.hidden = true; }, 2500); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(texto.value).then(feito);
+    } else {
+      texto.select();
+      document.execCommand('copy');
+      feito();
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,6 @@
+<div class="bl-campo{% if 'bl-richtext' in campo.field.widget.attrs.class %} bl-largo{% endif %}">
+  {{ campo.label_tag }}
+  {{ campo }}
+  {% if campo.help_text %}<div class="bl-ajuda">{{ campo.help_text }}</div>{% endif %}
+  {% if campo.errors %}<div class="bl-erro">{{ campo.errors }}</div>{% endif %}
+</div>
