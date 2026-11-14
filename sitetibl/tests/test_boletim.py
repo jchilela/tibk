@@ -1,9 +1,10 @@
 """Testes do boletim digital (app ``boletim``)."""
 import sys
 from copy import copy
-from datetime import date, time, timedelta
+from datetime import date, datetime, time, timedelta
 from io import StringIO
 from unittest import mock
+from urllib.parse import quote
 
 if sys.version_info >= (3, 14):
     # O Django 4.2.5 não suporta Python 3.14: o cliente de testes copia o
@@ -103,17 +104,23 @@ class PaginaPublicaTest(BoletimBase):
         depois.actividade.save()
 
         r = self.client.get(reverse('boletim:actual'))
+        self.assertContains(r, 'Encontre o seu culto')
         self.assertContains(r, 'Tema próximo')
-        self.assertNotContains(r, 'Tema rascunho')
+        self.assertContains(r, f'?culto={proximo.id}')
+        self.assertContains(r, 'Tema rascunho')
+        self.assertNotContains(r, f'?culto={rascunho.id}')
         self.assertNotContains(r, 'Tema passado')
+        self.assertNotContains(r, 'Tema depois')
 
-    def test_actual_sem_futuro_mostra_ultimo(self):
+    def test_actual_sem_futuro_esconde_passados(self):
         for dias, tema in ((14, 'Tema antigo'), (7, 'Tema último')):
             b = self.criar_boletim(self.hoje - timedelta(days=dias))
             b.actividade.tema = tema
             b.actividade.save()
         r = self.client.get(reverse('boletim:actual'))
-        self.assertContains(r, 'Tema último')
+        self.assertContains(r, 'Próximos cultos')
+        self.assertContains(r, 'Ainda não há nenhum boletim publicado.')
+        self.assertNotContains(r, 'Tema último')
         self.assertNotContains(r, 'Tema antigo')
 
     def test_actual_sem_boletins(self):
@@ -123,9 +130,66 @@ class PaginaPublicaTest(BoletimBase):
 
     def test_hoje_conta_como_proximo(self):
         b = self.criar_boletim(self.hoje)
+        b.actividade.fim = time(23, 59)
         b.actividade.tema = 'Tema de hoje'
         b.actividade.save()
-        self.assertContains(self.client.get(reverse('boletim:actual')), 'Tema de hoje')
+        agora = datetime.combine(self.hoje, time(12, 0))
+        with mock.patch('boletim.services._agora', return_value=agora):
+            self.assertContains(self.client.get(reverse('boletim:actual')), 'Tema de hoje')
+
+    def test_evento_terminado_desaparece(self):
+        culto = self.criar_boletim(self.hoje)
+        culto.actividade.inicio = time(8, 0)
+        culto.actividade.fim = time(10, 0)
+        culto.actividade.tema = 'Culto da manhã'
+        culto.actividade.save()
+        Actividade.objects.create(
+            designacao=self.lista, data=self.hoje, inicio=time(7, 0), fim=time(8, 0),
+            tema='Ensaio já feito',
+        )
+        de_manha = datetime.combine(self.hoje, time(9, 0))
+        ao_meio_dia = datetime.combine(self.hoje, time(12, 0))
+        with mock.patch('boletim.services._agora', return_value=de_manha):
+            cedo = self.client.get(reverse('boletim:actual'))
+        self.assertContains(cedo, 'Culto da manhã')
+        self.assertContains(cedo, 'Próximos cultos')
+        self.assertNotContains(cedo, 'Ensaio já feito')
+        cache.clear()
+        with mock.patch('boletim.services._agora', return_value=ao_meio_dia):
+            tarde = self.client.get(reverse('boletim:actual'))
+        self.assertNotContains(tarde, 'Culto da manhã')
+        self.assertNotContains(tarde, 'Ensaio já feito')
+        self.assertContains(tarde, 'Ainda não há nenhum boletim publicado.')
+
+    def test_inicio_lista_evento_sem_boletim_e_esconde_nota(self):
+        from sitetibl.models import Sitio
+        Sitio.objects.create(designacao='Templo Central', tipo='1', ruaenumero='Rua secreta 9')
+        sitio = Sitio.objects.get(designacao='Templo Central')
+        culto = self.criar_boletim(self.hoje + timedelta(days=1))
+        culto.actividade.tema = 'Tema com boletim'
+        culto.actividade.save()
+        Actividade.objects.create(
+            designacao=self.lista, data=self.hoje + timedelta(days=2),
+            inicio=time(18, 0), fim=time(19, 30), tema='Ensaio interno',
+            localactividade=sitio, observacao='Nota secreta da reunião',
+        )
+        Actividade.objects.create(
+            designacao=self.lista, data=self.hoje + timedelta(days=3),
+            inicio=time(19, 0), fim=time(20, 0), tema='Série pai',
+            is_recorrente=True,
+        )
+        fora = self.criar_boletim(self.hoje + timedelta(days=10))
+        fora.actividade.tema = 'Fora da semana'
+        fora.actividade.save()
+        r = self.client.get(reverse('boletim:actual'))
+        self.assertContains(r, 'Ensaio interno')
+        self.assertContains(r, 'Templo Central')
+        self.assertContains(r, 'Ver boletim do culto')
+        self.assertContains(r, f'?culto={culto.id}')
+        self.assertNotContains(r, 'Nota secreta')
+        self.assertNotContains(r, 'Rua secreta')
+        self.assertNotContains(r, 'Série pai')
+        self.assertNotContains(r, 'Fora da semana')
 
     def test_anuncios_filtrados_por_data_e_publico(self):
         d = self.hoje
@@ -189,7 +253,32 @@ class PaginaPublicaTest(BoletimBase):
         r = self.client.get(self.url_data(self.hoje))
         self.assertContains(r, 'property="og:title"')
         self.assertContains(r, 'property="og:description"')
+        self.assertContains(r, 'property="og:image"')
+        self.assertContains(r, 'rel="canonical"')
+        self.assertContains(r, 'application/ld+json')
+        self.assertContains(r, 'Culto Dominical · 09h00')
         self.assertContains(r, 'A fé que vence')
+        self.assertContains(r, 'navigator.share({ title: titulo, text: texto, url: url })')
+
+    def test_inicio_partilha_o_proximo_culto(self):
+        b = self.criar_boletim(self.hoje + timedelta(days=1))
+        b.actividade.inicio = time(8, 0)
+        b.actividade.tema = 'Tema partilhável'
+        b.actividade.save()
+        r = self.client.get(reverse('boletim:actual'))
+        self.assertContains(r, 'property="og:title"')
+        self.assertContains(r, 'property="og:description"')
+        self.assertContains(r, 'property="og:image"')
+        self.assertContains(r, 'rel="canonical"')
+        self.assertContains(r, 'hreflang="en"')
+        self.assertContains(r, 'application/ld+json')
+        self.assertContains(r, 'Culto Dominical · 08h00')
+        self.assertContains(r, 'Tema partilhável')
+        self.assertContains(r, 'Partilhar o convite')
+        self.assertContains(r, 'https://wa.me/?text=')
+        self.assertContains(r, quote('Olá! É um prazer convidá-lo.'))
+        self.assertContains(r, quote('Tema: Tema partilhável'))
+        self.assertNotContains(r, self.irmao.telefone)
 
     def test_dois_cultos_no_mesmo_dia(self):
         b1 = self.criar_boletim(self.hoje, titulo_pt='Culto em Português')
@@ -270,7 +359,7 @@ class LinguaTest(BoletimBase):
         self.assertIn('Oração pastoral', conteudo)        # EN vazio → PT
         self.assertIn('Retreat', conteudo)
         self.assertIn('Inscrições abertas', conteudo)     # EN vazio → PT
-        self.assertIn('Order of service', conteudo)       # rótulo fixo em EN
+        self.assertIn('Service bulletin', conteudo)       # rótulo fixo em EN
         self.assertIn('lang="en"', conteudo)
         self.assertEqual(r.cookies['boletim_lang'].value, 'en')
 

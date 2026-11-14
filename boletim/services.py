@@ -7,18 +7,20 @@ telefone, email, etc.) chega aos templates públicos.
 import hashlib
 import re
 from collections import OrderedDict
-from datetime import date
+from datetime import date, timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db.models import F, Q
+from django.urls import reverse
+from django.utils import timezone
 
 from boletim.models import (
     Boletim, ConfiguracaoBoletim, FuncaoBoletim, ItemOrdemCulto, ProgramaSemanal,
 )
 from boletim.textos import TEXTOS, data_extenso, hora, tr
-from sitetibl.models import Anuncio, Escala, NotificacaoSistema, VisitanteRecorrente
+from sitetibl.models import Actividade, Anuncio, Escala, NotificacaoSistema, VisitanteRecorrente
 
 
 # ── Selecção de boletins ─────────────────────────────────────
@@ -41,6 +43,96 @@ def boletim_actual(hoje=None):
 
 def boletins_da_data(d):
     return list(boletins_publicados().filter(actividade__data=d).order_by('actividade__inicio', 'id'))
+
+
+JANELA_DIAS = 7
+
+
+def _fim_janela(hoje):
+    return hoje + timedelta(days=JANELA_DIAS)
+
+
+def _agora():
+    """Hora local da igreja. Com USE_TZ desligado, é a hora do sistema."""
+    if settings.USE_TZ:
+        return timezone.localtime()
+    return timezone.now()
+
+
+def _q_proximos(agora, hoje, prefixo=''):
+    """Ainda não terminou: dias futuros da janela, ou hoje com hora de fim por vir."""
+    data = f'{prefixo}data'
+    fim = f'{prefixo}fim'
+    return (
+        Q(**{f'{data}__gt': hoje, f'{data}__lte': _fim_janela(hoje)})
+        | Q(**{data: hoje, f'{fim}__gte': agora.time()})
+    )
+
+
+def _url_culto(boletim):
+    return reverse('boletim:data', args=[boletim.actividade.data.isoformat()]) + f'?culto={boletim.id}'
+
+
+def _cartao_culto(boletim, lingua):
+    act = boletim.actividade
+    return {
+        'hora': hora(act.inicio),
+        'inicio_iso': f'{act.data.isoformat()}T{act.inicio.isoformat()}' if act.inicio else act.data.isoformat(),
+        'titulo': tr(lingua, boletim.titulo_pt, boletim.titulo_en),
+        'nome': str(act.designacao),
+        'tema': act.tema or '',
+        'url': _url_culto(boletim),
+    }
+
+
+def cultos_para_escolher(hoje, lingua, agora=None):
+    """Boletins publicados que ainda não terminaram, agrupados por dia.
+
+    Um culto do passado não entra. O segundo valor fica falso: a página
+    inicial não mostra boletins anteriores.
+    """
+    agora = agora or _agora()
+    boletins = list(
+        boletins_publicados()
+        .filter(_q_proximos(agora, hoje, 'actividade__'))
+        .order_by('actividade__data', 'actividade__inicio', 'id')
+    )
+    anteriores = False
+    dias = []
+    grupo = None
+    for boletim in boletins:
+        dia = boletim.actividade.data
+        if grupo is None or grupo['data'] != dia:
+            grupo = {'data': dia, 'data_extenso': data_extenso(dia, lingua), 'cultos': []}
+            dias.append(grupo)
+        grupo['cultos'].append(_cartao_culto(boletim, lingua))
+    return dias, anteriores
+
+
+def eventos_da_semana(hoje, lingua, agora=None):
+    """Actividades que ainda não terminaram. O url só existe com boletim publicado."""
+    agora = agora or _agora()
+    actividades = (Actividade.objects
+                   .filter(_q_proximos(agora, hoje))
+                   .exclude(is_recorrente=True, parent_event__isnull=True)
+                   .select_related('designacao', 'localactividade')
+                   .order_by('data', 'inicio', 'id'))
+    publicados = {
+        boletim.actividade_id: boletim
+        for boletim in boletins_publicados().filter(_q_proximos(agora, hoje, 'actividade__'))
+    }
+    eventos = []
+    for act in actividades:
+        boletim = publicados.get(act.id)
+        eventos.append({
+            'data_extenso': data_extenso(act.data, lingua),
+            'hora': hora(act.inicio),
+            'titulo': str(act.designacao),
+            'tema': act.tema or '',
+            'local': act.localactividade.designacao if act.localactividade_id else '',
+            'url': _url_culto(boletim) if boletim else '',
+        })
+    return eventos
 
 
 # ── Conteúdo ─────────────────────────────────────────────────
