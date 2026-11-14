@@ -1,0 +1,11 @@
+{% extends "boletim/base_publico.html" %}
+
+{% block meta %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block content %}
+<div class="cab">
+  <p class="igreja">{{ cfg.nome_igreja }}</p>
+</div>
+<p class="ok" role="status">{{ mensagem }}</p>
+<p class="rodape"><a href="{% url 'boletim:actual' %}">{{ t.voltar }}</a></p>
+{% endblock %}

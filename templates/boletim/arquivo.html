@@ -1,0 +1,33 @@
+{% extends "boletim/base_publico.html" %}
+
+{% block title %}{{ t.arquivo_titulo }} — {{ cfg.nome_igreja }}{% endblock %}
+
+{% block content %}
+<div class="cab">
+  <p class="igreja">{{ cfg.nome_igreja }}</p>
+  <h1>{{ t.arquivo_titulo }}</h1>
+</div>
+
+<section>
+  {% if itens %}
+  <ul class="lista">
+    {% for i in itens %}
+    <li>
+      <span><a href="{{ i.url }}">{{ i.data_extenso }}</a><br><small>{{ i.titulo }}{% if i.tema %} · {{ i.tema }}{% endif %}</small></span>
+      {% if i.gravacao %}<a class="det" href="{{ i.gravacao }}" rel="noopener">{{ t.gravacao }}</a>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>{{ t.sem_boletim }}</p>
+  {% endif %}
+
+  {% if pag.paginator.num_pages > 1 %}
+  <div class="pag">
+    {% if pag.has_previous %}<a href="?pagina={{ pag.previous_page_number }}">← {{ t.anterior }}</a>{% else %}<span></span>{% endif %}
+    <span>{{ t.pagina }} {{ pag.number }} {{ t.de }} {{ pag.paginator.num_pages }}</span>
+    {% if pag.has_next %}<a href="?pagina={{ pag.next_page_number }}">{{ t.seguinte }} →</a>{% else %}<span></span>{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

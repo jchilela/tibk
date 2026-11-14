@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'django_mysql',
     'rest_framework',
     'sitetibl',
+    'boletim',
     'django_celery_beat',
     'django_filters',
     'crispy_forms',
@@ -176,6 +177,36 @@ CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', "").split(',') if os.ge
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
+
+# Cache
+# Em produção (vários workers do gunicorn) a cache tem de ser partilhada,
+# senão a invalidação do boletim só chega ao worker que gravou. Definir
+# CACHE_REDIS_URL (por exemplo redis://127.0.0.1:6379/1) para usar o Redis.
+# Sem a variável, usa-se a LocMemCache (suficiente em desenvolvimento).
+CACHE_REDIS_URL = os.getenv('CACHE_REDIS_URL', '')
+if CACHE_REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': CACHE_REDIS_URL,
+            'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'tibl-default',
+        }
+    }
+
+# Boletim digital (formulários públicos)
+# Usar X-Forwarded-For só se o Nginx o definir (senão pode ser forjado).
+BOLETIM_TRUST_PROXY = os.getenv('BOLETIM_TRUST_PROXY', 'False').lower() in ('true', '1')
+# Salt para o hash dos IPs; por omissão é derivado do SECRET_KEY.
+BOLETIM_IP_SALT = os.getenv('BOLETIM_IP_SALT', '')
+# Máximo de submissões por hora, por IP e por formulário.
+BOLETIM_LIMITE_SUBMISSOES = int(os.getenv('BOLETIM_LIMITE_SUBMISSOES', '5'))
 
 #configuração do redis
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')

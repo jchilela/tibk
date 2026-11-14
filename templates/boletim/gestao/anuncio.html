@@ -1,0 +1,32 @@
+{% extends "base_modern.html" %}
+{% load static %}
+{% load verificagrupo %}
+
+{% block title %}{% if anuncio.pk %}Editar anúncio{% else %}Novo anúncio{% endif %}{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'boletim/gestao.css' %}">{% endblock %}
+
+{% block content %}
+<div class="bl-wrap">
+  <div class="bl-header">
+    <h2><i class="fas fa-bullhorn"></i> {% if anuncio.pk %}Editar anúncio{% else %}Novo anúncio{% endif %}</h2>
+    {% if voltar %}
+    <a class="bl-btn sec" href="{% url 'boletim:gestao_editar' voltar %}">Voltar ao boletim</a>
+    {% else %}
+    <a class="bl-btn sec" href="{% url 'boletim:gestao_lista' %}">Voltar</a>
+    {% endif %}
+  </div>
+
+  <div class="bl-card">
+    <p class="bl-ajuda">Só os anúncios marcados como «Público» aparecem no boletim. Sem data de fim, o anúncio aparece apenas no boletim da data de início. Ligue o anúncio a uma actividade para mostrar o botão «Adicionar ao calendário».</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="bl-erro">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="bl-grid">
+        {% for campo in form %}{% include "boletim/gestao/_campo.html" %}{% endfor %}
+      </div>
+      <p style="margin-top:1rem"><button class="bl-btn" type="submit"><i class="fas fa-save"></i> Gravar</button></p>
+    </form>
+  </div>
+</div>
+{% endblock %}

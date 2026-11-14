@@ -35,6 +35,9 @@ urlpatterns = [
     # App sitetibl
     path('tibl/', include('sitetibl.urls')),
 
+    # Boletim digital (páginas públicas + gestão)
+    path('boletim/', include('boletim.urls')),
+
     # django-scheduler (iCal + JSON feeds)
     path('schedule/', include('schedule.urls')),
 

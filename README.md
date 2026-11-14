@@ -15,6 +15,7 @@ Sistema de gestão integrada para administração de TIBL, desenvolvido em Djang
 - [Instalação](#instalação)
 - [Configuração](#configuração)
 - [Uso](#uso)
+- [Boletim Digital](#-boletim-digital)
 - [Documentação](#documentação)
 - [Contribuindo](#contribuindo)
 - [Licença](#licença)
@@ -257,6 +258,69 @@ GET /relatorios/departamentos/pdf/
 # Relatório de patrimônio
 GET /relatorios/inventario_patrimonio/pdf/
 ```
+
+## 📰 Boletim Digital
+
+O boletim semanal do culto é gerado a partir dos dados do sistema e publicado numa página pública, sem *login*, em `/boletim/`. A app chama-se `boletim` e é separada de `sitetibl`.
+
+### Fluxo semanal
+
+1. **Preparar o culto.** Criar (ou confirmar) a `Actividade` do culto com o tema, os versículos e os hinos, e as escalas (dirigente, pregador, intérprete...).
+2. **Criar o boletim.** Em *Boletim → Boletins → Novo boletim*, escolher a actividade e o modelo da ordem do culto. A leitura bíblica e o hino são pré-preenchidos a partir da actividade e os itens do modelo são copiados. O boletim fica em **rascunho**.
+3. **Rever.** Em *Editar boletim*:
+   - acertar os dados gerais (textos em PT e, opcionalmente, em EN);
+   - ajustar a ordem do culto (campo «Ordem»; marcar «Remover» para apagar um item);
+   - rever os anúncios do período e criar ou editar os que faltam. Só os anúncios marcados como **Público** aparecem. Sem data de fim, o anúncio aparece apenas no boletim da data de início;
+   - usar **Pré-visualizar** para ver a página pública tal como vai ficar.
+4. **Publicar.** Carregar em **Publicar**. A página `/boletim/` passa a mostrar este boletim (o próximo publicado a partir de hoje; na falta dele, o último).
+5. **Partilhar.** Carregar em **Copiar mensagem para WhatsApp** e colar no grupo. A mensagem leva o título, a data, o pregador, o tema e o link.
+6. **Depois do culto.** Acrescentar o link da gravação e as notas do sermão. Aparecem na mesma página e no arquivo (`/boletim/arquivo/`).
+
+Configuração inicial (uma vez, no Admin Django):
+
+- **Configuração do boletim:** nome da igreja e da congregação, redes sociais (os links são validados) e liderança pastoral.
+- **Funções no boletim:** que funções da escala aparecem e com que nome (por exemplo, «Dirigente» → «Dirigente do Culto» / «Service Leader»). Funções sem esta configuração não aparecem. O pregador da mensagem de WhatsApp é a função cujo nome ou rótulo contém «Pregador» ou «Pregação».
+- **Modelos de ordem do culto** e **Programas semanais**.
+
+### Páginas públicas
+
+| Rota | Conteúdo |
+|---|---|
+| `/boletim/` | Próximo boletim publicado (ou o último) |
+| `/boletim/AAAA-MM-DD/` | Boletim de uma data (404 se estiver em rascunho). Com dois cultos no mesmo dia, mostra o primeiro e tem links para os outros (`?culto=<id>`) |
+| `/boletim/AAAA-MM-DD/pdf/` | PDF A4 para impressão |
+| `/boletim/anuncio/<id>.ics` | «Adicionar ao calendário» (anúncios públicos ligados a uma actividade) |
+| `/boletim/arquivo/` | Boletins publicados, com link para a gravação |
+| `/boletim/visitante/` | Cartão de visitante (cria ou actualiza um `VisitanteRecorrente` e notifica a Secretaria e o Pastor) |
+| `/boletim/oracao/` | Pedido de oração (notifica só o Pastor; o texto do pedido nunca vai na notificação) |
+
+A língua é PT por omissão. `?lang=en` muda para inglês e fica guardada num *cookie*. Os campos EN vazios caem para PT.
+
+### Permissões
+
+Atribuídas pelo `seed_base_data`:
+
+- **Administrador e Pastor:** tudo, incluindo os pedidos de oração.
+- **Secretaria:** tudo excepto os pedidos de oração.
+- **Restantes grupos:** sem acesso.
+
+Os anúncios seguem as permissões já existentes de `sitetibl.Anuncio`. «Converter em caso pastoral» exige também `sitetibl.add_casopastoral`.
+
+### Pôr no ar
+
+1. `python manage.py migrate` e `python manage.py seed_base_data` (actualiza as permissões dos grupos).
+2. `python manage.py collectstatic`. A página pública usa `static/boletim/boletim.css`.
+3. **Cache partilhada (recomendado).** As páginas e o PDF ficam 5 minutos na cache e são invalidados quando se grava um boletim, um anúncio, uma escala, a configuração, etc. Com vários *workers* do gunicorn, a `LocMemCache` por omissão é independente em cada processo: a invalidação só chega a um deles e os outros podem servir a versão antiga até 5 minutos. Em produção, definir no `.env`:
+   ```
+   CACHE_REDIS_URL=redis://127.0.0.1:6379/1
+   ```
+   O `django_redis` já está no `requirements.txt`. Usar uma base Redis diferente da do Celery.
+4. **IP real por trás do Nginx.** O limite de submissões dos formulários (por omissão 5 por hora, por IP e por formulário: `BOLETIM_LIMITE_SUBMISSOES`) e o *hash* do IP usam `REMOTE_ADDR`. Por trás do Nginx, configurar
+   ```
+   proxy_set_header X-Forwarded-For $remote_addr;
+   ```
+   e definir `BOLETIM_TRUST_PROXY=True`. Sem isto, todos os pedidos parecem vir do mesmo IP. Opcional: `BOLETIM_IP_SALT` (por omissão é derivado do `SECRET_KEY`).
+5. **Domínio.** A app funciona montada em `/boletim/` no domínio actual (`gestao.tibl.ao/boletim/`). Para servir em `tibl.ao/boletim`, basta um `location /boletim/` (e `/static/boletim/`) no Nginx do `tibl.ao` com `proxy_pass` para o gunicorn, e acrescentar `tibl.ao` a `ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS`.
 
 ## 📚 Documentação
 

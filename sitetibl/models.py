@@ -433,7 +433,26 @@ class Anuncio(models.Model):
      data = models.DateField()
      texto = models.TextField()
      quemanuncia = models.ForeignKey(Irmao, on_delete = models.CASCADE)
+     # ── Boletim digital ──
+     titulo = models.CharField('Título', max_length=200, blank=True, default='')
+     titulo_en = models.CharField('Título (EN)', max_length=200, blank=True, default='')
+     texto_en = models.TextField('Texto (EN)', blank=True, default='')
+     data_inicio = models.DateField('Mostrar a partir de', null=True)
+     data_fim = models.DateField('Mostrar até', null=True, blank=True,
+                                 help_text='Se ficar vazio, o anúncio só aparece no boletim da data de início.')
+     publico = models.BooleanField('Público (aparece no boletim)', default=False)
+     actividade = models.ForeignKey(Actividade, null=True, blank=True, on_delete=models.SET_NULL,
+                                    related_name='anuncios', verbose_name='Actividade relacionada')
+     ordem = models.PositiveSmallIntegerField('Ordem', default=0)
+
+     def save(self, *args, **kwargs):
+         if self.data_inicio is None:
+             self.data_inicio = self.data
+         super().save(*args, **kwargs)
+
      def __str__(self):
+         if self.titulo:
+             return '%s — %s' % (self.data, self.titulo)
          return '%s' % self.data
      class Admin:
          pass
