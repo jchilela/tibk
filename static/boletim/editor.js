@@ -19,6 +19,7 @@
     holder.className = 'bl-editor';
     ta.parentNode.insertBefore(holder, ta);
     ta.style.display = 'none';
+    holder.style.height = 'auto';
     var editor = new Quill(holder, {
       theme: 'snow',
       modules: {
@@ -31,6 +32,7 @@
         ]
       }
     });
+    if (editor.container) { editor.container.style.height = 'auto'; }
     var inicial = paraHtml(ta.value);
     if (inicial) { editor.clipboard.dangerouslyPasteHTML(inicial); }
     var form = ta.closest('form');
