@@ -17,7 +17,7 @@ from boletim import services
 from boletim.forms import AnuncioForm, BoletimForm, ConverterPedidoForm, ItensFormSet, NovoBoletimForm
 from boletim.models import Boletim, ItemOrdemCulto, PedidoOracao
 from boletim.textos import lingua_do_pedido
-from boletim.views_publicas import render_boletim
+from boletim.views_publicas import _absoluto, render_boletim
 from sitetibl.models import Anuncio, CasoPastoral, Irmao
 
 
@@ -101,7 +101,7 @@ def editar(request, pk):
     # Todos os anúncios do período (públicos ou não), para rever e editar.
     anuncios = Anuncio.objects.filter(
         Q(data_inicio__lte=data, data_fim__gte=data) | Q(data_fim__isnull=True, data_inicio=data))
-    url_publico = request.build_absolute_uri(reverse('boletim:data', args=[data.isoformat()]))
+    url_publico = _absoluto(request, reverse('boletim:data', args=[data.isoformat()]))
     if Boletim.objects.filter(actividade__data=data).exclude(pk=boletim.pk).exists():
         url_publico += f'?culto={boletim.pk}'
     return render(request, 'boletim/gestao/editar.html', {
