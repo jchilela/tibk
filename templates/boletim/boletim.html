@@ -1,7 +1,10 @@
 {% extends "boletim/base_publico.html" %}
+{% load static %}
+{% load boletim_extras %}
 
 {% block title %}{{ og_titulo }} · {{ cfg.nome_igreja }}{% endblock %}
 {% block descricao %}{{ og_descricao }}{% endblock %}
+{% block body_class %}tem-barra{% endblock %}
 
 {% block meta %}
 <meta property="og:type" content="website">
@@ -17,12 +20,26 @@
 {% block content %}
 {% if pre_visualizacao %}<p class="aviso">{{ t.pre_visualizacao }}</p>{% endif %}
 
-<div class="cab">
+<header class="hero">
+  <img class="logo-hero" src="{% static 'fotos/2022/cba.png' %}" alt="">
+  <p class="sobretitulo">{{ t.boletim }}</p>
   <p class="igreja">{{ cfg.nome_igreja }}</p>
   {% if cfg.congregacao %}<p class="cong">{{ cfg.congregacao }}</p>{% endif %}
   <h1>{{ b.titulo }}</h1>
   <p class="data">{{ b.data_extenso }}{% if b.hora_inicio %} · {{ b.hora_inicio }}{% endif %}</p>
   {% if b.tema %}<p class="tema">{{ t.tema }}: {{ b.tema }}</p>{% endif %}
+</header>
+
+{% if b.link_transmissao %}
+<p class="destaque"><a class="btn" href="{{ b.link_transmissao }}" rel="noopener">{{ t.transmissao }}</a></p>
+{% endif %}
+
+<div class="barra">
+  <button type="button" class="btn partilhar" id="bl-partilhar" aria-label="{{ t.partilhar_longo }}">
+    <span class="rotulo">{{ t.partilhar }}</span>
+    <span class="feito" hidden>{{ t.copiado }}</span>
+  </button>
+  <a class="btn sec" href="{{ url_pdf }}">{{ t.pdf_btn }}</a>
 </div>
 
 {% if outros %}
@@ -34,24 +51,20 @@
 </section>
 {% endif %}
 
-{% if b.link_transmissao %}
-<p><a class="btn" href="{{ b.link_transmissao }}" rel="noopener">{{ t.transmissao }}</a></p>
-{% endif %}
-
 {% if b.itens %}
 <section>
   <h2>{{ t.ordem_culto }}</h2>
   <ol class="ordem">
-    {% for i in b.itens %}<li><span>{{ i.titulo }}</span>{% if i.detalhe %}<span class="det">{{ i.detalhe }}</span>{% endif %}</li>{% endfor %}
+    {% for i in b.itens %}<li><span class="item-txt"><span>{{ i.titulo }}</span>{% if i.detalhe %}<span class="det">{{ i.detalhe }}</span>{% endif %}</span></li>{% endfor %}
   </ol>
 </section>
 {% endif %}
 
 {% if b.leitura_referencia or b.leitura_texto %}
-<section>
+<section class="leitura">
   <h2>{{ t.leitura }}</h2>
   {% if b.leitura_referencia %}<p class="ref">{{ b.leitura_referencia }}</p>{% endif %}
-  {% if b.leitura_texto %}<div class="texto">{{ b.leitura_texto|linebreaks }}</div>{% endif %}
+  {% if b.leitura_texto %}<div class="texto">{{ b.leitura_texto|formatado }}</div>{% endif %}
 </section>
 {% endif %}
 
@@ -59,7 +72,7 @@
 <section>
   <h2>{{ t.hino }}</h2>
   {% if b.hino_referencia %}<p class="ref">{{ b.hino_referencia }}</p>{% endif %}
-  {% if b.hino_letra %}<div class="texto">{{ b.hino_letra|linebreaks }}</div>{% endif %}
+  {% if b.hino_letra %}<div class="texto hino">{{ b.hino_letra|formatado }}</div>{% endif %}
 </section>
 {% endif %}
 
@@ -78,7 +91,7 @@
   {% for a in b.anuncios %}
   <div class="anuncio">
     {% if a.titulo %}<h3>{{ a.titulo }}</h3>{% endif %}
-    {{ a.texto|linebreaks }}
+    <div class="texto">{{ a.texto|formatado }}</div>
     {% if a.tem_calendario %}<a class="cal" href="{% url 'boletim:anuncio_ics' a.id %}?lang={{ lingua }}">{{ t.adicionar_calendario }}</a>{% endif %}
   </div>
   {% endfor %}
@@ -103,7 +116,7 @@
 <section>
   <h2>{{ t.depois_culto }}</h2>
   {% if b.link_gravacao %}<p><a class="btn sec" href="{{ b.link_gravacao }}" rel="noopener">{{ t.gravacao }}</a></p>{% endif %}
-  {% if b.notas_sermao %}<h3>{{ t.notas_sermao }}</h3><div class="texto">{{ b.notas_sermao|linebreaks }}</div>{% endif %}
+  {% if b.notas_sermao %}<h3>{{ t.notas_sermao }}</h3><div class="texto">{{ b.notas_sermao|formatado }}</div>{% endif %}
 </section>
 {% endif %}
 
@@ -120,10 +133,56 @@
 <section>
   <h2>{{ t.redes }}</h2>
   <div class="redes">
-    {% for r in cfg.redes %}<a href="{{ r.url }}" rel="noopener">{{ r.nome }}</a>{% endfor %}
+    {% for r in cfg.redes %}
+    <a class="rede {{ r.chave }}" href="{{ r.url }}" rel="noopener" target="_blank">
+      {% if r.chave == "youtube" %}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23 12.2s0-3.2-.4-4.6c-.2-.9-.9-1.6-1.8-1.8C19.2 5.4 12 5.4 12 5.4s-7.2 0-8.8.4c-.9.2-1.6.9-1.8 1.8C1 9 1 12.2 1 12.2s0 3.2.4 4.6c.2.9.9 1.6 1.8 1.8 1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.4.4-4.6.4-4.6zM9.8 15.5v-6.6l6.2 3.3-6.2 3.3z"/></svg>{% elif r.chave == "facebook" %}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14.5 8.5V6.8c0-.7.5-1 1.2-1H17V3h-2.2C12.2 3 11 4.4 11 6.6v1.9H9v2.8h2V21h3.2v-9.7h2.2l.3-2.8h-2.2z"/></svg>{% elif r.chave == "instagram" %}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5zm8 2H8a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3zm-4 3.2A3.8 3.8 0 1 1 8.2 12 3.8 3.8 0 0 1 12 8.2zm0 2A1.8 1.8 0 1 0 13.8 12 1.8 1.8 0 0 0 12 10.2zM17.4 6.4a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"/></svg>{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm7.5 9h-3.1a15 15 0 0 0-1.2-5 8.1 8.1 0 0 1 4.3 5zM12 4c.8 1.1 1.8 3.2 2.2 7H9.8C10.2 7.2 11.2 5.1 12 4zM4.5 13a8.1 8.1 0 0 1 0-2h3.2a16 16 0 0 0 0 2H4.5zm.8 2h3.1a15 15 0 0 0 1.2 5 8.1 8.1 0 0 1-4.3-5zM12 20c-.8-1.1-1.8-3.2-2.2-7h4.4c-.4 3.8-1.4 5.9-2.2 7zm3.4 0a15 15 0 0 0 1.2-5h3.1a8.1 8.1 0 0 1-4.3 5zM16.4 11a16 16 0 0 0 0-2h3.2a8.1 8.1 0 0 1 0 2h-3.2z"/></svg>{% endif %}
+      <span>{{ r.nome }}</span>
+    </a>
+    {% endfor %}
   </div>
 </section>
 {% endif %}
+{% endblock %}
 
-<p class="rodape"><a href="{{ url_pdf }}">{{ t.pdf }}</a></p>
+{% block extra_js %}
+<script>
+(function () {
+  var botao = document.getElementById('bl-partilhar');
+  if (!botao) { return; }
+  var url = "{{ og_url|escapejs }}";
+  var rotulo = botao.querySelector('.rotulo');
+  var feito = botao.querySelector('.feito');
+  function mostrar() {
+    if (!rotulo || !feito) { return; }
+    rotulo.hidden = true;
+    feito.hidden = false;
+    setTimeout(function () { rotulo.hidden = false; feito.hidden = true; }, 2200);
+  }
+  function copiarPeloDocumento() {
+    var caixa = document.createElement('textarea');
+    caixa.value = url;
+    document.body.appendChild(caixa);
+    caixa.select();
+    document.execCommand('copy');
+    caixa.remove();
+    mostrar();
+  }
+  function copiar() {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(mostrar).catch(copiarPeloDocumento);
+      return;
+    }
+    copiarPeloDocumento();
+  }
+  botao.addEventListener('click', function () {
+    if (navigator.share) {
+      navigator.share({ title: document.title, url: url }).catch(function (erro) {
+        if (!erro || erro.name !== 'AbortError') { copiar(); }
+      });
+      return;
+    }
+    copiar();
+  });
+})();
+</script>
 {% endblock %}
