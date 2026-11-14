@@ -1,0 +1,52 @@
+/* Boletim digital TIBL — CSS público, mobile-first, sem dependências externas. */
+:root{--v:#1b4d3e;--v2:#2d6a4f;--claro:#f0fdf4;--txt:#1f2933;--sub:#5b6770;--linha:#e3e8e5;--fundo:#fafbfa;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--v:#7fd1a8;--v2:#95dcb6;--claro:#16261f;--txt:#e7ece9;--sub:#a3b0a9;--linha:#2b3a33;--fundo:#0f1613;--card:#15201b}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--fundo);color:var(--txt);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--v)}
+.topo{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--linha);background:var(--card);font-size:.9rem}
+.topo a{text-decoration:none;font-weight:600}
+main{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+.cab{text-align:center;padding:12px 0 18px}
+.cab .igreja{margin:0;font-size:1.05rem;color:var(--v);letter-spacing:.02em}
+.cab .cong{margin:2px 0 0;color:var(--sub);font-size:.9rem}
+.cab h1{margin:14px 0 4px;font-size:1.6rem;line-height:1.2}
+.cab .data{margin:0;color:var(--sub)}
+.cab .tema{margin:10px 0 0;font-style:italic}
+.aviso{background:#fff4d6;color:#6b4e00;border:1px solid #f0d58c;border-radius:8px;padding:10px 12px;margin:0 0 14px;font-size:.92rem}
+.erro{background:#fde8e8;color:#8a1c1c;border:1px solid #f3b9b9;border-radius:8px;padding:10px 12px;margin:0 0 14px}
+.ok{background:var(--claro);border:1px solid var(--linha);border-radius:8px;padding:16px;font-size:1.05rem}
+section{background:var(--card);border:1px solid var(--linha);border-radius:10px;padding:14px 16px;margin:0 0 14px}
+section h2{margin:0 0 10px;font-size:1.05rem;color:var(--v)}
+ol.ordem,ul.lista{margin:0;padding:0;list-style:none}
+ol.ordem li,ul.lista li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--linha)}
+ol.ordem li:last-child,ul.lista li:last-child{border-bottom:0}
+.det,.rot{color:var(--sub);font-size:.92rem;text-align:right}
+.rot{text-align:left;min-width:40%}
+.ref{font-weight:600;margin:0 0 6px}
+.texto{white-space:normal}
+.anuncio{padding:8px 0;border-bottom:1px solid var(--linha)}
+.anuncio:last-child{border-bottom:0}
+.anuncio h3{margin:0 0 4px;font-size:1rem}
+.anuncio p{margin:0 0 6px}
+.cal{font-size:.88rem}
+.botoes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
+.btn{display:block;text-align:center;padding:12px 10px;border-radius:10px;background:var(--v);color:#fff;text-decoration:none;font-weight:600;border:0;font-size:1rem;cursor:pointer;width:100%}
+@media (prefers-color-scheme:dark){.btn{color:#0f1613}}
+.btn.sec{background:transparent;color:var(--v);border:2px solid var(--v)}
+.redes{display:flex;flex-wrap:wrap;gap:8px}
+.redes a{padding:6px 12px;border:1px solid var(--linha);border-radius:999px;text-decoration:none;font-size:.92rem}
+.rodape{text-align:center;color:var(--sub);font-size:.85rem;margin-top:18px}
+.rodape a{margin:0 6px}
+form p{margin:0 0 14px}
+label{display:block;font-weight:600;margin:0 0 4px}
+input[type=text],input[type=tel],input[type=email],textarea{width:100%;padding:10px 12px;border:1px solid var(--linha);border-radius:8px;font:inherit;background:var(--card);color:var(--txt)}
+input[type=checkbox],input[type=radio]{width:20px;height:20px;vertical-align:middle;margin:0 6px 0 0}
+.opcoes label,.check label{display:inline;font-weight:400}
+.opcoes div{display:inline-block;margin-right:16px}
+.opcoes ul{list-style:none;padding:0;margin:4px 0 0;display:flex;gap:16px}
+.errorlist{list-style:none;padding:0;margin:4px 0 0;color:#b42318;font-size:.9rem}
+.hp{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+.pag{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:.92rem}
+@media print{.topo,.botoes,.rodape .nao-imprimir{display:none}section{border:0;padding:6px 0}body{background:#fff}}

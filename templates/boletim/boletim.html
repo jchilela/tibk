@@ -1,0 +1,129 @@
+{% extends "boletim/base_publico.html" %}
+
+{% block title %}{{ og_titulo }} · {{ cfg.nome_igreja }}{% endblock %}
+{% block descricao %}{{ og_descricao }}{% endblock %}
+
+{% block meta %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ cfg.nome_igreja }}">
+<meta property="og:title" content="{{ og_titulo }}">
+<meta property="og:description" content="{{ og_descricao }}">
+<meta property="og:url" content="{{ og_url }}">
+<meta property="og:locale" content="{{ t.og_locale }}">
+<link rel="canonical" href="{{ og_url }}">
+{% if pre_visualizacao %}<meta name="robots" content="noindex">{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if pre_visualizacao %}<p class="aviso">{{ t.pre_visualizacao }}</p>{% endif %}
+
+<div class="cab">
+  <p class="igreja">{{ cfg.nome_igreja }}</p>
+  {% if cfg.congregacao %}<p class="cong">{{ cfg.congregacao }}</p>{% endif %}
+  <h1>{{ b.titulo }}</h1>
+  <p class="data">{{ b.data_extenso }}{% if b.hora_inicio %} · {{ b.hora_inicio }}{% endif %}</p>
+  {% if b.tema %}<p class="tema">{{ t.tema }}: {{ b.tema }}</p>{% endif %}
+</div>
+
+{% if outros %}
+<section>
+  <h2>{{ t.outros_cultos }}</h2>
+  <ul class="lista">
+    {% for o in outros %}<li><a href="{{ o.url }}">{{ o.rotulo }}</a></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if b.link_transmissao %}
+<p><a class="btn" href="{{ b.link_transmissao }}" rel="noopener">{{ t.transmissao }}</a></p>
+{% endif %}
+
+{% if b.itens %}
+<section>
+  <h2>{{ t.ordem_culto }}</h2>
+  <ol class="ordem">
+    {% for i in b.itens %}<li><span>{{ i.titulo }}</span>{% if i.detalhe %}<span class="det">{{ i.detalhe }}</span>{% endif %}</li>{% endfor %}
+  </ol>
+</section>
+{% endif %}
+
+{% if b.leitura_referencia or b.leitura_texto %}
+<section>
+  <h2>{{ t.leitura }}</h2>
+  {% if b.leitura_referencia %}<p class="ref">{{ b.leitura_referencia }}</p>{% endif %}
+  {% if b.leitura_texto %}<div class="texto">{{ b.leitura_texto|linebreaks }}</div>{% endif %}
+</section>
+{% endif %}
+
+{% if b.hino_referencia or b.hino_letra %}
+<section>
+  <h2>{{ t.hino }}</h2>
+  {% if b.hino_referencia %}<p class="ref">{{ b.hino_referencia }}</p>{% endif %}
+  {% if b.hino_letra %}<div class="texto">{{ b.hino_letra|linebreaks }}</div>{% endif %}
+</section>
+{% endif %}
+
+{% if b.escalas %}
+<section>
+  <h2>{{ t.escalas }}</h2>
+  <ul class="lista">
+    {% for e in b.escalas %}<li><span class="rot">{{ e.rotulo }}</span><span>{{ e.nomes|join:", " }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if b.anuncios %}
+<section>
+  <h2>{{ t.anuncios }}</h2>
+  {% for a in b.anuncios %}
+  <div class="anuncio">
+    {% if a.titulo %}<h3>{{ a.titulo }}</h3>{% endif %}
+    {{ a.texto|linebreaks }}
+    {% if a.tem_calendario %}<a class="cal" href="{% url 'boletim:anuncio_ics' a.id %}?lang={{ lingua }}">{{ t.adicionar_calendario }}</a>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if b.programas %}
+<section>
+  <h2>{{ t.programas }}</h2>
+  <ul class="lista">
+    {% for p in b.programas %}<li><span><strong>{{ p.dia }}</strong> · {{ p.titulo }}</span><span class="det">{{ p.horario }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<div class="botoes">
+  <a class="btn" href="{% url 'boletim:visitante' %}">{{ t.sou_visitante }}</a>
+  <a class="btn sec" href="{% url 'boletim:oracao' %}">{{ t.pedido_oracao }}</a>
+</div>
+
+{% if b.link_gravacao or b.notas_sermao %}
+<section>
+  <h2>{{ t.depois_culto }}</h2>
+  {% if b.link_gravacao %}<p><a class="btn sec" href="{{ b.link_gravacao }}" rel="noopener">{{ t.gravacao }}</a></p>{% endif %}
+  {% if b.notas_sermao %}<h3>{{ t.notas_sermao }}</h3><div class="texto">{{ b.notas_sermao|linebreaks }}</div>{% endif %}
+</section>
+{% endif %}
+
+{% if cfg.lideranca %}
+<section>
+  <h2>{{ t.lideranca }}</h2>
+  <ul class="lista">
+    {% for l in cfg.lideranca %}<li><span>{{ l }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if cfg.redes %}
+<section>
+  <h2>{{ t.redes }}</h2>
+  <div class="redes">
+    {% for r in cfg.redes %}<a href="{{ r.url }}" rel="noopener">{{ r.nome }}</a>{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<p class="rodape"><a href="{{ url_pdf }}">{{ t.pdf }}</a></p>
+{% endblock %}

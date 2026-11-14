@@ -1,0 +1,26 @@
+{% load static %}<!DOCTYPE html>
+<html lang="{{ t.html_lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ t.boletim }} — {{ cfg.nome_igreja }}{% endblock %}</title>
+<meta name="description" content="{% block descricao %}{{ cfg.nome_igreja }}{% endblock %}">
+{% block meta %}{% endblock %}
+<meta name="theme-color" content="#1b4d3e">
+<link rel="stylesheet" href="{% static 'boletim/boletim.css' %}">
+</head>
+<body>
+<header class="topo">
+  <a href="{% url 'boletim:actual' %}">{{ t.boletim }}</a>
+  <a href="{{ url_lingua }}" hreflang="{{ t.outra_lingua }}" lang="{{ t.outra_lingua }}">{{ t.outra_lingua_nome }}</a>
+</header>
+<main>
+{% block content %}{% endblock %}
+<footer class="rodape">
+  <p>{{ cfg.nome_igreja }}</p>
+  <p class="nao-imprimir"><a href="{% url 'boletim:arquivo' %}">{{ t.arquivo }}</a></p>
+</footer>
+</main>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

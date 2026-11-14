@@ -1,0 +1,16 @@
+{% if erro %}<p class="erro" role="alert">{{ erro }}</p>{% endif %}
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% for campo in form %}
+  {% if campo.name == 'website' %}
+  <div class="hp" aria-hidden="true">{{ campo.label_tag }} {{ campo }}</div>
+  {% elif campo.name == 'primeira_vez' %}
+  <div class="opcoes"><p><label>{{ campo.label }}</label>{{ campo }}{{ campo.errors }}</p></div>
+  {% elif campo.field.widget.input_type == 'checkbox' %}
+  <p class="check">{{ campo }} {{ campo.label_tag }}{{ campo.errors }}</p>
+  {% else %}
+  <p>{{ campo.label_tag }}{{ campo }}{{ campo.errors }}</p>
+  {% endif %}
+  {% endfor %}
+  <button type="submit" class="btn">{{ t.enviar }}</button>
+</form>

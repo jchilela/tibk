@@ -1,0 +1,16 @@
+{% extends "boletim/base_publico.html" %}
+
+{% block title %}{{ t.oracao_titulo }} — {{ cfg.nome_igreja }}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block content %}
+<div class="cab">
+  <p class="igreja">{{ cfg.nome_igreja }}</p>
+  <h1>{{ t.oracao_titulo }}</h1>
+  <p class="data">{{ t.oracao_intro }}</p>
+</div>
+<section>
+  {% include "boletim/_formulario.html" %}
+</section>
+<p class="rodape"><a href="{% url 'boletim:actual' %}">{{ t.voltar }}</a></p>
+{% endblock %}
