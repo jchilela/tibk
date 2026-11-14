@@ -44,6 +44,7 @@ label{display:block;font-weight:600;margin:0 0 4px}
 input[type=text],input[type=tel],input[type=email],textarea{width:100%;padding:10px 12px;border:1px solid var(--linha);border-radius:8px;font:inherit;background:var(--card);color:var(--txt)}
 input[type=checkbox],input[type=radio]{width:20px;height:20px;vertical-align:middle;margin:0 6px 0 0}
 .opcoes label,.check label{display:inline;font-weight:400}
+.opcoes p>label{display:block;font-weight:600}
 .opcoes div{display:inline-block;margin-right:16px}
 .opcoes ul{list-style:none;padding:0;margin:4px 0 0;display:flex;gap:16px}
 .errorlist{list-style:none;padding:0;margin:4px 0 0;color:#b42318;font-size:.9rem}
