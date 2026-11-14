@@ -194,3 +194,14 @@ class NotificacaoChecklistAdmin(admin.ModelAdmin):
     list_filter = ['tipo', 'lida']
     search_fields = ['destinatario__nome', 'titulo', 'mensagem']
     readonly_fields = ['data_criacao', 'data_leitura']
+
+from sitetibl.models import Anuncio
+
+
+@admin.register(Anuncio)
+class AnuncioAdmin(admin.ModelAdmin):
+    list_display = ['data_inicio', 'data_fim', 'titulo', 'publico', 'ordem', 'quemanuncia']
+    list_filter = ['publico', 'data_inicio']
+    search_fields = ['titulo', 'texto', 'titulo_en']
+    raw_id_fields = ['quemanuncia', 'actividade']
+    ordering = ['-data_inicio', 'ordem']
