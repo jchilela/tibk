@@ -15,6 +15,7 @@ _PERMITIDAS = {'p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'bloc
 _VAZIAS = {'br'}
 _BRUTAS = {'script', 'style'}
 _QUEBRA = re.compile(r'(?:<br/>)+')
+_ASPAS = {'"': '&quot;'}
 
 
 def parece_html(valor):
@@ -58,8 +59,9 @@ class _Limpador(HTMLParser):
             if not href:
                 self.pilha.append('')
                 return
+            href_seguro = escape(href, _ASPAS)
             self.partes.append(
-                f'<a href="{escape(href, {"\"": "&quot;"})}" rel="noopener noreferrer" target="_blank">'
+                f'<a href="{href_seguro}" rel="noopener noreferrer" target="_blank">'
             )
             self.pilha.append('a')
             return
@@ -190,7 +192,8 @@ class _ParaPdf(HTMLParser):
             for nome, valor in attrs:
                 if nome.lower() == 'href':
                     href = valor or ''
-            self._abrir(f'<a href="{escape(href, {"\"": "&quot;"})}">', 'a')
+            href_seguro = escape(href, _ASPAS)
+            self._abrir(f'<a href="{href_seguro}">', 'a')
 
     def handle_endtag(self, tag):
         tag = tag.lower()
