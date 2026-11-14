@@ -10,6 +10,7 @@ Regras:
 import json
 from urllib.parse import quote
 
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
@@ -54,8 +55,27 @@ def _url_lingua(request, lingua_destino):
     return f'{request.path}?{params.urlencode()}'
 
 
+def _base_publica(request):
+    """Origem que o visitante usa. Atrás do proxy o Host chega como localhost."""
+    host = request.get_host().split(':')[0]
+    if host in ('localhost', '127.0.0.1'):
+        for origem in settings.CSRF_TRUSTED_ORIGINS:
+            origem = (origem or '').strip().rstrip('/')
+            if origem.startswith('http://') or origem.startswith('https://'):
+                return origem
+    return request.build_absolute_uri('/').rstrip('/')
+
+
+def _absoluto(request, caminho):
+    if caminho.startswith('http://') or caminho.startswith('https://'):
+        return caminho
+    if not caminho.startswith('/'):
+        caminho = '/' + caminho
+    return _base_publica(request) + caminho
+
+
 def _imagem_og(request):
-    return request.build_absolute_uri(static('fotos/2022/cba.png'))
+    return _absoluto(request, static('fotos/2022/cba.png'))
 
 
 def _com_lingua(url, lingua):
@@ -65,7 +85,7 @@ def _com_lingua(url, lingua):
 
 
 def _urls_lingua(request, caminho):
-    base = request.build_absolute_uri(caminho)
+    base = _absoluto(request, caminho)
     return {'pt': _com_lingua(base, 'pt'), 'en': _com_lingua(base, 'en')}
 
 
@@ -191,7 +211,7 @@ def render_boletim(request, boletim, lingua, outros=(), pre_visualizacao=False):
         'og_texto': '\n'.join(linhas),
         'ld_json': _json_ld({
             '@context': 'https://schema.org',
-            **_evento_ld(nome, inicio_iso, og_descricao, request.build_absolute_uri(_com_lingua(caminho, lingua)), cfg['nome_igreja']),
+            **_evento_ld(nome, inicio_iso, og_descricao, _absoluto(request, _com_lingua(caminho, lingua)), cfg['nome_igreja']),
         }),
         'url_pdf': reverse('boletim:pdf', args=[b['data_iso']]) + sufixo_culto,
         'url_lingua': _url_lingua(request, t['outra_lingua']),
@@ -239,7 +259,7 @@ def boletim_actual(request):
                     detalhe += f". {t['tema']}: {culto['tema']}"
                 eventos_ld.append(_evento_ld(
                     culto['nome'], culto['inicio_iso'], detalhe,
-                    request.build_absolute_uri(culto['url']), cfg['nome_igreja'],
+                    _absoluto(request, culto['url']), cfg['nome_igreja'],
                 ))
         return render_to_string('boletim/inicio.html', {
             't': t,

@@ -280,6 +280,14 @@ class PaginaPublicaTest(BoletimBase):
         self.assertContains(r, quote('Tema: Tema partilhável'))
         self.assertNotContains(r, self.irmao.telefone)
 
+    @override_settings(ALLOWED_HOSTS=['localhost', 'testserver'], CSRF_TRUSTED_ORIGINS=['https://gestao.tibl.ao'])
+    def test_convite_usa_o_endereco_publico_atras_do_proxy(self):
+        self.criar_boletim(self.hoje + timedelta(days=1))
+        r = self.client.get(reverse('boletim:actual'), HTTP_HOST='localhost')
+        self.assertContains(r, 'https://gestao.tibl.ao/boletim/')
+        self.assertContains(r, 'https://gestao.tibl.ao/static/fotos/2022/cba.png')
+        self.assertNotContains(r, 'localhost')
+
     def test_dois_cultos_no_mesmo_dia(self):
         b1 = self.criar_boletim(self.hoje, titulo_pt='Culto em Português')
         act2 = self.criar_actividade(self.hoje, inicio=time(11, 30))
