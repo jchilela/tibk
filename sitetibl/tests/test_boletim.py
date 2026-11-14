@@ -31,7 +31,7 @@ from boletim.models import (
     Boletim, ConfiguracaoBoletim, FuncaoBoletim, ItemModeloOrdemCulto, ItemOrdemCulto,
     ModeloOrdemCulto, PedidoOracao, ProgramaSemanal,
 )
-from boletim.htmlutil import para_pdf, sanitizar_campo
+from boletim.htmlutil import para_pdf, sanitizar_campo, texto_plano
 from boletim.services import normalizar_telefone
 from sitetibl.models import (
     Actividade, Anuncio, CasoPastoral, Escala, Funcao, Irmao, Listaactividades,
@@ -699,6 +699,12 @@ class SeederPermissoesTest(TestCase):
 
 
 class HtmlBoletimTest(SimpleTestCase):
+    def test_texto_plano_remove_etiquetas(self):
+        self.assertEqual(
+            texto_plano('<p><strong>Dirigente:</strong> Jorge Sozinho<br><strong>Pregador:</strong> José</p>'),
+            'Dirigente: Jorge Sozinho Pregador: José',
+        )
+
     def test_texto_simples_nao_e_interpretado_como_html(self):
         bruto = 'Porque Deus amou o mundo <de tal> maneira & ...'
         self.assertEqual(sanitizar_campo('Linha 1\nLinha 2'), 'Linha 1\nLinha 2')
